@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
-using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -41,6 +40,26 @@ namespace LinqToDB.Data
 			ConnectionString = ci.ConnectionString;
 			_mappingSchema   = DataProvider.MappingSchema;
 		}
+
+        public DataConnection([JetBrains.Annotations.NotNull] string providerName, [JetBrains.Annotations.NotNull] string connectionString)
+        {
+            if (providerName == null) throw new ArgumentNullException("providerName");
+            if (connectionString == null) throw new ArgumentNullException("connectionString");
+
+            var dataProvider = (
+                from key in _dataProviders.Keys
+                where string.Compare(key, providerName, StringComparison.InvariantCultureIgnoreCase) == 0
+                select _dataProviders[key]).FirstOrDefault();
+
+            if (dataProvider == null)
+            {
+                throw new LinqToDBException("DataProvider with name '{0}' are not compatible.".Args(providerName));
+            }
+
+            DataProvider = dataProvider;
+            ConnectionString = connectionString;
+            _mappingSchema = DataProvider.MappingSchema;
+        }
 
 		public DataConnection([JetBrains.Annotations.NotNull] IDataProvider dataProvider, [JetBrains.Annotations.NotNull] string connectionString)
 		{
@@ -492,10 +511,10 @@ namespace LinqToDB.Data
 
 		public string LastQuery;
 
-		internal void InitCommand(string sql)
+		internal void InitCommand(CommandType commandType, string sql, DataParameter[] parameters)
 		{
-			DataProvider.InitCommand(this);
-			Command.CommandText = LastQuery = sql;
+			DataProvider.InitCommand(this, commandType, sql, parameters);
+			LastQuery = Command.CommandText;
 		}
 
 		private int? _commandTimeout;

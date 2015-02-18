@@ -160,10 +160,10 @@ namespace LinqToDB.DataProvider.DB2
 			return _sqlOptimizer;
 		}
 
-		public override void InitCommand(DataConnection dataConnection)
+		public override void InitCommand(DataConnection dataConnection, CommandType commandType, string commandText, DataParameter[] parameters)
 		{
 			dataConnection.DisposeCommand();
-			base.InitCommand(dataConnection);
+			base.InitCommand(dataConnection, commandType, commandText, parameters);
 		}
 
 		static Action<IDbDataParameter> _setBlob;
