@@ -61,6 +61,26 @@ namespace LinqToDB.Data
             _mappingSchema = DataProvider.MappingSchema;
         }
 
+        public DataConnection([JetBrains.Annotations.NotNull] string providerName, [JetBrains.Annotations.NotNull] IDbConnection connection)
+        {
+            if (providerName == null) throw new ArgumentNullException("providerName");
+            if (connection == null) throw new ArgumentNullException("connection");
+
+            var dataProvider = (
+                from key in _dataProviders.Keys
+                where string.Compare(key, providerName, StringComparison.InvariantCultureIgnoreCase) == 0
+                select _dataProviders[key]).FirstOrDefault();
+
+            if (dataProvider == null)
+            {
+                throw new LinqToDBException("DataProvider with name '{0}' are not compatible.".Args(providerName));
+            }
+
+            DataProvider = dataProvider;
+            _mappingSchema = DataProvider.MappingSchema;
+            _connection = connection;
+        }
+
 		public DataConnection([JetBrains.Annotations.NotNull] IDataProvider dataProvider, [JetBrains.Annotations.NotNull] string connectionString)
 		{
 			if (dataProvider     == null) throw new ArgumentNullException("dataProvider");
