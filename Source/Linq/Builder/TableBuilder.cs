@@ -226,10 +226,10 @@ namespace LinqToDB.Linq.Builder
 				}
 			}
 
-		    protected virtual List<SelectQuery.Condition> GetDescriminatorConditionsStorage()
-		    {
-		        return SelectQuery.Where.SearchCondition.Conditions;
-		    }
+			protected virtual List<SelectQuery.Condition> GetDescriminatorConditionsStorage()
+			{
+				return SelectQuery.Where.SearchCondition.Conditions;
+			}
 
 			#endregion
 
