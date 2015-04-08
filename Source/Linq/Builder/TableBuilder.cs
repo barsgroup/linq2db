@@ -222,9 +222,14 @@ namespace LinqToDB.Linq.Builder
 					var predicate = Builder.MakeIsPredicate(this, OriginalType);
 
 					if (predicate.GetType() != typeof(SelectQuery.Predicate.Expr))
-						SelectQuery.Where.SearchCondition.Conditions.Add(new SelectQuery.Condition(false, predicate));
+						GetDescriminatorConditionsStorage().Add(new SelectQuery.Condition(false, predicate));
 				}
 			}
+
+		    protected virtual List<SelectQuery.Condition> GetDescriminatorConditionsStorage()
+		    {
+		        return SelectQuery.Where.SearchCondition.Conditions;
+		    }
 
 			#endregion
 
@@ -1181,6 +1186,11 @@ namespace LinqToDB.Linq.Builder
 				}
 
 				Init();
+			}
+
+			protected override List<SelectQuery.Condition> GetDescriminatorConditionsStorage()
+			{
+				return ParentAssociationJoin.Condition.Conditions;
 			}
 
 			protected override Expression ProcessExpression(Expression expression)
