@@ -653,5 +653,19 @@ namespace Tests.Linq
 					db.GetTable<Child2>().Select(ch => ch.Parent.ParentID).Count(p => p == 1));
 			}
 		}
+
+        [Test, DataContextSource]
+        public void Count10(string context)
+        {
+            using (var db = GetDataContext(context))
+            {
+                var result = from a in db.GetTable<Parent>()
+                             from b in db.GetTable<Child>().Where(c => a.ParentID == c.ParentID)
+                             from g1 in a.GrandChildren.DefaultIfEmpty()
+                             select new {a.ParentID, b.ChildID, g1.GrandChildID};
+                
+                Assert.AreEqual(result.ToList().Count, result.Count());
+            }
+        }
 	}
 }
