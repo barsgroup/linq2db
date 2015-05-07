@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AsyncExtensions.cs" />
+    <Compile Include="KeepConnectionAliveScope.cs" />
     <Compile Include="DataProvider\Access\AccessTools.cs" />
     <Compile Include="DataProvider\Access\AccessSqlOptimizer.cs" />
     <Compile Include="DataProvider\Access\AccessBulkCopy.cs" />
@@ -98,6 +99,7 @@
     <Compile Include="DataProvider\MySql\MySqlBulkCopy.cs" />
     <Compile Include="DataProvider\MySql\MySqlSqlOptimizer.cs" />
     <Compile Include="DataProvider\MySql\MySqlTools.cs" />
+    <Compile Include="DataProvider\Oracle\OracleXmlTable.cs" />
     <Compile Include="DataProvider\Oracle\OracleMerge.cs" />
     <Compile Include="DataProvider\Oracle\OracleBulkCopy.cs" />
     <Compile Include="DataProvider\Oracle\OracleSqlOptimizer.cs" />
@@ -141,6 +143,7 @@
     <Compile Include="DataProvider\SqlServer\SqlServerSqlOptimizer.cs" />
     <Compile Include="DataProvider\Sybase\SybaseBulkCopy.cs" />
     <Compile Include="DataProvider\Sybase\SybaseSqlOptimizer.cs" />
+    <Compile Include="DataProvider\DataTools.cs" />
     <Compile Include="Data\BulkCopyOptions.cs" />
     <Compile Include="Data\BulkCopyRowsCopied.cs" />
     <Compile Include="Data\BulkCopyType.cs" />

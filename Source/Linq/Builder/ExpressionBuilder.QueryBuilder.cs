@@ -31,7 +31,6 @@ namespace LinqToDB.Linq.Builder
 
 				switch (expr.NodeType)
 				{
-					// IT : #170 fix.
 					case ExpressionType.Convert       :
 					case ExpressionType.ConvertChecked:
 						{
@@ -206,10 +205,10 @@ namespace LinqToDB.Linq.Builder
 								break;
 							}
 
-							if (IsSubQuery(context, ce))
+							if ((_buildMultipleQueryExpressions == null || !_buildMultipleQueryExpressions.Contains(ce)) && IsSubQuery(context, ce))
 							{
 								if (IsMultipleQuery(ce))
-									return new TransformInfo(BuildMultipleQuery(context, expr));
+									return new TransformInfo(BuildMultipleQuery(context, ce));
 
 								return new TransformInfo(GetSubQueryExpression(context, ce));
 							}
@@ -306,12 +305,17 @@ namespace LinqToDB.Linq.Builder
 			return field;
 		}
 
-		// IT : #170 fix.
 		public Expression BuildSql(Expression expression, int idx)
 		{
 			UnaryExpression cex;
 
-			var type = _convertedExpressions.TryGetValue(expression, out cex) ? cex.Type : expression.Type;
+			var type = expression.Type;
+
+			if (_convertedExpressions.TryGetValue(expression, out cex))
+			{
+				if (cex.Type.IsNullable() && !type.IsNullable() && type.IsSameOrParentOf(cex.Type.ToNullableUnderlying()))
+					type = cex.Type;
+			}
 
 			return BuildSql(type, idx);
 		}
@@ -501,7 +505,7 @@ namespace LinqToDB.Linq.Builder
 		static readonly MethodInfo _whereMethodInfo =
 			MemberHelper.MethodOf(() => LinqExtensions.Where<int,int,object>(null,null)).GetGenericMethodDefinition();
 
-		Expression GetMultipleQueryExpression(IBuildContext context, Expression expression, HashSet<ParameterExpression> parameters)
+		static Expression GetMultipleQueryExpression(IBuildContext context, Expression expression, HashSet<ParameterExpression> parameters)
 		{
 			if (!Common.Configuration.Linq.AllowMultipleQuery)
 				throw new LinqException("Multiple queries are not allowed. Set the 'LinqToDB.Common.Configuration.Linq.AllowMultipleQuery' flag to 'true' to allow multiple queries.");
@@ -582,6 +586,8 @@ namespace LinqToDB.Linq.Builder
 			});
 		}
 
+		HashSet<Expression> _buildMultipleQueryExpressions;
+
 		public Expression BuildMultipleQuery(IBuildContext context, Expression expression)
 		{
 			var parameters = new HashSet<ParameterExpression>();
@@ -601,7 +607,14 @@ namespace LinqToDB.Linq.Builder
 					root.NodeType == ExpressionType.Parameter &&
 					!parameters.Contains((ParameterExpression)root))
 				{
+					if (_buildMultipleQueryExpressions == null)
+						_buildMultipleQueryExpressions = new HashSet<Expression>();
+
+					_buildMultipleQueryExpressions.Add(e);
+
 					var ex = Expression.Convert(BuildExpression(context, e), typeof(object));
+
+					_buildMultipleQueryExpressions.Remove(e);
 
 					parms.Add(ex);
 

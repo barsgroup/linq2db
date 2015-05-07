@@ -7,6 +7,7 @@ namespace Tests.Model
 	public interface ITestDataContext : IDataContext
 	{
 		ITable<Person>                 Person                 { get; }
+		ITable<ComplexPerson>          ComplexPerson          { get; }
 		ITable<Patient>                Patient                { get; }
 		ITable<Doctor>                 Doctor                 { get; }
         ITable<TestEntity1>			   TestEntity1			  { get; }
