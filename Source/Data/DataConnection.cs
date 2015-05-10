@@ -577,7 +577,7 @@ namespace LinqToDB.Data
 			}
 		}
 
-		internal int ExecuteNonQuery()
+		protected virtual int ExecuteNonQuery()
 		{
 			if (TraceSwitch.Level == TraceLevel.Off)
 				return Command.ExecuteNonQuery();
@@ -629,7 +629,7 @@ namespace LinqToDB.Data
 			}
 		}
 
-		object ExecuteScalar()
+        protected virtual object ExecuteScalar()
 		{
 			if (TraceSwitch.Level == TraceLevel.Off)
 				return Command.ExecuteScalar();
@@ -685,7 +685,7 @@ namespace LinqToDB.Data
 			return ExecuteReader(CommandBehavior.Default);
 		}
 
-		internal IDataReader ExecuteReader(CommandBehavior commandBehavior)
+        protected virtual IDataReader ExecuteReader(CommandBehavior commandBehavior)
 		{
 			if (TraceSwitch.Level == TraceLevel.Off)
 				return Command.ExecuteReader(commandBehavior);
