@@ -78,6 +78,8 @@ namespace LinqToDB.Data
 
 		#region Query with object reader async
 
+#if !NOASYNC
+
 		public Task<List<T>> QueryToListAsync<T>(Func<IDataReader,T> objectReader)
 		{
 			return QueryToListAsync(objectReader, CancellationToken.None);
@@ -118,6 +120,8 @@ namespace LinqToDB.Data
 				while (await rd.ReadAsync(cancellationToken))
 					action(objectReader(rd));
 		}
+
+#endif
 
 		#endregion
 
@@ -171,6 +175,8 @@ namespace LinqToDB.Data
 		#endregion
 
 		#region Query async
+
+#if !NOASYNC
 
 		public Task<List<T>> QueryToListAsync<T>()
 		{
@@ -240,6 +246,8 @@ namespace LinqToDB.Data
 			}
 		}
 
+#endif
+
 		#endregion
 
 		#region Query with template
@@ -268,15 +276,24 @@ namespace LinqToDB.Data
 		{
 			DataConnection.InitCommand(CommandType, CommandText, Parameters);
 
-			if (Parameters != null && Parameters.Length > 0)
+			var hasParameters = Parameters != null && Parameters.Length > 0;
+
+			if (hasParameters)
 				SetParameters(DataConnection, Parameters);
 
-			return DataConnection.ExecuteNonQuery();
+			var commandResult = DataConnection.ExecuteNonQuery();
+
+			if (hasParameters)
+				RebindParameters(DataConnection, Parameters);
+
+			return commandResult;
 		}
 
 		#endregion
 
 		#region Execute async
+
+#if !NOASYNC
 
 		public Task<int> ExecuteProcAsync()
 		{
@@ -304,6 +321,8 @@ namespace LinqToDB.Data
 
 			return await DataConnection.ExecuteNonQueryAsync(cancellationToken);
 		}
+
+#endif
 
 		#endregion
 
@@ -351,6 +370,8 @@ namespace LinqToDB.Data
 
 		#region Execute scalar async
 
+#if !NOASYNC
+
 		public Task<T> ExecuteAsync<T>()
 		{
 			return ExecuteAsync<T>(CancellationToken.None);
@@ -380,6 +401,8 @@ namespace LinqToDB.Data
 
 			return default(T);
 		}
+
+#endif
 
 		#endregion
 
@@ -453,6 +476,8 @@ namespace LinqToDB.Data
 
 		#region ExecuteReader async
 
+#if !NOASYNC
+
 		public Task<DataReaderAsync> ExecuteReaderAsync()
 		{
 			return ExecuteReaderAsync(CancellationToken.None);
@@ -516,6 +541,8 @@ namespace LinqToDB.Data
 			return default(T);
 		}
 
+#endif
+
 		#endregion
 
 		#region SetParameters
@@ -539,6 +566,27 @@ namespace LinqToDB.Data
 
 				dataConnection.DataProvider.SetParameter(p, parameter.Name, dataType, value);
 				dataConnection.Command.Parameters.Add(p);
+			}
+		}
+
+		static void RebindParameters(DataConnection dataConnection, DataParameter[] parameters)
+		{
+			var dbParameters = dataConnection.Command.Parameters;
+
+			for (var i = 0; i < parameters.Length; i++)
+			{
+				var dataParameter = parameters[i];
+
+				if (dataParameter.Direction.HasValue &&
+					(dataParameter.Direction == ParameterDirection.Output || dataParameter.Direction == ParameterDirection.InputOutput))
+				{
+					var dbParameter = (IDbDataParameter)dbParameters[i];
+
+					if (!object.Equals(dataParameter.Value, dbParameter.Value))
+					{
+						dataParameter.Value = dbParameter.Value;
+					}
+				}
 			}
 		}
 
