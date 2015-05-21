@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	interface ISequenceBuilder
+    public interface ISequenceBuilder
 	{
 		int                 BuildCounter { get; set; }
 		bool                CanBuild     (ExpressionBuilder builder, BuildInfo buildInfo);

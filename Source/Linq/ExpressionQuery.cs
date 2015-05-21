@@ -12,7 +12,7 @@ namespace LinqToDB.Linq
 {
 	using Extensions;
 
-	abstract class ExpressionQuery<T> : IExpressionQuery<T>
+    public abstract class ExpressionQuery<T> : IExpressionQuery<T>, IBaseExpressionQuery
 	{
 		#region Init
 
@@ -80,6 +80,11 @@ namespace LinqToDB.Linq
 				Info = info;
 
 			return info;
+		}
+        
+	    public Query GetQuery()
+	    {
+	        return Info ?? Query<T>.GetQuery(DataContextInfo, Expression);
 		}
 
 		#endregion

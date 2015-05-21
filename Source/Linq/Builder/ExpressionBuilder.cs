@@ -14,7 +14,7 @@ namespace LinqToDB.Linq.Builder
 	using SqlQuery;
 	using LinqToDB.Expressions;
 
-	partial class ExpressionBuilder
+    public partial class ExpressionBuilder
 	{
 		#region Sequence
 

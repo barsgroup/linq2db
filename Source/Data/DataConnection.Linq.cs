@@ -280,16 +280,6 @@ namespace LinqToDB.Data
 
 			var sb = new StringBuilder();
 
-			sb.Append("-- ").Append(ConfigurationString);
-
-			if (ConfigurationString != DataProvider.Name)
-				sb.Append(' ').Append(DataProvider.Name);
-
-			if (DataProvider.Name != sqlProvider.Name)
-				sb.Append(' ').Append(sqlProvider.Name);
-
-			sb.AppendLine();
-
 			sqlProvider.PrintParameters(sb, pq.Parameters);
 
 			foreach (var command in pq.Commands)

@@ -11,7 +11,7 @@ namespace LinqToDB.Linq.Builder
 {
 	using SqlQuery;
 
-	interface IBuildContext
+    public interface IBuildContext
 	{
 #if DEBUG
 		string _sqlQueryText { get; }

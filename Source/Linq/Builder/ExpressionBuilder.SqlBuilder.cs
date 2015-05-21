@@ -17,7 +17,7 @@ namespace LinqToDB.Linq.Builder
 	using Reflection;
 	using SqlQuery;
 
-	partial class ExpressionBuilder
+    public partial class ExpressionBuilder
 	{
 		#region Build Where
 
