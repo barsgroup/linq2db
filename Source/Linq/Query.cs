@@ -8,7 +8,9 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq
 {
-	using Builder;
+    using System.Reflection;
+
+    using Builder;
 	using Data;
 	using Common;
 	using Extensions;
@@ -17,7 +19,7 @@ namespace LinqToDB.Linq
 	using SqlQuery;
 	using SqlProvider;
 
-	abstract class Query
+    public abstract class Query
 	{
 		#region Init
 
@@ -25,12 +27,62 @@ namespace LinqToDB.Linq
 
 		#endregion
 
+        public class QueryInfo : IQueryContext
+        {
+            public QueryInfo()
+            {
+                SelectQuery = new SelectQuery();
+            }
+
+            public SelectQuery SelectQuery { get; set; }
+            public object Context { get; set; }
+
+            public string GetQueryFieldAliasByFieldName(string fieldName)
+            {
+                var column = SelectQuery.Select.Columns.FirstOrDefault(
+                    c =>
+                    {
+                        var expression = c.Expression as SelectQuery.Column;
+                        if (expression != null)
+                        {
+                            return ((SqlField)expression.Expression).Name == fieldName;
+                        }
+
+                        var sqlField = c.Expression as SqlField;
+                        if (sqlField != null)
+                        {
+                            return sqlField.Alias == null && sqlField.Name == fieldName;
+                        }
+
+                        return false;
+                    });
+
+                return column != null ?
+                    column.Alias :
+                    null;
+            }
+
+            public SqlParameter[] GetParameters()
+            {
+                var ps = new SqlParameter[Parameters.Count];
+
+                for (var i = 0; i < ps.Length; i++)
+                    ps[i] = Parameters[i].SqlParameter;
+
+                return ps;
+            }
+
+            public List<ParameterAccessor> Parameters = new List<ParameterAccessor>();
+        }
+
 		#region Compare
 
 		public string           ContextID;
 		public Expression       Expression;
 		public MappingSchema    MappingSchema;
 		public SqlProviderFlags SqlProviderFlags;
+
+        public readonly List<QueryInfo> Queries = new List<QueryInfo>(1);
 
 		public bool Compare(string contextID, MappingSchema mappingSchema, Expression expr)
 		{
@@ -68,7 +120,7 @@ namespace LinqToDB.Linq
 		#endregion
 	}
 
-	class Query<T> : Query
+    public class Query<T> : Query
 	{
 		#region Init
 
@@ -105,7 +157,7 @@ namespace LinqToDB.Linq
 
 		public          bool              DoNotChache;
 		public          Query<T>          Next;
-		public readonly List<QueryInfo>   Queries = new List<QueryInfo>(1);
+		
 		public          ISqlOptimizer     SqlOptimizer;
 
 		public Func<QueryContext,IDataContextInfo,Expression,object[],object>         GetElement;
@@ -471,29 +523,6 @@ namespace LinqToDB.Linq
 			MappingSchema ms,
 			Expression    expr,
 			object[]      ps);
-
-		public class QueryInfo : IQueryContext
-		{
-			public QueryInfo()
-			{
-				SelectQuery = new SelectQuery();
-			}
-
-			public SelectQuery SelectQuery { get; set; }
-			public object      Context     { get; set; }
-
-			public SqlParameter[] GetParameters()
-			{
-				var ps = new SqlParameter[Parameters.Count];
-
-				for (var i = 0; i < ps.Length; i++)
-					ps[i] = Parameters[i].SqlParameter;
-
-				return ps;
-			}
-
-			public List<ParameterAccessor> Parameters = new List<ParameterAccessor>();
-		}
 
 		#endregion
 

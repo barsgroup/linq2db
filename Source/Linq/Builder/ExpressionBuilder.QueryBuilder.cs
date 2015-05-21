@@ -12,7 +12,7 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.Expressions;
 	using Extensions;
 
-	partial class ExpressionBuilder
+    public partial class ExpressionBuilder
 	{
 		#region BuildExpression
 

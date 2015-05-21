@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	struct IsExpressionResult
+    public struct IsExpressionResult
 	{
 		public readonly bool          Result;
 		public readonly IBuildContext Context;

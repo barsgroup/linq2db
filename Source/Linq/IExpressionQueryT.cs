@@ -8,9 +8,13 @@ namespace LinqToDB.Linq
 #if !SL4
 		out
 #endif
-		T> : IOrderedQueryable<T>, IQueryProvider
+ T> : IOrderedQueryable<T>, IExpressionQuery, IQueryProvider
 	{
 		new Expression Expression { get; set; }
-		string         SqlText    { get; }
 	}
+    
+    public interface IBaseExpressionQuery
+    {
+        Query GetQuery();
+    }
 }

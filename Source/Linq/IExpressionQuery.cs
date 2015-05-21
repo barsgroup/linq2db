@@ -2,7 +2,8 @@
 
 namespace LinqToDB.Linq
 {
-	interface IExpressionQuery
-	{
-	}
+    public interface IExpressionQuery
+    {
+        string SqlText { get; }
+    }
 }
