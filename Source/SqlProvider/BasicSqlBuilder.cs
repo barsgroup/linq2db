@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using LinqToDB.Linq.Builder;
 
 namespace LinqToDB.SqlProvider
 {
@@ -1552,13 +1551,7 @@ namespace LinqToDB.SqlProvider
 						case QueryElementType.SqlParameter :
 							{
 								var p = (SqlParameter)predicate.Expr1;
-
-								sqlDataType = new SqlDataType(
-									p.DataType,
-									p.SystemType,
-									0,
-									0,
-									0);
+								sqlDataType = new SqlDataType(p.DataType, p.SystemType, 0, 0, 0);
 							}
 
 							break;
@@ -2568,6 +2561,16 @@ namespace LinqToDB.SqlProvider
 			}
 
 			return sb;
+		}
+
+		public string ApplyQueryHints(string sql, List<string> queryHints)
+		{
+			var sb = new StringBuilder(sql);
+
+			foreach (var hint in queryHints)
+				sb.AppendLine(hint);
+
+			return sb.ToString();
 		}
 
 		private        string _name;
