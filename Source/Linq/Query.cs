@@ -203,7 +203,8 @@ namespace LinqToDB.Linq
 
 						try
 						{
-							query = new ExpressionBuilder(new Query<T>(), dataContextInfo, expr, null).Build<T>();
+						    var newQuery = new Query<T>{DoNotChache = true};
+                            query = new ExpressionBuilder(newQuery, dataContextInfo, expr, null).Build<T>();
 						}
 						catch (Exception)
 						{
