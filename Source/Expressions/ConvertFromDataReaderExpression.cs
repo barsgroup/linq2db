@@ -29,7 +29,12 @@ namespace LinqToDB.Expressions
 		public override ExpressionType NodeType  { get { return ExpressionType.Extension; } }
 		public override bool           CanReduce { get { return true;                     } }
 
-		static readonly MethodInfo _columnReaderGetValueInfo = MemberHelper.MethodOf<ColumnReader>(r => r.GetValue(null));
+	    public int Idx
+	    {
+	        get { return _idx; }
+	    }
+
+	    static readonly MethodInfo _columnReaderGetValueInfo = MemberHelper.MethodOf<ColumnReader>(r => r.GetValue(null));
 
 		public override Expression Reduce()
 		{

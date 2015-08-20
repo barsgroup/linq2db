@@ -81,7 +81,7 @@ namespace LinqToDB.Linq
 			if (cache && Info != null)
 				return Info;
 
-			var info = Query<T>.GetQuery(DataContextInfo, expression);
+			var info = Query<T>.GetQuery(DataContextInfo, expression, false);
 
 			if (cache)
 				Info = info;
@@ -91,10 +91,10 @@ namespace LinqToDB.Linq
         
 	    public Query GetQuery()
 	    {
-	        return Info ?? Query<T>.GetQuery(DataContextInfo, Expression);
-		}
+	        return Query<T>.GetQuery(DataContextInfo, Expression, true);
+	    }
 
-		#endregion
+        #endregion
 
 		#region IQueryable Members
 

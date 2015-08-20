@@ -21,6 +21,15 @@ namespace LinqToDB.Linq
 
     public abstract class Query
 	{
+        protected readonly ICollection<int> _resultMappingIndexes = new List<int>();
+
+        public bool IsSaveResultMappingIndexes { get; set; }
+
+        public ICollection<int> ResultMappingIndexes
+        {
+            get { return _resultMappingIndexes; }
+        }
+
 		#region Init
 
 		public abstract void Init(IBuildContext parseContext, List<ParameterAccessor> sqlParameters);
@@ -179,7 +188,7 @@ namespace LinqToDB.Linq
 
 		const int CacheSize = 100;
 
-		public static Query<T> GetQuery(IDataContextInfo dataContextInfo, Expression expr)
+		public static Query<T> GetQuery(IDataContextInfo dataContextInfo, Expression expr, bool isSaveResultMappingIndexes)
 		{
 			var query = FindQuery(dataContextInfo, expr);
 
@@ -203,7 +212,7 @@ namespace LinqToDB.Linq
 
 						try
 						{
-						    var newQuery = new Query<T>{DoNotChache = true};
+                            var newQuery = new Query<T> { DoNotChache = true, IsSaveResultMappingIndexes = isSaveResultMappingIndexes };
                             query = new ExpressionBuilder(newQuery, dataContextInfo, expr, null).Build<T>();
 						}
 						catch (Exception)
@@ -1169,12 +1178,59 @@ namespace LinqToDB.Linq
 			var query   = GetQuery();
 			var mapInfo = new MapInfo { Expression = expression };
 
+		    if (IsSaveResultMappingIndexes)
+		    {
+                SaveResultMappingIndexes(expression);		        
+		    }
+
 			ClearParameters();
 
 			GetIEnumerable = (ctx,db,expr,ps) => Map(query(db, expr, ps, 0), ctx, db, expr, ps, mapInfo);
 		}
 
-		class MapInfo
+        public void SaveResultMappingIndexes(Expression expression)
+        {
+            var findedExpression = (NewExpression)expression.Find(baseExpression => baseExpression.NodeType == ExpressionType.New && baseExpression.Type == typeof(T));
+
+            foreach (var argument in findedExpression.Arguments)
+            {
+                _resultMappingIndexes.Add(FindIndex(expression, argument));
+            }
+        }
+
+        private int FindIndex(Expression expression, Expression exp)
+        {
+            int? idx = null;
+            var drExpr = (ConvertFromDataReaderExpression)exp.Find(e => e is ConvertFromDataReaderExpression);
+            if (drExpr != null)
+            {
+                return drExpr.Idx;
+            }
+
+            var memberAccess = exp as MemberExpression;
+            if (memberAccess != null)
+            {
+                var memberName = memberAccess.Member.Name;
+                memberAccess = memberAccess.Expression as MemberExpression ?? memberAccess;
+
+                var expr = (MemberInitExpression)expression.Find(baseExpression => baseExpression.NodeType == ExpressionType.MemberInit && baseExpression.Type == memberAccess.Type);
+
+                var memberAssignments = expr != null
+                    ? expr.Bindings.Cast<MemberAssignment>()
+                        .Where(memberBinding => memberBinding.Member.Name == memberName)
+                    : Enumerable.Empty<MemberAssignment>();
+
+                foreach (var assignment in memberAssignments)
+                {
+                    idx = FindIndex(expression, assignment.Expression);
+                    break;
+                }
+            }
+
+            return idx ?? 0;
+        }
+
+        class MapInfo
 		{
 			public Expression<Func<QueryContext,IDataContext,IDataReader,Expression,object[],T>> Expression;
 			public            Func<QueryContext,IDataContext,IDataReader,Expression,object[],T>  Mapper;
