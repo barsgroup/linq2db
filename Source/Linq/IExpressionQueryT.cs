@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Linq.Expressions;
 
 namespace LinqToDB.Linq
@@ -12,9 +11,4 @@ namespace LinqToDB.Linq
 	{
 		new Expression Expression { get; set; }
 	}
-    
-    public interface IBaseExpressionQuery
-    {
-        Query GetQuery();
-    }
 }

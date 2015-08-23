@@ -2563,6 +2563,21 @@ namespace LinqToDB.SqlProvider
 			return sb;
 		}
 
+        public virtual StringBuilder ReplaceParameters(StringBuilder sb, IDbDataParameter[] parameters)
+        {
+            var valueToSqlValueConverter = new ValueToSqlValueConverter();
+            valueToSqlValueConverter.SetDefauls();
+            if (parameters != null && parameters.Length > 0)
+            {
+                foreach (var p in parameters.OrderByDescending(param => param.ParameterName))
+                {
+                    sb.Replace(":" + p.ParameterName, valueToSqlValueConverter.Convert(p.Value));                            
+                }
+            }
+
+            return sb;
+        }
+
 		public string ApplyQueryHints(string sql, List<string> queryHints)
 		{
 			var sb = new StringBuilder(sql);

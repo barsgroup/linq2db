@@ -12,7 +12,7 @@ namespace LinqToDB.Linq
 {
 	using Extensions;
 
-    public abstract class ExpressionQuery<T> : IExpressionQuery<T>, IBaseExpressionQuery
+    public abstract class ExpressionQuery<T> : IExpressionQuery<T>
 	{
 		#region Init
 
@@ -46,19 +46,14 @@ namespace LinqToDB.Linq
 		private string _sqlText { get { return SqlText; }}
 // ReSharper restore InconsistentNaming
 
-		public  string  SqlText
+        public  string  SqlText
 		{
 			get
 			{
-				var hasQueryHints = DataContextInfo.DataContext.QueryHints.Count > 0 || DataContextInfo.DataContext.NextQueryHints.Count > 0;
-
-				if (_sqlTextHolder == null || hasQueryHints)
+				if (_sqlTextHolder == null)
 				{
-					var info    = GetQuery(Expression, true);
+					var info    = GetQuery(Expression, false);
 					var sqlText = info.GetSqlText(DataContextInfo.DataContext, Expression, Parameters, 0);
-
-					if (hasQueryHints)
-						return sqlText;
 
 					_sqlTextHolder = sqlText;
 				}

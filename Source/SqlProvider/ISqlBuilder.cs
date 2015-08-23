@@ -17,6 +17,9 @@ namespace LinqToDB.SqlProvider
 		ISqlExpression   GetIdentityExpression(SqlTable table);
 
 		StringBuilder    PrintParameters      (StringBuilder sb, IDbDataParameter[] parameters);
+
+		StringBuilder    ReplaceParameters     (StringBuilder sb, IDbDataParameter[] parameters);
+
 		string           ApplyQueryHints      (string sqlText, List<string> queryHints);
 
 		string           Name { get; }

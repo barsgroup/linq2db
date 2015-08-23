@@ -283,8 +283,6 @@ namespace LinqToDB.Data
 
 			var sb = new StringBuilder();
 
-			sqlProvider.PrintParameters(sb, pq.Parameters);
-
 			var isFirst = true;
 
 			foreach (var command in pq.Commands)
@@ -313,6 +311,8 @@ namespace LinqToDB.Data
 				sb.Length--;
 
 			sb.AppendLine();
+
+		    sqlProvider.ReplaceParameters(sb, pq.Parameters);
 
 			return sb.ToString();
 		}
