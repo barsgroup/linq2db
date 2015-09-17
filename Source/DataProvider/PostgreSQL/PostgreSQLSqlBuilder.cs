@@ -173,6 +173,130 @@ namespace LinqToDB.DataProvider.PostgreSQL
 			base.BuildCreateTableFieldType(field);
 		}
 
+	    protected override void BuildLikePredicate(SelectQuery.Predicate.Like predicate)
+	    {
+	        var expr1 = predicate.Expr1;
+	        var sqlField = expr1 as SqlField;
+            if (sqlField != null && sqlField.ColumnDescriptor.IsHierarchical)
+            {
+                var expr2 = predicate.Expr2;
+
+                var sqlValue = expr2 as SqlValue;
+                if (sqlValue != null)
+                {
+                    var str = (string) sqlValue.Value;
+                    var vStart = str[0] == '%' ? "%" : string.Empty;
+                    var vEnd = str[str.Length - 1] == '%' ? "%" : string.Empty;
+
+                    var vNewPredicate = new SelectQuery.Predicate.HierarhicalLike(expr1,
+                        new SqlValue(str.Replace('%', '\0')), vStart, vEnd);
+
+                    base.BuildLikePredicate(vNewPredicate);
+                    return;
+                }
+
+                var sqlParameter = expr2 as SqlParameter;
+                if (sqlParameter != null)
+                {
+                    var pStart = sqlParameter.LikeStart;
+                    var pEnd = sqlParameter.LikeEnd;
+                    sqlParameter.LikeStart = string.Empty;
+                    sqlParameter.LikeEnd = string.Empty;
+
+                    var pNewPredicate = new SelectQuery.Predicate.HierarhicalLike(expr1, sqlParameter, pStart, pEnd);
+                    base.BuildLikePredicate(pNewPredicate);
+                    return;
+                }
+
+                ISqlExpression value = null;
+                var hasLikeStart = false;
+                var hasLikeEnd = false;
+                var fun = predicate.Expr2 as SqlFunction;
+                if (fun != null)
+                {
+                    value = GetFieldFromFunction(fun);
+                }
+                else
+                {
+                    var sqlBinary = predicate.Expr2 as SqlBinaryExpression;
+                    if (sqlBinary != null)
+                    {
+                        var function = GetFunctionFromBinary(sqlBinary, out hasLikeStart, out hasLikeEnd);
+                        if (function != null)
+                        {
+                            value = GetFieldFromFunction(function);                            
+                        }
+                    }
+                }
+
+                if (value != null)
+                {
+                    var ePredicate = new SelectQuery.Predicate.HierarhicalLike(expr1, value, hasLikeStart ? "%" : string.Empty, hasLikeEnd ? "%" : string.Empty);
+                    base.BuildLikePredicate(ePredicate);
+                    return;
+                }
+            }
+            
+            base.BuildLikePredicate(predicate);                
+	    }
+
+	    private SqlFunction GetFunctionFromBinary(SqlBinaryExpression sqlBinary, out bool hasLikeStart, out bool hasLikeEnd)
+	    {
+	        hasLikeStart = false;
+	        hasLikeEnd = false;
+	        SqlFunction function = null;
+	        var list = new [] { sqlBinary.Expr1, sqlBinary.Expr2};
+	        foreach (var expression in list)
+	        {
+	            var fun = expression as SqlFunction;
+	            if (fun != null)
+	            {
+                    function = fun;
+	            }
+
+	            var binary = expression as SqlBinaryExpression;
+	            if (binary != null)
+	            {
+                    function = GetFunctionFromBinary(binary, out hasLikeStart, out hasLikeEnd);
+	            }
+
+	            var sqlValue = expression as SqlValue;
+                if (sqlValue != null)
+	            {
+	                if (sqlBinary.Expr1 == expression)
+	                {
+	                    hasLikeStart = true;
+	                }
+	                else
+	                {
+	                    hasLikeEnd = true;
+	                }
+	            }
+	        }
+
+	        return function;
+	    }
+
+	    private SqlField GetFieldFromFunction(SqlFunction sqlFunction)
+	    {
+	        foreach (var parameter in sqlFunction.Parameters)
+	        {
+	            var fun = parameter as SqlFunction;
+	            if (fun != null)
+	            {
+                    return GetFieldFromFunction(fun);
+	            }
+
+	            var field = parameter as SqlField;
+                if (field != null)
+                {
+                    return field;
+                }
+	        }
+
+	        return null;
+	    }
+
 #if !SILVERLIGHT
 
 		protected override string GetProviderTypeName(IDbDataParameter parameter)

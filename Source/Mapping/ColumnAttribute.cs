@@ -41,6 +41,7 @@ namespace LinqToDB.Mapping
 			DbType          = ca.DbType;
 			Storage         = ca.Storage;
 			IsDiscriminator = ca.IsDiscriminator;
+			IsHierarchical  = ca.IsHierarchical;
 			PrimaryKeyOrder = ca.PrimaryKeyOrder;
 			IsColumn        = ca.IsColumn;
 
@@ -96,6 +97,11 @@ namespace LinqToDB.Mapping
 		/// Gets or sets whether a column contains a discriminator value for a LINQ to DB inheritance hierarchy.
 		/// </summary>
 		public bool IsDiscriminator { get; set; }
+
+        /// <summary>
+        /// Gets or sets a column use string as hierarchical column
+        /// </summary>
+	    public bool IsHierarchical { get; set; }
 
 		private bool? _skipOnInsert;
 		/// <summary>

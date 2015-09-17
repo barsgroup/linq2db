@@ -37,6 +37,7 @@ namespace LinqToDB.Mapping
 			Storage         = columnAttribute.Storage;
 			PrimaryKeyOrder = columnAttribute.PrimaryKeyOrder;
 			IsDiscriminator = columnAttribute.IsDiscriminator;
+			IsHierarchical  = columnAttribute.IsHierarchical;
 			DataType        = columnAttribute.DataType;
 			DbType          = columnAttribute.DbType;
 
@@ -100,6 +101,7 @@ namespace LinqToDB.Mapping
 		public string         ColumnName      { get; private set; }
 		public string         Storage         { get; private set; }
 		public bool           IsDiscriminator { get; private set; }
+		public bool           IsHierarchical  { get; private set; }
 		public DataType       DataType        { get; private set; }
 		public string         DbType          { get; private set; }
 		public bool           IsIdentity      { get; private set; }
