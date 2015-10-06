@@ -1744,7 +1744,27 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case QueryElementType.SqlValue:
-					BuildValue(null, ((SqlValue)expr).Value);
+			        var sqlValue = ((SqlValue)expr);
+
+                    // Если значение не равно NULL, то CAST не требуется
+                    // Для колонок, которые не принимают непосредственное участие в формировании поля сущности, нет смысла делать CAST
+                    if (sqlValue.Value != null || sqlValue.SystemType == null)
+			        {
+                        BuildValue(null, sqlValue.Value);
+                    }
+			        else
+			        {
+                        // Если колонка имеет значение NULL и SystemType не равен NULL(участвует в формировании поля сущности), кастим колонку к типу поля
+                        StringBuilder.Append("CAST(");
+
+                        BuildValue(null, sqlValue.Value);
+
+                        StringBuilder.Append(" as ");
+
+                        BuildDataType(SqlDataType.GetDataType(expr.SystemType));
+
+                        StringBuilder.Append(")");
+                    }
 					break;
 
 				case QueryElementType.SqlExpression:
