@@ -187,9 +187,10 @@ namespace LinqToDB.DataProvider.PostgreSQL
                     var str = (string) sqlValue.Value;
                     var vStart = str[0] == '%' ? "%" : string.Empty;
                     var vEnd = str[str.Length - 1] == '%' ? "%" : string.Empty;
+                    str = str.Substring(vStart.Length, str.Length - vStart.Length - vEnd.Length);
 
                     var vNewPredicate = new SelectQuery.Predicate.HierarhicalLike(expr1,
-                        new SqlValue(str.Replace('%', '\0')), vStart, vEnd);
+                        new SqlValue(str), vStart, vEnd);
 
                     base.BuildLikePredicate(vNewPredicate);
                     return;
