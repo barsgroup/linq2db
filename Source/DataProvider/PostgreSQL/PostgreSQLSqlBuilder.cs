@@ -177,7 +177,16 @@ namespace LinqToDB.DataProvider.PostgreSQL
 	    {
 	        var expr1 = predicate.Expr1;
 	        var sqlField = expr1 as SqlField;
-            if (sqlField != null && sqlField.ColumnDescriptor.IsHierarchical)
+	        if (sqlField == null)
+	        {
+	            var column = expr1 as SelectQuery.Column;
+	            if (column != null)
+	            {
+	                sqlField = column.Expression as SqlField;
+	            }
+	        }
+
+	        if (sqlField != null && sqlField.ColumnDescriptor.IsHierarchical)
             {
                 var expr2 = predicate.Expr2;
 
