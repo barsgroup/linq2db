@@ -224,7 +224,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
                 var fun = predicate.Expr2 as SqlFunction;
                 if (fun != null)
                 {
-                    value = GetFieldFromFunction(fun);
+                    value = GetSqlExpressionFromFunction(fun);
                 }
                 else
                 {
@@ -234,7 +234,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
                         var function = GetFunctionFromBinary(sqlBinary, out hasLikeStart, out hasLikeEnd);
                         if (function != null)
                         {
-                            value = GetFieldFromFunction(function);                            
+                            value = GetSqlExpressionFromFunction(function);                            
                         }
                     }
                 }
@@ -287,20 +287,26 @@ namespace LinqToDB.DataProvider.PostgreSQL
 	        return function;
 	    }
 
-	    private SqlField GetFieldFromFunction(SqlFunction sqlFunction)
+	    private ISqlExpression GetSqlExpressionFromFunction(SqlFunction sqlFunction)
 	    {
 	        foreach (var parameter in sqlFunction.Parameters)
 	        {
 	            var fun = parameter as SqlFunction;
 	            if (fun != null)
 	            {
-                    return GetFieldFromFunction(fun);
+                    return GetSqlExpressionFromFunction(fun);
 	            }
 
 	            var field = parameter as SqlField;
                 if (field != null)
                 {
                     return field;
+                }
+
+                var column = parameter as SelectQuery.Column;
+                if (column != null)
+                {
+                    return column;
                 }
 	        }
 
