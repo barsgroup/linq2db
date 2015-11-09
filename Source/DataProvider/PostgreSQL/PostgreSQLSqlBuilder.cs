@@ -65,6 +65,10 @@ namespace LinqToDB.DataProvider.PostgreSQL
 				case DataType.SmallDateTime :
 				case DataType.DateTime      : StringBuilder.Append("TimeStamp");     break;
 				case DataType.Boolean       : StringBuilder.Append("Boolean");       break;
+                case DataType.Binary        :
+                case DataType.VarBinary     :
+                case DataType.Blob          :
+                case DataType.Image         : StringBuilder.Append("Bytea");         break;
 				case DataType.NVarChar      :
 					StringBuilder.Append("VarChar");
 					if (type.Length > 0)
