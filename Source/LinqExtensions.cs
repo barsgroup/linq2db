@@ -96,13 +96,21 @@ namespace LinqToDB
 
 		static public ITable<T> LoadWith<T>(
 			[NotNull]                this ITable<T> table,
-			[NotNull, InstantHandle] Expression<Func<T,object>> selector)
+			[NotNull, InstantHandle] Expression<Func<T, object>> selector)
+		{
+			var expressionQuery = (IExpressionQuery<T>)table;
+			return (ITable<T>)(expressionQuery.LoadWith(selector));
+		}
+
+		static public IQueryable<T> LoadWith<T>(
+			[NotNull]                this IExpressionQuery<T> table,
+			[NotNull, InstantHandle] Expression<Func<T, object>> selector)
 		{
 			if (table == null) throw new ArgumentNullException("table");
 
 			table.Expression = Expression.Call(
 				null,
-				_loadWithMethodInfo.MakeGenericMethod(new[] { typeof(T) }),
+				_loadWithMethodInfo.MakeGenericMethod(typeof(T)),
 				new[] { table.Expression, Expression.Quote(selector) });
 
 			return table;

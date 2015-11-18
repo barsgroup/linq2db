@@ -842,7 +842,7 @@ namespace LinqToDB.Linq.Builder
 								isPrevList = typeof(IEnumerable).IsSameOrParentOf(obj.Type);
 							}
 
-							expression = expression.LoadWith(Expression.Lambda<Func<T,object>>(obj, pLoadWith));
+							expression = (ITable<T>) expression.LoadWith(Expression.Lambda<Func<T,object>>(obj, pLoadWith));
 						}
 					}
 
@@ -1417,7 +1417,7 @@ namespace LinqToDB.Linq.Builder
 								isPrevList = typeof(IEnumerable).IsSameOrParentOf(obj.Type);
 							}
 
-							tableExpression = tableExpression.LoadWith(Expression.Lambda<Func<T,object>>(obj, pLoadWith));
+							tableExpression = (ITable<T>) tableExpression.LoadWith(Expression.Lambda<Func<T,object>>(obj, pLoadWith));
 						}
 					}
 
