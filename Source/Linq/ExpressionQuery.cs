@@ -12,7 +12,7 @@ namespace LinqToDB.Linq
 {
 	using Extensions;
 
-    public abstract class ExpressionQuery<T> : IExpressionQuery<T>
+	public abstract class ExpressionQuery<T> : IExpressionQuery<T>
 	{
 		#region Init
 
@@ -46,7 +46,7 @@ namespace LinqToDB.Linq
 		private string _sqlText { get { return SqlText; }}
 // ReSharper restore InconsistentNaming
 
-        public  string  SqlText
+		public  string  SqlText
 		{
 			get
 			{
@@ -66,7 +66,7 @@ namespace LinqToDB.Linq
 
 		#region Execute
 
-		IEnumerable<T> Execute(IDataContextInfo dataContextInfo, Expression expression)
+		public IEnumerable<T> Execute(IDataContextInfo dataContextInfo, Expression expression)
 		{
 			return GetQuery(expression, true).GetIEnumerable(null, dataContextInfo, expression, Parameters);
 		}
@@ -83,13 +83,13 @@ namespace LinqToDB.Linq
 
 			return info;
 		}
-        
-	    public Query GetQuery()
-	    {
-	        return Query<T>.GetQuery(DataContextInfo, Expression, true);
-	    }
+		
+		public Query GetQuery()
+		{
+			return Query<T>.GetQuery(DataContextInfo, Expression, true);
+		}
 
-        #endregion
+		#endregion
 
 		#region IQueryable Members
 
