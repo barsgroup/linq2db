@@ -108,12 +108,17 @@ namespace LinqToDB
 		{
 			if (table == null) throw new ArgumentNullException("table");
 
-			table.Expression = Expression.Call(
-				null,
-				_loadWithMethodInfo.MakeGenericMethod(typeof(T)),
-				new[] { table.Expression, Expression.Quote(selector) });
+			table.Expression = GetExpressionLoadWith(table.Expression, selector);
 
 			return table;
+		}
+
+		public static MethodCallExpression GetExpressionLoadWith<T>(Expression expression, Expression<Func<T, object>> selector)
+		{
+			return Expression.Call(
+				null,
+				_loadWithMethodInfo.MakeGenericMethod(typeof(T)),
+				new[] { expression, Expression.Quote(selector) });
 		}
 
 		#endregion
