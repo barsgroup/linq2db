@@ -66,7 +66,12 @@ namespace LinqToDB.Linq
 
 		#region Execute
 
-		public IEnumerable<T> Execute(IDataContextInfo dataContextInfo, Expression expression)
+		public IEnumerable Execute(Expression expression)
+		{
+			return Execute(DataContextInfo, expression);
+		}
+
+		IEnumerable<T> Execute(IDataContextInfo dataContextInfo, Expression expression)
 		{
 			return GetQuery(expression, true).GetIEnumerable(null, dataContextInfo, expression, Parameters);
 		}
