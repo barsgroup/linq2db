@@ -30,11 +30,27 @@ namespace LinqToDB.DataProvider.SqlServer
 				base.BuildSql();
 		}
 
+		protected override void BuildOutputSubclause()
+		{
+			if (SelectQuery.Insert.WithIdentity)
+			{
+				var identityField = SelectQuery.Insert.Into.GetIdentityField();
+
+				if (identityField != null)
+				{
+					StringBuilder
+						.Append("OUTPUT [INSERTED].[")
+						.Append(identityField.PhysicalName)
+						.Append("]")
+						.AppendLine();
+				}
+			}
+		}
+
 		protected override void BuildGetIdentity()
 		{
-			StringBuilder
-				.AppendLine()
-				.AppendLine("SELECT SCOPE_IDENTITY()");
+			// The better way of retrieving identity value is to use the OUTPUT clause
+			// (since MS SQL Server 2005).
 		}
 
 		protected override void BuildOrderByClause()
@@ -187,7 +203,11 @@ namespace LinqToDB.DataProvider.SqlServer
 		protected override void BuildCreateTablePrimaryKey(string pkName, IEnumerable<string> fieldNames)
 		{
 			AppendIndent();
-			StringBuilder.Append("CONSTRAINT ").Append(pkName).Append(" PRIMARY KEY CLUSTERED (");
+
+			if (!pkName.StartsWith("[PK_#"))
+				StringBuilder.Append("CONSTRAINT ").Append(pkName).Append(' ');
+
+			StringBuilder.Append("PRIMARY KEY CLUSTERED (");
 			StringBuilder.Append(fieldNames.Aggregate((f1,f2) => f1 + ", " + f2));
 			StringBuilder.Append(")");
 		}
@@ -196,13 +216,22 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 			var table = SelectQuery.CreateTable.Table;
 
-			StringBuilder.Append("IF  EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'");
-			BuildPhysicalTable(table, null);
-			StringBuilder.AppendLine("') AND type in (N'U'))");
+			if (table.PhysicalName.StartsWith("#"))
+			{
+				AppendIndent().Append("DROP TABLE ");
+				BuildPhysicalTable(table, null);
+				StringBuilder.AppendLine();
+			}
+			else
+			{
+				StringBuilder.Append("IF EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'");
+				BuildPhysicalTable(table, null);
+				StringBuilder.AppendLine("') AND type in (N'U'))");
 
-			AppendIndent().Append("BEGIN DROP TABLE ");
-			BuildPhysicalTable(table, null);
-			StringBuilder.AppendLine(" END");
+				AppendIndent().Append("BEGIN DROP TABLE ");
+				BuildPhysicalTable(table, null);
+				StringBuilder.AppendLine(" END");
+			}
 		}
 
 		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
@@ -210,7 +239,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			switch (type.DataType)
 			{
 				case DataType.Guid      : StringBuilder.Append("UniqueIdentifier"); return;
-				case DataType.Variant   : StringBuilder.Append("Sql_Variant");           return;
+				case DataType.Variant   : StringBuilder.Append("Sql_Variant");      return;
 				case DataType.NVarChar  :
 				case DataType.VarChar   :
 				case DataType.VarBinary :

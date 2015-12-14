@@ -44,6 +44,7 @@ namespace LinqToDB.Mapping
 			IsHierarchical  = ca.IsHierarchical;
 			PrimaryKeyOrder = ca.PrimaryKeyOrder;
 			IsColumn        = ca.IsColumn;
+			CreateFormat    = ca.CreateFormat;
 
 			if (ca.HasSkipOnInsert()) SkipOnInsert = ca.SkipOnInsert;
 			if (ca.HasSkipOnUpdate()) SkipOnUpdate = ca.SkipOnUpdate;
@@ -203,5 +204,8 @@ namespace LinqToDB.Mapping
 		}
 
 		public bool HasScale() { return _scale.HasValue; }
+
+		public string CreateFormat { get; set; }
+
 	}
 }

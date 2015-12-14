@@ -4,16 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using LinqToDB.Common;
-using LinqToDB.Reflection;
 
 namespace LinqToDB.Linq.Builder
 {
+	using Common;
 	using Extensions;
-	using SqlQuery;
 	using LinqToDB.Expressions;
 	using Mapping;
+	using Reflection;
+	using SqlQuery;
 
 	class TableBuilder : ISequenceBuilder
 	{
@@ -260,8 +259,14 @@ namespace LinqToDB.Linq.Builder
 						table.Table.LoadWith = member.NextLoadWith;
 					}
 
+					var attr = Builder.MappingSchema.GetAttribute<AssociationAttribute>(member.MemberInfo);
+
 					var ex = BuildExpression(ma, 1, parentObject);
-					var ax = Expression.Assign(Expression.MakeMemberAccess(parentObject, member.MemberInfo), ex);
+					var ax = Expression.Assign(
+						attr != null && attr.Storage != null ?
+							Expression.PropertyOrField (parentObject, attr.Storage) :
+							Expression.MakeMemberAccess(parentObject, member.MemberInfo),
+						ex);
 
 					exprs.Add(ax);
 				}
@@ -1049,9 +1054,27 @@ namespace LinqToDB.Linq.Builder
 						{
 							var alias = EntityDescriptor[memberExpression.Member.Name];
 
-							if (alias != null)
-								expression = memberExpression = Expression.PropertyOrField(
-									memberExpression.Expression, alias.MemberName);
+							if (alias == null)
+							{
+								foreach (var column in EntityDescriptor.Columns)
+								{
+									if (column.MemberInfo.EqualsTo(memberExpression.Member, SqlTable.ObjectType))
+									{
+										expression = memberExpression = Expression.PropertyOrField(
+											Expression.Convert(memberExpression.Expression, column.MemberInfo.DeclaringType), column.MemberName);
+										break;
+									}
+								}
+							}
+							else
+							{
+								var expr = memberExpression.Expression;
+
+								if (alias.MemberInfo.DeclaringType != memberExpression.Member.DeclaringType)
+									expr = Expression.Convert(memberExpression.Expression, alias.MemberInfo.DeclaringType);
+
+								expression = memberExpression = Expression.PropertyOrField(expr, alias.MemberName);
+							}
 						}
 					}
 

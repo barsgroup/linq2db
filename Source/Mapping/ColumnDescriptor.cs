@@ -40,6 +40,7 @@ namespace LinqToDB.Mapping
 			IsHierarchical  = columnAttribute.IsHierarchical;
 			DataType        = columnAttribute.DataType;
 			DbType          = columnAttribute.DbType;
+			CreateFormat    = columnAttribute.CreateFormat;
 
 			if (columnAttribute.HasLength   ()) Length    = columnAttribute.Length;
 			if (columnAttribute.HasPrecision()) Precision = columnAttribute.Precision;
@@ -114,6 +115,7 @@ namespace LinqToDB.Mapping
 		public int?           Precision       { get; private set; }
 		public int?           Scale           { get; private set; }
 	    public bool           Transparent     { get; private set; }
+		public string         CreateFormat    { get; private set; }
 
 		Func<object,object> _getter;
 

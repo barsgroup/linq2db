@@ -92,7 +92,7 @@ namespace LinqToDB.DataProvider.SapHana
 
 				var sqlBuilder = _dataProvider.CreateSqlBuilder();
 				var descriptor = dataConnection.MappingSchema.GetEntityDescriptor(typeof (T));
-				var tableName  = GetTableName(sqlBuilder, descriptor);
+				var tableName  = GetTableName(sqlBuilder, options, descriptor);
 
 				dbc.DestinationTableName = tableName;
 
@@ -101,7 +101,10 @@ namespace LinqToDB.DataProvider.SapHana
 
 				var rd = new BulkCopyReader(_dataProvider, columns, source);
 
-				dbc.WriteToServer(rd);
+				TraceAction(
+					dataConnection,
+					"INSERT BULK " + tableName + Environment.NewLine,
+					() => { dbc.WriteToServer(rd); return rd.Count; });
 
 				if (rc.RowsCopied != rd.Count)
 				{

@@ -32,7 +32,7 @@ namespace LinqToDB.DataProvider.DB2
 			{
 				var sqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
 				var descriptor = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
-				var tableName  = GetTableName(sqlBuilder, descriptor);
+				var tableName  = GetTableName(sqlBuilder, options, descriptor);
 
 				if (_bulkCopyCreator == null)
 				{
@@ -90,7 +90,10 @@ namespace LinqToDB.DataProvider.DB2
 						for (var i = 0; i < columns.Count; i++)
 							dbc.ColumnMappings.Add((dynamic)_columnMappingCreator(i, columns[i].ColumnName));
 
-						dbc.WriteToServer(rd);
+						TraceAction(
+							dataConnection,
+							"INSERT BULK " + tableName + Environment.NewLine,
+							() => { dbc.WriteToServer(rd); return rd.Count; });
 					}
 
 					if (rc.RowsCopied != rd.Count)
