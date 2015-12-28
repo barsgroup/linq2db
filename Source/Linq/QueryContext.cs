@@ -49,10 +49,6 @@ namespace LinqToDB.Linq
 
 		public void ReleaseDataContext(DataContextContext context)
 		{
-            _contexts.Remove(context);
-
-            context.DataContextInfo.DataContext.Dispose();
-
             context.InUse = false;
 		}
 

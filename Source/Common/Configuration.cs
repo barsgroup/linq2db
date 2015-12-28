@@ -9,7 +9,7 @@ namespace LinqToDB.Common
 
 		public static class Linq
 		{
-			public static bool PreloadGroups;
+		    public static bool PreloadGroups = true;
 			public static bool IgnoreEmptyUpdate;
 			public static bool AllowMultipleQuery;
 			public static bool GenerateExpressionTest;
