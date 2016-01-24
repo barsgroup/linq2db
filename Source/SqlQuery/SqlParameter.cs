@@ -6,7 +6,7 @@ namespace LinqToDB.SqlQuery
 {
 	using LinqToDB.Extensions;
 
-	public class SqlParameter : ISqlExpression, IValueContainer
+	public class SqlParameter : BaseQueryElement, ISqlExpression, IValueContainer
 	{
 		public SqlParameter(Type systemType, string name, object value)
 		{
@@ -226,9 +226,9 @@ namespace LinqToDB.SqlQuery
 
 		#region IQueryElement Members
 
-		public QueryElementType ElementType { get { return QueryElementType.SqlParameter; } }
+		public override QueryElementType ElementType { get { return QueryElementType.SqlParameter; } }
 
-		StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			return sb
 				.Append('@')

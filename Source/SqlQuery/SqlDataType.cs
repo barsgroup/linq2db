@@ -11,8 +11,8 @@ namespace LinqToDB.SqlQuery
 {
 	using LinqToDB.Extensions;
 
-	public class SqlDataType : ISqlExpression
-	{
+	public class SqlDataType : BaseQueryElement, ISqlExpression
+    {
 		#region Init
 
 		public SqlDataType(DataType dbType)
@@ -528,9 +528,9 @@ namespace LinqToDB.SqlQuery
 
 		#region IQueryElement Members
 
-		public QueryElementType ElementType { get { return QueryElementType.SqlDataType; } }
+		public override QueryElementType ElementType { get { return QueryElementType.SqlDataType; } }
 
-		StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+		public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			sb.Append(this.DataType);
 

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LinqToDB.SqlQuery
 {
-	public class SqlExpression : ISqlExpression
+	public class SqlExpression : BaseQueryElement, ISqlExpression
 	{
 		public SqlExpression(Type systemType, string expr, int precedence, params ISqlExpression[] parameters)
 		{
@@ -131,9 +131,14 @@ namespace LinqToDB.SqlQuery
 
 		#region IQueryElement Members
 
-		public QueryElementType ElementType { get { return QueryElementType.SqlExpression; } }
+		protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+		{
+			return base.GetChildItemsInternal().UnionChilds(Parameters);
+		}
 
-		StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+		public override QueryElementType ElementType { get { return QueryElementType.SqlExpression; } }
+
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			var len = sb.Length;
 			var ss  = Parameters.Select(p =>

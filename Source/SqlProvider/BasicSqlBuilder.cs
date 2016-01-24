@@ -1741,10 +1741,6 @@ namespace LinqToDB.SqlProvider
 							{
 								if (field != field.Table.All)
 								{
-#if DEBUG
-									//SqlQuery.GetTableSource(field.Table);
-#endif
-
 									if (throwExceptionIfTableNotFound)
 										throw new SqlException("Table '{0}' not found.", field.Table);
 								}
@@ -1784,18 +1780,10 @@ namespace LinqToDB.SqlProvider
 					{
 						var column = (SelectQuery.Column)expr;
 
-#if DEBUG
-						var sql = SelectQuery.SqlText;
-#endif
-
 						var table = SelectQuery.GetTableSource(column.Parent);
 
 						if (table == null)
 						{
-#if DEBUG
-							table = SelectQuery.GetTableSource(column.Parent);
-#endif
-
 							throw new SqlException("Table not found for '{0}'.", column);
 						}
 
@@ -2480,7 +2468,10 @@ namespace LinqToDB.SqlProvider
 				case QueryElementType.SqlTable :
 					return ((SqlTable)table).Alias;
 
-				default :
+                case QueryElementType.SqlQuery:
+                    return GetTableAlias(((SelectQuery)table).From.Tables[0]);
+
+                default :
 					throw new InvalidOperationException();
 			}
 		}

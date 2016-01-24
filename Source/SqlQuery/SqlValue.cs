@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LinqToDB.SqlQuery
 {
-	public class SqlValue : ISqlExpression, IValueContainer
+	public class SqlValue : BaseQueryElement, ISqlExpression, IValueContainer
 	{
 		public SqlValue(Type systemType, object value)
 		{
@@ -103,9 +103,9 @@ namespace LinqToDB.SqlQuery
 
 		#region IQueryElement Members
 
-		public QueryElementType ElementType { get { return QueryElementType.SqlValue; } }
+		public override QueryElementType ElementType { get { return QueryElementType.SqlValue; } }
 
-		StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			return 
 				Value == null ?

@@ -6,8 +6,8 @@ namespace LinqToDB.SqlQuery
 {
 	using Mapping;
 
-	public class SqlField : ISqlExpression
-	{
+	public class SqlField : BaseQueryElement, ISqlExpression
+    {
 		public SqlField()
 		{
 			Nullable = true;
@@ -125,9 +125,9 @@ namespace LinqToDB.SqlQuery
 
 		#region IQueryElement Members
 
-		public QueryElementType ElementType { get { return QueryElementType.SqlField; } }
+	    public override QueryElementType ElementType { get { return QueryElementType.SqlField; } }
 
-		StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			return sb
 				.Append('t')

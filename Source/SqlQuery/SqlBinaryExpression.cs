@@ -6,8 +6,8 @@ using System.Text;
 namespace LinqToDB.SqlQuery
 {
 	[Serializable, DebuggerDisplay("SQL = {SqlText}")]
-	public class SqlBinaryExpression : ISqlExpression
-	{
+	public class SqlBinaryExpression : BaseQueryElement, ISqlExpression
+    {
 		public SqlBinaryExpression(Type systemType, ISqlExpression expr1, string operation, ISqlExpression expr2, int precedence)
 		{
 			if (expr1     == null) throw new ArgumentNullException("expr1");
@@ -115,13 +115,18 @@ namespace LinqToDB.SqlQuery
 			return clone;
 		}
 
-		#endregion
+        #endregion
 
-		#region IQueryElement Members
+        #region IQueryElement Members
 
-		public QueryElementType ElementType { get { return QueryElementType.SqlBinaryExpression; } }
+        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        {
+            return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(Expr2);
+        }
 
-		StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override QueryElementType ElementType { get { return QueryElementType.SqlBinaryExpression; } }
+
+		public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			Expr1
 				.ToString(sb, dic)

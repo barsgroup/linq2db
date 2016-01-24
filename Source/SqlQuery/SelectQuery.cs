@@ -12,8 +12,43 @@ namespace LinqToDB.SqlQuery
 	using LinqToDB.Extensions;
 	using Reflection;
 
+	
+	public static class QueryElementExtentions
+	{
+		public static IEnumerable<IQueryElement> UnionChilds(this IEnumerable<IQueryElement> first, IEnumerable<IQueryElement> second)
+		{
+			return second != null
+					   ? first.Union(second.SelectMany(s => s.GetChildItems()))
+					   : first;
+		}
+
+		public static IEnumerable<IQueryElement> UnionChilds(this IEnumerable<IQueryElement> first, IQueryElement second)
+		{
+			return second != null
+					   ? first.Union(second.GetChildItems())
+					   : first;
+		}
+	}
+
+	public abstract class BaseQueryElement : IQueryElement
+	{
+		public IEnumerable<IQueryElement> GetChildItems()
+		{
+			return GetChildItemsInternal();
+		}
+
+		protected virtual IEnumerable<IQueryElement> GetChildItemsInternal()
+		{
+			yield return this;
+		}
+
+	    public abstract QueryElementType ElementType { get; }
+
+	    public abstract StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic);
+	}
+
 	[DebuggerDisplay("SQL = {SqlText}")]
-	public class SelectQuery : ISqlTableSource
+	public class SelectQuery : BaseQueryElement, ISqlTableSource
 	{
 		#region Init
 
@@ -132,7 +167,7 @@ namespace LinqToDB.SqlQuery
 
 		#region Column
 
-		public class Column : IEquatable<Column>, ISqlExpression
+		public class Column : BaseQueryElement, IEquatable<Column>, ISqlExpression
 		{
 			public Column(SelectQuery parent, ISqlExpression expression, string alias)
 			{
@@ -269,13 +304,18 @@ namespace LinqToDB.SqlQuery
 				return func(this);
 			}
 
-			#endregion
+            #endregion
 
-			#region IQueryElement Members
+            #region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.Column; } }
+            protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+            {
+                return base.GetChildItemsInternal().UnionChilds(Expression);
+            }
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+            public override QueryElementType ElementType { get { return QueryElementType.Column; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				if (dic.ContainsKey(this))
 					return sb.Append("...");
@@ -316,7 +356,7 @@ namespace LinqToDB.SqlQuery
 
 		#region TableSource
 
-		public class TableSource : ISqlTableSource
+		public class TableSource : BaseQueryElement, ISqlTableSource
 		{
 			public TableSource(ISqlTableSource source, string alias)
 				: this(source, alias, null)
@@ -489,13 +529,18 @@ namespace LinqToDB.SqlQuery
 				return clone;
 			}
 
-			#endregion
+            #endregion
 
-			#region IQueryElement Members
+            #region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.TableSource; } }
+            protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+            {
+                return base.GetChildItemsInternal().UnionChilds(Source).UnionChilds(Joins);
+            }
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+            public override QueryElementType ElementType { get { return QueryElementType.TableSource; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				if (dic.ContainsKey(this))
 					return sb.Append("...");
@@ -561,7 +606,7 @@ namespace LinqToDB.SqlQuery
 			OuterApply
 		}
 
-		public class JoinedTable : IQueryElement, ISqlExpressionWalkable, ICloneableElement
+		public class JoinedTable : BaseQueryElement, IQueryElement, ISqlExpressionWalkable, ICloneableElement
 		{
 			public JoinedTable(JoinType joinType, TableSource table, bool isWeak, SearchCondition searchCondition)
 			{
@@ -625,13 +670,18 @@ namespace LinqToDB.SqlQuery
 				return null;
 			}
 
-			#endregion
+            #endregion
 
-			#region IQueryElement Members
+            #region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.JoinedTable; } }
+            protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+            {
+                return base.GetChildItemsInternal().UnionChilds(Table).UnionChilds(Condition);
+            }
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+            public override QueryElementType ElementType { get { return QueryElementType.JoinedTable; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				if (dic.ContainsKey(this))
 					return sb.Append("...");
@@ -663,7 +713,7 @@ namespace LinqToDB.SqlQuery
 
 		#region Predicate
 
-		public abstract class Predicate : ISqlPredicate
+		public abstract class Predicate : BaseQueryElement, ISqlPredicate
 		{
 			public enum Operator
 			{
@@ -723,15 +773,20 @@ namespace LinqToDB.SqlQuery
 					return clone;
 				}
 
-				public override QueryElementType ElementType
+                protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+                {
+                    return base.GetChildItemsInternal().UnionChilds(Expr1);
+                }
+
+                public override QueryElementType ElementType
 				{
 					get { return QueryElementType.ExprPredicate; }
 				}
 
-				protected override void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
-				{
-					Expr1.ToString(sb, dic);
-				}
+			    protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+			    {
+                    Expr1.ToString(sb, dic);
+			    }
 			}
 
 			public class NotExpr : Expr
@@ -757,12 +812,17 @@ namespace LinqToDB.SqlQuery
 					return clone;
 				}
 
-				public override QueryElementType ElementType
+                protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+                {
+                    return base.GetChildItemsInternal().UnionChilds(Expr1);
+                }
+
+                public override QueryElementType ElementType
 				{
 					get { return QueryElementType.NotExprPredicate; }
 				}
 
-				protected override void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+				protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
 				{
 					if (IsNot) sb.Append("NOT (");
 					base.ToString(sb, dic);
@@ -809,12 +869,17 @@ namespace LinqToDB.SqlQuery
 					return clone;
 				}
 
-				public override QueryElementType ElementType
+                protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+                {
+                    return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(Expr2);
+                }
+
+                public override QueryElementType ElementType
 				{
 					get { return QueryElementType.ExprExprPredicate; }
 				}
 
-				protected override void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+				protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
 				{
 					Expr1.ToString(sb, dic);
 
@@ -876,90 +941,89 @@ namespace LinqToDB.SqlQuery
 					return clone;
 				}
 
-				public override QueryElementType ElementType
+                protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+                {
+                    return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(Expr2).UnionChilds(Escape);
+                }
+                public override QueryElementType ElementType
 				{
 					get { return QueryElementType.LikePredicate; }
 				}
 
-				protected override void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+				protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
 				{
-				    ToStringInternal(sb, dic);
+                    Expr1.ToString(sb, dic);
 
-				    if (Escape != null)
+                    sb.Append(GetOperator());
+
+                    Expr2.ToString(sb, dic);
+
+                    if (Escape != null)
 					{
 						sb.Append(" ESCAPE ");
 						Escape.ToString(sb, dic);
 					}
 				}
 
-			    protected void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
-			    {
-			        Expr1.ToString(sb, dic);
-
-			        sb.Append(GetOperator());
-
-			        Expr2.ToString(sb, dic);
-			    }
-
-                public virtual string GetOperator()
-			    {
-			        if (IsNot) return " NOT LIKE ";
-			        return " LIKE ";
-			    }
+				public virtual string GetOperator()
+				{
+					if (IsNot) return " NOT LIKE ";
+					return " LIKE ";
+				}
 			}
 
-		    public class HierarhicalLike : Like
-		    {
-		        private readonly string _start;
+			public class HierarhicalLike : Like
+			{
+				private readonly string _start;
 
-		        private readonly string _end;
+				private readonly string _end;
 
-                protected override ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
-                {
-                    if (!doClone(this))
-                        return this;
+				protected override ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+				{
+					if (!doClone(this))
+						return this;
 
-                    ICloneableElement clone;
+					ICloneableElement clone;
 
-                    if (!objectTree.TryGetValue(this, out clone))
-                        objectTree.Add(this, clone = new HierarhicalLike(
-                            (ISqlExpression)Expr1.Clone(objectTree, doClone), (ISqlExpression)Expr2.Clone(objectTree, doClone), _start, _end));
+					if (!objectTree.TryGetValue(this, out clone))
+						objectTree.Add(this, clone = new HierarhicalLike(
+							(ISqlExpression)Expr1.Clone(objectTree, doClone), (ISqlExpression)Expr2.Clone(objectTree, doClone), _start, _end));
 
-                    return clone;
-                }
+					return clone;
+				}
 
-                public override QueryElementType ElementType
-                {
-                    get { return QueryElementType.LikePredicate; }
-                }
+				public override QueryElementType ElementType
+				{
+					get { return QueryElementType.LikePredicate; }
+				}
 
-                public HierarhicalLike(ISqlExpression exp1, ISqlExpression exp2, string start, string end)
-                    : base(exp1, false, exp2, null)
-		        {
-		            _start = start;
-		            _end = end;
-		        }
+				public HierarhicalLike(ISqlExpression exp1, ISqlExpression exp2, string start, string end)
+					: base(exp1, false, exp2, null)
+				{
+					_start = start;
+					_end = end;
+				}
 
-                protected override void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
-                {
-                    ToStringInternal(sb, dic);
-                }
+				protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+				{
+					ToStringInternal(sb, dic);
+				}
 
-		        public override string GetOperator()
-		        {
-		            if (string.IsNullOrEmpty(_start) && !string.IsNullOrEmpty(_end))
-		            {
-		                return "<@";
-		            }
-		            
-                    if (!string.IsNullOrEmpty(_start) && string.IsNullOrEmpty(_end))
-		            {
-		                return "@>";
-		            }
-		            
-                    return "@";
-		        }
-		    }
+				public override string GetOperator()
+				{
+					if (string.IsNullOrEmpty(_start) && !string.IsNullOrEmpty(_end))
+					{
+						return "<@";
+					}
+					
+					if (!string.IsNullOrEmpty(_start) && string.IsNullOrEmpty(_end))
+					{
+						return "@>";
+					}
+					
+					return "@";
+				}
+			}
 
 			// expression [ NOT ] BETWEEN expression AND expression
 			//
@@ -999,12 +1063,16 @@ namespace LinqToDB.SqlQuery
 					return clone;
 				}
 
-				public override QueryElementType ElementType
+                protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+                {
+                    return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(Expr2).UnionChilds(Expr3);
+                }
+                public override QueryElementType ElementType
 				{
 					get { return QueryElementType.BetweenPredicate; }
 				}
 
-				protected override void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+				protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
 				{
 					Expr1.ToString(sb, dic);
 
@@ -1039,7 +1107,7 @@ namespace LinqToDB.SqlQuery
 					return clone;
 				}
 
-				protected override void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+				protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
 				{
 					Expr1.ToString(sb, dic);
 					sb
@@ -1048,7 +1116,12 @@ namespace LinqToDB.SqlQuery
 						.Append("NULL");
 				}
 
-				public override QueryElementType ElementType
+                protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+                {
+                    return base.GetChildItemsInternal().UnionChilds(Expr1);
+                }
+
+                public override QueryElementType ElementType
 				{
 					get { return QueryElementType.IsNullPredicate; }
 				}
@@ -1087,13 +1160,17 @@ namespace LinqToDB.SqlQuery
 
 					return clone;
 				}
+                protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+                {
+                    return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(SubQuery);
+                }
 
-				public override QueryElementType ElementType
+                public override QueryElementType ElementType
 				{
 					get { return QueryElementType.InSubQueryPredicate; }
 				}
 
-				protected override void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+				protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
 				{
 					Expr1.ToString(sb, dic);
 
@@ -1149,12 +1226,17 @@ namespace LinqToDB.SqlQuery
 					return clone;
 				}
 
-				public override QueryElementType ElementType
+                protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+                {
+                    return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(Values);
+                }
+
+                public override QueryElementType ElementType
 				{
 					get { return QueryElementType.InListPredicate; }
 				}
 
-				protected override void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+				protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
 				{
 					Expr1.ToString(sb, dic);
 
@@ -1217,11 +1299,16 @@ namespace LinqToDB.SqlQuery
 					get { return QueryElementType.FuncLikePredicate; }
 				}
 
-				protected override void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+				protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
 				{
 					((IQueryElement)Function).ToString(sb, dic);
 				}
-			}
+                protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+                {
+                    return base.GetChildItemsInternal().UnionChilds(Function);
+                }
+
+            }
 
 			#region Overrides
 
@@ -1267,11 +1354,15 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public abstract QueryElementType ElementType { get; }
 
-			protected abstract void ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic);
+			protected abstract void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic);
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+            //protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+            //{
+            //    return base.GetChildItemsInternal().UnionChilds(Func);
+            //}
+
+            public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				if (dic.ContainsKey(this))
 					return sb.Append("...");
@@ -1290,7 +1381,7 @@ namespace LinqToDB.SqlQuery
 
 		#region Condition
 
-		public class Condition : IQueryElement, ICloneableElement
+		public class Condition : BaseQueryElement, IQueryElement, ICloneableElement
 		{
 			public Condition(bool isNot, ISqlPredicate predicate)
 			{
@@ -1316,7 +1407,7 @@ namespace LinqToDB.SqlQuery
 					return
 						IsNot ? SqlQuery.Precedence.LogicalNegation :
 						IsOr  ? SqlQuery.Precedence.LogicalDisjunction :
-						        SqlQuery.Precedence.LogicalConjunction;
+								SqlQuery.Precedence.LogicalConjunction;
 				}
 			}
 
@@ -1347,11 +1438,16 @@ namespace LinqToDB.SqlQuery
 
 #endif
 
-			#region IQueryElement Members
+            #region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.Condition; } }
+            protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+            {
+                return base.GetChildItemsInternal().UnionChilds(Predicate);
+            }
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+            public override QueryElementType ElementType { get { return QueryElementType.Condition; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				if (dic.ContainsKey(this))
 					return sb.Append("...");
@@ -1449,7 +1545,7 @@ namespace LinqToDB.SqlQuery
 					return _conditions.Select(_ =>
 						_.IsNot ? SqlQuery.Precedence.LogicalNegation :
 						_.IsOr  ? SqlQuery.Precedence.LogicalDisjunction :
-						          SqlQuery.Precedence.LogicalConjunction).Min();
+								  SqlQuery.Precedence.LogicalConjunction).Min();
 				}
 			}
 
@@ -1516,13 +1612,18 @@ namespace LinqToDB.SqlQuery
 				return clone;
 			}
 
-			#endregion
+            #endregion
 
-			#region IQueryElement Members
+            #region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.SearchCondition; } }
+            protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+            {
+                return base.GetChildItemsInternal().UnionChilds(Conditions);
+            }
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+            public override QueryElementType ElementType { get { return QueryElementType.SearchCondition; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				if (dic.ContainsKey(this))
 					return sb.Append("...");
@@ -1555,7 +1656,7 @@ namespace LinqToDB.SqlQuery
 			T Value   (object         value);
 		}
 
-		public abstract class ConditionBase<T1,T2> : IConditionExpr<ConditionBase<T1,T2>.Expr_>
+		public abstract class ConditionBase<T1,T2> : BaseQueryElement, IConditionExpr<ConditionBase<T1,T2>.Expr_>
 			where T1 : ConditionBase<T1,T2>
 		{
 			public class Expr_
@@ -1714,7 +1815,7 @@ namespace LinqToDB.SqlQuery
 
 		#region OrderByItem
 
-		public class OrderByItem : IQueryElement, ICloneableElement
+		public class OrderByItem : BaseQueryElement, IQueryElement, ICloneableElement
 		{
 			public OrderByItem(ISqlExpression expression, bool isDescending)
 			{
@@ -1758,12 +1859,17 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public QueryElementType ElementType
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				return base.GetChildItemsInternal().UnionChilds(Expression);
+			}
+
+			public override QueryElementType ElementType
 			{
 				get { return QueryElementType.OrderByItem; }
 			}
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				Expression.ToString(sb, dic);
 
@@ -1780,7 +1886,7 @@ namespace LinqToDB.SqlQuery
 
 		#region ClauseBase
 
-		public abstract class ClauseBase
+		public abstract class ClauseBase: BaseQueryElement
 		{
 			protected ClauseBase(SelectQuery selectQuery)
 			{
@@ -1801,7 +1907,14 @@ namespace LinqToDB.SqlQuery
 			{
 				SelectQuery = selectQuery;
 			}
-		}
+
+            public override QueryElementType ElementType { get {return QueryElementType.None;} }
+
+            public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+            {
+                throw new NotImplementedException();
+            }
+        }
 
 		public abstract class ClauseBase<T1, T2> : ConditionBase<T1, T2>
 			where T1 : ClauseBase<T1, T2>
@@ -2132,9 +2245,14 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.SelectClause; } }
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				return base.GetChildItemsInternal().UnionChilds(TakeValue).UnionChilds(SkipValue).Union(Columns.SelectMany(c => c.GetChildItems()));
+			}
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+			public override QueryElementType ElementType { get { return QueryElementType.SelectClause; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				if (dic.ContainsKey(this))
 					return sb.Append("...");
@@ -2194,7 +2312,7 @@ namespace LinqToDB.SqlQuery
 
 		#region CreateTableStatement
 
-		public class CreateTableStatement : IQueryElement, ISqlExpressionWalkable, ICloneableElement
+		public class CreateTableStatement : BaseQueryElement, IQueryElement, ISqlExpressionWalkable, ICloneableElement
 		{
 			public SqlTable       Table           { get; set; }
 			public bool           IsDrop          { get; set; }
@@ -2204,9 +2322,14 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.CreateTableStatement; } }
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				return base.GetChildItemsInternal().UnionChilds(Table);
+			}
 
-			public StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+			public override QueryElementType ElementType { get { return QueryElementType.CreateTableStatement; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
 			{
 				sb.Append(IsDrop ? "DROP TABLE " : "CREATE TABLE ");
 
@@ -2262,7 +2385,7 @@ namespace LinqToDB.SqlQuery
 
 		#region InsertClause
 
-		public class SetExpression : IQueryElement, ISqlExpressionWalkable, ICloneableElement
+		public class SetExpression : BaseQueryElement, IQueryElement, ISqlExpressionWalkable, ICloneableElement
 		{
 			public SetExpression(ISqlExpression column, ISqlExpression expression)
 			{
@@ -2335,13 +2458,18 @@ namespace LinqToDB.SqlQuery
 				return null;
 			}
 
-			#endregion
+            #endregion
 
-			#region IQueryElement Members
+            #region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.SetExpression; } }
+            protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+            {
+                return base.GetChildItemsInternal().UnionChilds(Column).UnionChilds(Expression);
+            }
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+            public override QueryElementType ElementType { get { return QueryElementType.SetExpression; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				Column.ToString(sb, dic);
 				sb.Append(" = ");
@@ -2353,7 +2481,7 @@ namespace LinqToDB.SqlQuery
 			#endregion
 		}
 
-		public class InsertClause : IQueryElement, ISqlExpressionWalkable, ICloneableElement
+		public class InsertClause : BaseQueryElement, IQueryElement, ISqlExpressionWalkable, ICloneableElement
 		{
 			public InsertClause()
 			{
@@ -2416,9 +2544,14 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.InsertClause; } }
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				return base.GetChildItemsInternal().UnionChilds(Into).UnionChilds(Items);
+			}
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+			public override QueryElementType ElementType { get { return QueryElementType.InsertClause; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				sb.Append("VALUES ");
 
@@ -2455,7 +2588,7 @@ namespace LinqToDB.SqlQuery
 
 		#region UpdateClause
 
-		public class UpdateClause : IQueryElement, ISqlExpressionWalkable, ICloneableElement
+		public class UpdateClause : BaseQueryElement, IQueryElement, ISqlExpressionWalkable, ICloneableElement
 		{
 			public UpdateClause()
 			{
@@ -2525,9 +2658,14 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.UpdateClause; } }
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				return base.GetChildItemsInternal().UnionChilds(Table).UnionChilds(Items).UnionChilds(Keys);
+			}
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+			public override QueryElementType ElementType { get { return QueryElementType.UpdateClause; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				sb.Append("SET ");
 
@@ -2564,7 +2702,7 @@ namespace LinqToDB.SqlQuery
 
 		#region DeleteClause
 
-		public class DeleteClause : IQueryElement, ISqlExpressionWalkable, ICloneableElement
+		public class DeleteClause : BaseQueryElement, IQueryElement, ISqlExpressionWalkable, ICloneableElement
 		{
 			public SqlTable Table { get; set; }
 
@@ -2615,9 +2753,14 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.DeleteClause; } }
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				return base.GetChildItemsInternal().UnionChilds(Table);
+			}
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+			public override QueryElementType ElementType { get { return QueryElementType.DeleteClause; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				sb.Append("DELETE FROM ");
 
@@ -2691,6 +2834,13 @@ namespace LinqToDB.SqlQuery
 				}
 
 				public JoinedTable JoinedTable { get; private set; }
+
+			    public override QueryElementType ElementType { get {return QueryElementType.None;} }
+
+			    public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+			    {
+			        return sb;
+			    }
 			}
 
 			#endregion
@@ -2874,9 +3024,14 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.FromClause; } }
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				return base.GetChildItemsInternal().Union(Tables.SelectMany(t => t.GetChildItems()));
+			}
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+			public override QueryElementType ElementType { get { return QueryElementType.FromClause; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				sb.Append(" \nFROM \n");
 
@@ -2942,6 +3097,8 @@ namespace LinqToDB.SqlQuery
 
 				public WhereClause Or  { get { return _parent.SetOr(true);  } }
 				public WhereClause And { get { return _parent.SetOr(false); } }
+
+			  
 			}
 
 			internal WhereClause(SelectQuery selectQuery) : base(selectQuery)
@@ -3006,12 +3163,17 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public QueryElementType ElementType
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				return base.GetChildItemsInternal().UnionChilds(SearchCondition);
+			}
+
+			public override QueryElementType ElementType
 			{
 				get { return QueryElementType.WhereClause; }
 			}
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				if (Search.Conditions.Count == 0)
 					return sb;
@@ -3108,9 +3270,14 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.GroupByClause; } }
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				return base.GetChildItemsInternal().Union(Items.SelectMany(i => i.GetChildItems()));
+			}
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+			public override QueryElementType ElementType { get { return QueryElementType.GroupByClause; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				if (Items.Count == 0)
 					return sb;
@@ -3233,9 +3400,14 @@ namespace LinqToDB.SqlQuery
 
 			#region IQueryElement Members
 
-			public QueryElementType ElementType { get { return QueryElementType.OrderByClause; } }
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				return base.GetChildItemsInternal().Union(Items.SelectMany(i => i.GetChildItems()));
+			}
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+			public override QueryElementType ElementType { get { return QueryElementType.OrderByClause; } }
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				if (Items.Count == 0)
 					return sb;
@@ -3267,7 +3439,7 @@ namespace LinqToDB.SqlQuery
 
 		#region Union
 
-		public class Union : IQueryElement
+		public class Union : BaseQueryElement, IQueryElement
 		{
 			public Union()
 			{
@@ -3282,7 +3454,7 @@ namespace LinqToDB.SqlQuery
 			public SelectQuery SelectQuery { get; private set; }
 			public bool IsAll { get; private set; }
 
-			public QueryElementType ElementType
+			public override QueryElementType ElementType
 			{
 				get { return QueryElementType.Union; }
 			}
@@ -3296,7 +3468,13 @@ namespace LinqToDB.SqlQuery
 
 #endif
 
-			StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+			protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+			{
+				var resultItems =  base.GetChildItemsInternal();
+				return resultItems.UnionChilds(SelectQuery);
+			}
+
+			public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 			{
 				sb.Append(" \nUNION").Append(IsAll ? " ALL" : "").Append(" \n");
 				return ((IQueryElement)SelectQuery).ToString(sb, dic);
@@ -3945,9 +4123,62 @@ namespace LinqToDB.SqlQuery
 
 		#region IQueryElement Members
 
-		public QueryElementType ElementType { get { return QueryElementType.SqlQuery; } }
+		protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+		{
+			var resultItems = base.GetChildItemsInternal();
+			switch (QueryType)
+			{
+				case QueryType.InsertOrUpdate:
 
-		StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+					resultItems = resultItems.UnionChilds(Insert).UnionChilds(Update);
+
+					if (From.Tables.Count != 0)
+					{
+						resultItems = resultItems.UnionChilds(Select);
+					}
+					break;
+
+				case QueryType.Update:
+					resultItems = resultItems.UnionChilds(Update).UnionChilds(Select);
+					break;
+
+				case QueryType.Delete:
+					resultItems = resultItems.UnionChilds(Delete).UnionChilds(Select);
+					break;
+
+				case QueryType.Insert:
+					resultItems = resultItems.UnionChilds(Insert);
+
+					if (From.Tables.Count != 0)
+					{
+						resultItems = resultItems.UnionChilds(Select);
+					}
+
+					break;
+
+				default:
+					resultItems = resultItems.UnionChilds(Select);
+					break;
+			}
+			resultItems = resultItems.UnionChilds(From).UnionChilds(Where).UnionChilds(GroupBy).UnionChilds(Having).UnionChilds(OrderBy);
+
+			if (HasUnion)
+			{
+				foreach (var union in Unions)
+				{
+					if (union.SelectQuery == this)
+						throw new InvalidOperationException();
+
+					resultItems = resultItems.UnionChilds(union);
+				}
+			}
+
+			return resultItems;
+		}
+
+		public override QueryElementType ElementType { get { return QueryElementType.SqlQuery; } }
+
+		public override sealed StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			if (dic.ContainsKey(this))
 				return sb.Append("...");

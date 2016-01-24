@@ -8,8 +8,8 @@ namespace LinqToDB.SqlQuery
 {
 	using Mapping;
 
-	public class SqlTable : ISqlTableSource
-	{
+	public class SqlTable : BaseQueryElement, ISqlTableSource
+    {
 		#region Init
 
 		public SqlTable()
@@ -315,13 +315,18 @@ namespace LinqToDB.SqlQuery
 			return clone;
 		}
 
-		#endregion
+        #endregion
 
-		#region IQueryElement Members
+        #region IQueryElement Members
 
-		public QueryElementType ElementType { get { return QueryElementType.SqlTable; } }
+        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        {
+            return base.GetChildItemsInternal().UnionChilds(All).UnionChilds(Fields.Values).UnionChilds(TableArguments);
+        }
 
-		StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override QueryElementType ElementType { get { return QueryElementType.SqlTable; } }
+
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			return sb.Append(Name);
 		}

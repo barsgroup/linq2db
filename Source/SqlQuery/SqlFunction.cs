@@ -5,8 +5,8 @@ using System.Text;
 
 namespace LinqToDB.SqlQuery
 {
-	public class SqlFunction : ISqlExpression//ISqlTableSource
-	{
+	public class SqlFunction : BaseQueryElement, ISqlExpression//ISqlTableSource
+    {
 		public SqlFunction(Type systemType, string name, params ISqlExpression[] parameters)
 			: this(systemType, name, SqlQuery.Precedence.Primary, parameters)
 		{
@@ -120,13 +120,18 @@ namespace LinqToDB.SqlQuery
 			return comparer(this, other);
 		}
 
-		#endregion
+        #endregion
 
-		#region IQueryElement Members
+        #region IQueryElement Members
 
-		public QueryElementType ElementType { get { return QueryElementType.SqlFunction; } }
+        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        {
+            return base.GetChildItemsInternal().UnionChilds(Parameters);
+        }
 
-		StringBuilder IQueryElement.ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override QueryElementType ElementType { get { return QueryElementType.SqlFunction; } }
+
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			sb
 				.Append(Name)
