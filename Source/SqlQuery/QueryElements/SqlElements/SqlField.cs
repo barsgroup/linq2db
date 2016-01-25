@@ -128,7 +128,12 @@
 
 		#region IQueryElement Members
 
-	    public override QueryElementType ElementType { get { return QueryElementType.SqlField; } }
+        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        {
+            yield break;
+        }
+
+        public override QueryElementType ElementType { get { return QueryElementType.SqlField; } }
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

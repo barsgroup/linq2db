@@ -32,7 +32,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Expr1);
+            yield return Expr1;
         }
 
         public override QueryElementType ElementType => QueryElementType.NotExprPredicate;

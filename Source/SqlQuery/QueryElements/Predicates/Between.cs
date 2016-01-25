@@ -45,8 +45,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(Expr2).UnionChilds(Expr3);
+            yield return Expr1;
+            yield return Expr2;
+            yield return Expr3;
         }
+
         public override QueryElementType ElementType => QueryElementType.BetweenPredicate;
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)

@@ -20,7 +20,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Table);
+            yield return Table;
         }
 
         public override QueryElementType ElementType => QueryElementType.CreateTableStatement;

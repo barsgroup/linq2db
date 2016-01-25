@@ -67,7 +67,16 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Table).UnionChilds(Items).UnionChilds(Keys);
+            yield return Table;
+            foreach (var item in Items)
+            {
+                yield return item;
+            }
+
+            foreach (var key in Keys)
+            {
+                yield return key;
+            }
         }
 
         public override QueryElementType ElementType => QueryElementType.UpdateClause;

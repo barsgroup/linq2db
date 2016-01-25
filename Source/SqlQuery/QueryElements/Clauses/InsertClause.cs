@@ -60,7 +60,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Into).UnionChilds(Items);
+            yield return Into;
+            foreach (var item in Items)
+            {
+                yield return item;
+            }
         }
 
         public override QueryElementType ElementType => QueryElementType.InsertClause;

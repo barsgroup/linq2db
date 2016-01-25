@@ -49,7 +49,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
         }
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Function);
+            yield return Function;
         }
 
     }

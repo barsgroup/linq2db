@@ -229,7 +229,12 @@
 
 		#region IQueryElement Members
 
-		public override QueryElementType ElementType { get { return QueryElementType.SqlParameter; } }
+        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        {
+            yield break;
+        }
+
+        public override QueryElementType ElementType { get { return QueryElementType.SqlParameter; } }
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

@@ -21,13 +21,12 @@ namespace LinqToDB.DataProvider.Oracle
 		{
 			CheckAliases(selectQuery, 30);
 
-			QueryVisitor.Visit(selectQuery.Select, element =>
-			{
-				if (element.ElementType == QueryElementType.SqlParameter)
-					((SqlParameter)element).IsQueryParameter = false;
-			});
+		    foreach (var parameter in QueryVisitor.FindAll<SqlParameter>(selectQuery.Select))
+		    {
+		        parameter.IsQueryParameter = false;
+		    }
 
-			selectQuery = base.Finalize(selectQuery);
+		    selectQuery = base.Finalize(selectQuery);
 
 			switch (selectQuery.QueryType)
 			{

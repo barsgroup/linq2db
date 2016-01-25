@@ -183,7 +183,13 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Source).UnionChilds(Joins);
+            yield return Source;
+
+            foreach (var joinedTable in Joins)
+            {
+                yield return joinedTable;
+
+            }
         }
 
         public override QueryElementType ElementType => QueryElementType.TableSource;

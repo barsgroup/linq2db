@@ -12,10 +12,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             return GetChildItemsInternal();
         }
 
-        protected virtual IEnumerable<IQueryElement> GetChildItemsInternal()
-        {
-            yield return this;
-        }
+        protected abstract IEnumerable<IQueryElement> GetChildItemsInternal();
 
         public abstract QueryElementType ElementType { get; }
 

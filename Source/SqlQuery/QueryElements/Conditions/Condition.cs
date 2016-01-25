@@ -52,7 +52,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Predicate);
+            yield return Predicate;
         }
 
         public override QueryElementType ElementType => QueryElementType.Condition;

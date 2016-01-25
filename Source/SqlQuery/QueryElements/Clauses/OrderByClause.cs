@@ -78,7 +78,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().Union(Items.SelectMany(i => i.GetChildItems()));
+            return Items;
         }
 
         public override QueryElementType ElementType => QueryElementType.OrderByClause;

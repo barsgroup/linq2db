@@ -324,7 +324,20 @@
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(All).UnionChilds(Fields.Values).UnionChilds(TableArguments);
+            yield return All;
+
+            foreach (var value in Fields.Values)
+            {
+                yield return value;
+            }
+
+            if (TableArguments != null)
+            {
+                foreach (var value in TableArguments)
+                {
+                    yield return value;
+                }
+            }
         }
 
         public override QueryElementType ElementType { get { return QueryElementType.SqlTable; } }

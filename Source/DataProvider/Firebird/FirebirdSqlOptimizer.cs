@@ -1,6 +1,8 @@
 ﻿namespace LinqToDB.DataProvider.Firebird
 {
-	using Extensions;
+    using System.Linq;
+
+    using Extensions;
 
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
@@ -16,12 +18,7 @@
 		{
 		}
 
-		static void SetNonQueryParameter(IQueryElement element)
-		{
-			if (element.ElementType == QueryElementType.SqlParameter)
-				((SqlParameter)element).IsQueryParameter = false;
-		}
-
+		
 		private bool SearchSelectClause(IQueryElement element)
 		{
 			if (element.ElementType != QueryElementType.SelectClause) return true;
@@ -56,14 +53,12 @@
 
 			if (selectQuery.QueryType == QueryType.InsertOrUpdate)
 			{
-				foreach (var key in selectQuery.Insert.Items)
-					QueryVisitor.Visit(key.Expression, SetNonQueryParameter);
+			    var param = selectQuery.Insert.Items.Union(selectQuery.Update.Items).Union(selectQuery.Update.Keys).Select(i => i.Expression).ToArray();
 
-				foreach (var key in selectQuery.Update.Items)
-					QueryVisitor.Visit(key.Expression, SetNonQueryParameter);
-
-				foreach (var key in selectQuery.Update.Keys)
-					QueryVisitor.Visit(key.Expression, SetNonQueryParameter);
+			    foreach (var parameter in QueryVisitor.FindAll<SqlParameter>(param))
+			    {
+                    parameter.IsQueryParameter = false;
+                }
 			}
 
 			selectQuery = base.Finalize(selectQuery);

@@ -130,7 +130,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Conditions);
+            return Conditions;
         }
 
         public override QueryElementType ElementType => QueryElementType.SearchCondition;

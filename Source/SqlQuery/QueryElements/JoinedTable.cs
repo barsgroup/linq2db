@@ -78,7 +78,8 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Table).UnionChilds(Condition);
+            yield return Table;
+            yield return Condition;
         }
 
         public override QueryElementType ElementType => QueryElementType.JoinedTable;

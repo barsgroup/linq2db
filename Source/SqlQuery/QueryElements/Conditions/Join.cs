@@ -45,6 +45,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         public JoinedTable JoinedTable { get; }
 
+        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        {
+            yield break;
+        }
+
         public override QueryElementType ElementType => QueryElementType.None;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)

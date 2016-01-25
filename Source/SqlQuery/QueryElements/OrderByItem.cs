@@ -53,7 +53,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Expression);
+            yield return Expression;
         }
 
         public override QueryElementType ElementType => QueryElementType.OrderByItem;

@@ -7,7 +7,8 @@ using LinqToDB;
 using LinqToDB.Linq;
 using LinqToDB.Linq.Builder;
 using LinqToDB.SqlQuery;
-
+using LinqToDB.SqlQuery.QueryElements;
+using LinqToDB.SqlQuery.SqlElements;
 using NUnit.Framework;
 
 namespace Tests.Linq
@@ -717,7 +718,7 @@ namespace Tests.Linq
 				var sql = ctx.ConvertToSql(null, 0, ConvertFlags.Field);
 
 				Assert.AreEqual        (1, sql.Length);
-				Assert.IsAssignableFrom(typeof(SelectQuery.Column), sql[0].Sql);
+				Assert.IsAssignableFrom(typeof(Column), sql[0].Sql);
 			}
 		}
 

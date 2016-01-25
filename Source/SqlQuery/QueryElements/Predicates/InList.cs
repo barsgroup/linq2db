@@ -54,7 +54,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(Values);
+            yield return Expr1;
+            foreach (var sqlExpression in Values)
+            {
+                yield return sqlExpression;
+            }
         }
 
         public override QueryElementType ElementType => QueryElementType.InListPredicate;

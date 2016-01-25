@@ -74,7 +74,8 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Column).UnionChilds(Expression);
+            yield return Column;
+            yield return Expression;
         }
 
         public override QueryElementType ElementType => QueryElementType.SetExpression;

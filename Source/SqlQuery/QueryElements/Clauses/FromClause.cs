@@ -171,7 +171,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().Union(Tables.SelectMany(t => t.GetChildItems()));
+            return Tables;
         }
 
         public override QueryElementType ElementType => QueryElementType.FromClause;

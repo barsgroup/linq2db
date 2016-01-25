@@ -18,17 +18,15 @@ namespace LinqToDB.DataProvider.Informix
 		{
 		}
 
-		static void SetQueryParameter(IQueryElement element)
-		{
-			if (element.ElementType == QueryElementType.SqlParameter)
-				((SqlParameter)element).IsQueryParameter = false;
-		}
-
 		public override SelectQuery Finalize(SelectQuery selectQuery)
 		{
 			CheckAliases(selectQuery, int.MaxValue);
 
-			QueryVisitor.Visit(selectQuery.Select, SetQueryParameter);
+
+		    foreach (var parameter in QueryVisitor.FindAll<SqlParameter>(selectQuery.Select))
+		    {
+                parameter.IsQueryParameter = false;
+		    }
 
 			selectQuery = base.Finalize(selectQuery);
 

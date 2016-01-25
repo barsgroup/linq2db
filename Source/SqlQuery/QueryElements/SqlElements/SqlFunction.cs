@@ -130,7 +130,7 @@
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Parameters);
+            return Parameters;
         }
 
         public override QueryElementType ElementType { get { return QueryElementType.SqlFunction; } }

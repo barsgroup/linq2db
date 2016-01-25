@@ -145,7 +145,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Expression);
+            yield return Expression;
         }
 
         public sealed override QueryElementType ElementType => QueryElementType.Column;

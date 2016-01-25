@@ -40,7 +40,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
         }
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(SubQuery);
+            yield return Expr1;
+            yield return SubQuery;
         }
 
         public override QueryElementType ElementType => QueryElementType.InSubQueryPredicate;

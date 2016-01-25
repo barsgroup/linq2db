@@ -125,7 +125,8 @@
 
         protected override IEnumerable<IQueryElement> GetChildItemsInternal()
         {
-            return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(Expr2);
+            yield return Expr1;
+            yield return Expr2;
         }
 
         public override QueryElementType ElementType { get { return QueryElementType.SqlBinaryExpression; } }

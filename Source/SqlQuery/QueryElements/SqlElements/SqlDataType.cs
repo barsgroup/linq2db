@@ -532,7 +532,12 @@ namespace LinqToDB.SqlQuery.SqlElements
 
 		#region IQueryElement Members
 
-		public override QueryElementType ElementType { get { return QueryElementType.SqlDataType; } }
+        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        {
+            yield break;
+        }
+
+        public override QueryElementType ElementType { get { return QueryElementType.SqlDataType; } }
 
 		public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
