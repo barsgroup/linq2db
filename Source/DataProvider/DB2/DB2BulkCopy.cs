@@ -6,9 +6,8 @@ using System.Linq;
 namespace LinqToDB.DataProvider.DB2
 {
 	using Data;
-	using SqlProvider;
 
-	class DB2BulkCopy : BasicBulkCopy
+    class DB2BulkCopy : BasicBulkCopy
 	{
 		public DB2BulkCopy(Type connectionType)
 		{

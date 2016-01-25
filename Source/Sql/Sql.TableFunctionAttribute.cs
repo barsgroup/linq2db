@@ -11,9 +11,10 @@ namespace LinqToDB
 {
 	using Extensions;
 
-	using SqlQuery;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
-	partial class Sql
+    partial class Sql
 	{
 		[Serializable]
 		[AttributeUsage(AttributeTargets.Method, AllowMultiple = true, Inherited = false)]

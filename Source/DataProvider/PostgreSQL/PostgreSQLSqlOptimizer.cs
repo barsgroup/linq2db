@@ -1,8 +1,11 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.PostgreSQL
+﻿namespace LinqToDB.DataProvider.PostgreSQL
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 

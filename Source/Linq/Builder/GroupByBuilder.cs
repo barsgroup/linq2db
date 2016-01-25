@@ -11,6 +11,10 @@ namespace LinqToDB.Linq.Builder
 	using Common;
 	using Extensions;
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlQuery;
 
 	class GroupByBuilder : MethodCallBuilder
@@ -69,7 +73,7 @@ namespace LinqToDB.Linq.Builder
 
 			if (sequence.SelectQuery.Select.IsDistinct       ||
 			    sequence.SelectQuery.GroupBy.Items.Count > 0 ||
-			    groupSql.Any(_ => !(_.Sql is SqlField || _.Sql is SelectQuery.Column)))
+			    groupSql.Any(_ => !(_.Sql is SqlField || _.Sql is Column)))
 			{
 				sequence = new SubQueryContext(sequence);
 				key      = new KeyContext(buildInfo.Parent, keySelector, sequence);
@@ -79,15 +83,15 @@ namespace LinqToDB.Linq.Builder
 			foreach (var sql in groupSql)
 				sequence.SelectQuery.GroupBy.Expr(sql.Sql);
 
-			new QueryVisitor().Visit(sequence.SelectQuery.From, e =>
-			{
-				if (e.ElementType == QueryElementType.JoinedTable)
-				{
-					var jt = (SelectQuery.JoinedTable)e;
-					if (jt.JoinType == SelectQuery.JoinType.Inner)
-						jt.IsWeak = false;
-				}
-			});
+		    QueryVisitor.Visit(
+		        sequence.SelectQuery.From,
+		        QueryElementType.JoinedTable,
+		        e =>
+		        {
+		            var jt = (JoinedTable)e;
+		            if (jt.JoinType == JoinType.Inner)
+		                jt.IsWeak = false;
+		        });
 
 			var element = new SelectContext (buildInfo.Parent, elementSelector, sequence/*, key*/);
 			var groupBy = new GroupByContext(buildInfo.Parent, sequenceExpr, groupingType, sequence, key, element);
@@ -548,7 +552,7 @@ namespace LinqToDB.Linq.Builder
 			{
 				var expr = SelectQuery.Select.Columns[index].Expression;
 
-				if (!SelectQuery.GroupBy.Items.Any(_ => ReferenceEquals(_, expr) || (expr is SelectQuery.Column && ReferenceEquals(_, ((SelectQuery.Column)expr).Expression))))
+				if (!SelectQuery.GroupBy.Items.Any(_ => ReferenceEquals(_, expr) || (expr is Column && ReferenceEquals(_, ((Column)expr).Expression))))
 					SelectQuery.GroupBy.Items.Add(expr);
 
 				return base.ConvertToParentIndex(index, this);

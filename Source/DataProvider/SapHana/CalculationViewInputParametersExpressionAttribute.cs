@@ -8,9 +8,11 @@ namespace LinqToDB.DataProvider.SapHana
 	using System.Globalization;
 	using System.Linq.Expressions;
 	using System.Reflection;
-	using SqlQuery;
 
-	public class CalculationViewInputParametersExpressionAttribute : Sql.TableExpressionAttribute
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    public class CalculationViewInputParametersExpressionAttribute : Sql.TableExpressionAttribute
 	{
 		public CalculationViewInputParametersExpressionAttribute() :
 			base("")

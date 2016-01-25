@@ -1,13 +1,13 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
-	using SqlQuery;
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
 
-	class DefaultIfEmptyBuilder : MethodCallBuilder
+    class DefaultIfEmptyBuilder : MethodCallBuilder
 	{
 		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
@@ -25,7 +25,7 @@ namespace LinqToDB.Linq.Builder
 
 				if (groupJoin != null)
 				{
-					groupJoin.SelectQuery.From.Tables[0].Joins[0].JoinType = SelectQuery.JoinType.Left;
+					groupJoin.SelectQuery.From.Tables[0].Joins[0].JoinType = JoinType.Left;
 					groupJoin.SelectQuery.From.Tables[0].Joins[0].IsWeak   = false;
 				}
 			}

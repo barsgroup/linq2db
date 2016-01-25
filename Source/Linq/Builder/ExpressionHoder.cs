@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 #pragma warning disable 649
 
 namespace LinqToDB.Linq.Builder

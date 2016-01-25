@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LinqToDB
+﻿namespace LinqToDB
 {
 	public static class ProviderName
 	{

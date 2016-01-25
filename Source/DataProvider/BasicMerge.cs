@@ -9,6 +9,10 @@ namespace LinqToDB.DataProvider
 	using Common;
 	using Data;
 	using Linq;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+
 	using Mapping;
 	using SqlQuery;
 	using SqlProvider;
@@ -171,11 +175,11 @@ namespace LinqToDB.DataProvider
 
 						var fromTable = (SqlTable)sql.From.Tables[0].Source;
 
-						new QueryVisitor().Visit(sql.From, e =>
+						QueryVisitor.Visit(sql.From, e =>
 						{
 							if (e.ElementType == QueryElementType.TableSource)
 							{
-								var et = (SelectQuery.TableSource)e;
+								var et = (TableSource)e;
 
 								tableSet.Add((SqlTable)et.Source);
 								tables.  Add((SqlTable)et.Source);
@@ -197,12 +201,12 @@ namespace LinqToDB.DataProvider
 								if (tbl != fromTable && tableSet.Contains(tbl))
 								{
 									var tempCopy   = sql.Clone();
-									var tempTables = new List<SelectQuery.TableSource>();
+									var tempTables = new List<TableSource>();
 
-									new QueryVisitor().Visit(tempCopy.From, ee =>
+									QueryVisitor.Visit(tempCopy.From, ee =>
 									{
 										if (ee.ElementType == QueryElementType.TableSource)
-											tempTables.Add((SelectQuery.TableSource)ee);
+											tempTables.Add((TableSource)ee);
 									});
 
 									var tt = tempTables[tables.IndexOf(tbl)];

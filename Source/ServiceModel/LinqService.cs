@@ -10,9 +10,11 @@ namespace LinqToDB.ServiceModel
 	using Common;
 	using Data;
 	using Linq;
-	using SqlQuery;
 
-	[ServiceBehavior  (InstanceContextMode = InstanceContextMode.Single, ConcurrencyMode = ConcurrencyMode.Multiple)]
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+
+    [ServiceBehavior  (InstanceContextMode = InstanceContextMode.Single, ConcurrencyMode = ConcurrencyMode.Multiple)]
 	[WebService       (Namespace  = "http://tempuri.org/")]
 	[WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
 	public class LinqService : ILinqService

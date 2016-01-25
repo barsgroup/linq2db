@@ -13,6 +13,14 @@ namespace LinqToDB.Linq.Builder
 	using Common;
 	using LinqToDB.Expressions;
 	using Extensions;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using Mapping;
 	using Reflection;
 	using SqlQuery;
@@ -272,7 +280,7 @@ namespace LinqToDB.Linq.Builder
 
 						if (cond.Predicate.ElementType == QueryElementType.ExprExprPredicate && query.GroupBy.Items.Count == 1 ||
 						    cond.Predicate.ElementType == QueryElementType.SearchCondition &&
-						    query.GroupBy.Items.Count == ((SelectQuery.SearchCondition)cond.Predicate).Conditions.Count)
+						    query.GroupBy.Items.Count == ((SearchCondition)cond.Predicate).Conditions.Count)
 						{
 							var func = (SqlFunction)subQuery.Select.Columns[0].Expression;
 
@@ -642,7 +650,7 @@ namespace LinqToDB.Linq.Builder
 				case ExpressionType.LessThan           :
 				case ExpressionType.LessThanOrEqual    :
 					{
-						var condition = new SelectQuery.SearchCondition();
+						var condition = new SearchCondition();
 						BuildSearchCondition(context, expression, condition.Conditions);
 						return condition;
 					}
@@ -943,7 +951,7 @@ namespace LinqToDB.Linq.Builder
 
 				case ExpressionType.TypeIs :
 					{
-						var condition = new SelectQuery.SearchCondition();
+						var condition = new SearchCondition();
 						BuildSearchCondition(context, expression, condition.Conditions);
 						return condition;
 					}
@@ -957,7 +965,7 @@ namespace LinqToDB.Linq.Builder
 				var predicate = ConvertPredicate(context, expression);
 				_convertedPredicates.Remove(expression);
 				if (predicate != null)
-					return new SelectQuery.SearchCondition(new SelectQuery.Condition(false, predicate));
+					return new SearchCondition(new Condition(false, predicate));
 			}
 
 			throw new LinqException("'{0}' cannot be converted to SQL.", expression);
@@ -1307,9 +1315,9 @@ namespace LinqToDB.Linq.Builder
 
 				case ExpressionType.Conditional  :
 					return Convert(context,
-						new SelectQuery.Predicate.ExprExpr(
+						new ExprExpr(
 							ConvertToSql(context, expression),
-							SelectQuery.Predicate.Operator.Equal,
+							Operator.Equal,
 							new SqlValue(true)));
 
 				case ExpressionType.MemberAccess :
@@ -1321,7 +1329,7 @@ namespace LinqToDB.Linq.Builder
 							e.Member.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>))
 						{
 							var expr = ConvertToSql(context, e.Expression);
-							return Convert(context, new SelectQuery.Predicate.IsNull(expr, true));
+							return Convert(context, new IsNull(expr, true));
 						}
 
 						break;
@@ -1342,9 +1350,9 @@ namespace LinqToDB.Linq.Builder
 			var ex = ConvertToSql(context, expression);
 
 			if (SqlExpression.NeedsEqual(ex))
-				return Convert(context, new SelectQuery.Predicate.ExprExpr(ex, SelectQuery.Predicate.Operator.Equal, new SqlValue(true)));
+				return Convert(context, new ExprExpr(ex, Operator.Equal, new SqlValue(true)));
 
-			return Convert(context, new SelectQuery.Predicate.Expr(ex));
+			return Convert(context, new Expr(ex));
 		}
 
 		#region ConvertCompare
@@ -1400,16 +1408,16 @@ namespace LinqToDB.Linq.Builder
 					break;
 			}
 
-			SelectQuery.Predicate.Operator op;
+			Operator op;
 
 			switch (nodeType)
 			{
-				case ExpressionType.Equal             : op = SelectQuery.Predicate.Operator.Equal;          break;
-				case ExpressionType.NotEqual          : op = SelectQuery.Predicate.Operator.NotEqual;       break;
-				case ExpressionType.GreaterThan       : op = SelectQuery.Predicate.Operator.Greater;        break;
-				case ExpressionType.GreaterThanOrEqual: op = SelectQuery.Predicate.Operator.GreaterOrEqual; break;
-				case ExpressionType.LessThan          : op = SelectQuery.Predicate.Operator.Less;           break;
-				case ExpressionType.LessThanOrEqual   : op = SelectQuery.Predicate.Operator.LessOrEqual;    break;
+				case ExpressionType.Equal             : op = Operator.Equal;          break;
+				case ExpressionType.NotEqual          : op = Operator.NotEqual;       break;
+				case ExpressionType.GreaterThan       : op = Operator.Greater;        break;
+				case ExpressionType.GreaterThanOrEqual: op = Operator.GreaterOrEqual; break;
+				case ExpressionType.LessThan          : op = Operator.Less;           break;
+				case ExpressionType.LessThanOrEqual   : op = Operator.LessOrEqual;    break;
 				default: throw new InvalidOperationException();
 			}
 
@@ -1450,26 +1458,26 @@ namespace LinqToDB.Linq.Builder
 
 					if (q != null)
 					{
-						q.Select.Columns.Add(new SelectQuery.Column(q, new SqlValue(1)));
+						q.Select.Columns.Add(new Column(q, new SqlValue(1)));
 					}
 
 					break;
 			}
 
-			if (l is SelectQuery.SearchCondition)
+			if (l is SearchCondition)
 				l = Convert(context, new SqlFunction(typeof(bool), "CASE", l, new SqlValue(true), new SqlValue(false)));
 
-			if (r is SelectQuery.SearchCondition)
+			if (r is SearchCondition)
 				r = Convert(context, new SqlFunction(typeof(bool), "CASE", r, new SqlValue(true), new SqlValue(false)));
 
-			return Convert(context, new SelectQuery.Predicate.ExprExpr(l, op, r));
+			return Convert(context, new ExprExpr(l, op, r));
 		}
 
 		#endregion
 
 		#region ConvertEnumConversion
 
-		ISqlPredicate ConvertEnumConversion(IBuildContext context, Expression left, SelectQuery.Predicate.Operator op, Expression right)
+		ISqlPredicate ConvertEnumConversion(IBuildContext context, Expression left, Operator op, Expression right)
 		{
 			Expression value;
 			Expression operand;
@@ -1551,7 +1559,7 @@ namespace LinqToDB.Linq.Builder
 							l = MappingSchema.GetSqlValue(type, mapValue);
 						}
 
-						return Convert(context, new SelectQuery.Predicate.ExprExpr(l, op, r));
+						return Convert(context, new ExprExpr(l, op, r));
 					}
 
 				case ExpressionType.Convert:
@@ -1561,7 +1569,7 @@ namespace LinqToDB.Linq.Builder
 						var l = ConvertToSql(context, operand);
 						var r = ConvertToSql(context, value);
 
-						return Convert(context, new SelectQuery.Predicate.ExprExpr(l, op, r));
+						return Convert(context, new ExprExpr(l, op, r));
 					}
 			}
 
@@ -1584,7 +1592,7 @@ namespace LinqToDB.Linq.Builder
 						(ctx.IsExpression(left, 0, RequestFor.Object).Result ||
 						 left.NodeType == ExpressionType.Parameter && ctx.IsExpression(left, 0, RequestFor.Field).Result))
 					{
-						return new SelectQuery.Predicate.Expr(new SqlValue(!isEqual));
+						return new Expr(new SqlValue(!isEqual));
 					}
 				}
 			}
@@ -1675,7 +1683,7 @@ namespace LinqToDB.Linq.Builder
 			if (lcols.Length == 0)
 				return null;
 
-			var condition = new SelectQuery.SearchCondition();
+			var condition = new SearchCondition();
 
 			foreach (var lcol in lcols)
 			{
@@ -1696,12 +1704,12 @@ namespace LinqToDB.Linq.Builder
 						MappingSchema.GetSqlValue(right.Type, null) :
 						rcol ?? GetParameter(right, lmember);
 
-				var predicate = Convert(leftContext, new SelectQuery.Predicate.ExprExpr(
+				var predicate = Convert(leftContext, new ExprExpr(
 					lcol.Sql,
-					nodeType == ExpressionType.Equal ? SelectQuery.Predicate.Operator.Equal : SelectQuery.Predicate.Operator.NotEqual,
+					nodeType == ExpressionType.Equal ? Operator.Equal : Operator.NotEqual,
 					rex));
 
-				condition.Conditions.Add(new SelectQuery.Condition(false, predicate));
+				condition.Conditions.Add(new Condition(false, predicate));
 			}
 
 			if (nodeType == ExpressionType.NotEqual)
@@ -1716,7 +1724,7 @@ namespace LinqToDB.Linq.Builder
 			left  = FindExpression(left);
 			right = FindExpression(right);
 
-			var condition = new SelectQuery.SearchCondition();
+			var condition = new SearchCondition();
 
 			if (left.NodeType != ExpressionType.New)
 			{
@@ -1744,12 +1752,12 @@ namespace LinqToDB.Linq.Builder
 						GetParameter(right, newExpr.Members[i]);
 
 				var predicate = Convert(context,
-					new SelectQuery.Predicate.ExprExpr(
+					new ExprExpr(
 						lex,
-						nodeType == ExpressionType.Equal ? SelectQuery.Predicate.Operator.Equal : SelectQuery.Predicate.Operator.NotEqual,
+						nodeType == ExpressionType.Equal ? Operator.Equal : Operator.NotEqual,
 						rex));
 
-				condition.Conditions.Add(new SelectQuery.Condition(false, predicate));
+				condition.Conditions.Add(new Condition(false, predicate));
 			}
 
 			if (nodeType == ExpressionType.NotEqual)
@@ -1878,14 +1886,14 @@ namespace LinqToDB.Linq.Builder
 						var newArr = (NewArrayExpression)arr;
 
 						if (newArr.Expressions.Count == 0)
-							return new SelectQuery.Predicate.Expr(new SqlValue(false));
+							return new Expr(new SqlValue(false));
 
 						var exprs  = new ISqlExpression[newArr.Expressions.Count];
 
 						for (var i = 0; i < newArr.Expressions.Count; i++)
 							exprs[i] = ConvertToSql(context, newArr.Expressions[i]);
 
-						return new SelectQuery.Predicate.InList(expr, false, exprs);
+						return new InList(expr, false, exprs);
 					}
 
 				default :
@@ -1894,7 +1902,7 @@ namespace LinqToDB.Linq.Builder
 					{
 						var p = BuildParameter(arr).SqlParameter;
 						p.IsQueryParameter = false;
-						return new SelectQuery.Predicate.InList(expr, false, p);
+						return new InList(expr, false, p);
 					}
 
 					break;
@@ -1921,8 +1929,8 @@ namespace LinqToDB.Linq.Builder
 					throw new LinqException("NULL cannot be used as a LIKE predicate parameter.");
 
 				return value.ToString().IndexOfAny(new[] { '%', '_' }) < 0?
-					new SelectQuery.Predicate.Like(o, false, new SqlValue(start + value + end), null):
-					new SelectQuery.Predicate.Like(o, false, new SqlValue(start + EscapeLikeText(value.ToString()) + end), new SqlValue('~'));
+					new Like(o, false, new SqlValue(start + value + end), null):
+					new Like(o, false, new SqlValue(start + EscapeLikeText(value.ToString()) + end), new SqlValue('~'));
 			}
 
 			if (a is SqlParameter)
@@ -1945,7 +1953,7 @@ namespace LinqToDB.Linq.Builder
 
 				CurrentSqlParameters.Add(ep);
 
-				return new SelectQuery.Predicate.Like(o, false, ep.SqlParameter, new SqlValue('~'));
+				return new Like(o, false, ep.SqlParameter, new SqlValue('~'));
 			}
 
 			var mi = MemberHelper.MethodOf(() => "".Replace("", ""));
@@ -1966,7 +1974,7 @@ namespace LinqToDB.Linq.Builder
 			if (!string.IsNullOrEmpty(end))
 				expr = new SqlBinaryExpression(typeof(string), expr, "+", new SqlValue("%"));
 
-			return new SelectQuery.Predicate.Like(o, false, expr, new SqlValue('~'));
+			return new Like(o, false, expr, new SqlValue('~'));
 		}
 
 		ISqlPredicate ConvertLikePredicate(IBuildContext context, MethodCallExpression expression)
@@ -1980,7 +1988,7 @@ namespace LinqToDB.Linq.Builder
 			if (e.Arguments.Count == 3)
 				a3 = ConvertToSql(context, e.Arguments[2]);
 
-			return new SelectQuery.Predicate.Like(a1, false, a2, a3);
+			return new Like(a1, false, a2, a3);
 		}
 
 		static string EscapeLikeText(string text)
@@ -2014,7 +2022,7 @@ namespace LinqToDB.Linq.Builder
 		internal ISqlPredicate MakeIsPredicate(TableBuilder.TableContext table, Type typeOperand)
 		{
 			if (typeOperand == table.ObjectType && table.InheritanceMapping.All(m => m.Type != typeOperand))
-				return Convert(table, new SelectQuery.Predicate.Expr(new SqlValue(true)));
+				return Convert(table, new Expr(new SqlValue(true)));
 
 			return MakeIsPredicate(table, table.InheritanceMapping, typeOperand, name => table.SqlTable.Fields.Values.First(f => f.Name == name));
 		}
@@ -2033,19 +2041,19 @@ namespace LinqToDB.Linq.Builder
 			{
 				case 0 :
 					{
-						var cond = new SelectQuery.SearchCondition();
+						var cond = new SearchCondition();
 
 						if (inheritanceMapping.Any(m => m.Type == toType))
 						{
 							foreach (var m in inheritanceMapping.Where(m => !m.IsDefault))
 							{
 								cond.Conditions.Add(
-									new SelectQuery.Condition(
+									new Condition(
 										false, 
 										Convert(context,
-											new SelectQuery.Predicate.ExprExpr(
+											new ExprExpr(
 												getSql(m.DiscriminatorName),
-												SelectQuery.Predicate.Operator.NotEqual,
+												Operator.NotEqual,
 												MappingSchema.GetSqlValue(m.Discriminator.MemberType, m.Code)))));
 							}
 						}
@@ -2054,12 +2062,12 @@ namespace LinqToDB.Linq.Builder
 							foreach (var m in inheritanceMapping.Where(m => toType.IsSameOrParentOf(m.Type)))
 							{
 								cond.Conditions.Add(
-									new SelectQuery.Condition(
+									new Condition(
 										false,
 										Convert(context,
-											new SelectQuery.Predicate.ExprExpr(
+											new ExprExpr(
 												getSql(m.DiscriminatorName),
-												SelectQuery.Predicate.Operator.Equal,
+												Operator.Equal,
 												MappingSchema.GetSqlValue(m.Discriminator.MemberType, m.Code))),
 										true));
 							}
@@ -2070,24 +2078,24 @@ namespace LinqToDB.Linq.Builder
 
 				case 1 :
 					return Convert(context,
-						new SelectQuery.Predicate.ExprExpr(
+						new ExprExpr(
 							getSql(mapping[0].DiscriminatorName),
-							SelectQuery.Predicate.Operator.Equal,
+							Operator.Equal,
 							MappingSchema.GetSqlValue(mapping[0].Discriminator.MemberType, mapping[0].Code)));
 
 				default:
 					{
-						var cond = new SelectQuery.SearchCondition();
+						var cond = new SearchCondition();
 
 						foreach (var m in mapping)
 						{
 							cond.Conditions.Add(
-								new SelectQuery.Condition(
+								new Condition(
 									false,
 									Convert(context,
-										new SelectQuery.Predicate.ExprExpr(
+										new ExprExpr(
 											getSql(m.DiscriminatorName),
-											SelectQuery.Predicate.Operator.Equal,
+											Operator.Equal,
 											MappingSchema.GetSqlValue(m.Discriminator.MemberType, m.Code))),
 									true));
 						}
@@ -2103,7 +2111,7 @@ namespace LinqToDB.Linq.Builder
 			var table       = new TableBuilder.TableContext(this, new BuildInfo((IBuildContext)null, Expression.Constant(null), new SelectQuery()), typeOperand);
 
 			if (typeOperand == table.ObjectType && table.InheritanceMapping.All(m => m.Type != typeOperand))
-				return Convert(table, new SelectQuery.Predicate.Expr(new SqlValue(true)));
+				return Convert(table, new Expr(new SqlValue(true)));
 
 			var mapping = table.InheritanceMapping.Select((m,i) => new { m, i }).Where(m => m.m.Type == typeOperand && !m.m.IsDefault).ToList();
 			var isEqual = true;
@@ -2149,7 +2157,7 @@ namespace LinqToDB.Linq.Builder
 
 		#region Search Condition Builder
 
-		void BuildSearchCondition(IBuildContext context, Expression expression, List<SelectQuery.Condition> conditions)
+		void BuildSearchCondition(IBuildContext context, Expression expression, List<Condition> conditions)
 		{
 			switch (expression.NodeType)
 			{
@@ -2168,13 +2176,13 @@ namespace LinqToDB.Linq.Builder
 				case ExpressionType.OrElse :
 					{
 						var e           = (BinaryExpression)expression;
-						var orCondition = new SelectQuery.SearchCondition();
+						var orCondition = new SearchCondition();
 
 						BuildSearchCondition(context, e.Left,  orCondition.Conditions);
 						orCondition.Conditions[orCondition.Conditions.Count - 1].IsOr = true;
 						BuildSearchCondition(context, e.Right, orCondition.Conditions);
 
-						conditions.Add(new SelectQuery.Condition(false, orCondition));
+						conditions.Add(new Condition(false, orCondition));
 
 						break;
 					}
@@ -2182,18 +2190,18 @@ namespace LinqToDB.Linq.Builder
 				case ExpressionType.Not    :
 					{
 						var e            = expression as UnaryExpression;
-						var notCondition = new SelectQuery.SearchCondition();
+						var notCondition = new SearchCondition();
 
 						BuildSearchCondition(context, e.Operand, notCondition.Conditions);
 
-						if (notCondition.Conditions.Count == 1 && notCondition.Conditions[0].Predicate is SelectQuery.Predicate.NotExpr)
+						if (notCondition.Conditions.Count == 1 && notCondition.Conditions[0].Predicate is NotExpr)
 						{
-							var p = notCondition.Conditions[0].Predicate as SelectQuery.Predicate.NotExpr;
+							var p = notCondition.Conditions[0].Predicate as NotExpr;
 							p.IsNot = !p.IsNot;
 							conditions.Add(notCondition.Conditions[0]);
 						}
 						else
-							conditions.Add(new SelectQuery.Condition(true, notCondition));
+							conditions.Add(new Condition(true, notCondition));
 
 						break;
 					}
@@ -2201,13 +2209,13 @@ namespace LinqToDB.Linq.Builder
 				default                    :
 					var predicate = ConvertPredicate(context, expression);
 
-					if (predicate is SelectQuery.Predicate.Expr)
+					if (predicate is Expr)
 					{
-						var expr = ((SelectQuery.Predicate.Expr)predicate).Expr1;
+						var expr = ((Expr)predicate).Expr1;
 
 						if (expr.ElementType == QueryElementType.SearchCondition)
 						{
-							var sc = (SelectQuery.SearchCondition)expr;
+							var sc = (SearchCondition)expr;
 
 							if (sc.Conditions.Count == 1)
 							{
@@ -2217,7 +2225,7 @@ namespace LinqToDB.Linq.Builder
 						}
 					}
 
-					conditions.Add(new SelectQuery.Condition(false, predicate));
+					conditions.Add(new Condition(false, predicate));
 
 					break;
 			}
@@ -2373,13 +2381,13 @@ namespace LinqToDB.Linq.Builder
 
 		internal ISqlExpression ConvertSearchCondition(IBuildContext context, ISqlExpression sqlExpression)
 		{
-			if (sqlExpression is SelectQuery.SearchCondition)
+			if (sqlExpression is SearchCondition)
 			{
 				if (sqlExpression.CanBeNull())
 				{
-					var notExpr = new SelectQuery.SearchCondition
+					var notExpr = new SearchCondition
 					{
-						Conditions = { new SelectQuery.Condition(true, new SelectQuery.Predicate.Expr(sqlExpression)) }
+						Conditions = { new Condition(true, new Expr(sqlExpression)) }
 					};
 
 					return Convert(context, new SqlFunction(sqlExpression.SystemType, "CASE", sqlExpression, new SqlValue(1), notExpr, new SqlValue(0), new SqlValue(null)));

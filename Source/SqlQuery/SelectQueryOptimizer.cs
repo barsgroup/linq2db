@@ -4,7 +4,15 @@ using System.Linq;
 
 namespace LinqToDB.SqlQuery
 {
-	using SqlProvider;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Clauses;
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	class SelectQueryOptimizer
 	{
@@ -96,7 +104,7 @@ namespace LinqToDB.SqlQuery
 						}
 
 					case QueryElementType.Column :
-						return ((SelectQuery.Column)e).Parent == selectQuery;
+						return ((Column)e).Parent == selectQuery;
 
 					case QueryElementType.SqlTable :
 						return false;
@@ -108,7 +116,7 @@ namespace LinqToDB.SqlQuery
 			return data;
 		}
 
-		static SelectQuery.TableSource FindField(SqlField field, SelectQuery.TableSource table)
+		static TableSource FindField(SqlField field, TableSource table)
 		{
 			if (field.Table == table.Source)
 				return table;
@@ -227,14 +235,14 @@ namespace LinqToDB.SqlQuery
 						case QueryElementType.IsNullPredicate     :
 						case QueryElementType.InSubQueryPredicate :
 							{
-								var expr = (SelectQuery.Predicate.Expr)e;
+								var expr = (Expr)e;
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
 								break;
 							}
 
 						case QueryElementType.ExprExprPredicate :
 							{
-								var expr = (SelectQuery.Predicate.ExprExpr)e;
+								var expr = (ExprExpr)e;
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
 								if (dic.TryGetValue(expr.Expr2, out ex)) expr.Expr2 = ex;
 								break;
@@ -242,7 +250,7 @@ namespace LinqToDB.SqlQuery
 
 						case QueryElementType.LikePredicate :
 							{
-								var expr = (SelectQuery.Predicate.Like)e;
+								var expr = (Like)e;
 								if (dic.TryGetValue(expr.Expr1,  out ex)) expr.Expr1  = ex;
 								if (dic.TryGetValue(expr.Expr2,  out ex)) expr.Expr2  = ex;
 								if (dic.TryGetValue(expr.Escape, out ex)) expr.Escape = ex;
@@ -251,7 +259,7 @@ namespace LinqToDB.SqlQuery
 
 						case QueryElementType.BetweenPredicate :
 							{
-								var expr = (SelectQuery.Predicate.Between)e;
+								var expr = (Between)e;
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
 								if (dic.TryGetValue(expr.Expr2, out ex)) expr.Expr2 = ex;
 								if (dic.TryGetValue(expr.Expr3, out ex)) expr.Expr3 = ex;
@@ -260,7 +268,7 @@ namespace LinqToDB.SqlQuery
 
 						case QueryElementType.InListPredicate :
 							{
-								var expr = (SelectQuery.Predicate.InList)e;
+								var expr = (InList)e;
 
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
 
@@ -273,7 +281,7 @@ namespace LinqToDB.SqlQuery
 
 						case QueryElementType.Column :
 							{
-								var expr = (SelectQuery.Column)e;
+								var expr = (Column)e;
 
 								if (expr.Parent != data.Query)
 									return false;
@@ -285,14 +293,14 @@ namespace LinqToDB.SqlQuery
 
 						case QueryElementType.SetExpression :
 							{
-								var expr = (SelectQuery.SetExpression)e;
+								var expr = (SetExpression)e;
 								if (dic.TryGetValue(expr.Expression, out ex)) expr.Expression = ex;
 								break;
 							}
 
 						case QueryElementType.GroupByClause :
 							{
-								var expr = (SelectQuery.GroupByClause)e;
+								var expr = (GroupByClause)e;
 
 								for (var i = 0; i < expr.Items.Count; i++)
 									if (dic.TryGetValue(expr.Items[i], out ex))
@@ -303,7 +311,7 @@ namespace LinqToDB.SqlQuery
 
 						case QueryElementType.OrderByItem :
 							{
-								var expr = (SelectQuery.OrderByItem)e;
+								var expr = (OrderByItem)e;
 								if (dic.TryGetValue(expr.Expression, out ex)) expr.Expression = ex;
 								break;
 							}
@@ -321,7 +329,7 @@ namespace LinqToDB.SqlQuery
 		{
 			var exprs = new Dictionary<ISqlExpression,ISqlExpression>();
 
-			new QueryVisitor().Visit(_selectQuery, e =>
+			QueryVisitor.Visit(_selectQuery, QueryElementType.SqlQuery, e =>
 			{
 				var sql = e as SelectQuery;
 
@@ -395,7 +403,7 @@ namespace LinqToDB.SqlQuery
 					OptimizeSearchCondition(join.Condition);
 			}, new HashSet<SelectQuery>());
 
-			new QueryVisitor().Visit(_selectQuery, e =>
+			QueryVisitor.Visit(_selectQuery, QueryElementType.SqlQuery, e =>
 			{
 				var sql = e as SelectQuery;
 
@@ -415,7 +423,7 @@ namespace LinqToDB.SqlQuery
 			OptimizeSubQueries(isApplySupported, optimizeColumns);
 			OptimizeApplies   (isApplySupported, optimizeColumns);
 
-			new QueryVisitor().Visit(_selectQuery, e =>
+			QueryVisitor.Visit(_selectQuery, QueryElementType.SqlQuery,  e =>
 			{
 				var sql = e as SelectQuery;
 
@@ -424,7 +432,7 @@ namespace LinqToDB.SqlQuery
 			});
 		}
 
-		internal static void OptimizeSearchCondition(SelectQuery.SearchCondition searchCondition)
+		internal static void OptimizeSearchCondition(SearchCondition searchCondition)
 		{
 			// This 'if' could be replaced by one simple match:
 			//
@@ -447,9 +455,9 @@ namespace LinqToDB.SqlQuery
 			{
 				var cond = searchCondition.Conditions[0];
 
-				if (cond.Predicate is SelectQuery.SearchCondition)
+				if (cond.Predicate is SearchCondition)
 				{
-					var sc = (SelectQuery.SearchCondition)cond.Predicate;
+					var sc = (SearchCondition)cond.Predicate;
 
 					if (!cond.IsNot)
 					{
@@ -464,25 +472,25 @@ namespace LinqToDB.SqlQuery
 					{
 						var c1 = sc.Conditions[0];
 
-						if (!c1.IsNot && c1.Predicate is SelectQuery.Predicate.ExprExpr)
+						if (!c1.IsNot && c1.Predicate is ExprExpr)
 						{
-							var ee = (SelectQuery.Predicate.ExprExpr)c1.Predicate;
-							SelectQuery.Predicate.Operator op;
+							var ee = (ExprExpr)c1.Predicate;
+							Operator op;
 
 							switch (ee.Operator)
 							{
-								case SelectQuery.Predicate.Operator.Equal          : op = SelectQuery.Predicate.Operator.NotEqual;       break;
-								case SelectQuery.Predicate.Operator.NotEqual       : op = SelectQuery.Predicate.Operator.Equal;          break;
-								case SelectQuery.Predicate.Operator.Greater        : op = SelectQuery.Predicate.Operator.LessOrEqual;    break;
-								case SelectQuery.Predicate.Operator.NotLess        :
-								case SelectQuery.Predicate.Operator.GreaterOrEqual : op = SelectQuery.Predicate.Operator.Less;           break;
-								case SelectQuery.Predicate.Operator.Less           : op = SelectQuery.Predicate.Operator.GreaterOrEqual; break;
-								case SelectQuery.Predicate.Operator.NotGreater     :
-								case SelectQuery.Predicate.Operator.LessOrEqual    : op = SelectQuery.Predicate.Operator.Greater;        break;
+								case Operator.Equal          : op = Operator.NotEqual;       break;
+								case Operator.NotEqual       : op = Operator.Equal;          break;
+								case Operator.Greater        : op = Operator.LessOrEqual;    break;
+								case Operator.NotLess        :
+								case Operator.GreaterOrEqual : op = Operator.Less;           break;
+								case Operator.Less           : op = Operator.GreaterOrEqual; break;
+								case Operator.NotGreater     :
+								case Operator.LessOrEqual    : op = Operator.Greater;        break;
 								default: throw new InvalidOperationException();
 							}
 
-							c1.Predicate = new SelectQuery.Predicate.ExprExpr(ee.Expr1, op, ee.Expr2);
+							c1.Predicate = new ExprExpr(ee.Expr1, op, ee.Expr2);
 
 							searchCondition.Conditions.Clear();
 							searchCondition.Conditions.AddRange(sc.Conditions);
@@ -495,7 +503,7 @@ namespace LinqToDB.SqlQuery
 
 				if (cond.Predicate.ElementType == QueryElementType.ExprPredicate)
 				{
-					var expr = (SelectQuery.Predicate.Expr)cond.Predicate;
+					var expr = (Expr)cond.Predicate;
 
 					if (expr.Expr1 is SqlValue)
 					{
@@ -514,7 +522,7 @@ namespace LinqToDB.SqlQuery
 
 				if (cond.Predicate.ElementType == QueryElementType.ExprPredicate)
 				{
-					var expr = (SelectQuery.Predicate.Expr)cond.Predicate;
+					var expr = (Expr)cond.Predicate;
 
 					if (expr.Expr1 is SqlValue)
 					{
@@ -538,9 +546,9 @@ namespace LinqToDB.SqlQuery
 						}
 					}
 				}
-				else if (cond.Predicate is SelectQuery.SearchCondition)
+				else if (cond.Predicate is SearchCondition)
 				{
-					var sc = (SelectQuery.SearchCondition)cond.Predicate;
+					var sc = (SearchCondition)cond.Predicate;
 					OptimizeSearchCondition(sc);
 				}
 			}
@@ -554,7 +562,7 @@ namespace LinqToDB.SqlQuery
 
 		internal void ResolveWeakJoins(List<ISqlTableSource> tables)
 		{
-			Func<SelectQuery.TableSource,bool> findTable = null; findTable = table =>
+			Func<TableSource,bool> findTable = null; findTable = table =>
 			{
 				if (tables.Contains(table.Source))
 					return true;
@@ -643,8 +651,8 @@ namespace LinqToDB.SqlQuery
 			}, new HashSet<SelectQuery>());
 		}
 
-		SelectQuery.TableSource OptimizeSubQuery(
-			SelectQuery.TableSource source,
+		TableSource OptimizeSubQuery(
+			TableSource source,
 			bool optimizeWhere,
 			bool allColumns,
 			bool isApplySupported,
@@ -655,10 +663,10 @@ namespace LinqToDB.SqlQuery
 			{
 				var table = OptimizeSubQuery(
 					jt.Table,
-					jt.JoinType == SelectQuery.JoinType.Inner || jt.JoinType == SelectQuery.JoinType.CrossApply,
+					jt.JoinType == JoinType.Inner || jt.JoinType == JoinType.CrossApply,
 					false,
 					isApplySupported,
-					jt.JoinType == SelectQuery.JoinType.Inner || jt.JoinType == SelectQuery.JoinType.CrossApply,
+					jt.JoinType == JoinType.Inner || jt.JoinType == JoinType.CrossApply,
 					optimizeColumns);
 
 				if (table != jt.Table)
@@ -678,9 +686,9 @@ namespace LinqToDB.SqlQuery
 				source;
 		}
 
-		static bool CheckColumn(SelectQuery.Column column, ISqlExpression expr, SelectQuery query, bool optimizeValues, bool optimizeColumns)
+		static bool CheckColumn(Column column, ISqlExpression expr, SelectQuery query, bool optimizeValues, bool optimizeColumns)
 		{
-			if (expr is SqlField || expr is SelectQuery.Column)
+			if (expr is SqlField || expr is Column)
 				return false;
 
 			if (expr is SqlValue)
@@ -715,8 +723,8 @@ namespace LinqToDB.SqlQuery
 			return true;
 		}
 
-		SelectQuery.TableSource RemoveSubQuery(
-			SelectQuery.TableSource childSource,
+		TableSource RemoveSubQuery(
+			TableSource childSource,
 			bool concatWhere,
 			bool allColumns,
 			bool optimizeValues,
@@ -756,15 +764,12 @@ namespace LinqToDB.SqlQuery
 				return map.TryGetValue(expr, out fld) ? fld : expr;
 			});
 
-			new QueryVisitor().Visit(top, expr =>
+			QueryVisitor.Visit(top, QueryElementType.InListPredicate,  expr =>
 			{
-				if (expr.ElementType == QueryElementType.InListPredicate)
-				{
-					var p = (SelectQuery.Predicate.InList)expr;
+					var p = (InList)expr;
 
 					if (p.Expr1 == query)
 						p.Expr1 = query.From.Tables[0];
-				}
 			});
 
 			query.From.Tables[0].Joins.AddRange(childSource.Joins);
@@ -806,12 +811,12 @@ namespace LinqToDB.SqlQuery
 			return false;
 		}
 
-		void OptimizeApply(SelectQuery.TableSource tableSource, SelectQuery.JoinedTable joinTable, bool isApplySupported, bool optimizeColumns)
+		void OptimizeApply(TableSource tableSource, JoinedTable joinTable, bool isApplySupported, bool optimizeColumns)
 		{
 			var joinSource = joinTable.Table;
 
 			foreach (var join in joinSource.Joins)
-				if (join.JoinType == SelectQuery.JoinType.CrossApply || join.JoinType == SelectQuery.JoinType.OuterApply)
+				if (join.JoinType == JoinType.CrossApply || join.JoinType == JoinType.OuterApply)
 					OptimizeApply(joinSource, join, isApplySupported, optimizeColumns);
 
 			if (isApplySupported && !joinTable.CanConvertApply)
@@ -825,13 +830,13 @@ namespace LinqToDB.SqlQuery
 				if (isApplySupported && (isAgg || sql.Select.TakeValue != null || sql.Select.SkipValue != null))
 					return;
 
-				var searchCondition = new List<SelectQuery.Condition>(sql.Where.SearchCondition.Conditions);
+				var searchCondition = new List<Condition>(sql.Where.SearchCondition.Conditions);
 
 				sql.Where.SearchCondition.Conditions.Clear();
 
 				if (!ContainsTable(tableSource.Source, sql))
 				{
-					joinTable.JoinType = joinTable.JoinType == SelectQuery.JoinType.CrossApply ? SelectQuery.JoinType.Inner : SelectQuery.JoinType.Left;
+					joinTable.JoinType = joinTable.JoinType == JoinType.CrossApply ? JoinType.Inner : JoinType.Left;
 					joinTable.Condition.Conditions.AddRange(searchCondition);
 				}
 				else
@@ -840,10 +845,10 @@ namespace LinqToDB.SqlQuery
 
 					var table = OptimizeSubQuery(
 						joinTable.Table,
-						joinTable.JoinType == SelectQuery.JoinType.Inner || joinTable.JoinType == SelectQuery.JoinType.CrossApply,
-						joinTable.JoinType == SelectQuery.JoinType.CrossApply,
+						joinTable.JoinType == JoinType.Inner || joinTable.JoinType == JoinType.CrossApply,
+						joinTable.JoinType == JoinType.CrossApply,
 						isApplySupported,
-						joinTable.JoinType == SelectQuery.JoinType.Inner || joinTable.JoinType == SelectQuery.JoinType.CrossApply,
+						joinTable.JoinType == JoinType.Inner || joinTable.JoinType == JoinType.CrossApply,
 						optimizeColumns);
 
 					if (table != joinTable.Table)
@@ -863,7 +868,7 @@ namespace LinqToDB.SqlQuery
 			else
 			{
 				if (!ContainsTable(tableSource.Source, joinSource.Source))
-					joinTable.JoinType = joinTable.JoinType == SelectQuery.JoinType.CrossApply ? SelectQuery.JoinType.Inner : SelectQuery.JoinType.Left;
+					joinTable.JoinType = joinTable.JoinType == JoinType.CrossApply ? JoinType.Inner : JoinType.Left;
 			}
 		}
 
@@ -872,10 +877,10 @@ namespace LinqToDB.SqlQuery
 			return null != new QueryVisitor().Find(sql, e =>
 				e == table ||
 				e.ElementType == QueryElementType.SqlField && table == ((SqlField)e).Table ||
-				e.ElementType == QueryElementType.Column   && table == ((SelectQuery.Column)  e).Parent);
+				e.ElementType == QueryElementType.Column   && table == ((Column)  e).Parent);
 		}
 
-		static void ConcatSearchCondition(SelectQuery.WhereClause where1, SelectQuery.WhereClause where2)
+		static void ConcatSearchCondition(WhereClause where1, WhereClause where2)
 		{
 			if (where1.IsEmpty)
 			{
@@ -885,21 +890,21 @@ namespace LinqToDB.SqlQuery
 			{
 				if (where1.SearchCondition.Precedence < Precedence.LogicalConjunction)
 				{
-					var sc1 = new SelectQuery.SearchCondition();
+					var sc1 = new SearchCondition();
 
 					sc1.Conditions.AddRange(where1.SearchCondition.Conditions);
 
 					where1.SearchCondition.Conditions.Clear();
-					where1.SearchCondition.Conditions.Add(new SelectQuery.Condition(false, sc1));
+					where1.SearchCondition.Conditions.Add(new Condition(false, sc1));
 				}
 
 				if (where2.SearchCondition.Precedence < Precedence.LogicalConjunction)
 				{
-					var sc2 = new SelectQuery.SearchCondition();
+					var sc2 = new SearchCondition();
 
 					sc2.Conditions.AddRange(where2.SearchCondition.Conditions);
 
-					where1.SearchCondition.Conditions.Add(new SelectQuery.Condition(false, sc2));
+					where1.SearchCondition.Conditions.Add(new Condition(false, sc2));
 				}
 				else
 					where1.SearchCondition.Conditions.AddRange(where2.SearchCondition.Conditions);
@@ -930,7 +935,7 @@ namespace LinqToDB.SqlQuery
 		{
 			foreach (var table in _selectQuery.From.Tables)
 				foreach (var join in table.Joins)
-					if (join.JoinType == SelectQuery.JoinType.CrossApply || join.JoinType == SelectQuery.JoinType.OuterApply)
+					if (join.JoinType == JoinType.CrossApply || join.JoinType == JoinType.OuterApply)
 						OptimizeApply(table, join, isApplySupported, optimizeColumns);
 		}
 
@@ -942,15 +947,12 @@ namespace LinqToDB.SqlQuery
 					
 				if (query != null && query.From.Tables.Count == 0 && query.Select.Columns.Count == 1)
 				{
-					new QueryVisitor().Visit(query.Select.Columns[0].Expression, e =>
+					QueryVisitor.Visit(query.Select.Columns[0].Expression, QueryElementType.SqlQuery, e =>
 					{
-						if (e.ElementType == QueryElementType.SqlQuery)
-						{
 							var q = (SelectQuery)e;
 
 							if (q.ParentSelect == query)
 								q.ParentSelect = query.ParentSelect;
-						}
 					});
 
 					return query.Select.Columns[0].Expression;

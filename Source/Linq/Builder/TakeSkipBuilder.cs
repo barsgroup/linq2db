@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -7,6 +6,10 @@ namespace LinqToDB.Linq.Builder
 {
 	using Extensions;
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlQuery;
 
 	class TakeSkipBuilder : MethodCallBuilder

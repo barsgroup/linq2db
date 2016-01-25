@@ -7,10 +7,12 @@ using System.Xml;
 namespace LinqToDB.DataProvider.SqlCe
 {
 	using Common;
-	using Mapping;
-	using SqlQuery;
 
-	public class SqlCeMappingSchema : MappingSchema
+	using LinqToDB.SqlQuery.SqlElements;
+
+	using Mapping;
+
+    public class SqlCeMappingSchema : MappingSchema
 	{
 		public SqlCeMappingSchema() : this(ProviderName.SqlCe)
 		{

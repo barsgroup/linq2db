@@ -8,6 +8,13 @@ using System.Text;
 namespace LinqToDB.SqlProvider
 {
 	using Common;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using Mapping;
 	using SqlQuery;
 
@@ -248,7 +255,7 @@ namespace LinqToDB.SqlProvider
 			BuildColumns();
 		}
 
-		protected virtual IEnumerable<SelectQuery.Column> GetSelectedColumns()
+		protected virtual IEnumerable<Column> GetSelectedColumns()
 		{
 			return SelectQuery.Select.Columns;
 		}
@@ -593,7 +600,7 @@ namespace LinqToDB.SqlProvider
 			StringBuilder.AppendLine();
 		}
 
-		protected virtual void BuildStartCreateTableStatement(SelectQuery.CreateTableStatement createTable)
+		protected virtual void BuildStartCreateTableStatement(CreateTableStatement createTable)
 		{
 			if (createTable.StatementHeader == null)
 			{
@@ -614,7 +621,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		protected virtual void BuildEndCreateTableStatement(SelectQuery.CreateTableStatement createTable)
+		protected virtual void BuildEndCreateTableStatement(CreateTableStatement createTable)
 		{
 			if (createTable.StatementFooter != null)
 				AppendIndent().Append(createTable.StatementFooter);
@@ -952,7 +959,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		protected void BuildTableName(SelectQuery.TableSource ts, bool buildName, bool buildAlias)
+		protected void BuildTableName(TableSource ts, bool buildName, bool buildAlias)
 		{
 			if (buildName)
 			{
@@ -976,7 +983,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		void BuildJoinTable(SelectQuery.JoinedTable join, ref int joinCounter)
+		void BuildJoinTable(JoinedTable join, ref int joinCounter)
 		{
 			StringBuilder.AppendLine();
 			Indent++;
@@ -1028,14 +1035,14 @@ namespace LinqToDB.SqlProvider
 			Indent--;
 		}
 
-		protected virtual bool BuildJoinType(SelectQuery.JoinedTable join)
+		protected virtual bool BuildJoinType(JoinedTable join)
 		{
 			switch (join.JoinType)
 			{
-				case SelectQuery.JoinType.Inner      : StringBuilder.Append("INNER JOIN ");  return true;
-				case SelectQuery.JoinType.Left       : StringBuilder.Append("LEFT JOIN ");   return true;
-				case SelectQuery.JoinType.CrossApply : StringBuilder.Append("CROSS APPLY "); return false;
-				case SelectQuery.JoinType.OuterApply : StringBuilder.Append("OUTER APPLY "); return false;
+				case JoinType.Inner      : StringBuilder.Append("INNER JOIN ");  return true;
+				case JoinType.Left       : StringBuilder.Append("LEFT JOIN ");   return true;
+				case JoinType.CrossApply : StringBuilder.Append("CROSS APPLY "); return false;
+				case JoinType.OuterApply : StringBuilder.Append("OUTER APPLY "); return false;
 				default: throw new InvalidOperationException();
 			}
 		}
@@ -1240,12 +1247,12 @@ namespace LinqToDB.SqlProvider
 
 		#region BuildSearchCondition
 
-		protected virtual void BuildWhereSearchCondition(SelectQuery.SearchCondition condition)
+		protected virtual void BuildWhereSearchCondition(SearchCondition condition)
 		{
 			BuildSearchCondition(Precedence.Unknown, condition);
 		}
 
-		protected virtual void BuildSearchCondition(SelectQuery.SearchCondition condition)
+		protected virtual void BuildSearchCondition(SearchCondition condition)
 		{
 			var isOr = (bool?)null;
 			var len  = StringBuilder.Length;
@@ -1280,7 +1287,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		protected virtual void BuildSearchCondition(int parentPrecedence, SelectQuery.SearchCondition condition)
+		protected virtual void BuildSearchCondition(int parentPrecedence, SearchCondition condition)
 		{
 			var wrap = Wrap(GetPrecedence(condition as ISqlExpression), parentPrecedence);
 
@@ -1299,12 +1306,12 @@ namespace LinqToDB.SqlProvider
 			{
 				case QueryElementType.ExprExprPredicate :
 					{
-						var expr = (SelectQuery.Predicate.ExprExpr)predicate;
+						var expr = (ExprExpr)predicate;
 
 						switch (expr.Operator)
 						{
-							case SelectQuery.Predicate.Operator.Equal :
-							case SelectQuery.Predicate.Operator.NotEqual :
+							case Operator.Equal :
+							case Operator.NotEqual :
 								{
 									ISqlExpression e = null;
 
@@ -1316,7 +1323,7 @@ namespace LinqToDB.SqlProvider
 									if (e != null)
 									{
 										BuildExpression(GetPrecedence(expr), e);
-										StringBuilder.Append(expr.Operator == SelectQuery.Predicate.Operator.Equal ? " IS NULL" : " IS NOT NULL");
+										StringBuilder.Append(expr.Operator == Operator.Equal ? " IS NULL" : " IS NOT NULL");
 										return;
 									}
 
@@ -1328,14 +1335,14 @@ namespace LinqToDB.SqlProvider
 
 						switch (expr.Operator)
 						{
-							case SelectQuery.Predicate.Operator.Equal          : StringBuilder.Append(" = ");  break;
-							case SelectQuery.Predicate.Operator.NotEqual       : StringBuilder.Append(" <> "); break;
-							case SelectQuery.Predicate.Operator.Greater        : StringBuilder.Append(" > ");  break;
-							case SelectQuery.Predicate.Operator.GreaterOrEqual : StringBuilder.Append(" >= "); break;
-							case SelectQuery.Predicate.Operator.NotGreater     : StringBuilder.Append(" !> "); break;
-							case SelectQuery.Predicate.Operator.Less           : StringBuilder.Append(" < ");  break;
-							case SelectQuery.Predicate.Operator.LessOrEqual    : StringBuilder.Append(" <= "); break;
-							case SelectQuery.Predicate.Operator.NotLess        : StringBuilder.Append(" !< "); break;
+							case Operator.Equal          : StringBuilder.Append(" = ");  break;
+							case Operator.NotEqual       : StringBuilder.Append(" <> "); break;
+							case Operator.Greater        : StringBuilder.Append(" > ");  break;
+							case Operator.GreaterOrEqual : StringBuilder.Append(" >= "); break;
+							case Operator.NotGreater     : StringBuilder.Append(" !> "); break;
+							case Operator.Less           : StringBuilder.Append(" < ");  break;
+							case Operator.LessOrEqual    : StringBuilder.Append(" <= "); break;
+							case Operator.NotLess        : StringBuilder.Append(" !< "); break;
 						}
 
 						BuildExpression(GetPrecedence(expr), expr.Expr2);
@@ -1344,12 +1351,12 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case QueryElementType.LikePredicate :
-					BuildLikePredicate((SelectQuery.Predicate.Like)predicate);
+					BuildLikePredicate((Like)predicate);
 					break;
 
 				case QueryElementType.BetweenPredicate :
 					{
-						var p = (SelectQuery.Predicate.Between)predicate;
+						var p = (Between)predicate;
 						BuildExpression(GetPrecedence(p), p.Expr1);
 						if (p.IsNot) StringBuilder.Append(" NOT");
 						StringBuilder.Append(" BETWEEN ");
@@ -1362,7 +1369,7 @@ namespace LinqToDB.SqlProvider
 
 				case QueryElementType.IsNullPredicate :
 					{
-						var p = (SelectQuery.Predicate.IsNull)predicate;
+						var p = (IsNull)predicate;
 						BuildExpression(GetPrecedence(p), p.Expr1);
 						StringBuilder.Append(p.IsNot ? " IS NOT NULL" : " IS NULL");
 					}
@@ -1371,7 +1378,7 @@ namespace LinqToDB.SqlProvider
 
 				case QueryElementType.InSubQueryPredicate :
 					{
-						var p = (SelectQuery.Predicate.InSubQuery)predicate;
+						var p = (InSubQuery)predicate;
 						BuildExpression(GetPrecedence(p), p.Expr1);
 						StringBuilder.Append(p.IsNot ? " NOT IN " : " IN ");
 						BuildExpression(GetPrecedence(p), p.SubQuery);
@@ -1385,19 +1392,19 @@ namespace LinqToDB.SqlProvider
 
 				case QueryElementType.FuncLikePredicate :
 					{
-						var f = (SelectQuery.Predicate.FuncLike)predicate;
+						var f = (FuncLike)predicate;
 						BuildExpression(f.Function.Precedence, f.Function);
 					}
 
 					break;
 
 				case QueryElementType.SearchCondition :
-					BuildSearchCondition(predicate.Precedence, (SelectQuery.SearchCondition)predicate);
+					BuildSearchCondition(predicate.Precedence, (SearchCondition)predicate);
 					break;
 
 				case QueryElementType.NotExprPredicate :
 					{
-						var p = (SelectQuery.Predicate.NotExpr)predicate;
+						var p = (NotExpr)predicate;
 
 						if (p.IsNot)
 							StringBuilder.Append("NOT ");
@@ -1409,7 +1416,7 @@ namespace LinqToDB.SqlProvider
 
 				case QueryElementType.ExprPredicate :
 					{
-						var p = (SelectQuery.Predicate.Expr)predicate;
+						var p = (Expr)predicate;
 
 						if (p.Expr1 is SqlValue)
 						{
@@ -1437,7 +1444,7 @@ namespace LinqToDB.SqlProvider
 			switch (expr.ElementType)
 			{
 				case QueryElementType.SqlField: return (SqlField)expr;
-				case QueryElementType.Column  : return GetUnderlayingField(((SelectQuery.Column)expr).Expression);
+				case QueryElementType.Column  : return GetUnderlayingField(((Column)expr).Expression);
 			}
 
 			throw new InvalidOperationException();
@@ -1445,11 +1452,11 @@ namespace LinqToDB.SqlProvider
 
 		void BuildInListPredicate(ISqlPredicate predicate)
 		{
-			var p = (SelectQuery.Predicate.InList)predicate;
+			var p = (InList)predicate;
 
 			if (p.Values == null || p.Values.Count == 0)
 			{
-				BuildPredicate(new SelectQuery.Predicate.Expr(new SqlValue(false)));
+				BuildPredicate(new Expr(new SqlValue(false)));
 			}
 			else
 			{
@@ -1462,7 +1469,7 @@ namespace LinqToDB.SqlProvider
 
 					if (pr.Value == null)
 					{
-						BuildPredicate(new SelectQuery.Predicate.Expr(new SqlValue(false)));
+						BuildPredicate(new Expr(new SqlValue(false)));
 						return;
 					}
 
@@ -1565,7 +1572,7 @@ namespace LinqToDB.SqlProvider
 							}
 
 							if (firstValue)
-								BuildPredicate(new SelectQuery.Predicate.Expr(new SqlValue(p.IsNot)));
+								BuildPredicate(new Expr(new SqlValue(p.IsNot)));
 							else
 								StringBuilder.Remove(StringBuilder.Length - 2, 2).Append(')');
 						}
@@ -1582,7 +1589,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		void BuildInListValues(SelectQuery.Predicate.InList predicate, IEnumerable values)
+		void BuildInListValues(InList predicate, IEnumerable values)
 		{
 			var firstValue = true;
 			var len        = StringBuilder.Length;
@@ -1659,8 +1666,8 @@ namespace LinqToDB.SqlProvider
 			{
 				BuildPredicate(
 					hasNull ?
-						new SelectQuery.Predicate.IsNull(predicate.Expr1, predicate.IsNot) :
-						new SelectQuery.Predicate.Expr(new SqlValue(predicate.IsNot)));
+						new IsNull(predicate.Expr1, predicate.IsNot) :
+						new Expr(new SqlValue(predicate.IsNot)));
 			}
 			else
 			{
@@ -1670,7 +1677,7 @@ namespace LinqToDB.SqlProvider
 				{
 					StringBuilder.Insert(len, "(");
 					StringBuilder.Append(" OR ");
-					BuildPredicate(new SelectQuery.Predicate.IsNull(predicate.Expr1, predicate.IsNot));
+					BuildPredicate(new IsNull(predicate.Expr1, predicate.IsNot));
 					StringBuilder.Append(")");
 				}
 			}
@@ -1696,7 +1703,7 @@ namespace LinqToDB.SqlProvider
 			if (wrap) StringBuilder.Append(')');
 		}
 
-		protected virtual void BuildLikePredicate(SelectQuery.Predicate.Like predicate)
+		protected virtual void BuildLikePredicate(Like predicate)
 		{
 			var precedence = GetPrecedence(predicate);
 
@@ -1778,7 +1785,7 @@ namespace LinqToDB.SqlProvider
 
 				case QueryElementType.Column:
 					{
-						var column = (SelectQuery.Column)expr;
+						var column = (Column)expr;
 
 						var table = SelectQuery.GetTableSource(column.Parent);
 
@@ -1900,7 +1907,7 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case QueryElementType.SearchCondition:
-					BuildSearchCondition(expr.Precedence, (SelectQuery.SearchCondition)expr);
+					BuildSearchCondition(expr.Precedence, (SearchCondition)expr);
 					break;
 
 				default:
@@ -2119,7 +2126,7 @@ namespace LinqToDB.SqlProvider
 
 		#region Alternative Builders
 
-		void BuildAliases(string table, List<SelectQuery.Column> columns, string postfix)
+		void BuildAliases(string table, List<Column> columns, string postfix)
 		{
 			Indent++;
 
@@ -2326,9 +2333,9 @@ namespace LinqToDB.SqlProvider
 			Indent--;
 		}
 
-		protected delegate IEnumerable<SelectQuery.Column> ColumnSelector();
+		protected delegate IEnumerable<Column> ColumnSelector();
 
-		protected IEnumerable<SelectQuery.Column> AlternativeGetSelectedColumns(ColumnSelector columnSelector)
+		protected IEnumerable<Column> AlternativeGetSelectedColumns(ColumnSelector columnSelector)
 		{
 			foreach (var col in columnSelector())
 				yield return col;
@@ -2336,7 +2343,7 @@ namespace LinqToDB.SqlProvider
 			var obys = GetTempAliases(SelectQuery.OrderBy.Items.Count, "oby");
 
 			for (var i = 0; i < obys.Length; i++)
-				yield return new SelectQuery.Column(SelectQuery, SelectQuery.OrderBy.Items[i].Expression, obys[i]);
+				yield return new Column(SelectQuery, SelectQuery.OrderBy.Items[i].Expression, obys[i]);
 		}
 
 		protected static bool IsDateDataType(ISqlExpression expr, string dateName)
@@ -2461,7 +2468,7 @@ namespace LinqToDB.SqlProvider
 			switch (table.ElementType)
 			{
 				case QueryElementType.TableSource :
-					var ts    = (SelectQuery.TableSource)table;
+					var ts    = (TableSource)table;
 					var alias = string.IsNullOrEmpty(ts.Alias) ? GetTableAlias(ts.Source) : ts.Alias;
 					return alias != "$" ? alias : null;
 
@@ -2553,7 +2560,7 @@ namespace LinqToDB.SqlProvider
 					}
 
 				case QueryElementType.TableSource :
-					return GetPhysicalTableName(((SelectQuery.TableSource)table).Source, alias);
+					return GetPhysicalTableName(((TableSource)table).Source, alias);
 
 				default :
 					throw new InvalidOperationException();

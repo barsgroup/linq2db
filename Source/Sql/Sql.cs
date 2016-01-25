@@ -14,6 +14,10 @@ namespace LinqToDB
 	using LinqToDB.Common;
 	using Extensions;
 	using Linq;
+
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlQuery;
 
 	public static partial class Sql

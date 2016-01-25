@@ -3,6 +3,11 @@
 namespace LinqToDB.DataProvider.SQLite
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 

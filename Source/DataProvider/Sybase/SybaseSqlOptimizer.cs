@@ -1,12 +1,11 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.Sybase
+﻿namespace LinqToDB.DataProvider.Sybase
 {
-	using SqlProvider;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
-	using SqlQuery;
+    using SqlProvider;
 
-	class SybaseSqlOptimizer : BasicSqlOptimizer
+    class SybaseSqlOptimizer : BasicSqlOptimizer
 	{
 		public SybaseSqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
 		{

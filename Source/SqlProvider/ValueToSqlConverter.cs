@@ -7,9 +7,10 @@ namespace LinqToDB.SqlProvider
 {
 	using Common;
 	using Extensions;
-	using SqlQuery;
 
-	using ConverterType = Action<StringBuilder,SqlQuery.SqlDataType,object>;
+	using LinqToDB.SqlQuery.SqlElements;
+
+	using ConverterType = Action<StringBuilder,SqlQuery.SqlElements.SqlDataType,object>;
 
 	public class ValueToSqlConverter
 	{

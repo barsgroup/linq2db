@@ -8,10 +8,13 @@ namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using Extensions;
-	using Reflection;
-	using SqlQuery;
 
-	class ConcatUnionBuilder : MethodCallBuilder
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+
+	using Reflection;
+
+    class ConcatUnionBuilder : MethodCallBuilder
 	{
 		#region Builder
 
@@ -24,7 +27,7 @@ namespace LinqToDB.Linq.Builder
 		{
 			var sequence1 = new SubQueryContext(builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0])));
 			var sequence2 = new SubQueryContext(builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQuery())));
-			var union     = new SelectQuery.Union(sequence2.SelectQuery, methodCall.Method.Name == "Concat");
+			var union     = new Union(sequence2.SelectQuery, methodCall.Method.Name == "Concat");
 
 			sequence1.SelectQuery.Unions.Add(union);
 
@@ -162,8 +165,8 @@ namespace LinqToDB.Linq.Builder
 						};
 					}
 
-					_sequence1.SelectQuery.Select.Columns.Add(new SelectQuery.Column(_sequence1.SelectQuery, member.Info1.Sql));
-					_sequence2.SelectQuery.Select.Columns.Add(new SelectQuery.Column(_sequence2.SelectQuery, member.Info2.Sql));
+					_sequence1.SelectQuery.Select.Columns.Add(new Column(_sequence1.SelectQuery, member.Info1.Sql));
+					_sequence2.SelectQuery.Select.Columns.Add(new Column(_sequence2.SelectQuery, member.Info2.Sql));
 
 					member.Member.SequenceInfo.Index = i;
 
@@ -278,7 +281,7 @@ namespace LinqToDB.Linq.Builder
 							{
 								if (idx.Index == -2)
 								{
-									SelectQuery.Select.Columns.Add(new SelectQuery.Column(SelectQuery, idx.Sql));
+									SelectQuery.Select.Columns.Add(new Column(SelectQuery, idx.Sql));
 									idx.Index = SelectQuery.Select.Columns.Count - 1;
 								}
 								else

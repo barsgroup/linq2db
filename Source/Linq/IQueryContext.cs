@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace LinqToDB.Linq
 {
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.SqlElements;
 
-	public interface IQueryContext
+    public interface IQueryContext
 	{
 		SelectQuery    SelectQuery { get; }
 		object         Context     { get; set; }

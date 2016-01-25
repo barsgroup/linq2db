@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace LinqToDB.DataProvider.SqlServer
 {
-	using Mapping;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    using Mapping;
 	using SqlQuery;
 
 	public class FreeTextTableExpressionAttribute : Sql.TableExpressionAttribute

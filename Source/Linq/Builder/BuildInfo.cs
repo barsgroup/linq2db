@@ -1,9 +1,8 @@
-﻿using System;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements;
 
     public class BuildInfo
 	{

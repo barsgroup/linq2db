@@ -10,8 +10,12 @@ namespace LinqToDB.Data
 {
 	using DataProvider;
 	using Linq;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+
 	using Mapping;
-	using SqlQuery;
+
 	using SqlProvider;
 
 	public partial class DataConnection : IDataContext

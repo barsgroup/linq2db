@@ -8,14 +8,17 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq
 {
-    using System.Reflection;
-
     using Builder;
 	using Data;
 	using Common;
 	using Extensions;
 	using LinqToDB.Expressions;
-	using Mapping;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    using Mapping;
 	using SqlQuery;
 	using SqlProvider;
 
@@ -51,7 +54,7 @@ namespace LinqToDB.Linq
                 var column = SelectQuery.Select.Columns.FirstOrDefault(
                     c =>
                     {
-                        var expression = c.Expression as SelectQuery.Column;
+                        var expression = c.Expression as Column;
                         if (expression != null)
                         {
                             return ((SqlField)expression.Expression).Name == fieldName;
@@ -638,7 +641,7 @@ namespace LinqToDB.Linq
 
 								ei.Queries[0].Parameters.Add(param);
 
-								sqlQuery.Insert.Items.Add(new SelectQuery.SetExpression(field.Value, param.SqlParameter));
+								sqlQuery.Insert.Items.Add(new SetExpression(field.Value, param.SqlParameter));
 							}
 							else if (field.Value.IsIdentity)
 							{
@@ -646,7 +649,7 @@ namespace LinqToDB.Linq
 								var expr = sqlb.GetIdentityExpression(sqlTable);
 
 								if (expr != null)
-									sqlQuery.Insert.Items.Add(new SelectQuery.SetExpression(field.Value, expr));
+									sqlQuery.Insert.Items.Add(new SetExpression(field.Value, expr));
 							}
 						}
 
@@ -697,7 +700,7 @@ namespace LinqToDB.Linq
 
 								ei.Queries[0].Parameters.Add(param);
 
-								sqlQuery.Insert.Items.Add(new SelectQuery.SetExpression(field.Value, param.SqlParameter));
+								sqlQuery.Insert.Items.Add(new SetExpression(field.Value, param.SqlParameter));
 							}
 							else if (field.Value.IsIdentity)
 							{
@@ -705,7 +708,7 @@ namespace LinqToDB.Linq
 								var expr = sqlb.GetIdentityExpression(sqlTable);
 
 								if (expr != null)
-									sqlQuery.Insert.Items.Add(new SelectQuery.SetExpression(field.Value, expr));
+									sqlQuery.Insert.Items.Add(new SetExpression(field.Value, expr));
 							}
 						}
 
@@ -773,7 +776,7 @@ namespace LinqToDB.Linq
 										fieldDic.Add(field, param);
 								}
 
-								sqlQuery.Insert.Items.Add(new SelectQuery.SetExpression(field, param.SqlParameter));
+								sqlQuery.Insert.Items.Add(new SetExpression(field, param.SqlParameter));
 							}
 							else if (field.IsIdentity)
 							{
@@ -817,7 +820,7 @@ namespace LinqToDB.Linq
 									fieldDic.Add(field, param = GetParameter(dataContextInfo.DataContext, field));
 							}
 
-							sqlQuery.Update.Items.Add(new SelectQuery.SetExpression(field, param.SqlParameter));
+							sqlQuery.Update.Items.Add(new SetExpression(field, param.SqlParameter));
 						}
 
 						sqlQuery.Update.Keys.AddRange(q.Select(i => i.i));
@@ -929,7 +932,7 @@ namespace LinqToDB.Linq
 
 							ei.Queries[0].Parameters.Add(param);
 
-							sqlQuery.Update.Items.Add(new SelectQuery.SetExpression(field, param.SqlParameter));
+							sqlQuery.Update.Items.Add(new SetExpression(field, param.SqlParameter));
 						}
 
 						foreach (var field in keys)

@@ -6,6 +6,10 @@ using System.Reflection;
 namespace LinqToDB
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlQuery;
 
 	partial class Sql

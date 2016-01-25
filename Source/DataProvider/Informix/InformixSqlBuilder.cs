@@ -1,13 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
 
 namespace LinqToDB.DataProvider.Informix
 {
-	using SqlQuery;
-	using SqlProvider;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.SqlElements;
+
+    using SqlProvider;
 
 	class InformixSqlBuilder : BasicSqlBuilder
 	{
@@ -55,7 +57,7 @@ namespace LinqToDB.DataProvider.Informix
 		protected override string FirstFormat { get { return "FIRST {0}"; } }
 		protected override string SkipFormat  { get { return "SKIP {0}";  } }
 
-		protected override void BuildLikePredicate(SelectQuery.Predicate.Like predicate)
+		protected override void BuildLikePredicate(Like predicate)
 		{
 			if (predicate.IsNot)
 				StringBuilder.Append("NOT ");

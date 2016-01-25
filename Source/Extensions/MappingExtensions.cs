@@ -3,10 +3,12 @@
 namespace LinqToDB.Extensions
 {
 	using Common;
-	using Mapping;
-	using SqlQuery;
 
-	static class MappingExtensions
+	using LinqToDB.SqlQuery.SqlElements;
+
+	using Mapping;
+
+    static class MappingExtensions
 	{
 		public static SqlValue GetSqlValue(this MappingSchema mappingSchema, object value)
 		{

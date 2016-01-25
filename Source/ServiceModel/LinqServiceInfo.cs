@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LinqToDB.ServiceModel
+﻿namespace LinqToDB.ServiceModel
 {
 	using SqlProvider;
 

@@ -5,9 +5,13 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.SapHana
 {
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
-	using SqlQuery;
-	using SqlProvider;
+    using SqlProvider;
 
 	class SapHanaOdbcSqlBuilder : BasicSqlBuilder
 	{
@@ -45,7 +49,7 @@ namespace LinqToDB.DataProvider.SapHana
 		
 		public override bool IsNestedJoinParenthesisRequired { get { return true; } }
 
-		protected override void BuildStartCreateTableStatement(SelectQuery.CreateTableStatement createTable)
+		protected override void BuildStartCreateTableStatement(CreateTableStatement createTable)
 		{
 			if (createTable.StatementHeader == null)
 			{
@@ -206,12 +210,12 @@ namespace LinqToDB.DataProvider.SapHana
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SelectQuery.SearchCondition)
+				if (expr is SearchCondition)
 					wrap = true;
 				else
 				{
 					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SelectQuery.SearchCondition;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SearchCondition;
 				}
 			}
 
@@ -241,10 +245,10 @@ namespace LinqToDB.DataProvider.SapHana
 
 			if (start == 0 && SqlExpression.NeedsEqual(cond))
 			{
-				cond = new SelectQuery.SearchCondition(
-					new SelectQuery.Condition(
+				cond = new SearchCondition(
+					new Condition(
 						false,
-						new SelectQuery.Predicate.ExprExpr(cond, SelectQuery.Predicate.Operator.Equal, new SqlValue(1))));
+						new ExprExpr(cond, Operator.Equal, new SqlValue(1))));
 			}
 
 			if (len == 3)

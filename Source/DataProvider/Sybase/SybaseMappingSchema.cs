@@ -4,10 +4,11 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.Sybase
 {
-	using Mapping;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.SqlElements;
 
-	public class SybaseMappingSchema : MappingSchema
+    using Mapping;
+
+    public class SybaseMappingSchema : MappingSchema
 	{
 		public SybaseMappingSchema() : this(ProviderName.Sybase)
 		{

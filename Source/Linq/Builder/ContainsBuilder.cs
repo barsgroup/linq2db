@@ -4,9 +4,13 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
-	using SqlQuery;
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
-	class ContainsBuilder : MethodCallBuilder
+    class ContainsBuilder : MethodCallBuilder
 	{
 		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
@@ -121,7 +125,7 @@ namespace LinqToDB.Linq.Builder
 
 					Builder.ReplaceParent(ctx, this);
 
-					SelectQuery.Condition cond;
+					Condition cond;
 
 					if (Sequence.SelectQuery != SelectQuery &&
 						(ctx.IsExpression(expr, 0, RequestFor.Field).     Result ||
@@ -129,15 +133,15 @@ namespace LinqToDB.Linq.Builder
 					{
 						Sequence.ConvertToIndex(null, 0, ConvertFlags.All);
 						var ex = Builder.ConvertToSql(ctx, _methodCall.Arguments[1]);
-						cond = new SelectQuery.Condition(false, new SelectQuery.Predicate.InSubQuery(ex, false, SelectQuery));
+						cond = new Condition(false, new InSubQuery(ex, false, SelectQuery));
 					}
 					else
 					{
 						var sequence = Builder.BuildWhere(Parent, Sequence, condition, true);
-						cond = new SelectQuery.Condition(false, new SelectQuery.Predicate.FuncLike(SqlFunction.CreateExists(sequence.SelectQuery)));
+						cond = new Condition(false, new FuncLike(SqlFunction.CreateExists(sequence.SelectQuery)));
 					}
 
-					_subQuerySql = new SelectQuery.SearchCondition(cond);
+					_subQuerySql = new SearchCondition(cond);
 				}
 
 				return _subQuerySql;

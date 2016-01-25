@@ -6,9 +6,10 @@ namespace LinqToDB.SqlProvider
 {
 	using Common;
 	using Extensions;
-	using SqlQuery;
 
-	using ConverterType = Func<SqlQuery.SqlDataType,object, string>;
+	using LinqToDB.SqlQuery.SqlElements;
+
+	using ConverterType = Func<SqlQuery.SqlElements.SqlDataType,object, string>;
 
 	public class ValueToSqlValueConverter
 	{

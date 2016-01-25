@@ -4,10 +4,11 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.SQLite
 {
-	using Mapping;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.SqlElements;
 
-	public class SQLiteMappingSchema : MappingSchema
+    using Mapping;
+
+    public class SQLiteMappingSchema : MappingSchema
 	{
 		public SQLiteMappingSchema() : this(ProviderName.SQLite)
 		{

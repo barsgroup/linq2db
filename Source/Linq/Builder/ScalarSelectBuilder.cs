@@ -4,9 +4,11 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
-	using SqlQuery;
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
-	class ScalarSelectBuilder : ISequenceBuilder
+    class ScalarSelectBuilder : ISequenceBuilder
 	{
 		public int BuildCounter { get; set; }
 

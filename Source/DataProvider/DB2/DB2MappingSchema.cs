@@ -3,10 +3,11 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.DB2
 {
-	using Mapping;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.SqlElements;
 
-	public class DB2MappingSchema : MappingSchema
+    using Mapping;
+
+    public class DB2MappingSchema : MappingSchema
 	{
 		public DB2MappingSchema() : this(ProviderName.DB2)
 		{

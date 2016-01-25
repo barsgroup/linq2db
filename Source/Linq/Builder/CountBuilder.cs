@@ -4,9 +4,10 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
-	using SqlQuery;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
-	class CountBuilder : MethodCallBuilder
+    class CountBuilder : MethodCallBuilder
 	{
 		public static readonly string[] MethodNames = { "Count", "LongCount" };
 

@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
 namespace LinqToDB.DataProvider.SqlServer
 {
-	using SqlQuery;
-	using SqlProvider;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	abstract class SqlServerSqlBuilder : BasicSqlBuilder
 	{
@@ -59,7 +63,7 @@ namespace LinqToDB.DataProvider.SqlServer
 				base.BuildOrderByClause();
 		}
 
-		protected override IEnumerable<SelectQuery.Column> GetSelectedColumns()
+		protected override IEnumerable<Column> GetSelectedColumns()
 		{
 			if (BuildAlternativeSql && NeedSkip && !SelectQuery.OrderBy.IsEmpty)
 				return AlternativeGetSelectedColumns(base.GetSelectedColumns);
@@ -101,12 +105,12 @@ namespace LinqToDB.DataProvider.SqlServer
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SelectQuery.SearchCondition)
+				if (expr is SearchCondition)
 					wrap = true;
 				else
 				{
 					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SelectQuery.SearchCondition;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SearchCondition;
 				}
 			}
 
@@ -115,7 +119,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			if (wrap) StringBuilder.Append(" THEN 1 ELSE 0 END");
 		}
 
-		protected override void BuildLikePredicate(SelectQuery.Predicate.Like predicate)
+		protected override void BuildLikePredicate(Like predicate)
 		{
 			if (predicate.Expr2 is SqlValue)
 			{
@@ -127,7 +131,7 @@ namespace LinqToDB.DataProvider.SqlServer
 					var ntext = text.Replace("[", "[[]");
 
 					if (text != ntext)
-						predicate = new SelectQuery.Predicate.Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
+						predicate = new Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
 				}
 			}
 			else if (predicate.Expr2 is SqlParameter)

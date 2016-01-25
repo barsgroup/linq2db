@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
 
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using Extensions;
-	using SqlQuery;
 
-	// This class implements double functionality (scalar and member type selects)
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    // This class implements double functionality (scalar and member type selects)
 	// and could be implemented as two different classes.
 	// But the class means to have a lot of inheritors, and functionality of the inheritors
 	// will be doubled as well. So lets double it once here.
@@ -383,7 +386,7 @@ namespace LinqToDB.Linq.Builder
 
 		SqlInfo CheckExpression(SqlInfo expression)
 		{
-			if (expression.Sql is SelectQuery.SearchCondition)
+			if (expression.Sql is SearchCondition)
 			{
 				expression.Sql = Builder.Convert(
 					this,

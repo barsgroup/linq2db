@@ -2,7 +2,8 @@
 
 namespace LinqToDB.SqlQuery
 {
-	public enum QueryElementType
+    [Flags]
+	public enum QueryElementType: long
 	{
 		SqlField,
 		SqlFunction,

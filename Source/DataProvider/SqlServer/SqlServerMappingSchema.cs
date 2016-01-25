@@ -10,10 +10,12 @@ namespace LinqToDB.DataProvider.SqlServer
 {
 	using Common;
 	using Expressions;
-	using Mapping;
-	using SqlQuery;
 
-	public class SqlServerMappingSchema : MappingSchema
+	using LinqToDB.SqlQuery.SqlElements;
+
+	using Mapping;
+
+    public class SqlServerMappingSchema : MappingSchema
 	{
 		public SqlServerMappingSchema()
 			: base(ProviderName.SqlServer)

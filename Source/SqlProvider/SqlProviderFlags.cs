@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace LinqToDB.SqlProvider
+﻿namespace LinqToDB.SqlProvider
 {
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements;
 
-	public class SqlProviderFlags
+    public class SqlProviderFlags
 	{
 		public bool IsParameterOrderDependent      { get; set; }
 		public bool AcceptsTakeAsParameter         { get; set; }

@@ -5,6 +5,10 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlQuery;
 
 	class SelectManyBuilder : MethodCallBuilder
@@ -41,13 +45,13 @@ namespace LinqToDB.Linq.Builder
 			var crossApply     = null != new QueryVisitor().Find(sql, e =>
 				e.ElementType == QueryElementType.TableSource && sequenceTables.Contains((ISqlTableSource)e)  ||
 				e.ElementType == QueryElementType.SqlField    && sequenceTables.Contains(((SqlField)e).Table) ||
-				e.ElementType == QueryElementType.Column      && sequenceTables.Contains(((SelectQuery.Column)e).Parent));
+				e.ElementType == QueryElementType.Column      && sequenceTables.Contains(((Column)e).Parent));
 
 			if (collection is JoinBuilder.GroupJoinSubQueryContext)
 			{
 				var groupJoin = ((JoinBuilder.GroupJoinSubQueryContext)collection).GroupJoin;
 
-				groupJoin.SelectQuery.From.Tables[0].Joins[0].JoinType = SelectQuery.JoinType.Inner;
+				groupJoin.SelectQuery.From.Tables[0].Joins[0].JoinType = JoinType.Inner;
 				groupJoin.SelectQuery.From.Tables[0].Joins[0].IsWeak   = false;
 			}
 
@@ -93,11 +97,11 @@ namespace LinqToDB.Linq.Builder
 				//
 				if (collectionParent != null && collectionInfo.IsAssociationBuilt)
 				{
-					var ts = (SelectQuery.TableSource)new QueryVisitor().Find(sequence.SelectQuery.From, e =>
+					var ts = (TableSource)new QueryVisitor().Find(sequence.SelectQuery.From, e =>
 					{
 						if (e.ElementType == QueryElementType.TableSource)
 						{
-							var t = (SelectQuery.TableSource)e;
+							var t = (TableSource)e;
 							return t.Source == collectionParent.SqlTable;
 						}
 

@@ -6,9 +6,12 @@ namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using Extensions;
-	using SqlQuery;
 
-	class OfTypeBuilder : MethodCallBuilder
+	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.SqlElements;
+
+    class OfTypeBuilder : MethodCallBuilder
 	{
 		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
@@ -28,8 +31,8 @@ namespace LinqToDB.Linq.Builder
 				{
 					var predicate = builder.MakeIsPredicate(table, objectType);
 
-					if (predicate.GetType() != typeof(SelectQuery.Predicate.Expr))
-						sequence.SelectQuery.Where.SearchCondition.Conditions.Add(new SelectQuery.Condition(false, predicate));
+					if (predicate.GetType() != typeof(Expr))
+						sequence.SelectQuery.Where.SearchCondition.Conditions.Add(new Condition(false, predicate));
 				}
 			}
 			else
@@ -48,7 +51,7 @@ namespace LinqToDB.Linq.Builder
 						{
 							var predicate = MakeIsPredicate(builder, sequence, fromType, toType);
 
-							sequence.SelectQuery.Where.SearchCondition.Conditions.Add(new SelectQuery.Condition(false, predicate));
+							sequence.SelectQuery.Where.SearchCondition.Conditions.Add(new Condition(false, predicate));
 
 							return new OfTypeContext(sequence, methodCall);
 						}

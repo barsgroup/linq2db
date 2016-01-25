@@ -1,8 +1,12 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.Firebird
+﻿namespace LinqToDB.DataProvider.Firebird
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 
@@ -53,13 +57,13 @@ namespace LinqToDB.DataProvider.Firebird
 			if (selectQuery.QueryType == QueryType.InsertOrUpdate)
 			{
 				foreach (var key in selectQuery.Insert.Items)
-					new QueryVisitor().Visit(key.Expression, SetNonQueryParameter);
+					QueryVisitor.Visit(key.Expression, SetNonQueryParameter);
 
 				foreach (var key in selectQuery.Update.Items)
-					new QueryVisitor().Visit(key.Expression, SetNonQueryParameter);
+					QueryVisitor.Visit(key.Expression, SetNonQueryParameter);
 
 				foreach (var key in selectQuery.Update.Keys)
-					new QueryVisitor().Visit(key.Expression, SetNonQueryParameter);
+					QueryVisitor.Visit(key.Expression, SetNonQueryParameter);
 			}
 
 			selectQuery = base.Finalize(selectQuery);

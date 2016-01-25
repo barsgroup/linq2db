@@ -3,6 +3,11 @@
 namespace LinqToDB.DataProvider.SqlCe
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 
@@ -16,7 +21,7 @@ namespace LinqToDB.DataProvider.SqlCe
 		{
 			selectQuery = base.Finalize(selectQuery);
 
-			new QueryVisitor().Visit(selectQuery.Select, element =>
+			QueryVisitor.Visit(selectQuery.Select, element =>
 			{
 				if (element.ElementType == QueryElementType.SqlParameter)
 				{

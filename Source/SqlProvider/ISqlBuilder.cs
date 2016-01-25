@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Text;
 
 namespace LinqToDB.SqlProvider
 {
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
-	public interface ISqlBuilder
+    public interface ISqlBuilder
 	{
 		int              CommandCount         (SelectQuery selectQuery);
 		void             BuildSql             (int commandNumber, SelectQuery selectQuery, StringBuilder sb);

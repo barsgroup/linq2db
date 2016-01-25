@@ -3,10 +3,11 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.MySql
 {
-	using Mapping;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.SqlElements;
 
-	public class MySqlMappingSchema : MappingSchema
+    using Mapping;
+
+    public class MySqlMappingSchema : MappingSchema
 	{
 		public MySqlMappingSchema() : this(ProviderName.MySql)
 		{

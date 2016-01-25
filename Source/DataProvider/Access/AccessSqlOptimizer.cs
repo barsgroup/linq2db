@@ -1,8 +1,8 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.Access
+﻿namespace LinqToDB.DataProvider.Access
 {
-	using SqlProvider;
+    using LinqToDB.SqlQuery.QueryElements;
+
+    using SqlProvider;
 	using SqlQuery;
 
 	class AccessSqlOptimizer : BasicSqlOptimizer

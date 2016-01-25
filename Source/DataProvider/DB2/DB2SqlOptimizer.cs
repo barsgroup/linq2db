@@ -1,14 +1,18 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.DB2
+﻿namespace LinqToDB.DataProvider.DB2
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 
-	class DB2SqlOptimizer : BasicSqlOptimizer
+	class Db2SqlOptimizer : BasicSqlOptimizer
 	{
-		public DB2SqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
+		public Db2SqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
 		{
 		}
 
@@ -20,7 +24,7 @@ namespace LinqToDB.DataProvider.DB2
 
 		public override SelectQuery Finalize(SelectQuery selectQuery)
 		{
-			new QueryVisitor().Visit(selectQuery.Select, SetQueryParameter);
+			QueryVisitor.Visit(selectQuery.Select, SetQueryParameter);
 
 			selectQuery = base.Finalize(selectQuery);
 

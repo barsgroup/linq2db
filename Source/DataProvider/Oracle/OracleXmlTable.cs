@@ -10,10 +10,13 @@ namespace LinqToDB.DataProvider.Oracle
 {
 	using Common;
 	using Expressions;
-	using Mapping;
-	using SqlQuery;
 
-	public static partial class OracleTools
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+	using Mapping;
+
+    public static partial class OracleTools
 	{
 		class OracleXmlTableAttribute : Sql.TableExpressionAttribute
 		{

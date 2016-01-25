@@ -23,7 +23,7 @@ namespace LinqToDB.DataProvider.DB2
 
 			SetCharField("CHAR", (r,i) => r.GetString(i).TrimEnd());
 
-			_sqlOptimizer = new DB2SqlOptimizer(SqlProviderFlags);
+			_sqlOptimizer = new Db2SqlOptimizer(SqlProviderFlags);
 		}
 
 		protected override void OnConnectionTypeCreated(Type connectionType)
@@ -153,7 +153,7 @@ namespace LinqToDB.DataProvider.DB2
 				new DB2LUWSqlBuilder(GetSqlOptimizer(), SqlProviderFlags, MappingSchema.ValueToSqlConverter);
 		}
 
-		readonly DB2SqlOptimizer _sqlOptimizer;
+		readonly Db2SqlOptimizer _sqlOptimizer;
 
 		public override ISqlOptimizer GetSqlOptimizer()
 		{

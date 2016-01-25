@@ -3,11 +3,11 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.Informix
 {
-	using Mapping;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.SqlElements;
 
+    using Mapping;
 
-	public class InformixMappingSchema : MappingSchema
+    public class InformixMappingSchema : MappingSchema
 	{
 		public InformixMappingSchema() : this(ProviderName.Informix)
 		{

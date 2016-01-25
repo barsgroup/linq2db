@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.SqlElements;
+
 	using SqlQuery;
 
 	class InsertOrUpdateBuilder : MethodCallBuilder

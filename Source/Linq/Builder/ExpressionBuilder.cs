@@ -11,8 +11,9 @@ namespace LinqToDB.Linq.Builder
 	using Common;
 	using Extensions;
 	using Mapping;
-	using SqlQuery;
+
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.QueryElements;
 
     public partial class ExpressionBuilder
 	{

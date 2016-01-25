@@ -1,10 +1,13 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 
 namespace LinqToDB.DataProvider.SqlCe
 {
-	using SqlQuery;
-	using SqlProvider;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	class SqlCeSqlBuilder : BasicSqlBuilder
 	{
@@ -87,12 +90,12 @@ namespace LinqToDB.DataProvider.SqlCe
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SelectQuery.SearchCondition)
+				if (expr is SearchCondition)
 					wrap = true;
 				else
 				{
 					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SelectQuery.SearchCondition;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SearchCondition;
 				}
 			}
 

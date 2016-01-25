@@ -6,9 +6,11 @@ using System.Reflection;
 namespace LinqToDB
 {
 	using Extensions;
-	using SqlQuery;
 
-	partial class Sql
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    partial class Sql
 	{
 		[Serializable]
 		[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = true, Inherited = false)]

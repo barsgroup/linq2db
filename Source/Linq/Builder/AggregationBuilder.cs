@@ -8,9 +8,12 @@ namespace LinqToDB.Linq.Builder
 	using Common;
 	using LinqToDB.Expressions;
 	using Extensions;
-	using SqlQuery;
 
-	class AggregationBuilder : MethodCallBuilder
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    class AggregationBuilder : MethodCallBuilder
 	{
 		public static string[] MethodNames = new[] { "Average", "Min", "Max", "Sum" };
 

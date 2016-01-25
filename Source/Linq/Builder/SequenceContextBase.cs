@@ -1,11 +1,11 @@
-﻿using System;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
-	abstract class SequenceContextBase : IBuildContext
+    abstract class SequenceContextBase : IBuildContext
 	{
 		protected SequenceContextBase(IBuildContext parent, IBuildContext sequence, LambdaExpression lambda)
 		{

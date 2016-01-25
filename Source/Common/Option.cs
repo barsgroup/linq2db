@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LinqToDB.Common
+﻿namespace LinqToDB.Common
 {
 	class Option<T>
 	{

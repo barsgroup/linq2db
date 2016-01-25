@@ -9,10 +9,12 @@ namespace LinqToDB.ServiceModel
 	using Common;
 	using Extensions;
 	using Linq;
-	using Mapping;
-	using SqlQuery;
 
-	public class DataService<T> : System.Data.Services.DataService<T>, IServiceProvider
+	using LinqToDB.SqlQuery.SqlElements;
+
+	using Mapping;
+
+    public class DataService<T> : System.Data.Services.DataService<T>, IServiceProvider
 		where T : IDataContext
 	{
 		#region Init

@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace LinqToDB.Linq.Builder
 {
 	using Extensions;
-	using SqlQuery;
 
-	public class SqlInfo
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    public class SqlInfo
 	{
 		public ISqlExpression   Sql;
 		public SelectQuery      Query;

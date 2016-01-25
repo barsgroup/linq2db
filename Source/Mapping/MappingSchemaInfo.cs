@@ -8,10 +8,12 @@ namespace LinqToDB.Mapping
 	using Common;
 	using Expressions;
 	using Extensions;
-	using Metadata;
-	using SqlQuery;
 
-	class MappingSchemaInfo
+	using LinqToDB.SqlQuery.SqlElements;
+
+	using Metadata;
+
+    class MappingSchemaInfo
 	{
 		public MappingSchemaInfo(string configuration)
 		{

@@ -1,10 +1,16 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using System.Linq;
 
 namespace LinqToDB.DataProvider.Oracle
 {
 	using Common;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlQuery;
 	using SqlProvider;
 
@@ -138,15 +144,15 @@ namespace LinqToDB.DataProvider.Oracle
 			}
 		}
 
-		protected override void BuildWhereSearchCondition(SelectQuery.SearchCondition condition)
+		protected override void BuildWhereSearchCondition(SearchCondition condition)
 		{
 			if (NeedTake && !NeedSkip && SelectQuery.OrderBy.IsEmpty && SelectQuery.Having.IsEmpty)
 			{
 				BuildPredicate(
 					Precedence.LogicalConjunction,
-					new SelectQuery.Predicate.ExprExpr(
+					new ExprExpr(
 						new SqlExpression(null, "ROWNUM", Precedence.Primary),
-						SelectQuery.Predicate.Operator.LessOrEqual,
+						Operator.LessOrEqual,
 						SelectQuery.Select.TakeValue));
 
 				if (base.BuildWhere())
@@ -198,12 +204,12 @@ namespace LinqToDB.DataProvider.Oracle
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SelectQuery.SearchCondition)
+				if (expr is SearchCondition)
 					wrap = true;
 				else
 				{
 					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SelectQuery.SearchCondition;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SearchCondition;
 				}
 			}
 

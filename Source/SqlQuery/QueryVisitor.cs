@@ -5,6 +5,18 @@ namespace LinqToDB.SqlQuery
 {
     using System.Linq;
 
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Clauses;
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    // The casts to object in the below code are an unfortunate necessity due to
+    // C#'s restriction against a where T : Enum constraint. (There are ways around
+    // this, but they're outside the scope of this simple illustration.)
+
     public class QueryVisitor
 	{
 		#region Visit
@@ -23,348 +35,350 @@ namespace LinqToDB.SqlQuery
 		    element?.GetChildItems().All(action);
         }
 
-		public void Visit(IQueryElement element, Action<IQueryElement> action)
-		{
-		    foreach (var item in element?.GetChildItems())
-		    {
-		        action(item);
-		    }
-		}
+        public static void Visit(IQueryElement element, Action<IQueryElement> action)
+        {
+            element?.GetChildItems().AsParallel().Distinct().ForAll(action);
+        }
 
-		public void VisitAll(IQueryElement element, Action<IQueryElement> action)
+        public static void Visit(IQueryElement element, QueryElementType filtredTypes, Action<IQueryElement> action)
+        {
+            element?.GetChildItems().AsParallel().Where(q => FlagsHelper.IsSet(filtredTypes, q.ElementType)).Distinct().ForAll(action);
+        }
+
+        public void VisitAll(IQueryElement element, Action<IQueryElement> action)
 		{
 		    Visit(element, action);
 		}
 
-		void Visit2(IQueryElement element)
-		{
-			if (element == null || !_all && _visitedElements.ContainsKey(element))
-				return;
+		//void Visit2(IQueryElement element)
+		//{
+		//	if (element == null || !_all && _visitedElements.ContainsKey(element))
+		//		return;
 
-			switch (element.ElementType)
-			{
-				case QueryElementType.SqlFunction:
-					{
-						foreach (var p in ((SqlFunction)element).Parameters) Visit2(p);
-						break;
-					}
+		//	switch (element.ElementType)
+		//	{
+		//		case QueryElementType.SqlFunction:
+		//			{
+		//				foreach (var p in ((SqlFunction)element).Parameters) Visit2(p);
+		//				break;
+		//			}
 
-				case QueryElementType.SqlExpression:
-					{
-						foreach (var v in ((SqlExpression)element).Parameters) Visit2(v);
-						break;
-					}
+		//		case QueryElementType.SqlExpression:
+		//			{
+		//				foreach (var v in ((SqlExpression)element).Parameters) Visit2(v);
+		//				break;
+		//			}
 
-				case QueryElementType.SqlBinaryExpression:
-					{
-						//var bexpr = (SqlBinaryExpression)element;
-						Visit2(((SqlBinaryExpression)element).Expr1);
-						Visit2(((SqlBinaryExpression)element).Expr2);
-						break;
-					}
+		//		case QueryElementType.SqlBinaryExpression:
+		//			{
+		//				//var bexpr = (SqlBinaryExpression)element;
+		//				Visit2(((SqlBinaryExpression)element).Expr1);
+		//				Visit2(((SqlBinaryExpression)element).Expr2);
+		//				break;
+		//			}
 
-				case QueryElementType.SqlTable:
-					{
-						var table = (SqlTable)element;
+		//		case QueryElementType.SqlTable:
+		//			{
+		//				var table = (SqlTable)element;
 
-						Visit2(table.All);
-						foreach (var field in table.Fields.Values) Visit2(field);
+		//				Visit2(table.All);
+		//				foreach (var field in table.Fields.Values) Visit2(field);
 
-						if (table.TableArguments != null)
-							foreach (var a in table.TableArguments) Visit2(a);
+		//				if (table.TableArguments != null)
+		//					foreach (var a in table.TableArguments) Visit2(a);
 
-						break;
-					}
+		//				break;
+		//			}
 
-				case QueryElementType.Column:
-					{
-						Visit2(((SelectQuery.Column)element).Expression);
-						break;
-					}
+		//		case QueryElementType.Column:
+		//			{
+		//				Visit2(((Column)element).Expression);
+		//				break;
+		//			}
 
-				case QueryElementType.TableSource:
-					{
-						//var table = ((SqlQuery.TableSource)element);
+		//		case QueryElementType.TableSource:
+		//			{
+		//				//var table = ((SqlQuery.TableSource)element);
 
-						Visit2(((SelectQuery.TableSource)element).Source);
-						foreach (var j in ((SelectQuery.TableSource)element).Joins) Visit2(j);
-						break;
-					}
+		//				Visit2(((TableSource)element).Source);
+		//				foreach (var j in ((TableSource)element).Joins) Visit2(j);
+		//				break;
+		//			}
 
-				case QueryElementType.JoinedTable:
-					{
-						//var join = (SqlQuery.JoinedTable)element;
-						Visit2(((SelectQuery.JoinedTable)element).Table);
-						Visit2(((SelectQuery.JoinedTable)element).Condition);
-						break;
-					}
+		//		case QueryElementType.JoinedTable:
+		//			{
+		//				//var join = (SqlQuery.JoinedTable)element;
+		//				Visit2(((JoinedTable)element).Table);
+		//				Visit2(((JoinedTable)element).Condition);
+		//				break;
+		//			}
 
-				case QueryElementType.SearchCondition:
-					{
-						foreach (var c in ((SelectQuery.SearchCondition)element).Conditions) Visit2(c);
-						break;
-					}
+		//		case QueryElementType.SearchCondition:
+		//			{
+		//				foreach (var c in ((SearchCondition)element).Conditions) Visit2(c);
+		//				break;
+		//			}
 
-				case QueryElementType.Condition:
-					{
-						Visit2(((SelectQuery.Condition)element).Predicate);
-						break;
-					}
+		//		case QueryElementType.Condition:
+		//			{
+		//				Visit2(((Condition)element).Predicate);
+		//				break;
+		//			}
 
-				case QueryElementType.ExprPredicate:
-					{
-						Visit2(((SelectQuery.Predicate.Expr)element).Expr1);
-						break;
-					}
+		//		case QueryElementType.ExprPredicate:
+		//			{
+		//				Visit2(((Expr)element).Expr1);
+		//				break;
+		//			}
 
-				case QueryElementType.NotExprPredicate:
-					{
-						Visit2(((SelectQuery.Predicate.NotExpr)element).Expr1);
-						break;
-					}
+		//		case QueryElementType.NotExprPredicate:
+		//			{
+		//				Visit2(((NotExpr)element).Expr1);
+		//				break;
+		//			}
 
-				case QueryElementType.ExprExprPredicate:
-					{
-						//var p = ((SqlQuery.Predicate.ExprExpr)element);
-						Visit2(((SelectQuery.Predicate.ExprExpr)element).Expr1);
-						Visit2(((SelectQuery.Predicate.ExprExpr)element).Expr2);
-						break;
-					}
+		//		case QueryElementType.ExprExprPredicate:
+		//			{
+		//				//var p = ((SqlQuery.Predicate.ExprExpr)element);
+		//				Visit2(((ExprExpr)element).Expr1);
+		//				Visit2(((ExprExpr)element).Expr2);
+		//				break;
+		//			}
 
-				case QueryElementType.LikePredicate:
-					{
-						//var p = ((SqlQuery.Predicate.Like)element);
-						Visit2(((SelectQuery.Predicate.Like)element).Expr1);
-						Visit2(((SelectQuery.Predicate.Like)element).Expr2);
-						Visit2(((SelectQuery.Predicate.Like)element).Escape);
-						break;
-					}
+		//		case QueryElementType.LikePredicate:
+		//			{
+		//				//var p = ((SqlQuery.Predicate.Like)element);
+		//				Visit2(((Like)element).Expr1);
+		//				Visit2(((Like)element).Expr2);
+		//				Visit2(((Like)element).Escape);
+		//				break;
+		//			}
 
-				case QueryElementType.BetweenPredicate:
-					{
-						//var p = (SqlQuery.Predicate.Between)element;
-						Visit2(((SelectQuery.Predicate.Between)element).Expr1);
-						Visit2(((SelectQuery.Predicate.Between)element).Expr2);
-						Visit2(((SelectQuery.Predicate.Between)element).Expr3);
-						break;
-					}
+		//		case QueryElementType.BetweenPredicate:
+		//			{
+		//				//var p = (SqlQuery.Predicate.Between)element;
+		//				Visit2(((Between)element).Expr1);
+		//				Visit2(((Between)element).Expr2);
+		//				Visit2(((Between)element).Expr3);
+		//				break;
+		//			}
 
-				case QueryElementType.IsNullPredicate:
-					{
-						Visit2(((SelectQuery.Predicate.IsNull)element).Expr1);
-						break;
-					}
+		//		case QueryElementType.IsNullPredicate:
+		//			{
+		//				Visit2(((IsNull)element).Expr1);
+		//				break;
+		//			}
 
-				case QueryElementType.InSubQueryPredicate:
-					{
-						//var p = (SqlQuery.Predicate.InSubQuery)element;
-						Visit2(((SelectQuery.Predicate.InSubQuery)element).Expr1);
-						Visit2(((SelectQuery.Predicate.InSubQuery)element).SubQuery);
-						break;
-					}
+		//		case QueryElementType.InSubQueryPredicate:
+		//			{
+		//				//var p = (SqlQuery.Predicate.InSubQuery)element;
+		//				Visit2(((InSubQuery)element).Expr1);
+		//				Visit2(((InSubQuery)element).SubQuery);
+		//				break;
+		//			}
 
-				case QueryElementType.InListPredicate:
-					{
-						//var p = (SqlQuery.Predicate.InList)element;
-						Visit2(((SelectQuery.Predicate.InList)element).Expr1);
-						foreach (var value in ((SelectQuery.Predicate.InList)element).Values) Visit2(value);
-						break;
-					}
+		//		case QueryElementType.InListPredicate:
+		//			{
+		//				//var p = (SqlQuery.Predicate.InList)element;
+		//				Visit2(((InList)element).Expr1);
+		//				foreach (var value in ((InList)element).Values) Visit2(value);
+		//				break;
+		//			}
 
-				case QueryElementType.FuncLikePredicate:
-					{
-						Visit2(((SelectQuery.Predicate.FuncLike)element).Function);
-						break;
-					}
+		//		case QueryElementType.FuncLikePredicate:
+		//			{
+		//				Visit2(((FuncLike)element).Function);
+		//				break;
+		//			}
 
-				case QueryElementType.SetExpression:
-					{
-						//var s = (SqlQuery.SetExpression)element;
-						Visit2(((SelectQuery.SetExpression)element).Column);
-						Visit2(((SelectQuery.SetExpression)element).Expression);
-						break;
-					}
+		//		case QueryElementType.SetExpression:
+		//			{
+		//				//var s = (SqlQuery.SetExpression)element;
+		//				Visit2(((SetExpression)element).Column);
+		//				Visit2(((SetExpression)element).Expression);
+		//				break;
+		//			}
 
-				case QueryElementType.InsertClause:
-					{
-						//var sc = (SqlQuery.InsertClause)element;
+		//		case QueryElementType.InsertClause:
+		//			{
+		//				//var sc = (SqlQuery.InsertClause)element;
 
-						if (((SelectQuery.InsertClause)element).Into != null)
-							Visit2(((SelectQuery.InsertClause)element).Into);
+		//				if (((InsertClause)element).Into != null)
+		//					Visit2(((InsertClause)element).Into);
 
-						foreach (var c in ((SelectQuery.InsertClause)element).Items.ToArray()) Visit2(c);
-						break;
-					}
+		//				foreach (var c in ((InsertClause)element).Items.ToArray()) Visit2(c);
+		//				break;
+		//			}
 
-				case QueryElementType.UpdateClause:
-					{
-						//var sc = (SqlQuery.UpdateClause)element;
+		//		case QueryElementType.UpdateClause:
+		//			{
+		//				//var sc = (SqlQuery.UpdateClause)element;
 
-						if (((SelectQuery.UpdateClause)element).Table != null)
-							Visit2(((SelectQuery.UpdateClause)element).Table);
+		//				if (((UpdateClause)element).Table != null)
+		//					Visit2(((UpdateClause)element).Table);
 
-						foreach (var c in ((SelectQuery.UpdateClause)element).Items.ToArray()) Visit2(c);
-						foreach (var c in ((SelectQuery.UpdateClause)element).Keys. ToArray()) Visit2(c);
-						break;
-					}
+		//				foreach (var c in ((UpdateClause)element).Items.ToArray()) Visit2(c);
+		//				foreach (var c in ((UpdateClause)element).Keys. ToArray()) Visit2(c);
+		//				break;
+		//			}
 
-				case QueryElementType.DeleteClause:
-					{
-						if (((SelectQuery.DeleteClause)element).Table != null)
-							Visit2(((SelectQuery.DeleteClause)element).Table);
-						break;
-					}
+		//		case QueryElementType.DeleteClause:
+		//			{
+		//				if (((DeleteClause)element).Table != null)
+		//					Visit2(((DeleteClause)element).Table);
+		//				break;
+		//			}
 
-				case QueryElementType.CreateTableStatement:
-					{
-						if (((SelectQuery.CreateTableStatement)element).Table != null)
-							Visit2(((SelectQuery.CreateTableStatement)element).Table);
-						break;
-					}
+		//		case QueryElementType.CreateTableStatement:
+		//			{
+		//				if (((CreateTableStatement)element).Table != null)
+		//					Visit2(((CreateTableStatement)element).Table);
+		//				break;
+		//			}
 
-				case QueryElementType.SelectClause:
-					{
-						//var sc = (SqlQuery.SelectClause)element;
-						Visit2(((SelectQuery.SelectClause)element).TakeValue);
-						Visit2(((SelectQuery.SelectClause)element).SkipValue);
+		//		case QueryElementType.SelectClause:
+		//			{
+		//				//var sc = (SqlQuery.SelectClause)element;
+		//				Visit2(((SelectClause)element).TakeValue);
+		//				Visit2(((SelectClause)element).SkipValue);
 
-						foreach (var c in ((SelectQuery.SelectClause)element).Columns.ToArray()) Visit2(c);
-						break;
-					}
+		//				foreach (var c in ((SelectClause)element).Columns.ToArray()) Visit2(c);
+		//				break;
+		//			}
 
-				case QueryElementType.FromClause:
-					{
-						foreach (var t in ((SelectQuery.FromClause)element).Tables) Visit2(t);
-						break;
-					}
+		//		case QueryElementType.FromClause:
+		//			{
+		//				foreach (var t in ((FromClause)element).Tables) Visit2(t);
+		//				break;
+		//			}
 
-				case QueryElementType.WhereClause:
-					{
-						Visit2(((SelectQuery.WhereClause)element).SearchCondition);
-						break;
-					}
+		//		case QueryElementType.WhereClause:
+		//			{
+		//				Visit2(((WhereClause)element).SearchCondition);
+		//				break;
+		//			}
 
-				case QueryElementType.GroupByClause:
-					{
-						foreach (var i in ((SelectQuery.GroupByClause)element).Items) Visit2(i);
-						break;
-					}
+		//		case QueryElementType.GroupByClause:
+		//			{
+		//				foreach (var i in ((GroupByClause)element).Items) Visit2(i);
+		//				break;
+		//			}
 
-				case QueryElementType.OrderByClause:
-					{
-						foreach (var i in ((SelectQuery.OrderByClause)element).Items) Visit2(i);
-						break;
-					}
+		//		case QueryElementType.OrderByClause:
+		//			{
+		//				foreach (var i in ((OrderByClause)element).Items) Visit2(i);
+		//				break;
+		//			}
 
-				//case QueryElementType.OrderByItem:
-				//	{
-				//		Visit2(((SelectQuery.OrderByItem)element).Expression);
-				//		break;
-				//	}
+		//		//case QueryElementType.OrderByItem:
+		//		//	{
+		//		//		Visit2(((SelectQuery.OrderByItem)element).Expression);
+		//		//		break;
+		//		//	}
 
-				//case QueryElementType.Union:
-				//	Visit2(((SelectQuery.Union)element).SelectQuery);
-				//	break;
+		//		//case QueryElementType.Union:
+		//		//	Visit2(((SelectQuery.Union)element).SelectQuery);
+		//		//	break;
 
-				//case QueryElementType.SqlQuery:
-				//	{
-				//		if (_all)
-				//		{
-				//			if (_visitedElements.ContainsKey(element))
-				//				return;
-				//			_visitedElements.Add(element, element);
-				//		}
+		//		//case QueryElementType.SqlQuery:
+		//		//	{
+		//		//		if (_all)
+		//		//		{
+		//		//			if (_visitedElements.ContainsKey(element))
+		//		//				return;
+		//		//			_visitedElements.Add(element, element);
+		//		//		}
 
-				//		var q = (SelectQuery)element;
+		//		//		var q = (SelectQuery)element;
 
-				//		switch (q.QueryType)
-				//		{
-				//			case QueryType.InsertOrUpdate :
-				//				Visit2(q.Insert);
-				//				Visit2(q.Update);
+		//		//		switch (q.QueryType)
+		//		//		{
+		//		//			case QueryType.InsertOrUpdate :
+		//		//				Visit2(q.Insert);
+		//		//				Visit2(q.Update);
 
-				//				if (q.From.Tables.Count == 0)
-				//					break;
+		//		//				if (q.From.Tables.Count == 0)
+		//		//					break;
 
-				//				goto default;
+		//		//				goto default;
 
-				//			case QueryType.Update :
-				//				Visit2(q.Update);
-				//				Visit2(q.Select);
-				//				break;
+		//		//			case QueryType.Update :
+		//		//				Visit2(q.Update);
+		//		//				Visit2(q.Select);
+		//		//				break;
 
-				//			case QueryType.Delete :
-				//				Visit2(q.Delete);
-				//				Visit2(q.Select);
-				//				break;
+		//		//			case QueryType.Delete :
+		//		//				Visit2(q.Delete);
+		//		//				Visit2(q.Select);
+		//		//				break;
 
-				//			case QueryType.Insert :
-				//				Visit2(q.Insert);
+		//		//			case QueryType.Insert :
+		//		//				Visit2(q.Insert);
 
-				//				if (q.From.Tables.Count != 0)
-				//					Visit2(q.Select);
+		//		//				if (q.From.Tables.Count != 0)
+		//		//					Visit2(q.Select);
 
-				//				break;
+		//		//				break;
 
-				//			case QueryType.CreateTable :
-				//				Visit2(q.CreateTable);
-				//				break;
+		//		//			case QueryType.CreateTable :
+		//		//				Visit2(q.CreateTable);
+		//		//				break;
 
-				//			default :
-				//				Visit2(q.Select);
-				//				break;
-				//		}
+		//		//			default :
+		//		//				Visit2(q.Select);
+		//		//				break;
+		//		//		}
 
-				//		// Visit2(q.From);
-				//		//
-				//		if (q.From != null && (_all || !_visitedElements.ContainsKey(q.From)))
-				//		{
-				//			foreach (var t in q.From.Tables)
-				//			{
-				//				//Visit2(t);
-				//				//
-				//				if (t != null && (_all || !_visitedElements.ContainsKey(t)))
-				//				{
-				//					Visit2(t.Source);
+		//		//		// Visit2(q.From);
+		//		//		//
+		//		//		if (q.From != null && (_all || !_visitedElements.ContainsKey(q.From)))
+		//		//		{
+		//		//			foreach (var t in q.From.Tables)
+		//		//			{
+		//		//				//Visit2(t);
+		//		//				//
+		//		//				if (t != null && (_all || !_visitedElements.ContainsKey(t)))
+		//		//				{
+		//		//					Visit2(t.Source);
 
-				//					foreach (var j in t.Joins)
-				//						Visit2(j);
+		//		//					foreach (var j in t.Joins)
+		//		//						Visit2(j);
 
-				//					_action2(t);
-				//					if (!_all)
-				//						_visitedElements.Add(t, t);
-				//				}
-				//			}
-				//			_action2(q.From);
-				//			if (!_all)
-				//				_visitedElements.Add(q.From, q.From);
-				//		}
+		//		//					_action2(t);
+		//		//					if (!_all)
+		//		//						_visitedElements.Add(t, t);
+		//		//				}
+		//		//			}
+		//		//			_action2(q.From);
+		//		//			if (!_all)
+		//		//				_visitedElements.Add(q.From, q.From);
+		//		//		}
 
-				//		Visit2(q.Where);
-				//		Visit2(q.GroupBy);
-				//		Visit2(q.Having);
-				//		Visit2(q.OrderBy);
+		//		//		Visit2(q.Where);
+		//		//		Visit2(q.GroupBy);
+		//		//		Visit2(q.Having);
+		//		//		Visit2(q.OrderBy);
 
-				//		if (q.HasUnion)
-				//		{
-				//			foreach (var i in q.Unions)
-				//			{
-				//				if (i.SelectQuery == q)
-				//					throw new InvalidOperationException();
+		//		//		if (q.HasUnion)
+		//		//		{
+		//		//			foreach (var i in q.Unions)
+		//		//			{
+		//		//				if (i.SelectQuery == q)
+		//		//					throw new InvalidOperationException();
 
-				//				Visit2(i);
-				//			}
-				//		}
+		//		//				Visit2(i);
+		//		//			}
+		//		//		}
 
-				//		break;
-				//	}
-			}
+		//		//		break;
+		//		//	}
+		//	}
 
-			_action2(element);
+		//	_action2(element);
 
-			if (!_all)
-				_visitedElements.Add(element, element);
-		}
+		//	if (!_all)
+		//		_visitedElements.Add(element, element);
+		//}
 
 		#endregion
 
@@ -395,19 +409,19 @@ namespace LinqToDB.SqlQuery
 			{
 				case QueryElementType.SqlFunction       : return Find(((SqlFunction)                element).Parameters,      find);
 				case QueryElementType.SqlExpression     : return Find(((SqlExpression)              element).Parameters,      find);
-				case QueryElementType.Column            : return Find(((SelectQuery.Column)            element).Expression,      find);
-				case QueryElementType.SearchCondition   : return Find(((SelectQuery.SearchCondition)   element).Conditions,      find);
-				case QueryElementType.Condition         : return Find(((SelectQuery.Condition)         element).Predicate,       find);
-				case QueryElementType.ExprPredicate     : return Find(((SelectQuery.Predicate.Expr)    element).Expr1,           find);
-				case QueryElementType.NotExprPredicate  : return Find(((SelectQuery.Predicate.NotExpr) element).Expr1,           find);
-				case QueryElementType.IsNullPredicate   : return Find(((SelectQuery.Predicate.IsNull)  element).Expr1,           find);
-				case QueryElementType.FromClause        : return Find(((SelectQuery.FromClause)        element).Tables,          find);
-				case QueryElementType.WhereClause       : return Find(((SelectQuery.WhereClause)       element).SearchCondition, find);
-				case QueryElementType.GroupByClause     : return Find(((SelectQuery.GroupByClause)     element).Items,           find);
-				case QueryElementType.OrderByClause     : return Find(((SelectQuery.OrderByClause)     element).Items,           find);
-				case QueryElementType.OrderByItem       : return Find(((SelectQuery.OrderByItem)       element).Expression,      find);
-				case QueryElementType.Union             : return Find(((SelectQuery.Union)             element).SelectQuery,        find);
-				case QueryElementType.FuncLikePredicate : return Find(((SelectQuery.Predicate.FuncLike)element).Function,        find);
+				case QueryElementType.Column            : return Find(((Column)            element).Expression,      find);
+				case QueryElementType.SearchCondition   : return Find(((SearchCondition)   element).Conditions,      find);
+				case QueryElementType.Condition         : return Find(((Condition)         element).Predicate,       find);
+				case QueryElementType.ExprPredicate     : return Find(((Expr)    element).Expr1,           find);
+				case QueryElementType.NotExprPredicate  : return Find(((NotExpr) element).Expr1,           find);
+				case QueryElementType.IsNullPredicate   : return Find(((IsNull)  element).Expr1,           find);
+				case QueryElementType.FromClause        : return Find(((FromClause)        element).Tables,          find);
+				case QueryElementType.WhereClause       : return Find(((WhereClause)       element).SearchCondition, find);
+				case QueryElementType.GroupByClause     : return Find(((GroupByClause)     element).Items,           find);
+				case QueryElementType.OrderByClause     : return Find(((OrderByClause)     element).Items,           find);
+				case QueryElementType.OrderByItem       : return Find(((OrderByItem)       element).Expression,      find);
+				case QueryElementType.Union             : return Find(((Union)             element).SelectQuery,        find);
+				case QueryElementType.FuncLikePredicate : return Find(((FuncLike)element).Function,        find);
 
 				case QueryElementType.SqlBinaryExpression:
 					{
@@ -428,7 +442,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.TableSource:
 					{
-						var table = (SelectQuery.TableSource)element;
+						var table = (TableSource)element;
 						return
 							Find(table.Source, find) ??
 							Find(table.Joins,  find);
@@ -436,7 +450,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.JoinedTable:
 					{
-						var join = (SelectQuery.JoinedTable)element;
+						var join = (JoinedTable)element;
 						return
 							Find(join.Table,     find) ??
 							Find(join.Condition, find);
@@ -444,7 +458,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.ExprExprPredicate:
 					{
-						var p = (SelectQuery.Predicate.ExprExpr)element;
+						var p = (ExprExpr)element;
 						return
 							Find(p.Expr1, find) ??
 							Find(p.Expr2, find);
@@ -452,7 +466,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.LikePredicate:
 					{
-						var p = (SelectQuery.Predicate.Like)element;
+						var p = (Like)element;
 						return
 							Find(p.Expr1,  find) ??
 							Find(p.Expr2,  find) ??
@@ -461,7 +475,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.BetweenPredicate:
 					{
-						var p = (SelectQuery.Predicate.Between)element;
+						var p = (Between)element;
 						return
 							Find(p.Expr1, find) ??
 							Find(p.Expr2, find) ??
@@ -470,7 +484,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.InSubQueryPredicate:
 					{
-						var p = (SelectQuery.Predicate.InSubQuery)element;
+						var p = (InSubQuery)element;
 						return
 							Find(p.Expr1,    find) ??
 							Find(p.SubQuery, find);
@@ -478,7 +492,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.InListPredicate:
 					{
-						var p = (SelectQuery.Predicate.InList)element;
+						var p = (InList)element;
 						return
 							Find(p.Expr1,  find) ??
 							Find(p.Values, find);
@@ -486,7 +500,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.SetExpression:
 					{
-						var s = (SelectQuery.SetExpression)element;
+						var s = (SetExpression)element;
 						return
 							Find(s.Column,     find) ??
 							Find(s.Expression, find);
@@ -494,7 +508,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.InsertClause:
 					{
-						var sc = (SelectQuery.InsertClause)element;
+						var sc = (InsertClause)element;
 						return
 							Find(sc.Into,  find) ??
 							Find(sc.Items, find);
@@ -502,7 +516,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.UpdateClause:
 					{
-						var sc = (SelectQuery.UpdateClause)element;
+						var sc = (UpdateClause)element;
 						return
 							Find(sc.Table, find) ??
 							Find(sc.Items, find) ??
@@ -511,20 +525,20 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.DeleteClause:
 					{
-						var sc = (SelectQuery.DeleteClause)element;
+						var sc = (DeleteClause)element;
 						return Find(sc.Table, find);
 					}
 
 				case QueryElementType.CreateTableStatement:
 					{
-						var sc = (SelectQuery.CreateTableStatement)element;
+						var sc = (CreateTableStatement)element;
 						return
 							Find(sc.Table, find);
 					}
 
 				case QueryElementType.SelectClause:
 					{
-						var sc = (SelectQuery.SelectClause)element;
+						var sc = (SelectClause)element;
 						return
 							Find(sc.TakeValue, find) ??
 							Find(sc.SkipValue, find) ??
@@ -644,103 +658,103 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.Column:
 					{
-						var col  = (SelectQuery.Column)element;
+						var col  = (Column)element;
 						var expr = (ISqlExpression)ConvertInternal(col.Expression, action);
 
 						IQueryElement parent;
 						_visitedElements.TryGetValue(col.Parent, out parent);
 
 						if (parent != null || expr != null && !ReferenceEquals(expr, col.Expression))
-							newElement = new SelectQuery.Column(parent == null ? col.Parent : (SelectQuery)parent, expr ?? col.Expression, col._alias);
+							newElement = new Column(parent == null ? col.Parent : (SelectQuery)parent, expr ?? col.Expression, col._alias);
 
 						break;
 					}
 
 				case QueryElementType.TableSource:
 					{
-						var table  = (SelectQuery.TableSource)element;
+						var table  = (TableSource)element;
 						var source = (ISqlTableSource)ConvertInternal(table.Source, action);
 						var joins  = Convert(table.Joins, action);
 
 						if (source != null && !ReferenceEquals(source, table.Source) ||
 							joins  != null && !ReferenceEquals(table.Joins, joins))
-							newElement = new SelectQuery.TableSource(source ?? table.Source, table._alias, joins ?? table.Joins);
+							newElement = new TableSource(source ?? table.Source, table._alias, joins ?? table.Joins);
 
 						break;
 					}
 
 				case QueryElementType.JoinedTable:
 					{
-						var join  = (SelectQuery.JoinedTable)element;
-						var table = (SelectQuery.TableSource)    ConvertInternal(join.Table,     action);
-						var cond  = (SelectQuery.SearchCondition)ConvertInternal(join.Condition, action);
+						var join  = (JoinedTable)element;
+						var table = (TableSource)    ConvertInternal(join.Table,     action);
+						var cond  = (SearchCondition)ConvertInternal(join.Condition, action);
 
 						if (table != null && !ReferenceEquals(table, join.Table) ||
 							cond  != null && !ReferenceEquals(cond,  join.Condition))
-							newElement = new SelectQuery.JoinedTable(join.JoinType, table ?? join.Table, join.IsWeak, cond ?? join.Condition);
+							newElement = new JoinedTable(join.JoinType, table ?? join.Table, join.IsWeak, cond ?? join.Condition);
 
 						break;
 					}
 
 				case QueryElementType.SearchCondition:
 					{
-						var sc    = (SelectQuery.SearchCondition)element;
+						var sc    = (SearchCondition)element;
 						var conds = Convert(sc.Conditions, action);
 
 						if (conds != null && !ReferenceEquals(sc.Conditions, conds))
-							newElement = new SelectQuery.SearchCondition(conds);
+							newElement = new SearchCondition(conds);
 
 						break;
 					}
 
 				case QueryElementType.Condition:
 					{
-						var c = (SelectQuery.Condition)element;
+						var c = (Condition)element;
 						var p = (ISqlPredicate)ConvertInternal(c.Predicate, action);
 
 						if (p != null && !ReferenceEquals(c.Predicate, p))
-							newElement = new SelectQuery.Condition(c.IsNot, p, c.IsOr);
+							newElement = new Condition(c.IsNot, p, c.IsOr);
 
 						break;
 					}
 
 				case QueryElementType.ExprPredicate:
 					{
-						var p = (SelectQuery.Predicate.Expr)element;
+						var p = (Expr)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e))
-							newElement = new SelectQuery.Predicate.Expr(e, p.Precedence);
+							newElement = new Expr(e, p.Precedence);
 
 						break;
 					}
 
 				case QueryElementType.NotExprPredicate:
 					{
-						var p = (SelectQuery.Predicate.NotExpr)element;
+						var p = (NotExpr)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e))
-							newElement = new SelectQuery.Predicate.NotExpr(e, p.IsNot, p.Precedence);
+							newElement = new NotExpr(e, p.IsNot, p.Precedence);
 
 						break;
 					}
 
 				case QueryElementType.ExprExprPredicate:
 					{
-						var p  = (SelectQuery.Predicate.ExprExpr)element;
+						var p  = (ExprExpr)element;
 						var e1 = (ISqlExpression)ConvertInternal(p.Expr1, action);
 						var e2 = (ISqlExpression)ConvertInternal(p.Expr2, action);
 
 						if (e1 != null && !ReferenceEquals(p.Expr1, e1) || e2 != null && !ReferenceEquals(p.Expr2, e2))
-							newElement = new SelectQuery.Predicate.ExprExpr(e1 ?? p.Expr1, p.Operator, e2 ?? p.Expr2);
+							newElement = new ExprExpr(e1 ?? p.Expr1, p.Operator, e2 ?? p.Expr2);
 
 						break;
 					}
 
 				case QueryElementType.LikePredicate:
 					{
-						var p  = (SelectQuery.Predicate.Like)element;
+						var p  = (Like)element;
 						var e1 = (ISqlExpression)ConvertInternal(p.Expr1,  action);
 						var e2 = (ISqlExpression)ConvertInternal(p.Expr2,  action);
 						var es = (ISqlExpression)ConvertInternal(p.Escape, action);
@@ -748,14 +762,14 @@ namespace LinqToDB.SqlQuery
 						if (e1 != null && !ReferenceEquals(p.Expr1, e1) ||
 							e2 != null && !ReferenceEquals(p.Expr2, e2) ||
 							es != null && !ReferenceEquals(p.Escape, es))
-							newElement = new SelectQuery.Predicate.Like(e1 ?? p.Expr1, p.IsNot, e2 ?? p.Expr2, es ?? p.Escape);
+							newElement = new Like(e1 ?? p.Expr1, p.IsNot, e2 ?? p.Expr2, es ?? p.Escape);
 
 						break;
 					}
 
 				case QueryElementType.BetweenPredicate:
 					{
-						var p = (SelectQuery.Predicate.Between)element;
+						var p = (Between)element;
 						var e1 = (ISqlExpression)ConvertInternal(p.Expr1, action);
 						var e2 = (ISqlExpression)ConvertInternal(p.Expr2, action);
 						var e3 = (ISqlExpression)ConvertInternal(p.Expr3, action);
@@ -763,78 +777,78 @@ namespace LinqToDB.SqlQuery
 						if (e1 != null && !ReferenceEquals(p.Expr1, e1) ||
 							e2 != null && !ReferenceEquals(p.Expr2, e2) ||
 							e3 != null && !ReferenceEquals(p.Expr3, e3))
-							newElement = new SelectQuery.Predicate.Between(e1 ?? p.Expr1, p.IsNot, e2 ?? p.Expr2, e3 ?? p.Expr3);
+							newElement = new Between(e1 ?? p.Expr1, p.IsNot, e2 ?? p.Expr2, e3 ?? p.Expr3);
 
 						break;
 					}
 
 				case QueryElementType.IsNullPredicate:
 					{
-						var p = (SelectQuery.Predicate.IsNull)element;
+						var p = (IsNull)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e))
-							newElement = new SelectQuery.Predicate.IsNull(e, p.IsNot);
+							newElement = new IsNull(e, p.IsNot);
 
 						break;
 					}
 
 				case QueryElementType.InSubQueryPredicate:
 					{
-						var p = (SelectQuery.Predicate.InSubQuery)element;
+						var p = (InSubQuery)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1,    action);
 						var q = (SelectQuery)ConvertInternal(p.SubQuery, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e) || q != null && !ReferenceEquals(p.SubQuery, q))
-							newElement = new SelectQuery.Predicate.InSubQuery(e ?? p.Expr1, p.IsNot, q ?? p.SubQuery);
+							newElement = new InSubQuery(e ?? p.Expr1, p.IsNot, q ?? p.SubQuery);
 
 						break;
 					}
 
 				case QueryElementType.InListPredicate:
 					{
-						var p = (SelectQuery.Predicate.InList)element;
+						var p = (InList)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1,    action);
 						var v = Convert(p.Values, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e) || v != null && !ReferenceEquals(p.Values, v))
-							newElement = new SelectQuery.Predicate.InList(e ?? p.Expr1, p.IsNot, v ?? p.Values);
+							newElement = new InList(e ?? p.Expr1, p.IsNot, v ?? p.Values);
 
 						break;
 					}
 
 				case QueryElementType.FuncLikePredicate:
 					{
-						var p = (SelectQuery.Predicate.FuncLike)element;
+						var p = (FuncLike)element;
 						var f = (SqlFunction)ConvertInternal(p.Function, action);
 
 						if (f != null && !ReferenceEquals(p.Function, f))
-							newElement = new SelectQuery.Predicate.FuncLike(f);
+							newElement = new FuncLike(f);
 
 						break;
 					}
 
 				case QueryElementType.SetExpression:
 					{
-						var s = (SelectQuery.SetExpression)element;
+						var s = (SetExpression)element;
 						var c = (ISqlExpression)ConvertInternal(s.Column,     action);
 						var e = (ISqlExpression)ConvertInternal(s.Expression, action);
 
 						if (c != null && !ReferenceEquals(s.Column, c) || e != null && !ReferenceEquals(s.Expression, e))
-							newElement = new SelectQuery.SetExpression(c ?? s.Column, e ?? s.Expression);
+							newElement = new SetExpression(c ?? s.Column, e ?? s.Expression);
 
 						break;
 					}
 
 				case QueryElementType.InsertClause:
 					{
-						var s = (SelectQuery.InsertClause)element;
+						var s = (InsertClause)element;
 						var t = s.Into != null ? (SqlTable)ConvertInternal(s.Into, action) : null;
 						var i = Convert(s.Items, action);
 
 						if (t != null && !ReferenceEquals(s.Into, t) || i != null && !ReferenceEquals(s.Items, i))
 						{
-							var sc = new SelectQuery.InsertClause { Into = t ?? s.Into };
+							var sc = new InsertClause { Into = t ?? s.Into };
 
 							sc.Items.AddRange(i ?? s.Items);
 							sc.WithIdentity = s.WithIdentity;
@@ -847,7 +861,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.UpdateClause:
 					{
-						var s = (SelectQuery.UpdateClause)element;
+						var s = (UpdateClause)element;
 						var t = s.Table != null ? (SqlTable)ConvertInternal(s.Table, action) : null;
 						var i = Convert(s.Items, action);
 						var k = Convert(s.Keys,  action);
@@ -856,7 +870,7 @@ namespace LinqToDB.SqlQuery
 							i != null && !ReferenceEquals(s.Items, i) ||
 							k != null && !ReferenceEquals(s.Keys,  k))
 						{
-							var sc = new SelectQuery.UpdateClause { Table = t ?? s.Table };
+							var sc = new UpdateClause { Table = t ?? s.Table };
 
 							sc.Items.AddRange(i ?? s.Items);
 							sc.Keys. AddRange(k ?? s.Keys);
@@ -869,12 +883,12 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.DeleteClause:
 					{
-						var s = (SelectQuery.DeleteClause)element;
+						var s = (DeleteClause)element;
 						var t = s.Table != null ? (SqlTable)ConvertInternal(s.Table, action) : null;
 
 						if (t != null && !ReferenceEquals(s.Table, t))
 						{
-							newElement = new SelectQuery.DeleteClause { Table = t };
+							newElement = new DeleteClause { Table = t };
 						}
 
 						break;
@@ -882,12 +896,12 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.CreateTableStatement:
 					{
-						var s = (SelectQuery.CreateTableStatement)element;
+						var s = (CreateTableStatement)element;
 						var t = s.Table != null ? (SqlTable)ConvertInternal(s.Table, action) : null;
 
 						if (t != null && !ReferenceEquals(s.Table, t))
 						{
-							newElement = new SelectQuery.CreateTableStatement { Table = t, IsDrop = s.IsDrop };
+							newElement = new CreateTableStatement { Table = t, IsDrop = s.IsDrop };
 						}
 
 						break;
@@ -895,7 +909,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.SelectClause:
 					{
-						var sc   = (SelectQuery.SelectClause)element;
+						var sc   = (SelectClause)element;
 						var cols = Convert(sc.Columns, action);
 						var take = (ISqlExpression)ConvertInternal(sc.TakeValue, action);
 						var skip = (ISqlExpression)ConvertInternal(sc.SkipValue, action);
@@ -908,8 +922,8 @@ namespace LinqToDB.SqlQuery
 							take != null && !ReferenceEquals(sc.TakeValue, take) ||
 							skip != null && !ReferenceEquals(sc.SkipValue, skip))
 						{
-							newElement = new SelectQuery.SelectClause(sc.IsDistinct, take ?? sc.TakeValue, skip ?? sc.SkipValue, cols ?? sc.Columns);
-							((SelectQuery.SelectClause)newElement).SetSqlQuery((SelectQuery)parent);
+							newElement = new SelectClause(sc.IsDistinct, take ?? sc.TakeValue, skip ?? sc.SkipValue, cols ?? sc.Columns);
+							((SelectClause)newElement).SetSqlQuery((SelectQuery)parent);
 						}
 
 						break;
@@ -917,7 +931,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.FromClause:
 					{
-						var fc   = (SelectQuery.FromClause)element;
+						var fc   = (FromClause)element;
 						var ts = Convert(fc.Tables, action);
 
 						IQueryElement parent;
@@ -925,8 +939,8 @@ namespace LinqToDB.SqlQuery
 
 						if (parent != null || ts != null && !ReferenceEquals(fc.Tables, ts))
 						{
-							newElement = new SelectQuery.FromClause(ts ?? fc.Tables);
-							((SelectQuery.FromClause)newElement).SetSqlQuery((SelectQuery)parent);
+							newElement = new FromClause(ts ?? fc.Tables);
+							((FromClause)newElement).SetSqlQuery((SelectQuery)parent);
 						}
 
 						break;
@@ -934,16 +948,16 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.WhereClause:
 					{
-						var wc   = (SelectQuery.WhereClause)element;
-						var cond = (SelectQuery.SearchCondition)ConvertInternal(wc.SearchCondition, action);
+						var wc   = (WhereClause)element;
+						var cond = (SearchCondition)ConvertInternal(wc.SearchCondition, action);
 
 						IQueryElement parent;
 						_visitedElements.TryGetValue(wc.SelectQuery, out parent);
 
 						if (parent != null || cond != null && !ReferenceEquals(wc.SearchCondition, cond))
 						{
-							newElement = new SelectQuery.WhereClause(cond ?? wc.SearchCondition);
-							((SelectQuery.WhereClause)newElement).SetSqlQuery((SelectQuery)parent);
+							newElement = new WhereClause(cond ?? wc.SearchCondition);
+							((WhereClause)newElement).SetSqlQuery((SelectQuery)parent);
 						}
 
 						break;
@@ -951,7 +965,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.GroupByClause:
 					{
-						var gc = (SelectQuery.GroupByClause)element;
+						var gc = (GroupByClause)element;
 						var es = Convert(gc.Items, action);
 
 						IQueryElement parent;
@@ -959,8 +973,8 @@ namespace LinqToDB.SqlQuery
 
 						if (parent != null || es != null && !ReferenceEquals(gc.Items, es))
 						{
-							newElement = new SelectQuery.GroupByClause(es ?? gc.Items);
-							((SelectQuery.GroupByClause)newElement).SetSqlQuery((SelectQuery)parent);
+							newElement = new GroupByClause(es ?? gc.Items);
+							((GroupByClause)newElement).SetSqlQuery((SelectQuery)parent);
 						}
 
 						break;
@@ -968,7 +982,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.OrderByClause:
 					{
-						var oc = (SelectQuery.OrderByClause)element;
+						var oc = (OrderByClause)element;
 						var es = Convert(oc.Items, action);
 
 						IQueryElement parent;
@@ -976,8 +990,8 @@ namespace LinqToDB.SqlQuery
 
 						if (parent != null || es != null && !ReferenceEquals(oc.Items, es))
 						{
-							newElement = new SelectQuery.OrderByClause(es ?? oc.Items);
-							((SelectQuery.OrderByClause)newElement).SetSqlQuery((SelectQuery)parent);
+							newElement = new OrderByClause(es ?? oc.Items);
+							((OrderByClause)newElement).SetSqlQuery((SelectQuery)parent);
 						}
 
 						break;
@@ -985,22 +999,22 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.OrderByItem:
 					{
-						var i = (SelectQuery.OrderByItem)element;
+						var i = (OrderByItem)element;
 						var e = (ISqlExpression)ConvertInternal(i.Expression, action);
 
 						if (e != null && !ReferenceEquals(i.Expression, e))
-							newElement = new SelectQuery.OrderByItem(e, i.IsDescending);
+							newElement = new OrderByItem(e, i.IsDescending);
 
 						break;
 					}
 
 				case QueryElementType.Union:
 					{
-						var u = (SelectQuery.Union)element;
+						var u = (Union)element;
 						var q = (SelectQuery)ConvertInternal(u.SelectQuery, action);
 
 						if (q != null && !ReferenceEquals(u.SelectQuery, q))
-							newElement = new SelectQuery.Union(q, u.IsAll);
+							newElement = new Union(q, u.IsAll);
 
 						break;
 					}
@@ -1048,15 +1062,15 @@ namespace LinqToDB.SqlQuery
 						_visitedElements.Add(q,     nq);
 						_visitedElements.Add(q.All, nq.All);
 
-						var fc = (SelectQuery.FromClause)   ConvertInternal(q.From,    action) ?? q.From;
-						var sc = (SelectQuery.SelectClause) ConvertInternal(q.Select,  action) ?? q.Select;
-						var ic = q.IsInsert ? ((SelectQuery.InsertClause)ConvertInternal(q.Insert, action) ?? q.Insert) : null;
-						var uc = q.IsUpdate ? ((SelectQuery.UpdateClause)ConvertInternal(q.Update, action) ?? q.Update) : null;
-						var dc = q.IsDelete ? ((SelectQuery.DeleteClause)ConvertInternal(q.Delete, action) ?? q.Delete) : null;
-						var wc = (SelectQuery.WhereClause)  ConvertInternal(q.Where,   action) ?? q.Where;
-						var gc = (SelectQuery.GroupByClause)ConvertInternal(q.GroupBy, action) ?? q.GroupBy;
-						var hc = (SelectQuery.WhereClause)  ConvertInternal(q.Having,  action) ?? q.Having;
-						var oc = (SelectQuery.OrderByClause)ConvertInternal(q.OrderBy, action) ?? q.OrderBy;
+						var fc = (FromClause)   ConvertInternal(q.From,    action) ?? q.From;
+						var sc = (SelectClause) ConvertInternal(q.Select,  action) ?? q.Select;
+						var ic = q.IsInsert ? ((InsertClause)ConvertInternal(q.Insert, action) ?? q.Insert) : null;
+						var uc = q.IsUpdate ? ((UpdateClause)ConvertInternal(q.Update, action) ?? q.Update) : null;
+						var dc = q.IsDelete ? ((DeleteClause)ConvertInternal(q.Delete, action) ?? q.Delete) : null;
+						var wc = (WhereClause)  ConvertInternal(q.Where,   action) ?? q.Where;
+						var gc = (GroupByClause)ConvertInternal(q.GroupBy, action) ?? q.GroupBy;
+						var hc = (WhereClause)  ConvertInternal(q.Having,  action) ?? q.Having;
+						var oc = (OrderByClause)ConvertInternal(q.OrderBy, action) ?? q.OrderBy;
 						var us = q.HasUnion ? Convert(q.Unions, action) : q.Unions;
 
 						var ps = new List<SqlParameter>(q.Parameters.Count);

@@ -4,9 +4,13 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
-	using SqlQuery;
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
-	class AllAnyBuilder : MethodCallBuilder
+    class AllAnyBuilder : MethodCallBuilder
 	{
 		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
 		{
@@ -143,11 +147,11 @@ namespace LinqToDB.Linq.Builder
 			{
 				if (_subQuerySql == null)
 				{
-					var cond = new SelectQuery.Condition(
+					var cond = new Condition(
 						_methodCall.Method.Name == "All",
-						new SelectQuery.Predicate.FuncLike(SqlFunction.CreateExists(SelectQuery)));
+						new FuncLike(SqlFunction.CreateExists(SelectQuery)));
 
-					_subQuerySql = new SelectQuery.SearchCondition(cond);
+					_subQuerySql = new SearchCondition(cond);
 				}
 
 				return _subQuerySql;

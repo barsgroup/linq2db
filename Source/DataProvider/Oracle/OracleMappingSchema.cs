@@ -6,10 +6,12 @@ namespace LinqToDB.DataProvider.Oracle
 {
 	using Common;
 	using Expressions;
-	using Mapping;
-	using SqlQuery;
 
-	public class OracleMappingSchema : MappingSchema
+	using LinqToDB.SqlQuery.SqlElements;
+
+	using Mapping;
+
+    public class OracleMappingSchema : MappingSchema
 	{
 		public OracleMappingSchema() : this(ProviderName.Oracle)
 		{

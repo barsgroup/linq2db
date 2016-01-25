@@ -4,9 +4,9 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
-	using SqlQuery;
+	using LinqToDB.SqlQuery.QueryElements;
 
-	class ExpressionContext : SequenceContextBase
+    class ExpressionContext : SequenceContextBase
 	{
 		public ExpressionContext(IBuildContext parent, IBuildContext sequence, LambdaExpression lambda)
 			: base(parent, sequence, lambda)

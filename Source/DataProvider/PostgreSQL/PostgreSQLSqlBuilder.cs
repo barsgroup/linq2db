@@ -1,11 +1,16 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using System.Linq;
 using System.Text;
 
 namespace LinqToDB.DataProvider.PostgreSQL
 {
 	using Common;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlQuery;
 	using SqlProvider;
 
@@ -177,13 +182,13 @@ namespace LinqToDB.DataProvider.PostgreSQL
 			base.BuildCreateTableFieldType(field);
 		}
 
-	    protected override void BuildLikePredicate(SelectQuery.Predicate.Like predicate)
+	    protected override void BuildLikePredicate(Like predicate)
 	    {
 	        var expr1 = predicate.Expr1;
 	        var sqlField = expr1 as SqlField;
 	        if (sqlField == null)
 	        {
-	            var column = expr1 as SelectQuery.Column;
+	            var column = expr1 as Column;
 	            if (column != null)
 	            {
 	                sqlField = column.Expression as SqlField;
@@ -202,7 +207,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
                     var vEnd = str[str.Length - 1] == '%' ? "%" : string.Empty;
                     str = str.Substring(vStart.Length, str.Length - vStart.Length - vEnd.Length);
 
-                    var vNewPredicate = new SelectQuery.Predicate.HierarhicalLike(expr1,
+                    var vNewPredicate = new HierarhicalLike(expr1,
                         new SqlValue(str), vStart, vEnd);
 
                     base.BuildLikePredicate(vNewPredicate);
@@ -217,7 +222,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
                     sqlParameter.LikeStart = string.Empty;
                     sqlParameter.LikeEnd = string.Empty;
 
-                    var pNewPredicate = new SelectQuery.Predicate.HierarhicalLike(expr1, sqlParameter, pStart, pEnd);
+                    var pNewPredicate = new HierarhicalLike(expr1, sqlParameter, pStart, pEnd);
                     base.BuildLikePredicate(pNewPredicate);
                     return;
                 }
@@ -245,7 +250,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 
                 if (value != null)
                 {
-                    var ePredicate = new SelectQuery.Predicate.HierarhicalLike(expr1, value, hasLikeStart ? "%" : string.Empty, hasLikeEnd ? "%" : string.Empty);
+                    var ePredicate = new HierarhicalLike(expr1, value, hasLikeStart ? "%" : string.Empty, hasLikeEnd ? "%" : string.Empty);
                     base.BuildLikePredicate(ePredicate);
                     return;
                 }
@@ -307,7 +312,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
                     return field;
                 }
 
-                var column = parameter as SelectQuery.Column;
+                var column = parameter as Column;
                 if (column != null)
                 {
                     return column;

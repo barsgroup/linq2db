@@ -10,6 +10,12 @@ namespace LinqToDB.Linq.Builder
 	using Common;
 	using Extensions;
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using Mapping;
 	using Reflection;
 	using SqlQuery;
@@ -221,12 +227,12 @@ namespace LinqToDB.Linq.Builder
 				{
 					var predicate = Builder.MakeIsPredicate(this, OriginalType);
 
-					if (predicate.GetType() != typeof(SelectQuery.Predicate.Expr))
-						GetDescriminatorConditionsStorage().Add(new SelectQuery.Condition(false, predicate));
+					if (predicate.GetType() != typeof(Expr))
+						GetDescriminatorConditionsStorage().Add(new Condition(false, predicate));
 				}
 			}
 
-			protected virtual List<SelectQuery.Condition> GetDescriminatorConditionsStorage()
+			protected virtual List<Condition> GetDescriminatorConditionsStorage()
 			{
 				return SelectQuery.Where.SearchCondition.Conditions;
 			}
@@ -856,18 +862,18 @@ namespace LinqToDB.Linq.Builder
 
 					foreach (var cond in (association).ParentAssociationJoin.Condition.Conditions)
 					{
-						SelectQuery.Predicate.ExprExpr p;
+						ExprExpr p;
 
-						if (cond.Predicate is SelectQuery.SearchCondition)
+						if (cond.Predicate is SearchCondition)
 						{
-							p = ((SelectQuery.SearchCondition)cond.Predicate).Conditions
+							p = ((SearchCondition)cond.Predicate).Conditions
 								.Select(c => c.Predicate)
-								.OfType<SelectQuery.Predicate.ExprExpr>()
+								.OfType<ExprExpr>()
 								.First();
 						}
 						else
 						{
-							p = (SelectQuery.Predicate.ExprExpr)cond.Predicate;
+							p = (ExprExpr)cond.Predicate;
 						}
 
 						var e1 = Expression.MakeMemberAccess(parent, ((SqlField)p.Expr1).ColumnDescriptor.MemberInfo) as Expression;
@@ -1272,7 +1278,7 @@ namespace LinqToDB.Linq.Builder
 		public class AssociatedTableContext : TableContext
 		{
 			public readonly TableContext             ParentAssociation;
-			public readonly SelectQuery.JoinedTable  ParentAssociationJoin;
+			public readonly JoinedTable  ParentAssociationJoin;
 			public readonly AssociationDescriptor    Association;
 			public readonly bool                     IsList;
 
@@ -1322,18 +1328,18 @@ namespace LinqToDB.Linq.Builder
 
 //					join.Field(field1).Equal.Field(field2);
 
-					ISqlPredicate predicate = new SelectQuery.Predicate.ExprExpr(
-						field1, SelectQuery.Predicate.Operator.Equal, field2);
+					ISqlPredicate predicate = new ExprExpr(
+						field1, Operator.Equal, field2);
 
 					predicate = builder.Convert(parent, predicate);
 
-					join.JoinedTable.Condition.Conditions.Add(new SelectQuery.Condition(false, predicate));
+					join.JoinedTable.Condition.Conditions.Add(new Condition(false, predicate));
 				}
 
 				Init();
 			}
 
-			protected override List<SelectQuery.Condition> GetDescriminatorConditionsStorage()
+			protected override List<Condition> GetDescriminatorConditionsStorage()
 			{
 				return ParentAssociationJoin.Condition.Conditions;
 			}
@@ -1348,8 +1354,8 @@ namespace LinqToDB.Linq.Builder
 					association = association.ParentAssociation as AssociatedTableContext)
 				{
 					isLeft =
-						association.ParentAssociationJoin.JoinType == SelectQuery.JoinType.Left ||
-						association.ParentAssociationJoin.JoinType == SelectQuery.JoinType.OuterApply;
+						association.ParentAssociationJoin.JoinType == JoinType.Left ||
+						association.ParentAssociationJoin.JoinType == JoinType.OuterApply;
 				}
 
 				if (isLeft)

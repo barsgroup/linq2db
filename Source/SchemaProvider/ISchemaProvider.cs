@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LinqToDB.SchemaProvider
+﻿namespace LinqToDB.SchemaProvider
 {
 	using Data;
 

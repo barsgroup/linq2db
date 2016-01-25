@@ -6,11 +6,13 @@ using System.Text;
 namespace LinqToDB.DataProvider
 {
 	using Data;
+
+	using LinqToDB.SqlQuery.SqlElements;
+
 	using Mapping;
 	using SqlProvider;
-	using SqlQuery;
 
-	class MultipleRowsHelper<T>
+    class MultipleRowsHelper<T>
 	{
 		public MultipleRowsHelper(DataConnection dataConnection, BulkCopyOptions options, bool enforceKeepIdentity)
 		{

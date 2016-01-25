@@ -3,6 +3,10 @@
 namespace LinqToDB.DataProvider.SqlServer
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 

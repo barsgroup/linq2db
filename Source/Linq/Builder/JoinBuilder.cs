@@ -7,6 +7,10 @@ namespace LinqToDB.Linq.Builder
 {
 	using Common;
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Predicates;
+
 	using SqlQuery;
 
 	class JoinBuilder : MethodCallBuilder
@@ -197,7 +201,7 @@ namespace LinqToDB.Linq.Builder
 
 		static void BuildJoin(
 			ExpressionBuilder builder,
-			SelectQuery.FromClause.Join join,
+			Join join,
 			IBuildContext outerKeyContext, Expression outerKeySelector,
 			IBuildContext innerKeyContext, Expression innerKeySelector)
 		{
@@ -208,15 +212,15 @@ namespace LinqToDB.Linq.Builder
 
 			if (predicate == null)
 			{
-				predicate = new SelectQuery.Predicate.ExprExpr(
+				predicate = new ExprExpr(
 					builder.ConvertToSql(outerKeyContext, outerKeySelector),
-					SelectQuery.Predicate.Operator.Equal,
+					Operator.Equal,
 					builder.ConvertToSql(innerKeyContext, innerKeySelector));
 
 				predicate = builder.Convert(outerKeyContext, predicate);
 			}
 
-			join.JoinedTable.Condition.Conditions.Add(new SelectQuery.Condition(false, predicate));
+			join.JoinedTable.Condition.Conditions.Add(new Condition(false, predicate));
 		}
 
 		static void BuildSubQueryJoin(
@@ -232,15 +236,15 @@ namespace LinqToDB.Linq.Builder
 
 			if (predicate == null)
 			{
-				predicate = new SelectQuery.Predicate.ExprExpr(
+				predicate = new ExprExpr(
 					builder.ConvertToSql(outerKeyContext, outerKeySelector),
-					SelectQuery.Predicate.Operator.Equal,
+					Operator.Equal,
 					builder.ConvertToSql(subQueryKeyContext, innerKeySelector));
 
 				predicate = builder.Convert(outerKeyContext, predicate);
 			}
 
-			subQuerySelect.Where.SearchCondition.Conditions.Add(new SelectQuery.Condition(false, predicate));
+			subQuerySelect.Where.SearchCondition.Conditions.Add(new Condition(false, predicate));
 		}
 
 		class InnerKeyContext : ExpressionContext
@@ -462,7 +466,7 @@ namespace LinqToDB.Linq.Builder
 
 		internal class GroupJoinSubQueryContext : SubQueryContext
 		{
-			public SelectQuery.JoinedTable Join;
+			public JoinedTable Join;
 			public SelectQuery             CounterSelect;
 			public GroupJoinContext        GroupJoin;
 			public Func<IBuildContext>     GetSubQueryContext;

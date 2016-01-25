@@ -18,11 +18,13 @@ namespace LinqToDB.Mapping
 	using Common;
 	using Expressions;
 	using Extensions;
+
+	using LinqToDB.SqlQuery.SqlElements;
+
 	using Metadata;
 	using SqlProvider;
-	using SqlQuery;
 
-	public class MappingSchema
+    public class MappingSchema
 	{
 		#region Init
 

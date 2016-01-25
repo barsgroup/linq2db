@@ -1,11 +1,11 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.SqlServer
+﻿namespace LinqToDB.DataProvider.SqlServer
 {
-	using SqlProvider;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
-	class SqlServer2005SqlOptimizer : SqlServerSqlOptimizer
+    using SqlProvider;
+
+    class SqlServer2005SqlOptimizer : SqlServerSqlOptimizer
 	{
 		public SqlServer2005SqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
 		{

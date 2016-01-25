@@ -6,9 +6,11 @@ namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using Extensions;
-	using SqlQuery;
 
-	class FirstSingleBuilder : MethodCallBuilder
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+
+    class FirstSingleBuilder : MethodCallBuilder
 	{
 		public static string[] MethodNames = { "First", "FirstOrDefault", "Single", "SingleOrDefault" };
 

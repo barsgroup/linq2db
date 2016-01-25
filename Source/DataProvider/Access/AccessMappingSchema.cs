@@ -3,10 +3,11 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.Access
 {
-	using Mapping;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.SqlElements;
 
-	public class AccessMappingSchema : MappingSchema
+    using Mapping;
+
+    public class AccessMappingSchema : MappingSchema
 	{
 		public AccessMappingSchema() : this(ProviderName.Access)
 		{

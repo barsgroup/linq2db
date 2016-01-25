@@ -1,5 +1,3 @@
-using System;
-
 namespace LinqToDB.Common
 {
 	public static class Configuration

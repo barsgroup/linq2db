@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Xml.Schema;
+﻿using System.Collections.Generic;
 
 namespace LinqToDB.DataProvider.MySql
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 

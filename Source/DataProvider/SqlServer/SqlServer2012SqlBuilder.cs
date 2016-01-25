@@ -2,8 +2,13 @@
 
 namespace LinqToDB.DataProvider.SqlServer
 {
-	using SqlQuery;
-	using SqlProvider;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	class SqlServer2012SqlBuilder : SqlServerSqlBuilder
 	{
@@ -69,9 +74,9 @@ namespace LinqToDB.DataProvider.SqlServer
 						return;
 					}
 
-					var sc = new SelectQuery.SearchCondition();
+					var sc = new SearchCondition();
 
-					sc.Conditions.Add(new SelectQuery.Condition(false, new SelectQuery.Predicate.IsNull(func.Parameters[0], false)));
+					sc.Conditions.Add(new Condition(false, new IsNull(func.Parameters[0], false)));
 
 					func = new SqlFunction(func.SystemType, "IIF", sc, func.Parameters[1], func.Parameters[0]);
 
@@ -89,10 +94,10 @@ namespace LinqToDB.DataProvider.SqlServer
 
 			if (start == 0 && SqlExpression.NeedsEqual(cond))
 			{
-				cond = new SelectQuery.SearchCondition(
-					new SelectQuery.Condition(
+				cond = new SearchCondition(
+					new Condition(
 						false,
-						new SelectQuery.Predicate.ExprExpr(cond, SelectQuery.Predicate.Operator.Equal, new SqlValue(1))));
+						new ExprExpr(cond, Operator.Equal, new SqlValue(1))));
 			}
 
 			if (len == 3)

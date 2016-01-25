@@ -5,6 +5,9 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.SqlElements;
+
 	using SqlQuery;
 
 	class InsertBuilder : MethodCallBuilder
@@ -67,7 +70,7 @@ namespace LinqToDB.Linq.Builder
 						sequence.SelectQuery.Select.Columns.Clear();
 
 						foreach (var item in sequence.SelectQuery.Insert.Items)
-							sequence.SelectQuery.Select.Columns.Add(new SelectQuery.Column(sequence.SelectQuery, item.Expression));
+							sequence.SelectQuery.Select.Columns.Add(new Column(sequence.SelectQuery, item.Expression));
 
 						sequence.SelectQuery.Insert.Into = ((TableBuilder.TableContext)into).SqlTable;
 
@@ -91,11 +94,11 @@ namespace LinqToDB.Linq.Builder
 
 				if (expr != null)
 				{
-					insert.Items.Insert(0, new SelectQuery.SetExpression(field, expr));
+					insert.Items.Insert(0, new SetExpression(field, expr));
 
 					if (methodCall.Arguments.Count == 3)
 					{
-						sequence.SelectQuery.Select.Columns.Insert(0, new SelectQuery.Column(sequence.SelectQuery, insert.Items[0].Expression));
+						sequence.SelectQuery.Select.Columns.Insert(0, new Column(sequence.SelectQuery, insert.Items[0].Expression));
 					}
 				}
 			}
