@@ -36,3 +36,4 @@ linq2db.sln.ide/graph
 linq2db.sln.ide/
 !Redist/**
 !packages/**
+/.vs/
