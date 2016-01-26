@@ -153,6 +153,7 @@ namespace LinqToDB.ServiceModel
 				Builder.Append(' ').Append(element == null ? 0 : Dic[element]);
 			}
 
+
 			protected void Append(string str)
 			{
 				Builder.Append(' ');
@@ -174,7 +175,21 @@ namespace LinqToDB.ServiceModel
 				}
 			}
 
-			protected int GetType(Type type)
+            protected void Append<T>(IEnumerable<T> exprs)
+                where T : IQueryElement
+            {
+                if (exprs == null)
+                    Builder.Append(" -");
+                else
+                {
+                    Append(exprs.Count());
+
+                    foreach (var e in exprs)
+                        Append(Dic[e]);
+                }
+            }
+
+            protected int GetType(Type type)
 			{
 				if (type == null)
 					return 0;
@@ -1039,19 +1054,7 @@ namespace LinqToDB.ServiceModel
 				Builder.AppendLine();
 			}
 
-			void Append<T>(ICollection<T> exprs)
-				where T : IQueryElement
-			{
-				if (exprs == null)
-					Builder.Append(" -");
-				else
-				{
-					Append(exprs.Count);
-
-					foreach (var e in exprs)
-						Append(Dic[e]);
-				}
-			}
+			
 		}
 
 		#endregion

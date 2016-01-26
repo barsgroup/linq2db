@@ -48,11 +48,11 @@ namespace LinqToDB.DataProvider.Access
 				return;
 			}
 
-			if (SelectQuery.From.Tables.Count == 0 && SelectQuery.Select.Columns.Count == 1)
+			if (SelectQuery.From.Tables.Count == 0 && SelectQuery.Select.Columns.Count() == 1)
 			{
-				if (SelectQuery.Select.Columns[0].Expression is SqlFunction)
+				if (SelectQuery.Select.GetColumnByIndex(0).Expression is SqlFunction)
 				{
-					var func = (SqlFunction)SelectQuery.Select.Columns[0].Expression;
+					var func = (SqlFunction)SelectQuery.Select.GetColumnByIndex(0).Expression;
 
 					if (func.Name == "Iif" && func.Parameters.Length == 3 && func.Parameters[0] is SearchCondition)
 					{
@@ -70,9 +70,9 @@ namespace LinqToDB.DataProvider.Access
 						}
 					}
 				}
-				else if (SelectQuery.Select.Columns[0].Expression is SearchCondition)
+				else if (SelectQuery.Select.GetColumnByIndex(0).Expression is SearchCondition)
 				{
-					var sc = (SearchCondition)SelectQuery.Select.Columns[0].Expression;
+					var sc = (SearchCondition)SelectQuery.Select.GetColumnByIndex(0).Expression;
 
 					if (sc.Conditions.Count == 1 && sc.Conditions[0].Predicate is FuncLike)
 					{
@@ -96,20 +96,20 @@ namespace LinqToDB.DataProvider.Access
 		{
 			SearchCondition cond;
 
-			if (SelectQuery.Select.Columns[0].Expression is SqlFunction)
+			if (SelectQuery.Select.GetColumnByIndex(0).Expression is SqlFunction)
 			{
-				var func  = (SqlFunction)SelectQuery.Select.Columns[0].Expression;
+				var func  = (SqlFunction)SelectQuery.Select.GetColumnByIndex(0).Expression;
 				cond  = (SearchCondition)func.Parameters[0];
 			}
 			else
 			{
-				cond  = (SearchCondition)SelectQuery.Select.Columns[0].Expression;
+				cond  = (SearchCondition)SelectQuery.Select.GetColumnByIndex(0).Expression;
 			}
 
 			var exist = ((FuncLike)cond.Conditions[0].Predicate).Function;
 			var query = (SelectQuery)exist.Parameters[0];
 
-			_selectColumn = new Column(SelectQuery, new SqlExpression(cond.Conditions[0].IsNot ? "Count(*) = 0" : "Count(*) > 0"), SelectQuery.Select.Columns[0].Alias);
+			_selectColumn = new Column(SelectQuery, new SqlExpression(cond.Conditions[0].IsNot ? "Count(*) = 0" : "Count(*) > 0"), SelectQuery.Select.GetColumnByIndex(0).Alias);
 
 			BuildSql(0, query, StringBuilder);
 

@@ -58,7 +58,7 @@ namespace LinqToDB.Linq.Builder
 					var q =
 						from col in SelectQuery.Select.Columns
 						where !col.CanBeNull()
-						select SelectQuery.Select.Columns.IndexOf(col);
+						select SelectQuery.Select.GetIndexByColumn(col);
 
 					var idx = q.DefaultIfEmpty(-1).First();
 

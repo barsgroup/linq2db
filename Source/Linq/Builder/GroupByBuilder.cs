@@ -397,7 +397,7 @@ namespace LinqToDB.Linq.Builder
 
 					SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
 
-					return ctx.SelectQuery.Select.Columns[0];
+					return ctx.SelectQuery.Select.Columns.First();
 				}
 
 				var args = new ISqlExpression[call.Arguments.Count - 1];
@@ -545,7 +545,7 @@ namespace LinqToDB.Linq.Builder
 
 			public override int ConvertToParentIndex(int index, IBuildContext context)
 			{
-				var expr = SelectQuery.Select.Columns[index].Expression;
+				var expr = SelectQuery.Select.GetColumnByIndex(index).Expression;
 
 				if (!SelectQuery.GroupBy.Items.Any(_ => ReferenceEquals(_, expr) || (expr is Column && ReferenceEquals(_, ((Column)expr).Expression))))
 					SelectQuery.GroupBy.Items.Add(expr);

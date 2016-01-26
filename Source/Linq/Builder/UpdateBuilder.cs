@@ -76,7 +76,7 @@ namespace LinqToDB.Linq.Builder
 							sequence.ConvertToIndex(null, 0, ConvertFlags.All);
 							new SelectQueryOptimizer(builder.DataContextInfo.SqlProviderFlags, sequence.SelectQuery)
 								.ResolveWeakJoins(new List<ISqlTableSource>());
-							sequence.SelectQuery.Select.Columns.Clear();
+							sequence.SelectQuery.Select.ClearColumns();
 
 							BuildSetter(
 								builder,
@@ -88,10 +88,10 @@ namespace LinqToDB.Linq.Builder
 
 							var sql = sequence.SelectQuery;
 
-							sql.Select.Columns.Clear();
+							sql.Select.ClearColumns();
 
 							foreach (var item in sql.Update.Items)
-								sql.Select.Columns.Add(new Column(sql, item.Expression));
+								sql.Select.AddColumn(new Column(sql, item.Expression));
 
 							sql.Update.Table = ((TableBuilder.TableContext)into).SqlTable;
 						}

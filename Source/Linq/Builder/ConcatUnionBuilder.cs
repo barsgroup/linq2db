@@ -138,8 +138,8 @@ namespace LinqToDB.Linq.Builder
 					}
 				}
 
-				_sequence1.SelectQuery.Select.Columns.Clear();
-				_sequence2.SelectQuery.Select.Columns.Clear();
+				_sequence1.SelectQuery.Select.ClearColumns();
+				_sequence2.SelectQuery.Select.ClearColumns();
 
 				for (var i = 0; i < members.Count; i++)
 				{
@@ -165,8 +165,8 @@ namespace LinqToDB.Linq.Builder
 						};
 					}
 
-					_sequence1.SelectQuery.Select.Columns.Add(new Column(_sequence1.SelectQuery, member.Info1.Sql));
-					_sequence2.SelectQuery.Select.Columns.Add(new Column(_sequence2.SelectQuery, member.Info2.Sql));
+					_sequence1.SelectQuery.Select.AddColumn(new Column(_sequence1.SelectQuery, member.Info1.Sql));
+					_sequence2.SelectQuery.Select.AddColumn(new Column(_sequence2.SelectQuery, member.Info2.Sql));
 
 					member.Member.SequenceInfo.Index = i;
 
@@ -281,8 +281,8 @@ namespace LinqToDB.Linq.Builder
 							{
 								if (idx.Index == -2)
 								{
-									SelectQuery.Select.Columns.Add(new Column(SelectQuery, idx.Sql));
-									idx.Index = SelectQuery.Select.Columns.Count - 1;
+									SelectQuery.Select.AddColumn(new Column(SelectQuery, idx.Sql));
+									idx.Index = SelectQuery.Select.Columns.Count() - 1;
 								}
 								else
 								{
@@ -355,7 +355,7 @@ namespace LinqToDB.Linq.Builder
 										member.SqlQueryInfo = new SqlInfo(member.MemberExpression.Member)
 										{
 											Index = -2,
-											Sql   = SubQuery.SelectQuery.Select.Columns[member.SequenceInfo.Index],
+											Sql   = SubQuery.SelectQuery.Select.GetColumnByIndex(member.SequenceInfo.Index),
 											Query = SelectQuery,
 										};
 									}

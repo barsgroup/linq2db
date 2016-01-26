@@ -2,6 +2,8 @@
 
 namespace LinqToDB.DataProvider.SqlServer
 {
+    using System.Linq;
+
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
@@ -31,7 +33,7 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 			if (NeedSkip && SelectQuery.OrderBy.IsEmpty)
 			{
-				for (var i = 0; i < SelectQuery.Select.Columns.Count; i++)
+				for (var i = 0; i < SelectQuery.Select.Columns.Count(); i++)
 					SelectQuery.OrderBy.ExprAsc(new SqlValue(i + 1));
 			}
 

@@ -3,7 +3,9 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using LinqToDB.Expressions;
+    using System.Linq;
+
+    using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.SqlElements;
 	using LinqToDB.SqlQuery.SqlElements.Interfaces;
@@ -77,7 +79,7 @@ namespace LinqToDB.Linq.Builder
 						{
 							var expr = Builder.BuildExpression(this, expression);
 
-							if (SelectQuery.Select.Columns.Count == 0)
+							if (!SelectQuery.Select.Columns.Any())
 								SelectQuery.Select.Expr(new SqlValue(1));
 
 							return expr;

@@ -98,7 +98,7 @@ namespace LinqToDB.Linq.Builder
 		{
 			return SubQuery
 				.ConvertToIndex(expression, level, flags)
-				.Select(idx => new SqlInfo((idx.Members)) { Sql = SubQuery.SelectQuery.Select.Columns[idx.Index] })
+				.Select(idx => new SqlInfo((idx.Members)) { Sql = SubQuery.SelectQuery.Select.GetColumnByIndex(idx.Index) })
 				.ToArray();
 		}
 
@@ -127,7 +127,7 @@ namespace LinqToDB.Linq.Builder
 			return base.IsExpression(expression, level, testFlag);
 		}
 
-		internal protected readonly Dictionary<ISqlExpression,int> ColumnIndexes = new Dictionary<ISqlExpression,int>();
+		protected internal readonly Dictionary<ISqlExpression,int> ColumnIndexes = new Dictionary<ISqlExpression,int>();
 
 		protected virtual int GetIndex(Column column)
 		{
@@ -144,8 +144,8 @@ namespace LinqToDB.Linq.Builder
 
 		public override int ConvertToParentIndex(int index, IBuildContext context)
 		{
-			var idx = GetIndex(context.SelectQuery.Select.Columns[index]);
-			return Parent == null ? idx : Parent.ConvertToParentIndex(idx, this);
+			var idx = GetIndex(context.SelectQuery.Select.GetColumnByIndex(index));
+			return Parent?.ConvertToParentIndex(idx, this) ?? idx;
 		}
 
 		public override void SetAlias(string alias)

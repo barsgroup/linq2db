@@ -171,6 +171,21 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public IEnumerable<Column> Columns => _columns;
 
+        public void AddColumn(Column column) => _columns.Add(column);
+
+        public Column GetColumnByIndex(int index) => _columns[index];
+
+        public int GetIndexByColumn(Column column) => _columns.IndexOf(column);
+
+        public void SetColumnByIndex(int index, Column column) => _columns[index] = column;
+
+        public void ClearColumns() => _columns.Clear();
+
+        public void RemoveColumn(Column column) => _columns.Remove(column);
+
+        public void InsertColumn(int index, Column column) => _columns.Insert(index, column);
+
+
         #endregion
 
         #region HasModifier

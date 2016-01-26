@@ -643,7 +643,7 @@ namespace LinqToDB.SqlQuery
 				case QueryElementType.SqlFunction:
 					{
 						var func  = (SqlFunction)element;
-						var parms = Convert(func.Parameters, action);
+						var parms = Convert((IEnumerable<ISqlExpression>)func.Parameters, action);
 
 						if (parms != null && !ReferenceEquals(parms, func.Parameters))
 							newElement = new SqlFunction(func.SystemType, func.Name, func.Precedence, parms);
@@ -654,7 +654,7 @@ namespace LinqToDB.SqlQuery
 				case QueryElementType.SqlExpression:
 					{
 						var expr      = (SqlExpression)element;
-						var parameter = Convert(expr.Parameters, action);
+						var parameter = Convert((IEnumerable<ISqlExpression>)expr.Parameters, action);
 
 						if (parameter != null && !ReferenceEquals(parameter, expr.Parameters))
 							newElement = new SqlExpression(expr.SystemType, expr.Expr, expr.Precedence, parameter);
@@ -680,7 +680,7 @@ namespace LinqToDB.SqlQuery
 						var table   = (SqlTable)element;
 						var fields1 = ToArray(table.Fields);
 						var fields2 = Convert(fields1,     action, f => new SqlField(f));
-						var targs   = table.TableArguments == null ? null : Convert(table.TableArguments, action);
+						var targs   = table.TableArguments == null ? null : Convert((IEnumerable<ISqlExpression>)table.TableArguments, action);
 
 						var fe = fields2 == null || ReferenceEquals(fields1, fields2);
 						var ta = ReferenceEquals(table.TableArguments, targs);
@@ -691,7 +691,7 @@ namespace LinqToDB.SqlQuery
 							{
 								fields2 = fields1;
 
-								for (var i = 0; i < fields2.Length; i++)
+								for (var i = 0; i < fields2.Count(); i++)
 								{
 									var field = fields2[i];
 
@@ -1173,18 +1173,19 @@ namespace LinqToDB.SqlQuery
 
 		delegate T Clone<T>(T obj);
 
-		T[] Convert<T>(T[] arr, Func<IQueryElement, IQueryElement> action)
+		T[] Convert<T>(IEnumerable<T> arr, Func<IQueryElement, IQueryElement> action)
 			where T : class, IQueryElement
 		{
 			return Convert(arr, action, null);
 		}
 
-		T[] Convert<T>(T[] arr1, Func<IQueryElement, IQueryElement> action, Clone<T> clone)
+        T[] Convert<T>(IEnumerable<T> items, Func<IQueryElement, IQueryElement> action, Clone<T> clone)
 			where T : class, IQueryElement
-		{
+        {
+            var arr1 = items.ToArray();
 			T[] arr2 = null;
 
-			for (var i = 0; i < arr1.Length; i++)
+			for (var i = 0; i < arr1.Count(); i++)
 			{
 				var elem1 = arr1[i];
 				var elem2 = (T)ConvertInternal(elem1, action);
@@ -1211,36 +1212,7 @@ namespace LinqToDB.SqlQuery
 		List<T> Convert<T>(List<T> list, Func<IQueryElement, IQueryElement> action)
 			where T : class, IQueryElement
 		{
-			return Convert(list, action, null);
-		}
-
-		List<T> Convert<T>(List<T> list1, Func<IQueryElement, IQueryElement> action, Clone<T> clone)
-			where T : class, IQueryElement
-		{
-			List<T> list2 = null;
-
-			for (var i = 0; i < list1.Count; i++)
-			{
-				var elem1 = list1[i];
-				var elem2 = (T)ConvertInternal(elem1, action);
-
-				if (elem2 != null && !ReferenceEquals(elem1, elem2))
-				{
-					if (list2 == null)
-					{
-						list2 = new List<T>(list1.Count);
-
-						for (var j = 0; j < i; j++)
-							list2.Add(clone == null ? list1[j] : clone(list1[j]));
-					}
-
-					list2.Add(elem2);
-				}
-				else if (list2 != null)
-					list2.Add(clone == null ? elem1 : clone(elem1));
-			}
-
-			return list2;
+			return Convert(list, action, null).ToList();
 		}
 
 		#endregion

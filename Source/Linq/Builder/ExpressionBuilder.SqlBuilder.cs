@@ -240,7 +240,7 @@ namespace LinqToDB.Linq.Builder
 			var info = new BuildInfo(context, expr, new SelectQuery { ParentSelect = context.SelectQuery });
 			var ctx  = BuildSequence(info);
 
-			if (ctx.SelectQuery.Select.Columns.Count == 0 &&
+			if (!ctx.SelectQuery.Select.Columns.Any() &&
 				(ctx.IsExpression(null, 0, RequestFor.Expression).Result ||
 				 ctx.IsExpression(null, 0, RequestFor.Field).     Result))
 			{
@@ -271,8 +271,8 @@ namespace LinqToDB.Linq.Builder
 
 				if (fromGroupBy)
 				{
-					if (subQuery.Select.Columns.Count == 1 &&
-					    subQuery.Select.Columns[0].Expression.ElementType == QueryElementType.SqlFunction &&
+					if (subQuery.Select.Columns.Count() == 1 &&
+					    subQuery.Select.Columns.First().Expression.ElementType == QueryElementType.SqlFunction &&
 					    subQuery.GroupBy.IsEmpty && !subQuery.Select.HasModifier && !subQuery.HasUnion &&
 					    subQuery.Where.SearchCondition.Conditions.Count == 1)
 					{
@@ -282,7 +282,7 @@ namespace LinqToDB.Linq.Builder
 						    cond.Predicate.ElementType == QueryElementType.SearchCondition &&
 						    query.GroupBy.Items.Count == ((SearchCondition)cond.Predicate).Conditions.Count)
 						{
-							var func = (SqlFunction)subQuery.Select.Columns[0].Expression;
+							var func = (SqlFunction)subQuery.Select.Columns.First().Expression;
 
 							if (CountBuilder.MethodNames.Contains(func.Name))
 								return SqlFunction.CreateCount(func.SystemType, query);
@@ -1447,18 +1447,18 @@ namespace LinqToDB.Linq.Builder
 						l.ElementType == QueryElementType.SqlQuery &&
 						r.ElementType == QueryElementType.SqlValue &&
 						((SqlValue)r).Value == null &&
-						((SelectQuery)l).Select.Columns.Count == 0 ?
+						!((SelectQuery)l).Select.Columns.Any() ?
 							(SelectQuery)l :
 						r.ElementType == QueryElementType.SqlQuery &&
 						l.ElementType == QueryElementType.SqlValue &&
 						((SqlValue)l).Value == null &&
-						((SelectQuery)r).Select.Columns.Count == 0 ?
+						!((SelectQuery)r).Select.Columns.Any() ?
 							(SelectQuery)r :
 							null;
 
 					if (q != null)
 					{
-						q.Select.Columns.Add(new Column(q, new SqlValue(1)));
+						q.Select.AddColumn(new Column(q, new SqlValue(1)));
 					}
 
 					break;

@@ -2126,7 +2126,7 @@ namespace LinqToDB.SqlProvider
 
 		#region Alternative Builders
 
-		void BuildAliases(string table, List<Column> columns, string postfix)
+		void BuildAliases(string table, IEnumerable<Column> columns, string postfix)
 		{
 			Indent++;
 

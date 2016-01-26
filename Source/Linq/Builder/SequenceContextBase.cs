@@ -48,7 +48,7 @@ namespace LinqToDB.Linq.Builder
 
 		public virtual int ConvertToParentIndex(int index, IBuildContext context)
 		{
-			return Parent == null ? index : Parent.ConvertToParentIndex(index, context);
+			return Parent?.ConvertToParentIndex(index, context) ?? index;
 		}
 
 		public virtual void SetAlias(string alias)

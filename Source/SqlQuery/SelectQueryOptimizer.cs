@@ -133,27 +133,22 @@ namespace LinqToDB.SqlQuery
 		{
 			foreach (var query in data.Queries)
 			{
-				var q = query.Query;
+			    var q = query.Query;
 
-				foreach (var table in q.From.Tables)
-				{
-					var t = FindField(field, table);
+			    if (q.From.Tables.Select(table => FindField(field, table)).Any(t => t != null))
+			    {
+			        var count   = q.Select.Columns.Count();
+			        var idx = q.Select.Add(field);
 
-					if (t != null)
-					{
-						var n   = q.Select.Columns.Count;
-						var idx = q.Select.Add(field);
+			        if (count != q.Select.Columns.Count())
+			            if (!q.GroupBy.IsEmpty || q.Select.Columns.Any(c => IsAggregationFunction(c.Expression)))
+			                q.GroupBy.Items.Add(field);
 
-						if (n != q.Select.Columns.Count)
-							if (!q.GroupBy.IsEmpty || q.Select.Columns.Any(c => IsAggregationFunction(c.Expression)))
-								q.GroupBy.Items.Add(field);
-
-						return q.Select.Columns[idx];
-					}
-				}
+			        return q.Select.GetColumnByIndex(idx);
+			    }
 			}
 
-			return null;
+		    return null;
 		}
 
 		static void ResolveFields(QueryData data)
@@ -341,10 +336,10 @@ namespace LinqToDB.SqlQuery
 	            if (!union.HasUnion)
 	                return;
 
-	            for (var i = 0; i < element.Select.Columns.Count; i++)
+	            for (var i = 0; i < element.Select.Columns.Count(); i++)
 	            {
-	                var scol = element.Select.Columns[i];
-	                var ucol = union.Select.Columns[i];
+	                var scol = element.Select.GetColumnByIndex(i);
+	                var ucol = union.Select.GetColumnByIndex(i);
 
 	                if (scol.Expression != ucol)
 	                    return;
@@ -352,19 +347,19 @@ namespace LinqToDB.SqlQuery
 
 	            exprs.Add(union, element);
 
-	            for (var i = 0; i < element.Select.Columns.Count; i++)
+	            for (var i = 0; i < element.Select.Columns.Count(); i++)
 	            {
-	                var scol = element.Select.Columns[i];
-	                var ucol = union.Select.Columns[i];
+	                var scol = element.Select.GetColumnByIndex(i);
+	                var ucol = union.Select.GetColumnByIndex(i);
 
-	                scol.Expression = ucol.Expression;
+                    scol.Expression = ucol.Expression;
 	                scol._alias = ucol._alias;
 
 	                exprs.Add(ucol, scol);
 	            }
 
-	            for (var i = element.Select.Columns.Count; i < union.Select.Columns.Count; i++)
-	                element.Select.Expr(union.Select.Columns[i].Expression);
+	            for (var i = element.Select.Columns.Count(); i < union.Select.Columns.Count(); i++)
+	                element.Select.Expr(union.Select.GetColumnByIndex(i).Expression);
 
 	            element.From.Tables.Clear();
 	            element.From.Tables.AddRange(union.From.Tables);
@@ -402,15 +397,14 @@ namespace LinqToDB.SqlQuery
 	            },
 	            new HashSet<SelectQuery>());
 
-	        QueryVisitor.Find<SelectQuery>(_selectQuery).AsParallel().Where(item => item != _selectQuery).ForAll(
-	            query =>
-	            {
-	                new SelectQueryOptimizer(_flags, query).FinalizeAndValidateInternal(isApplySupported, optimizeColumns, tables);
+	        foreach (var query in QueryVisitor.Find<SelectQuery>(_selectQuery).Where(item => item != _selectQuery))
+	        {
+                new SelectQueryOptimizer(_flags, query).FinalizeAndValidateInternal(isApplySupported, optimizeColumns, tables);
 
-	                if (query.IsParameterDependent)
-	                    _selectQuery.IsParameterDependent = true;
-	            });
-
+                if (query.IsParameterDependent)
+                    _selectQuery.IsParameterDependent = true;
+            }
+	        
 	        ResolveWeakJoins(tables);
 	        OptimizeColumns();
 	        OptimizeApplies(isApplySupported, optimizeColumns);
@@ -719,7 +713,7 @@ namespace LinqToDB.SqlQuery
 			if (!isColumnsOK)
 				return childSource;
 
-			var map = new Dictionary<ISqlExpression,ISqlExpression>(query.Select.Columns.Count);
+			var map = new Dictionary<ISqlExpression,ISqlExpression>(query.Select.Columns.Count());
 
 			foreach (var c in query.Select.Columns)
 				map.Add(c, c.Expression);
@@ -913,15 +907,15 @@ namespace LinqToDB.SqlQuery
 			{
 				var query = expr as SelectQuery;
 					
-				if (query != null && query.From.Tables.Count == 0 && query.Select.Columns.Count == 1)
+				if (query != null && query.From.Tables.Count == 0 && query.Select.Columns.Count() == 1)
 				{
 
-				    foreach (var q in QueryVisitor.FindAll<SelectQuery>(query.Select.Columns[0].Expression).Where(q => q.ParentSelect == query))
+				    foreach (var q in QueryVisitor.FindAll<SelectQuery>(query.Select.GetColumnByIndex(0).Expression).Where(q => q.ParentSelect == query))
 				    {
                         q.ParentSelect = query.ParentSelect;
                     }
 
-					return query.Select.Columns[0].Expression;
+					return query.Select.GetColumnByIndex(0).Expression;
 				}
 
 				return expr;

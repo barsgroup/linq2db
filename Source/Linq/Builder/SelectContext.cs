@@ -421,7 +421,7 @@ namespace LinqToDB.Linq.Builder
 						return new SqlInfo(i.Members)
 						{
 							Query = SelectQuery,
-							Index = SelectQuery.Select.Add(i.Query.Select.Columns[i.Index])
+							Index = SelectQuery.Select.Add(i.Query.Select.GetColumnByIndex(i.Index))
 						};
 					})
 					.ToArray();
@@ -581,7 +581,7 @@ namespace LinqToDB.Linq.Builder
 			info.Query = SelectQuery;
 
 			if (info.Sql == SelectQuery)
-				info.Index = SelectQuery.Select.Columns.Count - 1;
+				info.Index = SelectQuery.Select.Columns.Count() - 1;
 			else
 				info.Index = SelectQuery.Select.Add(info.Sql);
 		}
@@ -837,7 +837,7 @@ namespace LinqToDB.Linq.Builder
 		public virtual int ConvertToParentIndex(int index, IBuildContext context)
 		{
 			if (!ReferenceEquals(context.SelectQuery, SelectQuery))
-				index = SelectQuery.Select.Add(context.SelectQuery.Select.Columns[index]);
+				index = SelectQuery.Select.Add(context.SelectQuery.Select.GetColumnByIndex(index));
 
 			return Parent == null ? index : Parent.ConvertToParentIndex(index, this);
 		}

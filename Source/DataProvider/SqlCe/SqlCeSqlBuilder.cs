@@ -75,7 +75,7 @@ namespace LinqToDB.DataProvider.SqlCe
 
 				AppendIndent();
 
-				BuildExpression(SelectQuery.Select.Columns[0].Expression);
+				BuildExpression(SelectQuery.Select.GetColumnByIndex(0).Expression);
 				StringBuilder.AppendLine();
 
 				Indent--;

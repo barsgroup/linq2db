@@ -18,6 +18,8 @@
     using LinqToDB.SqlQuery.SqlElements;
     using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
+    using Seterlund.CodeGuard;
+
     [DebuggerDisplay("SQL = {SqlText}")]
 	public class SelectQuery : BaseQueryElement, ISqlTableSource
 	{
@@ -471,10 +473,6 @@
 			return (SelectQuery)Clone(new Dictionary<ICloneableElement,ICloneableElement>(), doClone);
 		}
 
-		#endregion
-
-		#region Aliases
-
 		IDictionary<string,object> _aliases;
 
 		public void RemoveAlias(string alias)
@@ -643,6 +641,8 @@
 
 		public static TableSource CheckTableSource(TableSource ts, ISqlTableSource table, string alias)
 		{
+		    Guard.That(table).Is(typeof(SqlTable));
+
 			if (ts.Source == table && (alias == null || ts.Alias == alias))
 				return ts;
 

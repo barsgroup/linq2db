@@ -67,10 +67,10 @@ namespace LinqToDB.Linq.Builder
 							sequence.SelectQuery.Insert.Items,
 							sequence);
 
-						sequence.SelectQuery.Select.Columns.Clear();
+						sequence.SelectQuery.Select.ClearColumns();
 
 						foreach (var item in sequence.SelectQuery.Insert.Items)
-							sequence.SelectQuery.Select.Columns.Add(new Column(sequence.SelectQuery, item.Expression));
+							sequence.SelectQuery.Select.AddColumn(new Column(sequence.SelectQuery, item.Expression));
 
 						sequence.SelectQuery.Insert.Into = ((TableBuilder.TableContext)into).SqlTable;
 
@@ -98,7 +98,7 @@ namespace LinqToDB.Linq.Builder
 
 					if (methodCall.Arguments.Count == 3)
 					{
-						sequence.SelectQuery.Select.Columns.Insert(0, new Column(sequence.SelectQuery, insert.Items[0].Expression));
+						sequence.SelectQuery.Select.InsertColumn(0, new Column(sequence.SelectQuery, insert.Items[0].Expression));
 					}
 				}
 			}
@@ -204,7 +204,7 @@ namespace LinqToDB.Linq.Builder
 					sequence.SelectQuery.Insert.Into = ((TableBuilder.TableContext)tbl).SqlTable;
 				}
 
-				sequence.SelectQuery.Select.Columns.Clear();
+				sequence.SelectQuery.Select.ClearColumns();
 
 				return sequence;
 			}

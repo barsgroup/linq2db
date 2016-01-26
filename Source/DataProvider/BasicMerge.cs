@@ -202,17 +202,20 @@ namespace LinqToDB.DataProvider
 
 									var tt = tempTables[tables.IndexOf(tbl)];
 
-									tempCopy.Select.Columns.Clear();
+									tempCopy.Select.ClearColumns();
 									tempCopy.Select.Add(((SqlTable)tt.Source).Fields[fld.Name]);
 
 									tempCopy.Where.SearchCondition.Conditions.Clear();
 
 									var keys = tempCopy.From.Tables[0].Source.GetKeys(true);
 
-									foreach (SqlField key in keys)
-										tempCopy.Where.Field(key).Equal.Field(fromTable.Fields[key.Name]);
+									foreach (var sqlExpression in keys)
+									{
+									    var key = (SqlField)sqlExpression;
+									    tempCopy.Where.Field(key).Equal.Field(fromTable.Fields[key.Name]);
+									}
 
-									tempCopy.ParentSelect = sql;
+								    tempCopy.ParentSelect = sql;
 
 									return tempCopy;
 								}

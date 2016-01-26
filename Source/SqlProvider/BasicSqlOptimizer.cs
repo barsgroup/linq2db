@@ -62,9 +62,9 @@ namespace LinqToDB.SqlProvider
 		{
 			var query = (SelectQuery)element;
 
-			for (var i = 0; i < query.Select.Columns.Count; i++)
+			for (var i = 0; i < query.Select.Columns.Count(); i++)
 			{
-				var col = query.Select.Columns[i];
+				var col = query.Select.GetColumnByIndex(i);
 
 				// The column is a subquery.
 				//
@@ -75,9 +75,9 @@ namespace LinqToDB.SqlProvider
 
 					// Check if subquery is Count subquery.
 					//
-					if (subQuery.Select.Columns.Count == 1)
+					if (subQuery.Select.Columns.Count() == 1)
 					{
-						var subCol = subQuery.Select.Columns[0];
+						var subCol = subQuery.Select.GetColumnByIndex(0);
 
 						if (subCol.Expression.ElementType == QueryElementType.SqlFunction)
 							isCount = ((SqlFunction)subCol.Expression).Name == "Count";
@@ -149,7 +149,7 @@ namespace LinqToDB.SqlProvider
 									if (levelTables.Contains(((SqlField)e).Table))
 									{
 										subQuery.GroupBy.Expr((SqlField)e);
-										ne = subQuery.Select.Columns[subQuery.Select.Add((SqlField)e)];
+										ne = subQuery.Select.GetColumnByIndex(subQuery.Select.Add((SqlField)e));
 									}
 
 									break;
@@ -161,7 +161,7 @@ namespace LinqToDB.SqlProvider
 									if (levelTables.Contains(((Column)e).Parent))
 									{
 										subQuery.GroupBy.Expr((Column)e);
-										ne = subQuery.Select.Columns[subQuery.Select.Add((Column)e)];
+										ne = subQuery.Select.GetColumnByIndex(subQuery.Select.Add((Column)e));
 									}
 
 									break;
@@ -183,16 +183,16 @@ namespace LinqToDB.SqlProvider
 
 					if (!query.GroupBy.IsEmpty/* && subQuery.Select.Columns.Count > 1*/)
 					{
-						var oldFunc = (SqlFunction)subQuery.Select.Columns[0].Expression;
+						var oldFunc = (SqlFunction)subQuery.Select.GetColumnByIndex(0).Expression;
 
-						subQuery.Select.Columns.RemoveAt(0);
+						subQuery.Select.RemoveColumn(subQuery.Select.Columns.First());
 
-						query.Select.Columns[i].Expression = 
-							new SqlFunction(oldFunc.SystemType, oldFunc.Name, subQuery.Select.Columns[0]);
+						query.Select.GetColumnByIndex(i).Expression = 
+							new SqlFunction(oldFunc.SystemType, oldFunc.Name, subQuery.Select.Columns.First());
 					}
 					else
 					{
-						query.Select.Columns[i].Expression = subQuery.Select.Columns[0];
+						query.Select.GetColumnByIndex(i).Expression = subQuery.Select.Columns.First();
 					}
 				}
 			}
@@ -210,9 +210,9 @@ namespace LinqToDB.SqlProvider
 		    foreach (var query in QueryVisitor.FindAll<SelectQuery>(selectQuery))
 		    {
 		        
-				for (var i = 0; i < query.Select.Columns.Count; i++)
+				for (var i = 0; i < query.Select.Columns.Count(); i++)
 				{
-					var col = query.Select.Columns[i];
+					var col = query.Select.GetColumnByIndex(i);
 
 					if (col.Expression.ElementType == QueryElementType.SqlQuery)
 					{
@@ -252,9 +252,9 @@ namespace LinqToDB.SqlProvider
 						var isCount      = false;
 						var isAggregated = false;
 						
-						if (subQuery.Select.Columns.Count == 1)
+						if (subQuery.Select.Columns.Count() == 1)
 						{
-							var subCol = subQuery.Select.Columns[0];
+							var subCol = subQuery.Select.Columns.First();
 
 							if (subCol.Expression.ElementType == QueryElementType.SqlFunction)
 							{
@@ -310,7 +310,7 @@ namespace LinqToDB.SqlProvider
 										{
 											if (isAggregated)
 												subQuery.GroupBy.Expr((SqlField)e);
-											ne = subQuery.Select.Columns[subQuery.Select.Add((SqlField)e)];
+											ne = subQuery.Select.GetColumnByIndex(subQuery.Select.Add((SqlField)e));
 										}
 
 										break;
@@ -323,7 +323,7 @@ namespace LinqToDB.SqlProvider
 										{
 											if (isAggregated)
 												subQuery.GroupBy.Expr((Column)e);
-											ne = subQuery.Select.Columns[subQuery.Select.Add((Column)e)];
+											ne = subQuery.Select.GetColumnByIndex(subQuery.Select.Add((Column)e));
 										}
 
 										break;
@@ -347,34 +347,30 @@ namespace LinqToDB.SqlProvider
 
 						if (modified || isAggregated)
 						{
-							if (isCount && !query.GroupBy.IsEmpty)
-							{
-								var oldFunc = (SqlFunction)subQuery.Select.Columns[0].Expression;
+                          
 
-								subQuery.Select.Columns.RemoveAt(0);
+                            if (isCount && !query.GroupBy.IsEmpty)
+						    {
+                                var oldFunc = (SqlFunction)subQuery.Select.Columns.First().Expression;
+                                subQuery.Select.RemoveColumn(subQuery.Select.Columns.First());
 
-								query.Select.Columns[i] = new Column(
-									query,
-									new SqlFunction(oldFunc.SystemType, oldFunc.Name, subQuery.Select.Columns[0]));
-							}
-							else if (isAggregated && !query.GroupBy.IsEmpty)
-							{
-								var oldFunc = (SqlFunction)subQuery.Select.Columns[0].Expression;
+                                query.Select.SetColumnByIndex(i, new Column(query, new SqlFunction(oldFunc.SystemType, oldFunc.Name, query.Select.Columns.First())));
+						    }
+						    else if (isAggregated && !query.GroupBy.IsEmpty)
+						    {
+                                var oldFunc = (SqlFunction)subQuery.Select.Columns.First().Expression;
+                                subQuery.Select.RemoveColumn(subQuery.Select.Columns.First());
 
-								subQuery.Select.Columns.RemoveAt(0);
+                                var idx = subQuery.Select.Add(oldFunc.Parameters[0]);
 
-								var idx = subQuery.Select.Add(oldFunc.Parameters[0]);
+						        query.Select.SetColumnByIndex(i, new Column(query, new SqlFunction(oldFunc.SystemType, oldFunc.Name, subQuery.Select.GetColumnByIndex(idx))));
+						    }
+						    else
+						    {
+						        query.Select.SetColumnByIndex(i, new Column(query, subQuery.Select.Columns.First()));
+                            }
 
-								query.Select.Columns[i] = new Column(
-									query,
-									new SqlFunction(oldFunc.SystemType, oldFunc.Name, subQuery.Select.Columns[idx]));
-							}
-							else
-							{
-								query.Select.Columns[i] = new Column(query, subQuery.Select.Columns[0]);
-							}
-
-							dic.Add(col, query.Select.Columns[i]);
+						    dic.Add(col, subQuery.Select.GetColumnByIndex(i));
 						}
 					}
 				}

@@ -188,7 +188,7 @@ namespace LinqToDB.Linq.Builder
 			builder.ReplaceParent(subQueryKeyContext, subQueryParent);
 
 			subQuerySql.ParentSelect = sql;
-			subQuerySql.Select.Columns.Clear();
+			subQuerySql.Select.ClearColumns();
 
 			return subQueryContext;
 		}
@@ -264,7 +264,7 @@ namespace LinqToDB.Linq.Builder
 
 						return new SqlInfo(idx.Members)
 						{
-							Sql   = SelectQuery.Select.Columns[n],
+							Sql   = SelectQuery.Select.GetColumnByIndex(n),
 							Index = n
 						};
 					})

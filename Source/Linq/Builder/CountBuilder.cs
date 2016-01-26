@@ -3,7 +3,9 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using LinqToDB.Expressions;
+    using System.Linq;
+
+    using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.SqlElements;
 	using LinqToDB.SqlQuery.SqlElements.Interfaces;
 
@@ -160,9 +162,9 @@ namespace LinqToDB.Linq.Builder
 
 				if (query == SelectQuery)
 				{
-					var col = query.Select.Columns[query.Select.Columns.Count - 1];
+					var col = query.Select.Columns.Last();
 
-					query.Select.Columns.RemoveAt(query.Select.Columns.Count - 1);
+					query.Select.RemoveColumn(col);
 
 					return col.Expression;
 				}

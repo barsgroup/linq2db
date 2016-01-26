@@ -49,11 +49,11 @@ namespace LinqToDB.Linq.Builder
 			{
 				var query = (SelectQuery)sql[0];
 
-				if (query.Select.Columns.Count == 1)
+				if (query.Select.Columns.Count() == 1)
 				{
 					var join = SelectQuery.OuterApply(query);
 					context.SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
-					sql[0] = query.Select.Columns[0];
+					sql[0] = query.Select.GetColumnByIndex(0);
 				}
 			}
 
