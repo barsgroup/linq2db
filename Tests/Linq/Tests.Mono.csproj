@@ -68,16 +68,10 @@
   <ItemGroup>
     <Reference Include="Accessibility" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="MiniProfiler">
-      <HintPath>..\..\packages\MiniProfiler.3.1.1.140\lib\net40\MiniProfiler.dll</HintPath>
-    </Reference>
     <Reference Include="nunit-console-runner">
       <HintPath>..\..\packages\NUnit.Runners.2.6.4\tools\lib\nunit-console-runner.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\packages\Microsoft.Bcl.Immutable.1.0.34\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
-    </Reference>
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -90,32 +84,11 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="FirebirdSql.Data.FirebirdClient, Version=4.6.2.0, Culture=neutral, PublicKeyToken=3750abcc3150b00c">
-      <HintPath>..\..\packages\FirebirdSql.Data.FirebirdClient.4.6.2.0\lib\net45\FirebirdSql.Data.FirebirdClient.dll</HintPath>
-    </Reference>
     <Reference Include="IBM.Data.DB2">
       <HintPath>..\..\Redist\IBM\IBM.Data.DB2.dll</HintPath>
     </Reference>
     <Reference Include="IBM.Data.Informix">
       <HintPath>..\..\Redist\IBM\IBM.Data.Informix.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.SqlServer.Types, Version=11.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91">
-      <HintPath>..\..\packages\Microsoft.SqlServer.Types.11.0.2\lib\net20\Microsoft.SqlServer.Types.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
-      <HintPath>..\..\packages\Npgsql.2.2.5\lib\net45\Mono.Security.dll</HintPath>
-    </Reference>
-    <Reference Include="MySql.Data, Version=6.9.6.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d">
-      <HintPath>..\..\packages\MySql.Data.6.9.6\lib\net45\MySql.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="Npgsql, Version=2.2.5.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7">
-      <HintPath>..\..\packages\Npgsql.2.2.5\lib\net45\Npgsql.dll</HintPath>
-    </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
-    </Reference>
-    <Reference Include="Oracle.DataAccess, Version=4.112.3.0, Culture=neutral, PublicKeyToken=89b483f429c47342">
-      <HintPath>..\..\packages\odp.net.x86.112.3.20\lib\net40\Oracle.DataAccess.dll</HintPath>
     </Reference>
     <Reference Include="Sap.Data.Hana.v4.5">
       <HintPath>..\..\Redist\SAPHana\Sap.Data.Hana.v4.5.dll</HintPath>
@@ -123,9 +96,6 @@
     <Reference Include="Sybase.AdoNet2.AseClient">
       <HintPath>..\..\Redist\Sybase\Sybase.AdoNet2.AseClient.dll</HintPath>
       <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Data.SqlServerCe, Version=4.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91">
-      <HintPath>..\..\packages\Microsoft.SqlServer.Compact.4.0.8876.1\lib\net40\System.Data.SqlServerCe.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Data.Sqlite" />
   </ItemGroup>
@@ -172,7 +142,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="DataProvider\SqlServerTest.cs" />
     <Compile Include="Reflection\TypeAccessorTest.cs" />
-    <Compile Include="SqlServerTypes\Loader.cs" />
+    <Compile Include="SqlServerTypes\Loader.cs">
+      <Paket>True</Paket>
+    </Compile>
     <Compile Include="Update\BatchTest.cs" />
     <Compile Include="Linq\Common.cs" />
     <Compile Include="Linq\ConvertTest.cs" />
@@ -303,7 +275,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="DefaultDataProviders.txt" />
-    <Content Include="SqlServerTypes\readme.htm" />
+    <Content Include="SqlServerTypes\readme.htm">
+      <Paket>True</Paket>
+    </Content>
     <None Include="..\..\Data\TestData.sqlite">
       <Link>Database\TestData.sqlite</Link>
     </None>
@@ -388,4 +362,163 @@ if not exist "$(TargetDir)sybdrvado20.dll" xcopy /d /c /y "$(SolutionDir)Redist\
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="FirebirdSql.Data.FirebirdClient">
+          <HintPath>..\..\packages\FirebirdSql.Data.FirebirdClient\lib\net45\FirebirdSql.Data.FirebirdClient.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="System.Collections.Immutable">
+          <HintPath>..\..\packages\Microsoft.Bcl.Immutable\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="System.Data.SqlServerCe">
+          <HintPath>..\..\packages\Microsoft.SqlServer.Compact\lib\net40\System.Data.SqlServerCe.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v2.0' Or $(TargetFrameworkVersion) == 'v3.0' Or $(TargetFrameworkVersion) == 'v3.5' Or $(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="Microsoft.SqlServer.Types">
+          <HintPath>..\..\packages\Microsoft.SqlServer.Types\lib\net20\Microsoft.SqlServer.Types.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="MiniProfiler">
+          <HintPath>..\..\packages\MiniProfiler\lib\net40\MiniProfiler.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="MySql.Data">
+          <HintPath>..\..\packages\MySql.Data\lib\net45\MySql.Data.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="Mono.Security">
+          <HintPath>..\..\packages\Npgsql\lib\net45\Mono.Security.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Npgsql">
+          <HintPath>..\..\packages\Npgsql\lib\net45\Npgsql.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="nunit.framework">
+          <HintPath>..\..\packages\NUnit\lib\nunit.framework.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="Oracle.DataAccess">
+          <HintPath>..\..\packages\odp.net.x86\lib\net40\Oracle.DataAccess.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
+      <PropertyGroup>
+        <__paket__System_Data_SQLite_Core_targets>net45\System.Data.SQLite.Core</__paket__System_Data_SQLite_Core_targets>
+      </PropertyGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <PropertyGroup>
+        <__paket__System_Data_SQLite_Core_targets>net451\System.Data.SQLite.Core</__paket__System_Data_SQLite_Core_targets>
+      </PropertyGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.5'">
+      <ItemGroup>
+        <Reference Include="System.Data.SQLite">
+          <HintPath>..\..\packages\System.Data.SQLite.Core\lib\net45\System.Data.SQLite.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="System.Data.SQLite">
+          <HintPath>..\..\packages\System.Data.SQLite.Core\lib\net451\System.Data.SQLite.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="xunit">
+          <HintPath>..\..\packages\xunit\lib\net20\xunit.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
+      <ItemGroup>
+        <Reference Include="xunit.extensions">
+          <HintPath>..\..\packages\xunit.extensions\lib\net20\xunit.extensions.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Import Project="..\..\packages\System.Data.SQLite.Core\build\$(__paket__System_Data_SQLite_Core_targets).targets" Condition="Exists('..\..\packages\System.Data.SQLite.Core\build\$(__paket__System_Data_SQLite_Core_targets).targets')" Label="Paket" />
 </Project>
