@@ -24,7 +24,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
-            _columns.AddRange(clone._columns.Select(c => (Column)c.Clone(objectTree, doClone)));
+            _columns.AddRange(clone.Columns.Select(c => (Column)c.Clone(objectTree, doClone)));
             IsDistinct = clone.IsDistinct;
             TakeValue  = (ISqlExpression)clone.TakeValue?.Clone(objectTree, doClone);
             SkipValue  = (ISqlExpression)clone.SkipValue?.Clone(objectTree, doClone);
@@ -43,39 +43,39 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region Columns
 
-        public SelectClause Field(SqlField field)
-        {
-            AddOrGetColumn(new Column(SelectQuery, field));
-            return this;
-        }
+        //public SelectClause Field(SqlField field)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, field));
+        //    return this;
+        //}
 
-        public SelectClause Field(SqlField field, string alias)
-        {
-            AddOrGetColumn(new Column(SelectQuery, field, alias));
-            return this;
-        }
+        //public SelectClause Field(SqlField field, string alias)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, field, alias));
+        //    return this;
+        //}
 
-        public SelectClause SubQuery(SelectQuery subQuery)
-        {
-            if (subQuery.ParentSelect != null && subQuery.ParentSelect != SelectQuery)
-                throw new ArgumentException("SqlQuery already used as subquery");
+        //public SelectClause SubQuery(SelectQuery subQuery)
+        //{
+        //    if (subQuery.ParentSelect != null && subQuery.ParentSelect != SelectQuery)
+        //        throw new ArgumentException("SqlQuery already used as subquery");
 
-            subQuery.ParentSelect = SelectQuery;
+        //    subQuery.ParentSelect = SelectQuery;
 
-            AddOrGetColumn(new Column(SelectQuery, subQuery));
-            return this;
-        }
+        //    AddOrGetColumn(new Column(SelectQuery, subQuery));
+        //    return this;
+        //}
 
-        public SelectClause SubQuery(SelectQuery selectQuery, string alias)
-        {
-            if (selectQuery.ParentSelect != null && selectQuery.ParentSelect != SelectQuery)
-                throw new ArgumentException("SqlQuery already used as subquery");
+        //public SelectClause SubQuery(SelectQuery selectQuery, string alias)
+        //{
+        //    if (selectQuery.ParentSelect != null && selectQuery.ParentSelect != SelectQuery)
+        //        throw new ArgumentException("SqlQuery already used as subquery");
 
-            selectQuery.ParentSelect = SelectQuery;
+        //    selectQuery.ParentSelect = SelectQuery;
 
-            AddOrGetColumn(new Column(SelectQuery, selectQuery, alias));
-            return this;
-        }
+        //    AddOrGetColumn(new Column(SelectQuery, selectQuery, alias));
+        //    return this;
+        //}
 
         public SelectClause Expr(ISqlExpression expr)
         {
@@ -83,92 +83,93 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return this;
         }
 
-        public SelectClause Expr(ISqlExpression expr, string alias)
-        {
-            AddOrGetColumn(new Column(SelectQuery, expr, alias));
-            return this;
-        }
+        //public SelectClause Expr(ISqlExpression expr, string alias)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, expr, alias));
+        //    return this;
+        //}
 
-        public SelectClause Expr(string expr, params ISqlExpression[] values)
-        {
-            AddOrGetColumn(new Column(SelectQuery, new SqlExpression(null, expr, values)));
-            return this;
-        }
+        //public SelectClause Expr(string expr, params ISqlExpression[] values)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, new SqlExpression(null, expr, values)));
+        //    return this;
+        //}
 
-        public SelectClause Expr(Type systemType, string expr, params ISqlExpression[] values)
-        {
-            AddOrGetColumn(new Column(SelectQuery, new SqlExpression(systemType, expr, values)));
-            return this;
-        }
+        //public SelectClause Expr(Type systemType, string expr, params ISqlExpression[] values)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, new SqlExpression(systemType, expr, values)));
+        //    return this;
+        //}
 
-        public SelectClause Expr(string expr, int priority, params ISqlExpression[] values)
-        {
-            AddOrGetColumn(new Column(SelectQuery, new SqlExpression(null, expr, priority, values)));
-            return this;
-        }
+        //public SelectClause Expr(string expr, int priority, params ISqlExpression[] values)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, new SqlExpression(null, expr, priority, values)));
+        //    return this;
+        //}
 
-        public SelectClause Expr(Type systemType, string expr, int priority, params ISqlExpression[] values)
-        {
-            AddOrGetColumn(new Column(SelectQuery, new SqlExpression(systemType, expr, priority, values)));
-            return this;
-        }
+        //public SelectClause Expr(Type systemType, string expr, int priority, params ISqlExpression[] values)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, new SqlExpression(systemType, expr, priority, values)));
+        //    return this;
+        //}
 
-        public SelectClause Expr(string alias, string expr, int priority, params ISqlExpression[] values)
-        {
-            AddOrGetColumn(new Column(SelectQuery, new SqlExpression(null, expr, priority, values)));
-            return this;
-        }
+        //public SelectClause Expr(string alias, string expr, int priority, params ISqlExpression[] values)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, new SqlExpression(null, expr, priority, values)));
+        //    return this;
+        //}
 
-        public SelectClause Expr(Type systemType, string alias, string expr, int priority, params ISqlExpression[] values)
-        {
-            AddOrGetColumn(new Column(SelectQuery, new SqlExpression(systemType, expr, priority, values)));
-            return this;
-        }
+        //public SelectClause Expr(Type systemType, string alias, string expr, int priority, params ISqlExpression[] values)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, new SqlExpression(systemType, expr, priority, values)));
+        //    return this;
+        //}
 
-        public SelectClause Expr<T>(ISqlExpression expr1, string operation, ISqlExpression expr2)
-        {
-            AddOrGetColumn(new Column(SelectQuery, new SqlBinaryExpression(typeof(T), expr1, operation, expr2)));
-            return this;
-        }
+        //public SelectClause Expr<T>(ISqlExpression expr1, string operation, ISqlExpression expr2)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, new SqlBinaryExpression(typeof(T), expr1, operation, expr2)));
+        //    return this;
+        //}
 
-        public SelectClause Expr<T>(ISqlExpression expr1, string operation, ISqlExpression expr2, int priority)
-        {
-            AddOrGetColumn(new Column(SelectQuery, new SqlBinaryExpression(typeof(T), expr1, operation, expr2, priority)));
-            return this;
-        }
+        //public SelectClause Expr<T>(ISqlExpression expr1, string operation, ISqlExpression expr2, int priority)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, new SqlBinaryExpression(typeof(T), expr1, operation, expr2, priority)));
+        //    return this;
+        //}
 
-        public SelectClause Expr<T>(string alias, ISqlExpression expr1, string operation, ISqlExpression expr2, int priority)
-        {
-            AddOrGetColumn(new Column(SelectQuery, new SqlBinaryExpression(typeof(T), expr1, operation, expr2, priority), alias));
-            return this;
-        }
+        //public SelectClause Expr<T>(string alias, ISqlExpression expr1, string operation, ISqlExpression expr2, int priority)
+        //{
+        //    AddOrGetColumn(new Column(SelectQuery, new SqlBinaryExpression(typeof(T), expr1, operation, expr2, priority), alias));
+        //    return this;
+        //}
 
         public int Add(ISqlExpression expr)
         {
-            if (expr is Column && ((Column)expr).Parent == SelectQuery)
+            var column = expr as Column;
+            if (column != null && column.Parent == SelectQuery)
                 throw new InvalidOperationException();
 
-            return Columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr)));
+            return _columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr)));
         }
 
         public int Add(ISqlExpression expr, string alias)
         {
-            return Columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr, alias)));
+            return _columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr, alias)));
         }
 
         Column AddOrGetColumn(Column col)
         {
-            foreach (var c in Columns)
-                if (c.Equals(col))
-                    return col;
-
-            Columns.Add(col);
+            if (Columns.All(c => !c.Equals(col)))
+            {
+                _columns.Add(col);
+            }
 
             return col;
         }
 
-        readonly List<Column> _columns = new List<Column>();
-        public   List<Column>  Columns => _columns;
+        private readonly List<Column> _columns = new List<Column>();
+
+        public List<Column> Columns => _columns;
 
         #endregion
 
@@ -229,19 +230,20 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
         {
-            for (var i = 0; i < Columns.Count; i++)
+            for (var i = 0; i < _columns.Count; i++)
             {
-                var col  = Columns[i];
+                var col  = _columns[i];
                 var expr = col.Walk(skipColumns, func);
 
-                if (expr is Column)
-                    Columns[i] = (Column)expr;
+                var column = expr as Column;
+                if (column != null)
+                    _columns[i] = column;
                 else
-                    Columns[i] = new Column(col.Parent, expr, col.Alias);
+                    _columns[i] = new Column(col.Parent, expr, col.Alias);
             }
 
-            if (TakeValue != null) TakeValue = TakeValue.Walk(skipColumns, func);
-            if (SkipValue != null) SkipValue = SkipValue.Walk(skipColumns, func);
+            TakeValue = TakeValue?.Walk(skipColumns, func);
+            SkipValue = SkipValue?.Walk(skipColumns, func);
 
             return null;
         }
@@ -250,9 +252,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(TakeValue).UnionChilds(SkipValue).Union(Columns.SelectMany(c => c.GetChildItems()));
+            list.Add(TakeValue);
+            list.Add(SkipValue);
+            list.AddRange(Columns);
         }
 
         public override QueryElementType ElementType => QueryElementType.SelectClause;
@@ -284,7 +288,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
             sb.AppendLine();
 
-            if (Columns.Count == 0)
+            if (_columns.Count == 0)
                 sb.Append("\t*, \n");
             else
                 foreach (var c in Columns)
@@ -293,7 +297,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
                     ((IQueryElement)c).ToString(sb, dic);
                     sb
                         .Append(" as ")
-                        .Append(c.Alias ?? "c" + (Columns.IndexOf(c) + 1))
+                        .Append(c.Alias ?? "c" + (_columns.IndexOf(c) + 1))
                         .Append(", \n");
                 }
 

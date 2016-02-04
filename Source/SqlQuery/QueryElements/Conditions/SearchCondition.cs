@@ -128,9 +128,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Conditions);
+            list.AddRange(Conditions);
         }
 
         public override QueryElementType ElementType => QueryElementType.SearchCondition;

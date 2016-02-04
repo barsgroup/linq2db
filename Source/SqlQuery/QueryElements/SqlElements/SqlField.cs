@@ -128,7 +128,11 @@
 
 		#region IQueryElement Members
 
-	    public override QueryElementType ElementType { get { return QueryElementType.SqlField; } }
+        protected override void GetChildrenInternal(List<IQueryElement> list)
+        {
+        }
+
+        public override QueryElementType ElementType { get { return QueryElementType.SqlField; } }
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

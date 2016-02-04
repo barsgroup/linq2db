@@ -266,22 +266,10 @@
 
             query.Parameters.Clear();
 
-            new QueryVisitor().VisitAll(
-                query,
-                expr =>
-                {
-                    switch (expr.ElementType)
-                    {
-                        case QueryElementType.SqlParameter:
-                        {
-                            var p = (SqlParameter)expr;
-                            if (p.IsQueryParameter)
-                                query.Parameters.Add(p);
-
-                            break;
-                        }
-                    }
-                });
+            foreach (var parameter in QueryVisitor.FindAll<SqlParameter>(query).Where(p => p.IsQueryParameter))
+            {
+                query.Parameters.Add(parameter);
+            }
 
             return query;
         }
@@ -467,13 +455,10 @@
 			Parameters.AddRange(clone.Parameters.Select(p => (SqlParameter)p.Clone(objectTree, doClone)));
 			IsParameterDependent = clone.IsParameterDependent;
 
-			QueryVisitor.Visit(this, QueryElementType.SqlQuery, expr =>
-            {
-				var sb = expr as SelectQuery;
-
-				if (sb != null && sb.ParentSelect == clone)
-					sb.ParentSelect = this;
-			});
+		    foreach (var query in QueryVisitor.FindOnce<SelectQuery>(this).Where(sq => sq.ParentSelect == clone))
+		    {
+		        query.ParentSelect = this;
+		    }
 		}
 
 		public SelectQuery Clone()
@@ -544,115 +529,109 @@
 			return aliases;
 		}
 
-		internal void SetAliases()
-		{
-			_aliases = null;
+        internal void SetAliases()
+        {
+            _aliases = null;
 
-			var objs = new Dictionary<object,object>();
+            var objs = new Dictionary<object, object>();
 
-			Parameters.Clear();
+            Parameters.Clear();
 
-			new QueryVisitor().VisitAll(this, expr =>
-			{
-				switch (expr.ElementType)
-				{
-					case QueryElementType.SqlParameter:
-						{
-							var p = (SqlParameter)expr;
+            foreach (var element in QueryVisitor.FindOnce<IQueryElement>(this))
+            {
+                switch (element.ElementType)
+                {
+                    case QueryElementType.SqlParameter:
+                    {
+                        var p = (SqlParameter)element;
 
-							if (p.IsQueryParameter)
-							{
-								if (!objs.ContainsKey(expr))
-								{
-									objs.Add(expr, expr);
-									p.Name = GetAlias(p.Name, "p");
-								}
+                        if (p.IsQueryParameter)
+                        {
+                            if (!objs.ContainsKey(element))
+                            {
+                                objs.Add(element, element);
+                                p.Name = GetAlias(p.Name, "p");
+                            }
 
-								Parameters.Add(p);
-							}
-							else
-								IsParameterDependent = true;
-						}
+                            Parameters.Add(p);
+                        }
+                        else
+                            IsParameterDependent = true;
+                    }
 
-						break;
+                        break;
 
-					case QueryElementType.Column:
-						{
-							if (!objs.ContainsKey(expr))
-							{
-								objs.Add(expr, expr);
+                    case QueryElementType.Column:
+                    {
+                        if (!objs.ContainsKey(element))
+                        {
+                            objs.Add(element, element);
 
-								var c = (Column)expr;
+                            var c = (Column)element;
 
-								if (c.Alias != "*")
-									c.Alias = GetAlias(c.Alias, "c");
-							}
-						}
+                            if (c.Alias != "*")
+                                c.Alias = GetAlias(c.Alias, "c");
+                        }
+                    }
 
-						break;
+                        break;
 
-					case QueryElementType.TableSource:
-						{
-							var table = (TableSource)expr;
+                    case QueryElementType.TableSource:
+                    {
+                        var table = (TableSource)element;
 
-							if (!objs.ContainsKey(table))
-							{
-								objs.Add(table, table);
-								table.Alias = GetAlias(table.Alias, "t");
-							}
-						}
+                        if (!objs.ContainsKey(table))
+                        {
+                            objs.Add(table, table);
+                            table.Alias = GetAlias(table.Alias, "t");
+                        }
+                    }
 
-						break;
+                        break;
 
-					case QueryElementType.SqlQuery:
-						{
-							var sql = (SelectQuery)expr;
+                    case QueryElementType.SqlQuery:
+                    {
+                        var sql = (SelectQuery)element;
 
-							if (sql.HasUnion)
-							{
-								for (var i = 0; i < sql.Select.Columns.Count; i++)
-								{
-									var col = sql.Select.Columns[i];
+                        if (sql.HasUnion)
+                        {
+                            for (var i = 0; i < sql.Select.Columns.Count; i++)
+                            {
+                                var col = sql.Select.Columns[i];
 
-									foreach (var t in sql.Unions)
-									{
-										var union = t.SelectQuery.Select;
+                                foreach (var t in sql.Unions)
+                                {
+                                    var union = t.SelectQuery.Select;
 
-										objs.Remove(union.Columns[i].Alias);
+                                    objs.Remove(union.Columns[i].Alias);
 
-										union.Columns[i].Alias = col.Alias;
-									}
-								}
-							}
-						}
+                                    union.Columns[i].Alias = col.Alias;
+                                }
+                            }
+                        }
 
-						break;
-				}
-			});
-		}
+                        break;
+                    }
+                }
+            }
+        }
 
-		#endregion
+        public void ForEachTable(Action<TableSource> action, HashSet<SelectQuery> visitedQueries)
+        {
+            if (!visitedQueries.Add(this))
+                return;
 
-		#region Helpers
+            foreach (var table in From.Tables)
+                table.ForEach(action, visitedQueries);
 
-		public void ForEachTable(Action<TableSource> action, HashSet<SelectQuery> visitedQueries)
-		{
-			if (!visitedQueries.Add(this))
-				return;
+            foreach (var query in QueryVisitor.FindOnce<SelectQuery>(this).Where(q => q != this))
+            {
+                query.ForEachTable(action, visitedQueries);
 
-			foreach (var table in From.Tables)
-				table.ForEach(action, visitedQueries);
+            }
+        }
 
-			QueryVisitor.Visit(this, QueryElementType.SqlQuery, e =>
-			{
-				if (e != this)
-				{
-				    ((SelectQuery)e).ForEachTable(action, visitedQueries);
-				}
-			});
-		}
-
-		public ISqlTableSource GetTableSource(ISqlTableSource table)
+        public ISqlTableSource GetTableSource(ISqlTableSource table)
 		{
 			var ts = From[table];
 
@@ -812,60 +791,66 @@
 
 		#region IQueryElement Members
 
-		protected override IEnumerable<IQueryElement> GetChildItemsInternal()
-		{
-			var resultItems = base.GetChildItemsInternal();
-			switch (QueryType)
-			{
-				case QueryType.InsertOrUpdate:
+        protected override void GetChildrenInternal(List<IQueryElement> list)
+        {
+            switch (QueryType)
+            {
+                case QueryType.InsertOrUpdate:
 
-					resultItems = resultItems.UnionChilds(Insert).UnionChilds(Update);
+                    list.Add(Insert);
+                    list.Add(Update);
 
-					if (From.Tables.Count != 0)
-					{
-						resultItems = resultItems.UnionChilds(Select);
-					}
-					break;
+                    if (From.Tables.Count != 0)
+                    {
+                        list.Add(Select);
+                    }
+                    break;
 
-				case QueryType.Update:
-					resultItems = resultItems.UnionChilds(Update).UnionChilds(Select);
-					break;
+                case QueryType.Update:
+                    list.Add(Update);
+                    list.Add(Select);
+                    break;
 
-				case QueryType.Delete:
-					resultItems = resultItems.UnionChilds(Delete).UnionChilds(Select);
-					break;
+                case QueryType.Delete:
+                    list.Add(Delete);
+                    list.Add(Select);
+                    break;
 
-				case QueryType.Insert:
-					resultItems = resultItems.UnionChilds(Insert);
+                case QueryType.Insert:
+                    list.Add(Insert);
 
-					if (From.Tables.Count != 0)
-					{
-						resultItems = resultItems.UnionChilds(Select);
-					}
+                    if (From.Tables.Count != 0)
+                    {
+                        list.Add(Select);
+                    }
 
-					break;
+                    break;
 
-				default:
-					resultItems = resultItems.UnionChilds(Select);
-					break;
-			}
-			resultItems = resultItems.UnionChilds(From).UnionChilds(Where).UnionChilds(GroupBy).UnionChilds(Having).UnionChilds(OrderBy);
+                default:
+                    list.Add(Select);
+                    break;
+            }
+            list.Add(From);
+            list.Add(Where);
+            list.Add(GroupBy);
+            list.Add(Having);
+            list.Add(OrderBy);
 
-			if (HasUnion)
-			{
-				foreach (var union in Unions)
-				{
-					if (union.SelectQuery == this)
-						throw new InvalidOperationException();
+            if (HasUnion)
+            {
+                for (int i = 0; i < Unions.Count; i++)
+                {
+                    if (Unions[i].SelectQuery == this)
+                        throw new InvalidOperationException();
 
-					resultItems = resultItems.UnionChilds(union);
-				}
-			}
+                    list.Add(Unions[i]);
 
-			return resultItems;
-		}
+                }
 
-		public override QueryElementType ElementType => QueryElementType.SqlQuery;
+            }
+        }
+
+        public override QueryElementType ElementType => QueryElementType.SqlQuery;
 
 	    public sealed override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

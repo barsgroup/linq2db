@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using LinqToDB;
 using LinqToDB.Common;
 using LinqToDB.SqlQuery;
-
+using LinqToDB.SqlQuery.QueryElements;
+using LinqToDB.SqlQuery.QueryElements.Interfaces;
+using LinqToDB.SqlQuery.SqlElements;
 using NUnit.Framework;
 
 namespace Tests.Exceptions
@@ -29,12 +31,12 @@ namespace Tests.Exceptions
 						{
 							if (e.ElementType == QueryElementType.SetExpression)
 							{
-								var se = (SelectQuery.SetExpression)e;
+								var se = (SetExpression)e;
 								return ((SqlField)se.Column).Name == "ParentID";
 							}
 
 							return false;
-						}) as SelectQuery.SetExpression;
+						}) as SetExpression;
 
 					if (expr != null)
 					{

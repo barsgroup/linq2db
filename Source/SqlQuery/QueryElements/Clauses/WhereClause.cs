@@ -22,6 +22,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             public WhereClause Or => _parent.SetOr(true);
 
             public WhereClause And => _parent.SetOr(false);
+
+            protected override void GetChildrenInternal(List<IQueryElement> list)
+            {
+            }
         }
 
         internal WhereClause(SelectQuery selectQuery) : base(selectQuery)
@@ -67,9 +71,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(SearchCondition);
+            list.Add(SearchCondition);
         }
 
         public override QueryElementType ElementType => QueryElementType.WhereClause;

@@ -69,9 +69,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().Union(Items.SelectMany(i => i.GetChildItems()));
+            list.AddRange(Items);
         }
 
         public override QueryElementType ElementType => QueryElementType.GroupByClause;

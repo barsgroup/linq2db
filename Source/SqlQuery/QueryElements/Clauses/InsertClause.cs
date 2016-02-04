@@ -58,9 +58,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Into).UnionChilds(Items);
+            list.Add(Into);
+            list.AddRange(Items);
         }
 
         public override QueryElementType ElementType => QueryElementType.InsertClause;

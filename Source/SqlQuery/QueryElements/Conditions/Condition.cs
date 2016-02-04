@@ -50,9 +50,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Predicate);
+            list.Add(Predicate);
         }
 
         public override QueryElementType ElementType => QueryElementType.Condition;

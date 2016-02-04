@@ -51,9 +51,9 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Expression);
+            list.Add(Expression);
         }
 
         public override QueryElementType ElementType => QueryElementType.OrderByItem;

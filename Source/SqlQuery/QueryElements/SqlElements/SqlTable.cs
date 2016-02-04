@@ -322,9 +322,15 @@
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(All).UnionChilds(Fields.Values).UnionChilds(TableArguments);
+            list.Add(All);
+            list.AddRange(Fields.Values);
+
+            if (TableArguments != null)
+            {
+                list.AddRange(TableArguments);
+            }
         }
 
         public override QueryElementType ElementType { get { return QueryElementType.SqlTable; } }

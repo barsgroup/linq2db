@@ -65,9 +65,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Table).UnionChilds(Items).UnionChilds(Keys);
+            list.Add(Table);
+            list.AddRange(Items);
+            list.AddRange(Keys);
         }
 
         public override QueryElementType ElementType => QueryElementType.UpdateClause;

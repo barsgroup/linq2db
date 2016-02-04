@@ -50,14 +50,16 @@ namespace LinqToDB.SqlProvider
 
 		SelectQuery MoveCountSubQuery(SelectQuery selectQuery)
 		{
-			QueryVisitor.Visit(selectQuery, QueryElementType.SqlQuery,  MoveCountSubQuery);
+		    foreach (var query in QueryVisitor.FindOnce<SelectQuery>(selectQuery))
+		    {
+                MoveCountSubSubQuery(query);
+		    }
+
 			return selectQuery;
 		}
 
-		void MoveCountSubQuery(IQueryElement element)
+		void MoveCountSubSubQuery(SelectQuery query)
 		{
-			var query = (SelectQuery)element;
-
 			for (var i = 0; i < query.Select.Columns.Count; i++)
 			{
 				var col = query.Select.Columns[i];
@@ -104,20 +106,16 @@ namespace LinqToDB.SqlProvider
 					var allTables   = new HashSet<ISqlTableSource>();
 					var levelTables = new HashSet<ISqlTableSource>();
 
-					QueryVisitor.Visit(subQuery, e =>
-					{
-						if (e is ISqlTableSource)
-							allTables.Add((ISqlTableSource)e);
-					});
+				    foreach (var item in QueryVisitor.FindOnce<ISqlTableSource>(subQuery))
+				    {
+				        allTables.Add(item);
 
-					QueryVisitor.Visit(subQuery, e =>
-					{
-						if (e is ISqlTableSource)
-							if (subQuery.From.IsChild((ISqlTableSource)e))
-								levelTables.Add((ISqlTableSource)e);
-					});
+                        if (subQuery.From.IsChild(item))
+                            levelTables.Add(item);
+                    }
 
-					Func<IQueryElement,bool> checkTable = e =>
+
+				    Func<IQueryElement,bool> checkTable = e =>
 					{
 						switch (e.ElementType)
 						{
@@ -211,10 +209,9 @@ namespace LinqToDB.SqlProvider
 		{
 			var dic = new Dictionary<IQueryElement,IQueryElement>();
 
-			QueryVisitor.Visit(selectQuery, QueryElementType.SqlQuery, element =>
-			{
-				var query = (SelectQuery)element;
-
+		    foreach (var query in QueryVisitor.FindOnce<SelectQuery>(selectQuery))
+		    {
+		        
 				for (var i = 0; i < query.Select.Columns.Count; i++)
 				{
 					var col = query.Select.Columns[i];
@@ -235,19 +232,16 @@ namespace LinqToDB.SqlProvider
 							return false;
 						};
 
-						QueryVisitor.Visit(subQuery, e =>
-						{
-							if (e is ISqlTableSource)
-								allTables.Add((ISqlTableSource)e);
-						});
+                        foreach (var item in QueryVisitor.FindOnce<ISqlTableSource>(subQuery))
+					    {
+					        allTables.Add(item);
+					        if (subQuery.From.IsChild(item))
+					        {
+					            levelTables.Add(item);
+                            }
+                        }
 
-						QueryVisitor.Visit(subQuery, e =>
-						{
-							if (e is ISqlTableSource && subQuery.From.IsChild((ISqlTableSource)e))
-								levelTables.Add((ISqlTableSource)e);
-						});
-
-						if (SqlProviderFlags.IsSubQueryColumnSupported && new QueryVisitor().Find(subQuery, checkTable) == null)
+					    if (SqlProviderFlags.IsSubQueryColumnSupported && new QueryVisitor().Find(subQuery, checkTable) == null)
 							continue;
 
 						var join = SelectQuery.LeftJoin(subQuery);
@@ -385,7 +379,7 @@ namespace LinqToDB.SqlProvider
 						}
 					}
 				}
-			});
+			}
 
 			selectQuery = new QueryVisitor().Convert(selectQuery, e =>
 			{
@@ -1311,17 +1305,17 @@ namespace LinqToDB.SqlProvider
 
 		protected void CheckAliases(SelectQuery selectQuery, int maxLen)
 		{
-			QueryVisitor.Visit(selectQuery, e =>
-			{
-				switch (e.ElementType)
-				{
-					case QueryElementType.SqlField     : ((SqlField)               e).Alias = SetAlias(((SqlField)            e).Alias, maxLen); break;
-					case QueryElementType.SqlParameter : ((SqlParameter)           e).Name  = SetAlias(((SqlParameter)        e).Name,  maxLen); break;
-					case QueryElementType.SqlTable     : ((SqlTable)               e).Alias = SetAlias(((SqlTable)            e).Alias, maxLen); break;
-					case QueryElementType.Column       : ((Column)     e).Alias = SetAlias(((Column)     e).Alias, maxLen); break;
-					case QueryElementType.TableSource  : ((TableSource)e).Alias = SetAlias(((TableSource)e).Alias, maxLen); break;
-				}
-			});
+		    foreach (var elementType in QueryVisitor.FindOnce<IQueryElement>(selectQuery))
+		    {
+                switch (elementType.ElementType)
+                {
+                    case QueryElementType.SqlField: ((SqlField)elementType).Alias = SetAlias(((SqlField)elementType).Alias, maxLen); break;
+                    case QueryElementType.SqlParameter: ((SqlParameter)elementType).Name = SetAlias(((SqlParameter)elementType).Name, maxLen); break;
+                    case QueryElementType.SqlTable: ((SqlTable)elementType).Alias = SetAlias(((SqlTable)elementType).Alias, maxLen); break;
+                    case QueryElementType.Column: ((Column)elementType).Alias = SetAlias(((Column)elementType).Alias, maxLen); break;
+                    case QueryElementType.TableSource: ((TableSource)elementType).Alias = SetAlias(((TableSource)elementType).Alias, maxLen); break;
+                }
+            }
 		}
 
 		public ISqlExpression Add(ISqlExpression expr1, ISqlExpression expr2, Type type)

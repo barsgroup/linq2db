@@ -43,10 +43,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             return clone;
         }
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(Expr2).UnionChilds(Expr3);
+            list.Add(Expr1);
+            list.Add(Expr2);
+            list.Add(Expr3);
         }
+
         public override QueryElementType ElementType => QueryElementType.BetweenPredicate;
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)

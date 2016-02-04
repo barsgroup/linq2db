@@ -175,16 +175,11 @@ namespace LinqToDB.DataProvider
 
 						var fromTable = (SqlTable)sql.From.Tables[0].Source;
 
-						QueryVisitor.Visit(sql.From, e =>
-						{
-							if (e.ElementType == QueryElementType.TableSource)
-							{
-								var et = (TableSource)e;
-
-								tableSet.Add((SqlTable)et.Source);
-								tables.  Add((SqlTable)et.Source);
-							}
-						});
+					    foreach (var tableSource in QueryVisitor.FindOnce<TableSource>(sql.From))
+					    {
+                            tableSet.Add((SqlTable)tableSource.Source);
+                            tables.Add((SqlTable)tableSource.Source);
+                        }
 
 						var whereClause = new QueryVisitor().Convert(sql.Where, e =>
 						{
@@ -203,11 +198,7 @@ namespace LinqToDB.DataProvider
 									var tempCopy   = sql.Clone();
 									var tempTables = new List<TableSource>();
 
-									QueryVisitor.Visit(tempCopy.From, ee =>
-									{
-										if (ee.ElementType == QueryElementType.TableSource)
-											tempTables.Add((TableSource)ee);
-									});
+                                    tempTables.AddRange(QueryVisitor.FindOnce<TableSource>(tempCopy.From));
 
 									var tt = tempTables[tables.IndexOf(tbl)];
 

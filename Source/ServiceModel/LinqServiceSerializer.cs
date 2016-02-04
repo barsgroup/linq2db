@@ -494,11 +494,15 @@ namespace LinqToDB.ServiceModel
 					foreach (var hint in queryHints)
 						Builder.AppendLine(hint);
 
-                QueryVisitor.Visit(query, Visit);
+			    foreach (var elementType in QueryVisitor.FindOnce<IQueryElement>(query))
+			    {
+			        Visit(elementType);
+			    }
 
-				foreach (var parameter in parameters)
-					if (!Dic.ContainsKey(parameter))
-						Visit(parameter);
+				foreach (var parameter in parameters.Where(parameter => !Dic.ContainsKey(parameter)))
+				{
+				    Visit(parameter);
+				}
 
 				Builder
 					.Append(++Index)

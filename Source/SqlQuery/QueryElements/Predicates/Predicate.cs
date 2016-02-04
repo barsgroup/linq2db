@@ -76,11 +76,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         protected abstract void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic);
 
-        //protected override IEnumerable<IQueryElement> GetChildItemsInternal()
-        //{
-        //    return base.GetChildItemsInternal().UnionChilds(Func);
-        //}
-
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {
             if (dic.ContainsKey(this))

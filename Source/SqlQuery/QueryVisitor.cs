@@ -22,369 +22,46 @@ namespace LinqToDB.SqlQuery
 		#region Visit
 
 		readonly Dictionary<IQueryElement,IQueryElement> _visitedElements = new Dictionary<IQueryElement, IQueryElement>();
-		public   Dictionary<IQueryElement,IQueryElement>  VisitedElements
-		{
-			get { return _visitedElements; }
-		}
 
-		bool                     _all;
-		Action<IQueryElement>    _action2;
-
-		public void VisitParentFirst(IQueryElement element, Func<IQueryElement,bool> action)
-		{
-		    element?.GetChildItems().All(action);
-        }
-
-        public static void Visit(IQueryElement element, Action<IQueryElement> action)
+        public void VisitParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
         {
-            element?.GetChildItems().AsParallel().Distinct().ForAll(action);
+            element.GetSelfWithChildren().Any(childElement => !action(childElement));
         }
 
-        public static void Visit(IQueryElement element, QueryElementType filtredTypes, Action<IQueryElement> action)
+        public static IEnumerable<TElementType> FindOnce<TElementType>(IQueryElement element, Dictionary<IQueryElement, IQueryElement> existItems = null) where TElementType : IQueryElement
         {
-            element?.GetChildItems().AsParallel().Where(q => FlagsHelper.IsSet(filtredTypes, q.ElementType)).Distinct().ForAll(action);
+            if (existItems == null)
+            {
+                existItems = new Dictionary<IQueryElement, IQueryElement>();
+            }
+
+            Func<IEnumerable<IQueryElement>, IEnumerable<IQueryElement>> distinct = source =>
+            {
+                return source.Where(
+                    el =>
+                    {
+                        if (el != null && !existItems.ContainsKey(el))
+                        {
+                            existItems.Add(el, el);
+                            return true;
+                        }
+                        return false;
+                    });
+            };
+
+            return distinct(element.GetSelfWithChildren()).OfType<TElementType>();
         }
 
-        public void VisitAll(IQueryElement element, Action<IQueryElement> action)
-		{
-		    Visit(element, action);
-		}
+        public static IEnumerable<TElementType> FindAll<TElementType>(params IQueryElement[] elements) where TElementType : IQueryElement
+        {
+            return elements.Where(e => e != null).SelectMany(qe => qe.GetSelfWithChildren()).OfType<TElementType>();
+        }
 
-		//void Visit2(IQueryElement element)
-		//{
-		//	if (element == null || !_all && _visitedElements.ContainsKey(element))
-		//		return;
+        #endregion
 
-		//	switch (element.ElementType)
-		//	{
-		//		case QueryElementType.SqlFunction:
-		//			{
-		//				foreach (var p in ((SqlFunction)element).Parameters) Visit2(p);
-		//				break;
-		//			}
+        #region Find
 
-		//		case QueryElementType.SqlExpression:
-		//			{
-		//				foreach (var v in ((SqlExpression)element).Parameters) Visit2(v);
-		//				break;
-		//			}
-
-		//		case QueryElementType.SqlBinaryExpression:
-		//			{
-		//				//var bexpr = (SqlBinaryExpression)element;
-		//				Visit2(((SqlBinaryExpression)element).Expr1);
-		//				Visit2(((SqlBinaryExpression)element).Expr2);
-		//				break;
-		//			}
-
-		//		case QueryElementType.SqlTable:
-		//			{
-		//				var table = (SqlTable)element;
-
-		//				Visit2(table.All);
-		//				foreach (var field in table.Fields.Values) Visit2(field);
-
-		//				if (table.TableArguments != null)
-		//					foreach (var a in table.TableArguments) Visit2(a);
-
-		//				break;
-		//			}
-
-		//		case QueryElementType.Column:
-		//			{
-		//				Visit2(((Column)element).Expression);
-		//				break;
-		//			}
-
-		//		case QueryElementType.TableSource:
-		//			{
-		//				//var table = ((SqlQuery.TableSource)element);
-
-		//				Visit2(((TableSource)element).Source);
-		//				foreach (var j in ((TableSource)element).Joins) Visit2(j);
-		//				break;
-		//			}
-
-		//		case QueryElementType.JoinedTable:
-		//			{
-		//				//var join = (SqlQuery.JoinedTable)element;
-		//				Visit2(((JoinedTable)element).Table);
-		//				Visit2(((JoinedTable)element).Condition);
-		//				break;
-		//			}
-
-		//		case QueryElementType.SearchCondition:
-		//			{
-		//				foreach (var c in ((SearchCondition)element).Conditions) Visit2(c);
-		//				break;
-		//			}
-
-		//		case QueryElementType.Condition:
-		//			{
-		//				Visit2(((Condition)element).Predicate);
-		//				break;
-		//			}
-
-		//		case QueryElementType.ExprPredicate:
-		//			{
-		//				Visit2(((Expr)element).Expr1);
-		//				break;
-		//			}
-
-		//		case QueryElementType.NotExprPredicate:
-		//			{
-		//				Visit2(((NotExpr)element).Expr1);
-		//				break;
-		//			}
-
-		//		case QueryElementType.ExprExprPredicate:
-		//			{
-		//				//var p = ((SqlQuery.Predicate.ExprExpr)element);
-		//				Visit2(((ExprExpr)element).Expr1);
-		//				Visit2(((ExprExpr)element).Expr2);
-		//				break;
-		//			}
-
-		//		case QueryElementType.LikePredicate:
-		//			{
-		//				//var p = ((SqlQuery.Predicate.Like)element);
-		//				Visit2(((Like)element).Expr1);
-		//				Visit2(((Like)element).Expr2);
-		//				Visit2(((Like)element).Escape);
-		//				break;
-		//			}
-
-		//		case QueryElementType.BetweenPredicate:
-		//			{
-		//				//var p = (SqlQuery.Predicate.Between)element;
-		//				Visit2(((Between)element).Expr1);
-		//				Visit2(((Between)element).Expr2);
-		//				Visit2(((Between)element).Expr3);
-		//				break;
-		//			}
-
-		//		case QueryElementType.IsNullPredicate:
-		//			{
-		//				Visit2(((IsNull)element).Expr1);
-		//				break;
-		//			}
-
-		//		case QueryElementType.InSubQueryPredicate:
-		//			{
-		//				//var p = (SqlQuery.Predicate.InSubQuery)element;
-		//				Visit2(((InSubQuery)element).Expr1);
-		//				Visit2(((InSubQuery)element).SubQuery);
-		//				break;
-		//			}
-
-		//		case QueryElementType.InListPredicate:
-		//			{
-		//				//var p = (SqlQuery.Predicate.InList)element;
-		//				Visit2(((InList)element).Expr1);
-		//				foreach (var value in ((InList)element).Values) Visit2(value);
-		//				break;
-		//			}
-
-		//		case QueryElementType.FuncLikePredicate:
-		//			{
-		//				Visit2(((FuncLike)element).Function);
-		//				break;
-		//			}
-
-		//		case QueryElementType.SetExpression:
-		//			{
-		//				//var s = (SqlQuery.SetExpression)element;
-		//				Visit2(((SetExpression)element).Column);
-		//				Visit2(((SetExpression)element).Expression);
-		//				break;
-		//			}
-
-		//		case QueryElementType.InsertClause:
-		//			{
-		//				//var sc = (SqlQuery.InsertClause)element;
-
-		//				if (((InsertClause)element).Into != null)
-		//					Visit2(((InsertClause)element).Into);
-
-		//				foreach (var c in ((InsertClause)element).Items.ToArray()) Visit2(c);
-		//				break;
-		//			}
-
-		//		case QueryElementType.UpdateClause:
-		//			{
-		//				//var sc = (SqlQuery.UpdateClause)element;
-
-		//				if (((UpdateClause)element).Table != null)
-		//					Visit2(((UpdateClause)element).Table);
-
-		//				foreach (var c in ((UpdateClause)element).Items.ToArray()) Visit2(c);
-		//				foreach (var c in ((UpdateClause)element).Keys. ToArray()) Visit2(c);
-		//				break;
-		//			}
-
-		//		case QueryElementType.DeleteClause:
-		//			{
-		//				if (((DeleteClause)element).Table != null)
-		//					Visit2(((DeleteClause)element).Table);
-		//				break;
-		//			}
-
-		//		case QueryElementType.CreateTableStatement:
-		//			{
-		//				if (((CreateTableStatement)element).Table != null)
-		//					Visit2(((CreateTableStatement)element).Table);
-		//				break;
-		//			}
-
-		//		case QueryElementType.SelectClause:
-		//			{
-		//				//var sc = (SqlQuery.SelectClause)element;
-		//				Visit2(((SelectClause)element).TakeValue);
-		//				Visit2(((SelectClause)element).SkipValue);
-
-		//				foreach (var c in ((SelectClause)element).Columns.ToArray()) Visit2(c);
-		//				break;
-		//			}
-
-		//		case QueryElementType.FromClause:
-		//			{
-		//				foreach (var t in ((FromClause)element).Tables) Visit2(t);
-		//				break;
-		//			}
-
-		//		case QueryElementType.WhereClause:
-		//			{
-		//				Visit2(((WhereClause)element).SearchCondition);
-		//				break;
-		//			}
-
-		//		case QueryElementType.GroupByClause:
-		//			{
-		//				foreach (var i in ((GroupByClause)element).Items) Visit2(i);
-		//				break;
-		//			}
-
-		//		case QueryElementType.OrderByClause:
-		//			{
-		//				foreach (var i in ((OrderByClause)element).Items) Visit2(i);
-		//				break;
-		//			}
-
-		//		//case QueryElementType.OrderByItem:
-		//		//	{
-		//		//		Visit2(((SelectQuery.OrderByItem)element).Expression);
-		//		//		break;
-		//		//	}
-
-		//		//case QueryElementType.Union:
-		//		//	Visit2(((SelectQuery.Union)element).SelectQuery);
-		//		//	break;
-
-		//		//case QueryElementType.SqlQuery:
-		//		//	{
-		//		//		if (_all)
-		//		//		{
-		//		//			if (_visitedElements.ContainsKey(element))
-		//		//				return;
-		//		//			_visitedElements.Add(element, element);
-		//		//		}
-
-		//		//		var q = (SelectQuery)element;
-
-		//		//		switch (q.QueryType)
-		//		//		{
-		//		//			case QueryType.InsertOrUpdate :
-		//		//				Visit2(q.Insert);
-		//		//				Visit2(q.Update);
-
-		//		//				if (q.From.Tables.Count == 0)
-		//		//					break;
-
-		//		//				goto default;
-
-		//		//			case QueryType.Update :
-		//		//				Visit2(q.Update);
-		//		//				Visit2(q.Select);
-		//		//				break;
-
-		//		//			case QueryType.Delete :
-		//		//				Visit2(q.Delete);
-		//		//				Visit2(q.Select);
-		//		//				break;
-
-		//		//			case QueryType.Insert :
-		//		//				Visit2(q.Insert);
-
-		//		//				if (q.From.Tables.Count != 0)
-		//		//					Visit2(q.Select);
-
-		//		//				break;
-
-		//		//			case QueryType.CreateTable :
-		//		//				Visit2(q.CreateTable);
-		//		//				break;
-
-		//		//			default :
-		//		//				Visit2(q.Select);
-		//		//				break;
-		//		//		}
-
-		//		//		// Visit2(q.From);
-		//		//		//
-		//		//		if (q.From != null && (_all || !_visitedElements.ContainsKey(q.From)))
-		//		//		{
-		//		//			foreach (var t in q.From.Tables)
-		//		//			{
-		//		//				//Visit2(t);
-		//		//				//
-		//		//				if (t != null && (_all || !_visitedElements.ContainsKey(t)))
-		//		//				{
-		//		//					Visit2(t.Source);
-
-		//		//					foreach (var j in t.Joins)
-		//		//						Visit2(j);
-
-		//		//					_action2(t);
-		//		//					if (!_all)
-		//		//						_visitedElements.Add(t, t);
-		//		//				}
-		//		//			}
-		//		//			_action2(q.From);
-		//		//			if (!_all)
-		//		//				_visitedElements.Add(q.From, q.From);
-		//		//		}
-
-		//		//		Visit2(q.Where);
-		//		//		Visit2(q.GroupBy);
-		//		//		Visit2(q.Having);
-		//		//		Visit2(q.OrderBy);
-
-		//		//		if (q.HasUnion)
-		//		//		{
-		//		//			foreach (var i in q.Unions)
-		//		//			{
-		//		//				if (i.SelectQuery == q)
-		//		//					throw new InvalidOperationException();
-
-		//		//				Visit2(i);
-		//		//			}
-		//		//		}
-
-		//		//		break;
-		//		//	}
-		//	}
-
-		//	_action2(element);
-
-		//	if (!_all)
-		//		_visitedElements.Add(element, element);
-		//}
-
-		#endregion
-
-		#region Find
-
-		IQueryElement Find<T>(IEnumerable<T> arr, Func<IQueryElement, bool> find)
+        IQueryElement Find<T>(IEnumerable<T> arr, Func<IQueryElement, bool> find)
 			where T : class, IQueryElement
 		{
 			if (arr == null)

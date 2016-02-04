@@ -21,14 +21,12 @@ namespace LinqToDB.DataProvider.SqlCe
 		{
 			selectQuery = base.Finalize(selectQuery);
 
-			QueryVisitor.Visit(selectQuery.Select, element =>
-			{
-				if (element.ElementType == QueryElementType.SqlParameter)
-				{
-					((SqlParameter)element).IsQueryParameter = false;
-					selectQuery.IsParameterDependent = true;
-				}
-			});
+            foreach (var parameter in QueryVisitor.FindOnce<SqlParameter>(selectQuery.Select))
+            {
+                parameter.IsQueryParameter = false;
+                selectQuery.IsParameterDependent = true;
+
+            }
 
 			switch (selectQuery.QueryType)
 			{

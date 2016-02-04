@@ -4,6 +4,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     public interface IBaseQueryElement
     {
-        IEnumerable<IQueryElement> GetChildItems();
+        IEnumerable<IQueryElement> GetSelfWithChildren();
     }
 }

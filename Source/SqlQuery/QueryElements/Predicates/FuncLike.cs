@@ -47,9 +47,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
         {
             ((IQueryElement)Function).ToString(sb, dic);
         }
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Function);
+            list.Add(Function);
         }
 
     }

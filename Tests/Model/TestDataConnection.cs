@@ -7,6 +7,7 @@ using System.Text;
 using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.SqlQuery;
+using LinqToDB.SqlQuery.QueryElements;
 
 namespace Tests.Model
 {

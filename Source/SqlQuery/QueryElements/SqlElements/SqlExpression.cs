@@ -135,12 +135,12 @@
 
 		#region IQueryElement Members
 
-		protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+		protected override void GetChildrenInternal(List<IQueryElement> list)
 		{
-			return base.GetChildItemsInternal().UnionChilds(Parameters);
+            list.AddRange(Parameters);
 		}
 
-		public override QueryElementType ElementType { get { return QueryElementType.SqlExpression; } }
+        public override QueryElementType ElementType { get { return QueryElementType.SqlExpression; } }
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

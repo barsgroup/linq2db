@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Linq;
     using System.Text;
 
+    using LinqToDB.DataProvider.SapHana;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.SqlElements;
     using LinqToDB.SqlQuery.SqlElements.Interfaces;
@@ -181,9 +182,10 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Source).UnionChilds(Joins);
+            list.Add(Source);
+            list.AddRange(Joins);
         }
 
         public override QueryElementType ElementType => QueryElementType.TableSource;

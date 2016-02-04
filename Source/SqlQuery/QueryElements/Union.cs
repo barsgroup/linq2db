@@ -31,10 +31,9 @@ namespace LinqToDB.SqlQuery.QueryElements
 
 #endif
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            var resultItems =  base.GetChildItemsInternal();
-            return resultItems.UnionChilds(SelectQuery);
+            list.Add(SelectQuery);
         }
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)

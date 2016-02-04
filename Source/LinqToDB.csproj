@@ -387,7 +387,6 @@
     <Compile Include="SqlProvider\ValueToSqlValueConverter.cs" />
     <Compile Include="SqlProvider\ValueToSqlConverter.cs" />
     <Compile Include="SqlQuery\DefaulNullable.cs" />
-    <Compile Include="SqlQuery\FlagsHelper.cs" />
     <Compile Include="SqlQuery\QueryElements\BaseQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Clauses\ClauseBase.cs" />
     <Compile Include="SqlQuery\QueryElements\Clauses\DeleteClause.cs" />
@@ -425,7 +424,6 @@
     <Compile Include="SqlQuery\QueryElements\Predicates\Like.cs" />
     <Compile Include="SqlQuery\QueryElements\Predicates\NotExpr.cs" />
     <Compile Include="SqlQuery\QueryElements\Predicates\Predicate.cs" />
-    <Compile Include="SqlQuery\QueryElements\QueryElementExtentions.cs" />
     <Compile Include="SqlQuery\QueryElements\SetExpression.cs" />
     <Compile Include="SqlQuery\QueryElements\TableSource.cs" />
     <Compile Include="SqlQuery\QueryElements\Union.cs" />

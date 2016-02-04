@@ -128,9 +128,9 @@
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Parameters);
+            list.AddRange(Parameters);
         }
 
         public override QueryElementType ElementType { get { return QueryElementType.SqlFunction; } }

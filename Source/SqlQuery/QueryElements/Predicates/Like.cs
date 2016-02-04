@@ -42,9 +42,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             return clone;
         }
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Expr1).UnionChilds(Expr2).UnionChilds(Escape);
+            list.Add(Expr1);
+            list.Add(Expr2);
+            list.Add(Escape);
         }
         public override QueryElementType ElementType => QueryElementType.LikePredicate;
 

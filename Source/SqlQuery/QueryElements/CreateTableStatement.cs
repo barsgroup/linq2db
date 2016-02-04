@@ -18,9 +18,9 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Table);
+            list.Add(Table);
         }
 
         public override QueryElementType ElementType => QueryElementType.CreateTableStatement;

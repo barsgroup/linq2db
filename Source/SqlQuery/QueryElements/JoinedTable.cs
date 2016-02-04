@@ -76,9 +76,10 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region IQueryElement Members
 
-        protected override IEnumerable<IQueryElement> GetChildItemsInternal()
+        protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            return base.GetChildItemsInternal().UnionChilds(Table).UnionChilds(Condition);
+            list.Add(Table);
+            list.Add(Condition);
         }
 
         public override QueryElementType ElementType => QueryElementType.JoinedTable;
