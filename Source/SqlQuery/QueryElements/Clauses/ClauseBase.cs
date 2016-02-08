@@ -3,12 +3,14 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     public abstract class ClauseBase : BaseQueryElement,
-                                       IClauseBase
+                                       IClauseWithConditionBase
     {
         protected ClauseBase(ISelectQuery selectQuery)
         {
@@ -19,11 +21,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public IFromClause From => SelectQuery.From;
 
-        public WhereClause Where => SelectQuery.Where;
+        public IWhereClause Where => SelectQuery.Where;
 
         public GroupByClause GroupBy => SelectQuery.GroupBy;
 
-        public WhereClause Having => SelectQuery.Having;
+        public IWhereClause Having => SelectQuery.Having;
 
         public IOrderByClause OrderBy => SelectQuery.OrderBy;
 
@@ -44,8 +46,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         }
     }
 
-    public abstract class ClauseBase<T1, T2> : ConditionBase<T1, T2>
-        where T1 : ClauseBase<T1, T2>
+    public abstract class ClauseBase<T1, T2> : ConditionBase<T1, T2>, IClauseBase
+        where T1 : IConditionBase<T1, T2>
     {
         protected ClauseBase(ISelectQuery selectQuery)
         {
@@ -58,15 +60,15 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public GroupByClause GroupBy => SelectQuery.GroupBy;
 
-        public WhereClause   Having => SelectQuery.Having;
+        public IWhereClause Having => SelectQuery.Having;
 
         public IOrderByClause OrderBy => SelectQuery.OrderBy;
 
         public ISelectQuery End()   { return SelectQuery; }
 
-        protected internal ISelectQuery SelectQuery { get; private set; }
+        public ISelectQuery SelectQuery { get; private set; }
 
-        internal void SetSqlQuery(ISelectQuery selectQuery)
+        public void SetSqlQuery(ISelectQuery selectQuery)
         {
             SelectQuery = selectQuery;
         }

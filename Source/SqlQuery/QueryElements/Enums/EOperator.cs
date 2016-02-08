@@ -1,6 +1,6 @@
 namespace LinqToDB.SqlQuery.QueryElements.Enums
 {
-    public enum Operator
+    public enum EOperator
     {
         Equal,          // =     Is the operator used to test the equality between two expressions.
         NotEqual,       // <> != Is the operator used to test the condition of two expressions not being equal to each other.

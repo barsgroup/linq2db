@@ -4,11 +4,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
 
-    public class Condition : BaseQueryElement, ICloneableElement
+    public class Condition : BaseQueryElement,
+                             ICondition
     {
         public Condition(bool isNot, ISqlPredicate predicate)
         {

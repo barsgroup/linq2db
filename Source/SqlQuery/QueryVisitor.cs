@@ -7,7 +7,9 @@ namespace LinqToDB.SqlQuery
 
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Clauses;
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
@@ -88,13 +90,13 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.SqlFunction       : return Find(((SqlFunction)                element).Parameters,      find);
 				case EQueryElementType.SqlExpression     : return Find(((SqlExpression)              element).Parameters,      find);
 				case EQueryElementType.Column            : return Find(((IColumn)            element).Expression,      find);
-				case EQueryElementType.SearchCondition   : return Find(((SearchCondition)   element).Conditions,      find);
-				case EQueryElementType.Condition         : return Find(((Condition)         element).Predicate,       find);
+				case EQueryElementType.SearchCondition   : return Find(((ISearchCondition)   element).Conditions,      find);
+				case EQueryElementType.Condition         : return Find(((ICondition)         element).Predicate,       find);
 				case EQueryElementType.ExprPredicate     : return Find(((Expr)    element).Expr1,           find);
 				case EQueryElementType.NotExprPredicate  : return Find(((NotExpr) element).Expr1,           find);
 				case EQueryElementType.IsNullPredicate   : return Find(((IsNull)  element).Expr1,           find);
 				case EQueryElementType.FromClause        : return Find(((IFromClause)        element).Tables,          find);
-				case EQueryElementType.WhereClause       : return Find(((WhereClause)       element).SearchCondition, find);
+				case EQueryElementType.WhereClause       : return Find(((IWhereClause)       element).SearchCondition, find);
 				case EQueryElementType.GroupByClause     : return Find(((GroupByClause)     element).Items,           find);
 				case EQueryElementType.OrderByClause     : return Find(((IOrderByClause)     element).Items,           find);
 				case EQueryElementType.OrderByItem       : return Find(((IOrderByItem)       element).Expression,      find);
@@ -365,7 +367,7 @@ namespace LinqToDB.SqlQuery
 					{
 						var join  = (IJoinedTable)element;
 						var table = (ITableSource)    ConvertInternal(join.Table,     action);
-						var cond  = (SearchCondition)ConvertInternal(join.Condition, action);
+						var cond  = (ISearchCondition)ConvertInternal(join.Condition, action);
 
 						if (table != null && !ReferenceEquals(table, join.Table) ||
 							cond  != null && !ReferenceEquals(cond,  join.Condition))
@@ -376,7 +378,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.SearchCondition:
 					{
-						var sc    = (SearchCondition)element;
+						var sc    = (ISearchCondition)element;
 						var conds = Convert(sc.Conditions, action);
 
 						if (conds != null && !ReferenceEquals(sc.Conditions, conds))
@@ -425,7 +427,7 @@ namespace LinqToDB.SqlQuery
 						var e2 = (ISqlExpression)ConvertInternal(p.Expr2, action);
 
 						if (e1 != null && !ReferenceEquals(p.Expr1, e1) || e2 != null && !ReferenceEquals(p.Expr2, e2))
-							newElement = new ExprExpr(e1 ?? p.Expr1, p.Operator, e2 ?? p.Expr2);
+							newElement = new ExprExpr(e1 ?? p.Expr1, p.EOperator, e2 ?? p.Expr2);
 
 						break;
 					}
@@ -626,8 +628,8 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.WhereClause:
 					{
-						var wc   = (WhereClause)element;
-						var cond = (SearchCondition)ConvertInternal(wc.SearchCondition, action);
+						var wc   = (IWhereClause)element;
+						var cond = (ISearchCondition)ConvertInternal(wc.SearchCondition, action);
 
 						IQueryElement parent;
 						_visitedElements.TryGetValue(wc.SelectQuery, out parent);
@@ -635,7 +637,7 @@ namespace LinqToDB.SqlQuery
 						if (parent != null || cond != null && !ReferenceEquals(wc.SearchCondition, cond))
 						{
 							newElement = new WhereClause(cond ?? wc.SearchCondition);
-							((WhereClause)newElement).SetSqlQuery((ISelectQuery)parent);
+							((IWhereClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 
 						break;
@@ -745,9 +747,9 @@ namespace LinqToDB.SqlQuery
 						var ic = q.IsInsert ? ((IInsertClause)ConvertInternal(q.Insert, action) ?? q.Insert) : null;
 						var uc = q.IsUpdate ? ((IUpdateClause)ConvertInternal(q.Update, action) ?? q.Update) : null;
 						var dc = q.IsDelete ? ((DeleteClause)ConvertInternal(q.Delete, action) ?? q.Delete) : null;
-						var wc = (WhereClause)  ConvertInternal(q.Where,   action) ?? q.Where;
+						var wc = (IWhereClause)  ConvertInternal(q.Where,   action) ?? q.Where;
 						var gc = (GroupByClause)ConvertInternal(q.GroupBy, action) ?? q.GroupBy;
-						var hc = (WhereClause)  ConvertInternal(q.Having,  action) ?? q.Having;
+						var hc = (IWhereClause)  ConvertInternal(q.Having,  action) ?? q.Having;
 						var oc = (IOrderByClause)ConvertInternal(q.OrderBy, action) ?? q.OrderBy;
 						var us = q.HasUnion ? Convert(q.Unions, action) : q.Unions;
 

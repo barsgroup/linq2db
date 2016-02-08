@@ -10,7 +10,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         ITableSource Table { get; set; }
 
-        SearchCondition Condition { get; }
+        ISearchCondition Condition { get; }
 
         bool IsWeak { get; set; }
 

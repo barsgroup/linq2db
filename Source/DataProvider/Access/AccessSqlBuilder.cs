@@ -55,9 +55,9 @@ namespace LinqToDB.DataProvider.Access
 				{
 					var func = (SqlFunction)SelectQuery.Select.Columns[0].Expression;
 
-					if (func.Name == "Iif" && func.Parameters.Length == 3 && func.Parameters[0] is SearchCondition)
+					if (func.Name == "Iif" && func.Parameters.Length == 3 && func.Parameters[0] is ISearchCondition)
 					{
-						var sc = (SearchCondition)func.Parameters[0];
+						var sc = (ISearchCondition)func.Parameters[0];
 
 						if (sc.Conditions.Count == 1 && sc.Conditions[0].Predicate is FuncLike)
 						{
@@ -71,9 +71,9 @@ namespace LinqToDB.DataProvider.Access
 						}
 					}
 				}
-				else if (SelectQuery.Select.Columns[0].Expression is SearchCondition)
+				else if (SelectQuery.Select.Columns[0].Expression is ISearchCondition)
 				{
-					var sc = (SearchCondition)SelectQuery.Select.Columns[0].Expression;
+					var sc = (ISearchCondition)SelectQuery.Select.Columns[0].Expression;
 
 					if (sc.Conditions.Count == 1 && sc.Conditions[0].Predicate is FuncLike)
 					{
@@ -95,16 +95,16 @@ namespace LinqToDB.DataProvider.Access
 
 		void BuildAnyAsCount()
 		{
-			SearchCondition cond;
+            ISearchCondition cond;
 
 			if (SelectQuery.Select.Columns[0].Expression is SqlFunction)
 			{
 				var func  = (SqlFunction)SelectQuery.Select.Columns[0].Expression;
-				cond  = (SearchCondition)func.Parameters[0];
+				cond  = (ISearchCondition)func.Parameters[0];
 			}
 			else
 			{
-				cond  = (SearchCondition)SelectQuery.Select.Columns[0].Expression;
+				cond  = (ISearchCondition)SelectQuery.Select.Columns[0].Expression;
 			}
 
 			var exist = ((FuncLike)cond.Conditions[0].Predicate).Function;

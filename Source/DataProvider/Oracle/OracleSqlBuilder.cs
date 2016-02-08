@@ -146,7 +146,7 @@ namespace LinqToDB.DataProvider.Oracle
 			}
 		}
 
-		protected override void BuildWhereSearchCondition(SearchCondition condition)
+		protected override void BuildWhereSearchCondition(ISearchCondition condition)
 		{
 			if (NeedTake && !NeedSkip && SelectQuery.OrderBy.IsEmpty && SelectQuery.Having.IsEmpty)
 			{
@@ -154,7 +154,7 @@ namespace LinqToDB.DataProvider.Oracle
 					Precedence.LogicalConjunction,
 					new ExprExpr(
 						new SqlExpression(null, "ROWNUM", Precedence.Primary),
-						Operator.LessOrEqual,
+						EOperator.LessOrEqual,
 						SelectQuery.Select.TakeValue));
 
 				if (base.BuildWhere())
@@ -206,12 +206,12 @@ namespace LinqToDB.DataProvider.Oracle
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SearchCondition)
+				if (expr is ISearchCondition)
 					wrap = true;
 				else
 				{
 					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SearchCondition;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
 

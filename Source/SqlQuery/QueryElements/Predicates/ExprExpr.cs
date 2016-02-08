@@ -10,14 +10,14 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
     public class ExprExpr : Expr
     {
-        public ExprExpr(ISqlExpression exp1, Operator op, ISqlExpression exp2)
+        public ExprExpr(ISqlExpression exp1, EOperator op, ISqlExpression exp2)
             : base(exp1, SqlQuery.Precedence.Comparison)
         {
-            Operator = op;
+            EOperator = op;
             Expr2    = exp2;
         }
 
-        public new Operator   Operator { get; private  set; }
+        public new EOperator   EOperator { get; private  set; }
         public ISqlExpression Expr2    { get; internal set; }
 
         protected override void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
@@ -40,7 +40,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
             if (!objectTree.TryGetValue(this, out clone))
                 objectTree.Add(this, clone = new ExprExpr(
-                                                 (ISqlExpression)Expr1.Clone(objectTree, doClone), Operator, (ISqlExpression)Expr2.Clone(objectTree, doClone)));
+                                                 (ISqlExpression)Expr1.Clone(objectTree, doClone), EOperator, (ISqlExpression)Expr2.Clone(objectTree, doClone)));
 
             return clone;
         }
@@ -59,16 +59,16 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
             string op;
 
-            switch (Operator)
+            switch (EOperator)
             {
-                case Operator.Equal         : op = "=";  break;
-                case Operator.NotEqual      : op = "<>"; break;
-                case Operator.Greater       : op = ">";  break;
-                case Operator.GreaterOrEqual: op = ">="; break;
-                case Operator.NotGreater    : op = "!>"; break;
-                case Operator.Less          : op = "<";  break;
-                case Operator.LessOrEqual   : op = "<="; break;
-                case Operator.NotLess       : op = "!<"; break;
+                case EOperator.Equal         : op = "=";  break;
+                case EOperator.NotEqual      : op = "<>"; break;
+                case EOperator.Greater       : op = ">";  break;
+                case EOperator.GreaterOrEqual: op = ">="; break;
+                case EOperator.NotGreater    : op = "!>"; break;
+                case EOperator.Less          : op = "<";  break;
+                case EOperator.LessOrEqual   : op = "<="; break;
+                case EOperator.NotLess       : op = "!<"; break;
                 default: throw new InvalidOperationException();
             }
 

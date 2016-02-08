@@ -116,12 +116,12 @@ namespace LinqToDB.DataProvider.DB2
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SearchCondition)
+				if (expr is ISearchCondition)
 					wrap = true;
 				else
 				{
 					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SearchCondition;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
 

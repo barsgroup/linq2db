@@ -13,6 +13,7 @@ namespace LinqToDB.ServiceModel
 
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Clauses;
+	using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
@@ -756,7 +757,7 @@ namespace LinqToDB.ServiceModel
 							var elem = (ExprExpr)e;
 
 							Append(elem.Expr1);
-							Append((int)elem.Operator);
+							Append((int)elem.EOperator);
 							Append(elem.Expr2);
 
 							break;
@@ -912,7 +913,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SearchCondition :
 						{
-							Append(((SearchCondition)e).Conditions);
+							Append(((ISearchCondition)e).Conditions);
 							break;
 						}
 
@@ -1014,7 +1015,7 @@ namespace LinqToDB.ServiceModel
 						}
 
 					case EQueryElementType.FromClause    : Append(((IFromClause)   e).Tables);          break;
-					case EQueryElementType.WhereClause   : Append(((WhereClause)  e).SearchCondition); break;
+					case EQueryElementType.WhereClause   : Append(((IWhereClause)  e).SearchCondition); break;
 					case EQueryElementType.GroupByClause : Append(((GroupByClause)e).Items);           break;
 					case EQueryElementType.OrderByClause : Append(((IOrderByClause)e).Items);           break;
 
@@ -1309,7 +1310,7 @@ namespace LinqToDB.ServiceModel
 					case EQueryElementType.ExprExprPredicate :
 						{
 							var expr1     = Read<ISqlExpression>();
-							var @operator = (Operator)ReadInt();
+							var @operator = (EOperator)ReadInt();
 							var expr2     = Read<ISqlExpression>();
 
 							obj = new ExprExpr(expr1, @operator, expr2);
@@ -1397,9 +1398,9 @@ namespace LinqToDB.ServiceModel
 							var createTable        = readCreateTable ?
 								Read<ICreateTableStatement>() :
 								new CreateTableStatement();
-							var where              = Read<WhereClause>();
+							var where              = Read<IWhereClause>();
 							var groupBy            = Read<GroupByClause>();
-							var having             = Read<WhereClause>();
+							var having             = Read<IWhereClause>();
 							var orderBy            = Read<IOrderByClause>();
 							var parentSql          = ReadInt();
 							var parameterDependent = ReadBool();
@@ -1480,7 +1481,7 @@ namespace LinqToDB.ServiceModel
 							var joinType  = (JoinType)ReadInt();
 							var table     = Read<ITableSource>();
 							var isWeak    = ReadBool();
-							var condition = Read<SearchCondition>();
+							var condition = Read<ISearchCondition>();
 
 							obj = new JoinedTable(joinType, table, isWeak, condition);
 
@@ -1557,7 +1558,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SetExpression : obj = new SetExpression(Read     <ISqlExpression>(), Read<ISqlExpression>()); break;
 					case EQueryElementType.FromClause    : obj = new FromClause   (ReadArray<ITableSource>());                break;
-					case EQueryElementType.WhereClause   : obj = new WhereClause  (Read     <SearchCondition>());            break;
+					case EQueryElementType.WhereClause   : obj = new WhereClause  (Read     <ISearchCondition>());            break;
 					case EQueryElementType.GroupByClause : obj = new GroupByClause(ReadArray<ISqlExpression>());                         break;
 					case EQueryElementType.OrderByClause : obj = new OrderByClause(ReadArray<IOrderByItem>());                break;
 

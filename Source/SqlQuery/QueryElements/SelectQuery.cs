@@ -12,7 +12,9 @@
     using LinqToDB.Extensions;
     using LinqToDB.Reflection;
     using LinqToDB.SqlQuery.QueryElements.Clauses;
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
@@ -65,9 +67,9 @@
 			DeleteClause         delete,
             ISelectClause        select,
             IFromClause          from,
-			WhereClause          where,
+            IWhereClause where,
 			GroupByClause        groupBy,
-			WhereClause          having,
+            IWhereClause having,
             IOrderByClause orderBy,
 			List<IUnion>          unions,
             ISelectQuery         parentSelect,
@@ -156,33 +158,33 @@
 
 		#region FromClause
 
-        public static Join InnerJoin    (ISqlTableSource table,               params Join[] joins) { return new Join(JoinType.Inner,      table, null,  false, joins); }
-		public static Join InnerJoin    (ISqlTableSource table, string alias, params Join[] joins) { return new Join(JoinType.Inner,      table, alias, false, joins); }
-		public static Join LeftJoin     (ISqlTableSource table,               params Join[] joins) { return new Join(JoinType.Left,       table, null,  false, joins); }
-		public static Join LeftJoin     (ISqlTableSource table, string alias, params Join[] joins) { return new Join(JoinType.Left,       table, alias, false, joins); }
-		public static Join Join         (ISqlTableSource table,               params Join[] joins) { return new Join(JoinType.Auto,       table, null,  false, joins); }
-		public static Join Join         (ISqlTableSource table, string alias, params Join[] joins) { return new Join(JoinType.Auto,       table, alias, false, joins); }
-		public static Join CrossApply   (ISqlTableSource table,               params Join[] joins) { return new Join(JoinType.CrossApply, table, null,  false, joins); }
-		public static Join CrossApply   (ISqlTableSource table, string alias, params Join[] joins) { return new Join(JoinType.CrossApply, table, alias, false, joins); }
-		public static Join OuterApply   (ISqlTableSource table,               params Join[] joins) { return new Join(JoinType.OuterApply, table, null,  false, joins); }
-		public static Join OuterApply   (ISqlTableSource table, string alias, params Join[] joins) { return new Join(JoinType.OuterApply, table, alias, false, joins); }
+        public static IJoin InnerJoin    (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Inner,      table, null,  false, joins); }
+		public static IJoin InnerJoin    (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Inner,      table, alias, false, joins); }
+		public static IJoin LeftJoin     (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Left,       table, null,  false, joins); }
+		public static IJoin LeftJoin     (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Left,       table, alias, false, joins); }
+		public static IJoin Join         (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Auto,       table, null,  false, joins); }
+		public static IJoin Join         (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Auto,       table, alias, false, joins); }
+		public static IJoin CrossApply   (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.CrossApply, table, null,  false, joins); }
+		public static IJoin CrossApply   (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.CrossApply, table, alias, false, joins); }
+		public static IJoin OuterApply   (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.OuterApply, table, null,  false, joins); }
+		public static IJoin OuterApply   (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.OuterApply, table, alias, false, joins); }
 
-		public static Join WeakInnerJoin(ISqlTableSource table,               params Join[] joins) { return new Join(JoinType.Inner,      table, null,  true,  joins); }
-		public static Join WeakInnerJoin(ISqlTableSource table, string alias, params Join[] joins) { return new Join(JoinType.Inner,      table, alias, true,  joins); }
-		public static Join WeakLeftJoin (ISqlTableSource table,               params Join[] joins) { return new Join(JoinType.Left,       table, null,  true,  joins); }
-		public static Join WeakLeftJoin (ISqlTableSource table, string alias, params Join[] joins) { return new Join(JoinType.Left,       table, alias, true,  joins); }
-		public static Join WeakJoin     (ISqlTableSource table,               params Join[] joins) { return new Join(JoinType.Auto,       table, null,  true,  joins); }
-		public static Join WeakJoin     (ISqlTableSource table, string alias, params Join[] joins) { return new Join(JoinType.Auto,       table, alias, true,  joins); }
+		public static IJoin WeakInnerJoin(ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Inner,      table, null,  true,  joins); }
+		public static IJoin WeakInnerJoin(ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Inner,      table, alias, true,  joins); }
+		public static IJoin WeakLeftJoin (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Left,       table, null,  true,  joins); }
+		public static IJoin WeakLeftJoin (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Left,       table, alias, true,  joins); }
+		public static IJoin WeakJoin     (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Auto,       table, null,  true,  joins); }
+		public static IJoin WeakJoin     (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Auto,       table, alias, true,  joins); }
 
         public IFromClause From { get; private set; }
 
         #endregion
 
-        public  WhereClause  Where { get; private set; }
+        public IWhereClause Where { get; private set; }
 
         public  GroupByClause  GroupBy { get; private set; }
 
-        public  WhereClause  Having { get; private set; }
+        public IWhereClause Having { get; private set; }
 
         public IOrderByClause OrderBy { get; private set; }
 
@@ -224,7 +226,7 @@
                         {
                             var ee = (ExprExpr)e;
 
-                            if (ee.Operator == Operator.Equal || ee.Operator == Operator.NotEqual)
+                            if (ee.EOperator == EOperator.Equal || ee.EOperator == EOperator.NotEqual)
                             {
                                 object value1;
                                 object value2;
@@ -245,7 +247,7 @@
 
                                 var value = Equals(value1, value2);
 
-                                if (ee.Operator == Operator.NotEqual)
+                                if (ee.EOperator == EOperator.NotEqual)
                                     value = !value;
 
                                 return new Expr(new SqlValue(value), SqlQuery.Precedence.Comparison);
@@ -332,7 +334,7 @@
 									var value = cd.MemberAccessor.GetValue(item);
 									var cond  = value == null ?
 										new Condition(false, new IsNull  (field, false)) :
-										new Condition(false, new ExprExpr(field, Operator.Equal, cd.MappingSchema.GetSqlValue(value)));
+										new Condition(false, new ExprExpr(field, EOperator.Equal, cd.MappingSchema.GetSqlValue(value)));
 
 									itemCond.Conditions.Add(cond);
 								}
@@ -390,7 +392,7 @@
 										var value = ta[names[i]].GetValue(item);
 										var cond  = value == null ?
 											new Condition(false, new IsNull  (sql, false)) :
-											new Condition(false, new ExprExpr(sql, Operator.Equal, new SqlValue(value)));
+											new Condition(false, new ExprExpr(sql, EOperator.Equal, new SqlValue(value)));
 
 										itemCond.Conditions.Add(cond);
 									}

@@ -215,12 +215,12 @@ namespace LinqToDB.DataProvider.SapHana
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SearchCondition)
+				if (expr is ISearchCondition)
 					wrap = true;
 				else
 				{
 					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SearchCondition;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
 
@@ -253,7 +253,7 @@ namespace LinqToDB.DataProvider.SapHana
 				cond = new SearchCondition(
 					new Condition(
 						false,
-						new ExprExpr(cond, Operator.Equal, new SqlValue(1))));
+						new ExprExpr(cond, EOperator.Equal, new SqlValue(1))));
 			}
 
 			if (len == 3)

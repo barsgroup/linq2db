@@ -2,9 +2,9 @@
 {
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using SqlElements.Interfaces;
-    public interface ISqlPredicate : IQueryElement, ISqlExpressionWalkable, ICloneableElement
+
+
+    public interface ISqlPredicate : IQueryElement, ISqlExpressionWalkable, ICloneableElement,  IOperation
 	{
-		bool CanBeNull();
-		int  Precedence { get; }
 	}
 }

@@ -1,16 +1,18 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
+namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 {
     using System.Collections.Generic;
 
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public interface IFromClause: IClauseBase, ISqlExpressionWalkable
+    public interface IFromClause: IClauseWithConditionBase, ISqlExpressionWalkable
     {
-        IFromClause Table(ISqlTableSource table, params Join[] joins);
+        IFromClause Table(ISqlTableSource table, params IJoin[] joins);
 
-        IFromClause Table(ISqlTableSource table, string alias, params Join[] joins);
+        IFromClause Table(ISqlTableSource table, string alias, params IJoin[] joins);
 
         ITableSource this[ISqlTableSource table] { get; }
 

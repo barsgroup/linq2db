@@ -5,33 +5,41 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using System.Linq;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class SearchCondition : ConditionBase<SearchCondition, NextCondition>, ISqlPredicate, ISqlExpression
+    public interface ISearchCondition : ISqlExpression,
+        IConditionBase<ISearchCondition, SearchCondition.NextCondition>, ISqlPredicate
+    {
+        List<ICondition> Conditions { get; }
+    }
+
+    public class SearchCondition : ConditionBase<ISearchCondition, SearchCondition.NextCondition>,
+                                   ISearchCondition
     {
         public SearchCondition()
         {
         }
 
-        public SearchCondition(IEnumerable<Condition> list)
+        public SearchCondition(IEnumerable<ICondition> list)
         {
             _conditions.AddRange(list);
         }
 
-        public SearchCondition(params Condition[] list)
+        public SearchCondition(params ICondition[] list)
         {
             _conditions.AddRange(list);
         }
 
-        readonly List<Condition> _conditions = new List<Condition>();
-        public   List<Condition>  Conditions => _conditions;
+        readonly List<ICondition> _conditions = new List<ICondition>();
+        public   List<ICondition>  Conditions => _conditions;
 
-        protected override SearchCondition Search => this;
+        public override ISearchCondition Search => this;
 
-        protected override NextCondition GetNext()
+        public override NextCondition GetNext()
         {
             return new NextCondition(this);
         }
@@ -119,7 +127,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
                 objectTree.Add(this, clone = sc);
 
-                sc._conditions.AddRange(_conditions.Select(c => (Condition)c.Clone(objectTree, doClone)));
+                sc._conditions.AddRange(_conditions.Select(c => (ICondition)c.Clone(objectTree, doClone)));
             }
 
             return clone;
@@ -155,5 +163,21 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
         }
 
         #endregion
+
+        public class NextCondition
+        {
+            internal NextCondition(ISearchCondition parent)
+            {
+                _parent = parent;
+            }
+
+            readonly ISearchCondition _parent;
+
+            public ISearchCondition Or => _parent.SetOr(true);
+
+            public ISearchCondition And => _parent.SetOr(false);
+
+            public ISqlExpression ToExpr() { return _parent; }
+        }
     }
 }

@@ -9,6 +9,7 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
@@ -203,7 +204,7 @@ namespace LinqToDB.Linq.Builder
 
 		static void BuildJoin(
 			ExpressionBuilder builder,
-			Join join,
+            IJoin join,
 			IBuildContext outerKeyContext, Expression outerKeySelector,
 			IBuildContext innerKeyContext, Expression innerKeySelector)
 		{
@@ -216,7 +217,7 @@ namespace LinqToDB.Linq.Builder
 			{
 				predicate = new ExprExpr(
 					builder.ConvertToSql(outerKeyContext, outerKeySelector),
-					Operator.Equal,
+					EOperator.Equal,
 					builder.ConvertToSql(innerKeyContext, innerKeySelector));
 
 				predicate = builder.Convert(outerKeyContext, predicate);
@@ -240,7 +241,7 @@ namespace LinqToDB.Linq.Builder
 			{
 				predicate = new ExprExpr(
 					builder.ConvertToSql(outerKeyContext, outerKeySelector),
-					Operator.Equal,
+					EOperator.Equal,
 					builder.ConvertToSql(subQueryKeyContext, innerKeySelector));
 
 				predicate = builder.Convert(outerKeyContext, predicate);

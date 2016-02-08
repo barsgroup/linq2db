@@ -4,12 +4,10 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
-    public interface ISqlExpression : IQueryElement, IEquatable<ISqlExpression>, ISqlExpressionWalkable, ICloneableElement
-	{
-		bool CanBeNull();
+    public interface ISqlExpression : IQueryElement, IEquatable<ISqlExpression>, ISqlExpressionWalkable, ICloneableElement, IOperation
+    {
 		bool Equals   (ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer);
-
-		int  Precedence { get; }
+	
 		Type SystemType { get; }
 	}
 }

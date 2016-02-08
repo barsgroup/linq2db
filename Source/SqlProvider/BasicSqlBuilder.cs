@@ -1249,12 +1249,12 @@ namespace LinqToDB.SqlProvider
 
 		#region BuildSearchCondition
 
-		protected virtual void BuildWhereSearchCondition(SearchCondition condition)
+		protected virtual void BuildWhereSearchCondition(ISearchCondition condition)
 		{
 			BuildSearchCondition(Precedence.Unknown, condition);
 		}
 
-		protected virtual void BuildSearchCondition(SearchCondition condition)
+		protected virtual void BuildSearchCondition(ISearchCondition condition)
 		{
 			var isOr = (bool?)null;
 			var len  = StringBuilder.Length;
@@ -1289,7 +1289,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		protected virtual void BuildSearchCondition(int parentPrecedence, SearchCondition condition)
+		protected virtual void BuildSearchCondition(int parentPrecedence, ISearchCondition condition)
 		{
 			var wrap = Wrap(GetPrecedence(condition as ISqlExpression), parentPrecedence);
 
@@ -1310,10 +1310,10 @@ namespace LinqToDB.SqlProvider
 					{
 						var expr = (ExprExpr)predicate;
 
-						switch (expr.Operator)
+						switch (expr.EOperator)
 						{
-							case Operator.Equal :
-							case Operator.NotEqual :
+							case EOperator.Equal :
+							case EOperator.NotEqual :
 								{
 									ISqlExpression e = null;
 
@@ -1325,7 +1325,7 @@ namespace LinqToDB.SqlProvider
 									if (e != null)
 									{
 										BuildExpression(GetPrecedence(expr), e);
-										StringBuilder.Append(expr.Operator == Operator.Equal ? " IS NULL" : " IS NOT NULL");
+										StringBuilder.Append(expr.EOperator == EOperator.Equal ? " IS NULL" : " IS NOT NULL");
 										return;
 									}
 
@@ -1335,16 +1335,16 @@ namespace LinqToDB.SqlProvider
 
 						BuildExpression(GetPrecedence(expr), expr.Expr1);
 
-						switch (expr.Operator)
+						switch (expr.EOperator)
 						{
-							case Operator.Equal          : StringBuilder.Append(" = ");  break;
-							case Operator.NotEqual       : StringBuilder.Append(" <> "); break;
-							case Operator.Greater        : StringBuilder.Append(" > ");  break;
-							case Operator.GreaterOrEqual : StringBuilder.Append(" >= "); break;
-							case Operator.NotGreater     : StringBuilder.Append(" !> "); break;
-							case Operator.Less           : StringBuilder.Append(" < ");  break;
-							case Operator.LessOrEqual    : StringBuilder.Append(" <= "); break;
-							case Operator.NotLess        : StringBuilder.Append(" !< "); break;
+							case EOperator.Equal          : StringBuilder.Append(" = ");  break;
+							case EOperator.NotEqual       : StringBuilder.Append(" <> "); break;
+							case EOperator.Greater        : StringBuilder.Append(" > ");  break;
+							case EOperator.GreaterOrEqual : StringBuilder.Append(" >= "); break;
+							case EOperator.NotGreater     : StringBuilder.Append(" !> "); break;
+							case EOperator.Less           : StringBuilder.Append(" < ");  break;
+							case EOperator.LessOrEqual    : StringBuilder.Append(" <= "); break;
+							case EOperator.NotLess        : StringBuilder.Append(" !< "); break;
 						}
 
 						BuildExpression(GetPrecedence(expr), expr.Expr2);
@@ -1401,7 +1401,7 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case EQueryElementType.SearchCondition :
-					BuildSearchCondition(predicate.Precedence, (SearchCondition)predicate);
+					BuildSearchCondition(predicate.Precedence, (ISearchCondition)predicate);
 					break;
 
 				case EQueryElementType.NotExprPredicate :
@@ -1909,7 +1909,7 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case EQueryElementType.SearchCondition:
-					BuildSearchCondition(expr.Precedence, (SearchCondition)expr);
+					BuildSearchCondition(expr.Precedence, (ISearchCondition)expr);
 					break;
 
 				default:

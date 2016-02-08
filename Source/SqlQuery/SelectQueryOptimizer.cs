@@ -7,6 +7,7 @@ namespace LinqToDB.SqlQuery
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Clauses;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
@@ -425,7 +426,7 @@ namespace LinqToDB.SqlQuery
 
 	    }
 
-	    internal static void OptimizeSearchCondition(SearchCondition searchCondition)
+	    internal static void OptimizeSearchCondition(ISearchCondition searchCondition)
 		{
 			// This 'if' could be replaced by one simple match:
 			//
@@ -448,9 +449,9 @@ namespace LinqToDB.SqlQuery
 			{
 				var cond = searchCondition.Conditions[0];
 
-				if (cond.Predicate is SearchCondition)
+				if (cond.Predicate is ISearchCondition)
 				{
-					var sc = (SearchCondition)cond.Predicate;
+					var sc = (ISearchCondition)cond.Predicate;
 
 					if (!cond.IsNot)
 					{
@@ -468,18 +469,18 @@ namespace LinqToDB.SqlQuery
 						if (!c1.IsNot && c1.Predicate is ExprExpr)
 						{
 							var ee = (ExprExpr)c1.Predicate;
-							Operator op;
+							EOperator op;
 
-							switch (ee.Operator)
+							switch (ee.EOperator)
 							{
-								case Operator.Equal          : op = Operator.NotEqual;       break;
-								case Operator.NotEqual       : op = Operator.Equal;          break;
-								case Operator.Greater        : op = Operator.LessOrEqual;    break;
-								case Operator.NotLess        :
-								case Operator.GreaterOrEqual : op = Operator.Less;           break;
-								case Operator.Less           : op = Operator.GreaterOrEqual; break;
-								case Operator.NotGreater     :
-								case Operator.LessOrEqual    : op = Operator.Greater;        break;
+								case EOperator.Equal          : op = EOperator.NotEqual;       break;
+								case EOperator.NotEqual       : op = EOperator.Equal;          break;
+								case EOperator.Greater        : op = EOperator.LessOrEqual;    break;
+								case EOperator.NotLess        :
+								case EOperator.GreaterOrEqual : op = EOperator.Less;           break;
+								case EOperator.Less           : op = EOperator.GreaterOrEqual; break;
+								case EOperator.NotGreater     :
+								case EOperator.LessOrEqual    : op = EOperator.Greater;        break;
 								default: throw new InvalidOperationException();
 							}
 
@@ -539,9 +540,9 @@ namespace LinqToDB.SqlQuery
 						}
 					}
 				}
-				else if (cond.Predicate is SearchCondition)
+				else if (cond.Predicate is ISearchCondition)
 				{
-					var sc = (SearchCondition)cond.Predicate;
+					var sc = (ISearchCondition)cond.Predicate;
 					OptimizeSearchCondition(sc);
 				}
 			}
@@ -799,7 +800,7 @@ namespace LinqToDB.SqlQuery
 				if (isApplySupported && (isAgg || sql.Select.TakeValue != null || sql.Select.SkipValue != null))
 					return;
 
-				var searchCondition = new List<Condition>(sql.Where.SearchCondition.Conditions);
+				var searchCondition = new List<ICondition>(sql.Where.SearchCondition.Conditions);
 
 				sql.Where.SearchCondition.Conditions.Clear();
 
@@ -849,7 +850,7 @@ namespace LinqToDB.SqlQuery
 				e.ElementType == EQueryElementType.Column   && table == ((IColumn)  e).Parent);
 		}
 
-		static void ConcatSearchCondition(WhereClause where1, WhereClause where2)
+		static void ConcatSearchCondition(IWhereClause where1, IWhereClause where2)
 		{
 			if (where1.IsEmpty)
 			{

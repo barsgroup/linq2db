@@ -98,7 +98,7 @@ namespace LinqToDB.DataProvider.SqlServer
 				cond = new SearchCondition(
 					new Condition(
 						false,
-						new ExprExpr(cond, Operator.Equal, new SqlValue(1))));
+						new ExprExpr(cond, EOperator.Equal, new SqlValue(1))));
 			}
 
 			if (len == 3)

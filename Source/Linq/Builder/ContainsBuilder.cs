@@ -3,13 +3,13 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using LinqToDB.Expressions;
-	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.QueryElements.Conditions;
-	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.QueryElements.SqlElements;
-	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
+    using LinqToDB.Expressions;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using SqlQuery.QueryElements.Conditions.Interfaces;
     class ContainsBuilder : MethodCallBuilder
 	{
 		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
@@ -125,7 +125,7 @@ namespace LinqToDB.Linq.Builder
 
 					Builder.ReplaceParent(ctx, this);
 
-					Condition cond;
+                    ICondition cond;
 
 					if (Sequence.Select != Select &&
 						(ctx.IsExpression(expr, 0, RequestFor.Field).     Result ||

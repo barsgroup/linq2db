@@ -3,6 +3,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
     using System.Collections.Generic;
 
     using LinqToDB.SqlQuery.QueryElements.Clauses;
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -32,11 +33,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         IFromClause From { get; }
 
-        WhereClause Where { get; }
+        IWhereClause Where { get; }
 
         GroupByClause GroupBy { get; }
 
-        WhereClause Having { get; }
+        IWhereClause Having { get; }
 
         IOrderByClause OrderBy { get; }
 

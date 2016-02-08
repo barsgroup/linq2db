@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
     using System.Collections.Generic;
 
     using LinqToDB.SqlQuery.QueryElements.Clauses;
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -46,11 +47,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         IFromClause From { get; }
 
-        WhereClause Where { get; }
+        IWhereClause Where { get; }
 
         GroupByClause GroupBy { get; }
 
-        WhereClause Having { get; }
+        IWhereClause Having { get; }
 
         IOrderByClause OrderBy { get; }
 
@@ -91,9 +92,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
                   DeleteClause delete,
                   ISelectClause select,
                   IFromClause from,
-                  WhereClause where,
+                  IWhereClause where,
                   GroupByClause groupBy,
-                  WhereClause having,
+                  IWhereClause having,
                   IOrderByClause orderBy,
                   List<IUnion> unions,
                   ISelectQuery parentSelect,

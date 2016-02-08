@@ -17,6 +17,7 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.SqlEntities;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
@@ -282,7 +283,7 @@ namespace LinqToDB.Linq.Builder
 
 						if (cond.Predicate.ElementType == EQueryElementType.ExprExprPredicate && query.GroupBy.Items.Count == 1 ||
 						    cond.Predicate.ElementType == EQueryElementType.SearchCondition &&
-						    query.GroupBy.Items.Count == ((SearchCondition)cond.Predicate).Conditions.Count)
+						    query.GroupBy.Items.Count == ((ISearchCondition)cond.Predicate).Conditions.Count)
 						{
 							var func = (SqlFunction)subQuery.Select.Columns[0].Expression;
 
@@ -1319,7 +1320,7 @@ namespace LinqToDB.Linq.Builder
 					return Convert(context,
 						new ExprExpr(
 							ConvertToSql(context, expression),
-							Operator.Equal,
+							EOperator.Equal,
 							new SqlValue(true)));
 
 				case ExpressionType.MemberAccess :
@@ -1352,7 +1353,7 @@ namespace LinqToDB.Linq.Builder
 			var ex = ConvertToSql(context, expression);
 
 			if (SqlExpression.NeedsEqual(ex))
-				return Convert(context, new ExprExpr(ex, Operator.Equal, new SqlValue(true)));
+				return Convert(context, new ExprExpr(ex, EOperator.Equal, new SqlValue(true)));
 
 			return Convert(context, new Expr(ex));
 		}
@@ -1410,16 +1411,16 @@ namespace LinqToDB.Linq.Builder
 					break;
 			}
 
-			Operator op;
+			EOperator op;
 
 			switch (nodeType)
 			{
-				case ExpressionType.Equal             : op = Operator.Equal;          break;
-				case ExpressionType.NotEqual          : op = Operator.NotEqual;       break;
-				case ExpressionType.GreaterThan       : op = Operator.Greater;        break;
-				case ExpressionType.GreaterThanOrEqual: op = Operator.GreaterOrEqual; break;
-				case ExpressionType.LessThan          : op = Operator.Less;           break;
-				case ExpressionType.LessThanOrEqual   : op = Operator.LessOrEqual;    break;
+				case ExpressionType.Equal             : op = EOperator.Equal;          break;
+				case ExpressionType.NotEqual          : op = EOperator.NotEqual;       break;
+				case ExpressionType.GreaterThan       : op = EOperator.Greater;        break;
+				case ExpressionType.GreaterThanOrEqual: op = EOperator.GreaterOrEqual; break;
+				case ExpressionType.LessThan          : op = EOperator.Less;           break;
+				case ExpressionType.LessThanOrEqual   : op = EOperator.LessOrEqual;    break;
 				default: throw new InvalidOperationException();
 			}
 
@@ -1463,10 +1464,10 @@ namespace LinqToDB.Linq.Builder
 			        break;
 			}
 
-			if (l is SearchCondition)
+			if (l is ISearchCondition)
 				l = Convert(context, new SqlFunction(typeof(bool), "CASE", l, new SqlValue(true), new SqlValue(false)));
 
-			if (r is SearchCondition)
+			if (r is ISearchCondition)
 				r = Convert(context, new SqlFunction(typeof(bool), "CASE", r, new SqlValue(true), new SqlValue(false)));
 
 			return Convert(context, new ExprExpr(l, op, r));
@@ -1476,7 +1477,7 @@ namespace LinqToDB.Linq.Builder
 
 		#region ConvertEnumConversion
 
-		ISqlPredicate ConvertEnumConversion(IBuildContext context, Expression left, Operator op, Expression right)
+		ISqlPredicate ConvertEnumConversion(IBuildContext context, Expression left, EOperator op, Expression right)
 		{
 			Expression value;
 			Expression operand;
@@ -1705,7 +1706,7 @@ namespace LinqToDB.Linq.Builder
 
 				var predicate = Convert(leftContext, new ExprExpr(
 					lcol.Sql,
-					nodeType == ExpressionType.Equal ? Operator.Equal : Operator.NotEqual,
+					nodeType == ExpressionType.Equal ? EOperator.Equal : EOperator.NotEqual,
 					rex));
 
 				condition.Conditions.Add(new Condition(false, predicate));
@@ -1753,7 +1754,7 @@ namespace LinqToDB.Linq.Builder
 				var predicate = Convert(context,
 					new ExprExpr(
 						lex,
-						nodeType == ExpressionType.Equal ? Operator.Equal : Operator.NotEqual,
+						nodeType == ExpressionType.Equal ? EOperator.Equal : EOperator.NotEqual,
 						rex));
 
 				condition.Conditions.Add(new Condition(false, predicate));
@@ -2052,7 +2053,7 @@ namespace LinqToDB.Linq.Builder
 										Convert(context,
 											new ExprExpr(
 												getSql(m.DiscriminatorName),
-												Operator.NotEqual,
+												EOperator.NotEqual,
 												MappingSchema.GetSqlValue(m.Discriminator.MemberType, m.Code)))));
 							}
 						}
@@ -2066,7 +2067,7 @@ namespace LinqToDB.Linq.Builder
 										Convert(context,
 											new ExprExpr(
 												getSql(m.DiscriminatorName),
-												Operator.Equal,
+												EOperator.Equal,
 												MappingSchema.GetSqlValue(m.Discriminator.MemberType, m.Code))),
 										true));
 							}
@@ -2079,7 +2080,7 @@ namespace LinqToDB.Linq.Builder
 					return Convert(context,
 						new ExprExpr(
 							getSql(mapping[0].DiscriminatorName),
-							Operator.Equal,
+							EOperator.Equal,
 							MappingSchema.GetSqlValue(mapping[0].Discriminator.MemberType, mapping[0].Code)));
 
 				default:
@@ -2094,7 +2095,7 @@ namespace LinqToDB.Linq.Builder
 									Convert(context,
 										new ExprExpr(
 											getSql(m.DiscriminatorName),
-											Operator.Equal,
+											EOperator.Equal,
 											MappingSchema.GetSqlValue(m.Discriminator.MemberType, m.Code))),
 									true));
 						}
@@ -2156,7 +2157,7 @@ namespace LinqToDB.Linq.Builder
 
 		#region Search Condition Builder
 
-		void BuildSearchCondition(IBuildContext context, Expression expression, List<Condition> conditions)
+		void BuildSearchCondition(IBuildContext context, Expression expression, List<ICondition> conditions)
 		{
 			switch (expression.NodeType)
 			{
@@ -2214,7 +2215,7 @@ namespace LinqToDB.Linq.Builder
 
 						if (expr.ElementType == EQueryElementType.SearchCondition)
 						{
-							var sc = (SearchCondition)expr;
+							var sc = (ISearchCondition)expr;
 
 							if (sc.Conditions.Count == 1)
 							{
@@ -2380,7 +2381,7 @@ namespace LinqToDB.Linq.Builder
 
 		internal ISqlExpression ConvertSearchCondition(IBuildContext context, ISqlExpression sqlExpression)
 		{
-			if (sqlExpression is SearchCondition)
+			if (sqlExpression is ISearchCondition)
 			{
 				if (sqlExpression.CanBeNull())
 				{

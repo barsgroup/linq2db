@@ -3,39 +3,41 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class Join : ConditionBase<Join,Join.Next>
+    public class Join : ConditionBase<IJoin, Join.Next>,
+                        IJoin
     {
         public class Next
         {
-            internal Next(Join parent)
+            internal Next(IJoin parent)
             {
                 _parent = parent;
             }
 
-            readonly Join _parent;
+            readonly IJoin _parent;
 
-            public Join Or => _parent.SetOr(true);
+            public IJoin Or => _parent.SetOr(true);
 
-            public Join And => _parent.SetOr(false);
+            public IJoin And => _parent.SetOr(false);
 
             public static implicit operator Join(Next next)
             {
-                return next._parent;
+                return (Join)next._parent;
             }
         }
 
-        protected override SearchCondition Search => JoinedTable.Condition;
+        public override ISearchCondition Search => JoinedTable.Condition;
 
-        protected override Next GetNext()
+        public override Next GetNext()
         {
             return new Next(this);
         }
 
-        internal Join(JoinType joinType, ISqlTableSource table, string alias, bool isWeak, ICollection<Join> joins)
+        internal Join(JoinType joinType, ISqlTableSource table, string alias, bool isWeak, ICollection<IJoin> joins)
         {
             JoinedTable = new JoinedTable(joinType, table, alias, isWeak);
 

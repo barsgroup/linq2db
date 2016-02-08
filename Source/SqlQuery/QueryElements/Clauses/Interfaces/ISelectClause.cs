@@ -4,7 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public interface ISelectClause : IClauseBase, ISqlExpressionWalkable
+    public interface ISelectClause : IClauseWithConditionBase, ISqlExpressionWalkable
     {
         ISelectClause Expr(ISqlExpression expr);
 

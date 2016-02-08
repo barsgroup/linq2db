@@ -7,22 +7,22 @@ using System.Reflection;
 
 namespace LinqToDB.Linq.Builder
 {
-	using Common;
-	using Extensions;
-	using LinqToDB.Expressions;
-	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.QueryElements.Conditions;
-	using LinqToDB.SqlQuery.QueryElements.Enums;
-	using LinqToDB.SqlQuery.QueryElements.Interfaces;
-	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.QueryElements.SqlElements;
-	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using Common;
+    using Extensions;
+    using LinqToDB.Expressions;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	using Mapping;
-	using Reflection;
-	using SqlQuery;
-
-	class TableBuilder : ISequenceBuilder
+    using Mapping;
+    using Reflection;
+    using SqlQuery;
+    using SqlQuery.QueryElements.Conditions.Interfaces;
+    class TableBuilder : ISequenceBuilder
 	{
 		#region TableBuilder
 
@@ -234,7 +234,7 @@ namespace LinqToDB.Linq.Builder
 				}
 			}
 
-			protected virtual List<Condition> GetDescriminatorConditionsStorage()
+			protected virtual List<ICondition> GetDescriminatorConditionsStorage()
 			{
 				return Select.Where.SearchCondition.Conditions;
 			}
@@ -866,9 +866,9 @@ namespace LinqToDB.Linq.Builder
 					{
 						ExprExpr p;
 
-						if (cond.Predicate is SearchCondition)
+						if (cond.Predicate is ISearchCondition)
 						{
-							p = ((SearchCondition)cond.Predicate).Conditions
+							p = ((ISearchCondition)cond.Predicate).Conditions
 								.Select(c => c.Predicate)
 								.OfType<ExprExpr>()
 								.First();
@@ -1331,7 +1331,7 @@ namespace LinqToDB.Linq.Builder
 //					join.Field(field1).Equal.Field(field2);
 
 					ISqlPredicate predicate = new ExprExpr(
-						field1, Operator.Equal, field2);
+						field1, EOperator.Equal, field2);
 
 					predicate = builder.Convert(parent, predicate);
 
@@ -1341,7 +1341,7 @@ namespace LinqToDB.Linq.Builder
 				Init();
 			}
 
-			protected override List<Condition> GetDescriminatorConditionsStorage()
+			protected override List<ICondition> GetDescriminatorConditionsStorage()
 			{
 				return ParentAssociationJoin.Condition.Conditions;
 			}

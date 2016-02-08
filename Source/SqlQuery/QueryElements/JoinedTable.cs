@@ -11,7 +11,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
     public class JoinedTable : BaseQueryElement, IJoinedTable
     {
-        public JoinedTable(JoinType joinType, ITableSource table, bool isWeak, SearchCondition searchCondition)
+        public JoinedTable(JoinType joinType, ITableSource table, bool isWeak, ISearchCondition searchCondition)
         {
             JoinType        = joinType;
             Table           = table;
@@ -32,7 +32,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public JoinType        JoinType        { get; set; }
         public ITableSource Table           { get; set; }
-        public SearchCondition Condition       { get; private set; }
+        public ISearchCondition Condition       { get; private set; }
         public bool            IsWeak          { get; set; }
         public bool            CanConvertApply { get; set; }
 
@@ -48,7 +48,7 @@ namespace LinqToDB.SqlQuery.QueryElements
                                                  JoinType,
                                                  (ITableSource)Table.Clone(objectTree, doClone), 
                                                  IsWeak,
-                                                 (SearchCondition)Condition.Clone(objectTree, doClone)));
+                                                 (ISearchCondition)Condition.Clone(objectTree, doClone)));
 
             return clone;
         }
@@ -66,7 +66,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public ISqlExpression Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> action)
         {
-            Condition = (SearchCondition)((ISqlExpressionWalkable)Condition).Walk(skipColumns, action);
+            Condition = (ISearchCondition)((ISqlExpressionWalkable)Condition).Walk(skipColumns, action);
 
             Table.Walk(skipColumns, action);
 

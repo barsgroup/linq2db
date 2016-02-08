@@ -354,7 +354,7 @@
 
 		#region ISqlExpression Members
 
-		bool ISqlExpression.CanBeNull()
+        public bool CanBeNull()
 		{
 			return true;
 		}
@@ -364,9 +364,9 @@
 			return this == other;
 		}
 
-		int ISqlExpression.Precedence
+        public int Precedence
 		{
-			get { return Precedence.Unknown; }
+			get { return SqlQuery.Precedence.Unknown; }
 		}
 
 		Type ISqlExpression.SystemType

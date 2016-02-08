@@ -5,7 +5,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 	using System.Linq;
 	using System.Text;
 
+	using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -34,12 +36,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 			_tables.AddRange(tables);
 		}
 
-		public IFromClause Table(ISqlTableSource table, params Join[] joins)
+		public IFromClause Table(ISqlTableSource table, params IJoin[] joins)
 		{
 			return Table(table, null, joins);
 		}
 
-		public IFromClause Table(ISqlTableSource table, string alias, params Join[] joins)
+		public IFromClause Table(ISqlTableSource table, string alias, params IJoin[] joins)
 		{
 			var ts = AddOrGetTable(table, alias);
 

@@ -755,7 +755,7 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case EQueryElementType.SearchCondition :
-					SelectQueryOptimizer.OptimizeSearchCondition((SearchCondition)expression);
+					SelectQueryOptimizer.OptimizeSearchCondition((ISearchCondition)expression);
 					break;
 
 				case EQueryElementType.SqlExpression   :
@@ -791,20 +791,20 @@ namespace LinqToDB.SqlProvider
 								((SqlParameter)expr.Expr1).DataType = ((SqlField)expr.Expr2).DataType;
 						}
 
-						if (expr.Operator == Operator.Equal && expr.Expr1 is SqlValue && expr.Expr2 is SqlValue)
+						if (expr.EOperator == EOperator.Equal && expr.Expr1 is SqlValue && expr.Expr2 is SqlValue)
 						{
 							var value = Equals(((SqlValue)expr.Expr1).Value, ((SqlValue)expr.Expr2).Value);
 							return new Expr(new SqlValue(value), Precedence.Comparison);
 						}
 
-						switch (expr.Operator)
+						switch (expr.EOperator)
 						{
-							case Operator.Equal          :
-							case Operator.NotEqual       :
-							case Operator.Greater        :
-							case Operator.GreaterOrEqual :
-							case Operator.Less           :
-							case Operator.LessOrEqual    :
+							case EOperator.Equal          :
+							case EOperator.NotEqual       :
+							case EOperator.Greater        :
+							case EOperator.GreaterOrEqual :
+							case EOperator.Less           :
+							case EOperator.LessOrEqual    :
 								predicate = OptimizeCase(selectQuery, expr);
 								break;
 						}
@@ -813,10 +813,10 @@ namespace LinqToDB.SqlProvider
 						{
 							expr = (ExprExpr)predicate;
 
-							switch (expr.Operator)
+							switch (expr.EOperator)
 							{
-								case Operator.Equal      :
-								case Operator.NotEqual   :
+								case EOperator.Equal      :
+								case EOperator.NotEqual   :
 									var expr1 = expr.Expr1;
 									var expr2 = expr.Expr2;
 
@@ -841,9 +841,9 @@ namespace LinqToDB.SqlProvider
 					{
 						var expr = (NotExpr)predicate;
 
-						if (expr.IsNot && expr.Expr1 is SearchCondition)
+						if (expr.IsNot && expr.Expr1 is ISearchCondition)
 						{
-							var sc = (SearchCondition)expr.Expr1;
+							var sc = (ISearchCondition)expr.Expr1;
 
 							if (sc.Conditions.Count == 1)
 							{
@@ -856,11 +856,11 @@ namespace LinqToDB.SqlProvider
 								{
 									var ee = (ExprExpr)cond.Predicate;
 
-									if (ee.Operator == Operator.Equal)
-										return new ExprExpr(ee.Expr1, Operator.NotEqual, ee.Expr2);
+									if (ee.EOperator == EOperator.Equal)
+										return new ExprExpr(ee.Expr1, EOperator.NotEqual, ee.Expr2);
 
-									if (ee.Operator == Operator.NotEqual)
-										return new ExprExpr(ee.Expr1, Operator.Equal, ee.Expr2);
+									if (ee.EOperator == EOperator.NotEqual)
+										return new ExprExpr(ee.Expr1, EOperator.Equal, ee.Expr2);
 								}
 							}
 						}
@@ -878,7 +878,7 @@ namespace LinqToDB.SqlProvider
 			var expr2 = expr.Expr2;
 			var cond  = new SearchCondition();
 
-			if (expr.Operator == Operator.Equal)
+			if (expr.EOperator == EOperator.Equal)
 				cond
 					.Expr(expr1).IsNull.    And .Expr(expr2).IsNull. Or
 					/*.Expr(expr1).IsNotNull. And .Expr(expr2).IsNotNull. And */.Expr(expr1).Equal.Expr(expr2);
@@ -891,18 +891,18 @@ namespace LinqToDB.SqlProvider
 			return cond;
 		}
 
-		static Operator InvertOperator(Operator op, bool skipEqual)
+		static EOperator InvertOperator(EOperator op, bool skipEqual)
 		{
 			switch (op)
 			{
-				case Operator.Equal          : return skipEqual ? op : Operator.NotEqual;
-				case Operator.NotEqual       : return skipEqual ? op : Operator.Equal;
-				case Operator.Greater        : return Operator.LessOrEqual;
-				case Operator.NotLess        :
-				case Operator.GreaterOrEqual : return Operator.Less;
-				case Operator.Less           : return Operator.GreaterOrEqual;
-				case Operator.NotGreater     :
-				case Operator.LessOrEqual    : return Operator.Greater;
+				case EOperator.Equal          : return skipEqual ? op : EOperator.NotEqual;
+				case EOperator.NotEqual       : return skipEqual ? op : EOperator.Equal;
+				case EOperator.Greater        : return EOperator.LessOrEqual;
+				case EOperator.NotLess        :
+				case EOperator.GreaterOrEqual : return EOperator.Less;
+				case EOperator.Less           : return EOperator.GreaterOrEqual;
+				case EOperator.NotGreater     :
+				case EOperator.LessOrEqual    : return EOperator.Greater;
 				default: throw new InvalidOperationException();
 			}
 		}
@@ -927,9 +927,9 @@ namespace LinqToDB.SqlProvider
 			{
 				if (value.Value is int && func.Parameters.Length == 5)
 				{
-					var c1 = func.Parameters[0] as SearchCondition;
+					var c1 = func.Parameters[0] as ISearchCondition;
 					var v1 = func.Parameters[1] as SqlValue;
-					var c2 = func.Parameters[2] as SearchCondition;
+					var c2 = func.Parameters[2] as ISearchCondition;
 					var v2 = func.Parameters[3] as SqlValue;
 					var v3 = func.Parameters[4] as SqlValue;
 
@@ -943,9 +943,9 @@ namespace LinqToDB.SqlProvider
 						{
 							int e = 0, g = 0, l = 0;
 
-							if (ee1.Operator == Operator.Equal   || ee2.Operator == Operator.Equal)   e = 1;
-							if (ee1.Operator == Operator.Greater || ee2.Operator == Operator.Greater) g = 1;
-							if (ee1.Operator == Operator.Less    || ee2.Operator == Operator.Less)    l = 1;
+							if (ee1.EOperator == EOperator.Equal   || ee2.EOperator == EOperator.Equal)   e = 1;
+							if (ee1.EOperator == EOperator.Greater || ee2.EOperator == EOperator.Greater) g = 1;
+							if (ee1.EOperator == EOperator.Less    || ee2.EOperator == EOperator.Less)    l = 1;
 
 							if (e + g + l == 2)
 							{
@@ -954,9 +954,9 @@ namespace LinqToDB.SqlProvider
 								var i2 = (int)v2.Value;
 								var i3 = (int)v3.Value;
 
-								var n1 = Compare(valueFirst ? n : i1, valueFirst ? i1 : n, expr.Operator) ? 1 : 0;
-								var n2 = Compare(valueFirst ? n : i2, valueFirst ? i2 : n, expr.Operator) ? 1 : 0;
-								var n3 = Compare(valueFirst ? n : i3, valueFirst ? i3 : n, expr.Operator) ? 1 : 0;
+								var n1 = Compare(valueFirst ? n : i1, valueFirst ? i1 : n, expr.EOperator) ? 1 : 0;
+								var n2 = Compare(valueFirst ? n : i2, valueFirst ? i2 : n, expr.EOperator) ? 1 : 0;
+								var n3 = Compare(valueFirst ? n : i3, valueFirst ? i3 : n, expr.EOperator) ? 1 : 0;
 
 								if (n1 + n2 + n3 == 1)
 								{
@@ -967,9 +967,9 @@ namespace LinqToDB.SqlProvider
 										selectQuery,
 										new ExprExpr(
 											ee1.Expr1,
-											e == 0 ? Operator.Equal :
-											g == 0 ? Operator.Greater :
-													 Operator.Less,
+											e == 0 ? EOperator.Equal :
+											g == 0 ? EOperator.Greater :
+													 EOperator.Less,
 											ee1.Expr2));
 								}
 
@@ -980,15 +980,15 @@ namespace LinqToDB.SqlProvider
 								//			THEN 0
 								//		ELSE -1
 								//	END <= 0
-								if (ee1.Operator == Operator.Greater && i1 == 1 &&
-									ee2.Operator == Operator.Equal   && i2 == 0 &&
+								if (ee1.EOperator == EOperator.Greater && i1 == 1 &&
+									ee2.EOperator == EOperator.Equal   && i2 == 0 &&
 									i3 == -1 && n == 0)
 								{
 									return ConvertPredicate(
 										selectQuery,
 										new ExprExpr(
 											ee1.Expr1,
-											valueFirst ? InvertOperator(expr.Operator, true) : expr.Operator,
+											valueFirst ? InvertOperator(expr.EOperator, true) : expr.EOperator,
 											ee1.Expr2));
 								}
 							}
@@ -997,7 +997,7 @@ namespace LinqToDB.SqlProvider
 				}
 				else if (value.Value is bool && func.Parameters.Length == 3)
 				{
-					var c1 = func.Parameters[0] as SearchCondition;
+					var c1 = func.Parameters[0] as ISearchCondition;
 					var v1 = func.Parameters[1] as SqlValue;
 					var v2 = func.Parameters[2] as SqlValue;
 
@@ -1007,20 +1007,20 @@ namespace LinqToDB.SqlProvider
 						var bv1 = (bool)v1.Value;
 						var bv2 = (bool)v2.Value;
 
-						if (bv == bv1 && expr.Operator == Operator.Equal ||
-							bv != bv1 && expr.Operator == Operator.NotEqual)
+						if (bv == bv1 && expr.EOperator == EOperator.Equal ||
+							bv != bv1 && expr.EOperator == EOperator.NotEqual)
 						{
 							return c1;
 						}
 
-						if (bv == bv2 && expr.Operator == Operator.NotEqual ||
-							bv != bv1 && expr.Operator == Operator.Equal)
+						if (bv == bv2 && expr.EOperator == EOperator.NotEqual ||
+							bv != bv1 && expr.EOperator == EOperator.Equal)
 						{
 							var ee = c1.Conditions[0].Predicate as ExprExpr;
 
 							if (ee != null)
 							{
-								var op = InvertOperator(ee.Operator, false);
+								var op = InvertOperator(ee.EOperator, false);
 								return new ExprExpr(ee.Expr1, op, ee.Expr2);
 							}
 
@@ -1032,9 +1032,9 @@ namespace LinqToDB.SqlProvider
 						}
 					}
 				}
-				else if (expr.Operator == Operator.Equal && func.Parameters.Length == 3)
+				else if (expr.EOperator == EOperator.Equal && func.Parameters.Length == 3)
 				{
-					var sc = func.Parameters[0] as SearchCondition;
+					var sc = func.Parameters[0] as ISearchCondition;
 					var v1 = func.Parameters[1] as SqlValue;
 					var v2 = func.Parameters[2] as SqlValue;
 
@@ -1054,18 +1054,18 @@ namespace LinqToDB.SqlProvider
 			return expr;
 		}
 
-		static bool Compare(int v1, int v2, Operator op)
+		static bool Compare(int v1, int v2, EOperator op)
 		{
 			switch (op)
 			{
-				case Operator.Equal:           return v1 == v2;
-				case Operator.NotEqual:        return v1 != v2;
-				case Operator.Greater:         return v1 >  v2;
-				case Operator.NotLess:
-				case Operator.GreaterOrEqual:  return v1 >= v2;
-				case Operator.Less:            return v1 <  v2;
-				case Operator.NotGreater:
-				case Operator.LessOrEqual:     return v1 <= v2;
+				case EOperator.Equal:           return v1 == v2;
+				case EOperator.NotEqual:        return v1 != v2;
+				case EOperator.Greater:         return v1 >  v2;
+				case EOperator.NotLess:
+				case EOperator.GreaterOrEqual:  return v1 >= v2;
+				case EOperator.Less:            return v1 <  v2;
+				case EOperator.NotGreater:
+				case EOperator.LessOrEqual:     return v1 <= v2;
 			}
 
 			throw new InvalidOperationException();
@@ -1125,7 +1125,7 @@ namespace LinqToDB.SqlProvider
 				var sc = new SearchCondition();
 
 				sc.Conditions.Add(
-					new Condition(false, new ExprExpr(par, Operator.Equal, new SqlValue(0))));
+					new Condition(false, new ExprExpr(par, EOperator.Equal, new SqlValue(0))));
 
 				return ConvertExpression(new SqlFunction(func.SystemType, "CASE", sc, new SqlValue(false), new SqlValue(true)));
 			}
@@ -1189,7 +1189,7 @@ namespace LinqToDB.SqlProvider
 					{
 						sc2.Conditions.Add(new Condition(
 							false,
-							new ExprExpr(copyKeys[i], Operator.Equal, tableKeys[i])));
+							new ExprExpr(copyKeys[i], EOperator.Equal, tableKeys[i])));
 					}
 
 					selectQuery.Where.SearchCondition.Conditions.Clear();

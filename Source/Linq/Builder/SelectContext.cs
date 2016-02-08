@@ -386,7 +386,7 @@ namespace LinqToDB.Linq.Builder
 
 		SqlInfo CheckExpression(SqlInfo expression)
 		{
-			if (expression.Sql is SearchCondition)
+			if (expression.Sql is ISearchCondition)
 			{
 				expression.Sql = Builder.Convert(
 					this,
