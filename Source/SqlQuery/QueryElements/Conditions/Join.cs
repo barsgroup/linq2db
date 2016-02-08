@@ -37,7 +37,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
             return new Next(this);
         }
 
-        internal Join(JoinType joinType, ISqlTableSource table, string alias, bool isWeak, ICollection<IJoin> joins)
+        internal Join(EJoinType joinType, ISqlTableSource table, string alias, bool isWeak, ICollection<IJoin> joins)
         {
             JoinedTable = new JoinedTable(joinType, table, alias, isWeak);
 

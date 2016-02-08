@@ -26,7 +26,7 @@ namespace LinqToDB.Linq.Builder
 
 				if (groupJoin != null)
 				{
-					groupJoin.Select.From.Tables[0].Joins[0].JoinType = JoinType.Left;
+					groupJoin.Select.From.Tables[0].Joins[0].JoinType = EJoinType.Left;
 					groupJoin.Select.From.Tables[0].Joins[0].IsWeak   = false;
 				}
 			}

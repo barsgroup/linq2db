@@ -158,23 +158,23 @@
 
 		#region FromClause
 
-        public static IJoin InnerJoin    (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Inner,      table, null,  false, joins); }
-		public static IJoin InnerJoin    (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Inner,      table, alias, false, joins); }
-		public static IJoin LeftJoin     (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Left,       table, null,  false, joins); }
-		public static IJoin LeftJoin     (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Left,       table, alias, false, joins); }
-		public static IJoin Join         (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Auto,       table, null,  false, joins); }
-		public static IJoin Join         (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Auto,       table, alias, false, joins); }
-		public static IJoin CrossApply   (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.CrossApply, table, null,  false, joins); }
-		public static IJoin CrossApply   (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.CrossApply, table, alias, false, joins); }
-		public static IJoin OuterApply   (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.OuterApply, table, null,  false, joins); }
-		public static IJoin OuterApply   (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.OuterApply, table, alias, false, joins); }
+        public static IJoin InnerJoin    (ISqlTableSource table,               params IJoin[] joins) { return new Join(EJoinType.Inner,      table, null,  false, joins); }
+		public static IJoin InnerJoin    (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(EJoinType.Inner,      table, alias, false, joins); }
+		public static IJoin LeftJoin     (ISqlTableSource table,               params IJoin[] joins) { return new Join(EJoinType.Left,       table, null,  false, joins); }
+		public static IJoin LeftJoin     (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(EJoinType.Left,       table, alias, false, joins); }
+		public static IJoin Join         (ISqlTableSource table,               params IJoin[] joins) { return new Join(EJoinType.Auto,       table, null,  false, joins); }
+		public static IJoin Join         (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(EJoinType.Auto,       table, alias, false, joins); }
+		public static IJoin CrossApply   (ISqlTableSource table,               params IJoin[] joins) { return new Join(EJoinType.CrossApply, table, null,  false, joins); }
+		public static IJoin CrossApply   (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(EJoinType.CrossApply, table, alias, false, joins); }
+		public static IJoin OuterApply   (ISqlTableSource table,               params IJoin[] joins) { return new Join(EJoinType.OuterApply, table, null,  false, joins); }
+		public static IJoin OuterApply   (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(EJoinType.OuterApply, table, alias, false, joins); }
 
-		public static IJoin WeakInnerJoin(ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Inner,      table, null,  true,  joins); }
-		public static IJoin WeakInnerJoin(ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Inner,      table, alias, true,  joins); }
-		public static IJoin WeakLeftJoin (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Left,       table, null,  true,  joins); }
-		public static IJoin WeakLeftJoin (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Left,       table, alias, true,  joins); }
-		public static IJoin WeakJoin     (ISqlTableSource table,               params IJoin[] joins) { return new Join(JoinType.Auto,       table, null,  true,  joins); }
-		public static IJoin WeakJoin     (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(JoinType.Auto,       table, alias, true,  joins); }
+		public static IJoin WeakInnerJoin(ISqlTableSource table,               params IJoin[] joins) { return new Join(EJoinType.Inner,      table, null,  true,  joins); }
+		public static IJoin WeakInnerJoin(ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(EJoinType.Inner,      table, alias, true,  joins); }
+		public static IJoin WeakLeftJoin (ISqlTableSource table,               params IJoin[] joins) { return new Join(EJoinType.Left,       table, null,  true,  joins); }
+		public static IJoin WeakLeftJoin (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(EJoinType.Left,       table, alias, true,  joins); }
+		public static IJoin WeakJoin     (ISqlTableSource table,               params IJoin[] joins) { return new Join(EJoinType.Auto,       table, null,  true,  joins); }
+		public static IJoin WeakJoin     (ISqlTableSource table, string alias, params IJoin[] joins) { return new Join(EJoinType.Auto,       table, alias, true,  joins); }
 
         public IFromClause From { get; private set; }
 

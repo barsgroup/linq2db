@@ -1041,10 +1041,10 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (join.JoinType)
 			{
-				case JoinType.Inner      : StringBuilder.Append("INNER JOIN ");  return true;
-				case JoinType.Left       : StringBuilder.Append("LEFT JOIN ");   return true;
-				case JoinType.CrossApply : StringBuilder.Append("CROSS APPLY "); return false;
-				case JoinType.OuterApply : StringBuilder.Append("OUTER APPLY "); return false;
+				case EJoinType.Inner      : StringBuilder.Append("INNER JOIN ");  return true;
+				case EJoinType.Left       : StringBuilder.Append("LEFT JOIN ");   return true;
+				case EJoinType.CrossApply : StringBuilder.Append("CROSS APPLY "); return false;
+				case EJoinType.OuterApply : StringBuilder.Append("OUTER APPLY "); return false;
 				default: throw new InvalidOperationException();
 			}
 		}

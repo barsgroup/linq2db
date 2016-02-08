@@ -85,7 +85,7 @@ namespace LinqToDB.Linq.Builder
 			foreach (var sql in groupSql)
 				sequence.Select.GroupBy.Expr(sql.Sql);
 
-		    foreach (var join in QueryVisitor.FindOnce<IJoinedTable>(sequence.Select.From).Where(f => f.JoinType == JoinType.Inner))
+		    foreach (var join in QueryVisitor.FindOnce<IJoinedTable>(sequence.Select.From).Where(f => f.JoinType == EJoinType.Inner))
 		    {
 		        join.IsWeak = false;
 		    }

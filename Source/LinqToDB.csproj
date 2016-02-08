@@ -414,7 +414,7 @@
     <Compile Include="SqlQuery\QueryElements\CreateTableStatement.cs" />
     <Compile Include="SqlQuery\QueryElements\Enums\EDefaulNullable.cs" />
     <Compile Include="SqlQuery\QueryElements\Enums\EQueryType.cs" />
-    <Compile Include="SqlQuery\QueryElements\Enums\JoinType.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\EJoinType.cs" />
     <Compile Include="SqlQuery\QueryElements\Enums\EOperator.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IBaseQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Clauses\Interfaces\IClauseBase.cs" />

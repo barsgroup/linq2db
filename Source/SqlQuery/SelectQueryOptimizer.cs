@@ -639,10 +639,10 @@ namespace LinqToDB.SqlQuery
 			{
 				var table = OptimizeSubQuery(
 					jt.Table,
-					jt.JoinType == JoinType.Inner || jt.JoinType == JoinType.CrossApply,
+					jt.JoinType == EJoinType.Inner || jt.JoinType == EJoinType.CrossApply,
 					false,
 					isApplySupported,
-					jt.JoinType == JoinType.Inner || jt.JoinType == JoinType.CrossApply,
+					jt.JoinType == EJoinType.Inner || jt.JoinType == EJoinType.CrossApply,
 					optimizeColumns);
 
 				if (table != jt.Table)
@@ -786,7 +786,7 @@ namespace LinqToDB.SqlQuery
 			var joinSource = joinTable.Table;
 
 			foreach (var join in joinSource.Joins)
-				if (join.JoinType == JoinType.CrossApply || join.JoinType == JoinType.OuterApply)
+				if (join.JoinType == EJoinType.CrossApply || join.JoinType == EJoinType.OuterApply)
 					OptimizeApply(joinSource, join, isApplySupported, optimizeColumns);
 
 			if (isApplySupported && !joinTable.CanConvertApply)
@@ -806,7 +806,7 @@ namespace LinqToDB.SqlQuery
 
 				if (!ContainsTable(tableSource.Source, sql))
 				{
-					joinTable.JoinType = joinTable.JoinType == JoinType.CrossApply ? JoinType.Inner : JoinType.Left;
+					joinTable.JoinType = joinTable.JoinType == EJoinType.CrossApply ? EJoinType.Inner : EJoinType.Left;
 					joinTable.Condition.Conditions.AddRange(searchCondition);
 				}
 				else
@@ -815,10 +815,10 @@ namespace LinqToDB.SqlQuery
 
 					var table = OptimizeSubQuery(
 						joinTable.Table,
-						joinTable.JoinType == JoinType.Inner || joinTable.JoinType == JoinType.CrossApply,
-						joinTable.JoinType == JoinType.CrossApply,
+						joinTable.JoinType == EJoinType.Inner || joinTable.JoinType == EJoinType.CrossApply,
+						joinTable.JoinType == EJoinType.CrossApply,
 						isApplySupported,
-						joinTable.JoinType == JoinType.Inner || joinTable.JoinType == JoinType.CrossApply,
+						joinTable.JoinType == EJoinType.Inner || joinTable.JoinType == EJoinType.CrossApply,
 						optimizeColumns);
 
 					if (table != joinTable.Table)
@@ -838,7 +838,7 @@ namespace LinqToDB.SqlQuery
 			else
 			{
 				if (!ContainsTable(tableSource.Source, joinSource.Source))
-					joinTable.JoinType = joinTable.JoinType == JoinType.CrossApply ? JoinType.Inner : JoinType.Left;
+					joinTable.JoinType = joinTable.JoinType == EJoinType.CrossApply ? EJoinType.Inner : EJoinType.Left;
 			}
 		}
 
@@ -905,7 +905,7 @@ namespace LinqToDB.SqlQuery
 		{
 			foreach (var table in _selectQuery.From.Tables)
 				foreach (var join in table.Joins)
-					if (join.JoinType == JoinType.CrossApply || join.JoinType == JoinType.OuterApply)
+					if (join.JoinType == EJoinType.CrossApply || join.JoinType == EJoinType.OuterApply)
 						OptimizeApply(table, join, isApplySupported, optimizeColumns);
 		}
 

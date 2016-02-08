@@ -53,7 +53,7 @@ namespace LinqToDB.Linq.Builder
 			{
 				var groupJoin = ((JoinBuilder.GroupJoinSubQueryContext)collection).GroupJoin;
 
-				groupJoin.Select.From.Tables[0].Joins[0].JoinType = JoinType.Inner;
+				groupJoin.Select.From.Tables[0].Joins[0].JoinType = EJoinType.Inner;
 				groupJoin.Select.From.Tables[0].Joins[0].IsWeak   = false;
 			}
 

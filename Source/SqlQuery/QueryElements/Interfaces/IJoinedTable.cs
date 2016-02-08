@@ -6,7 +6,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     public interface IJoinedTable: ISqlExpressionWalkable, ICloneableElement, IQueryElement
     {
-        JoinType JoinType { get; set; }
+        EJoinType JoinType { get; set; }
 
         ITableSource Table { get; set; }
 

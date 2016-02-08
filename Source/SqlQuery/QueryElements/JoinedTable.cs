@@ -11,7 +11,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
     public class JoinedTable : BaseQueryElement, IJoinedTable
     {
-        public JoinedTable(JoinType joinType, ITableSource table, bool isWeak, ISearchCondition searchCondition)
+        public JoinedTable(EJoinType joinType, ITableSource table, bool isWeak, ISearchCondition searchCondition)
         {
             JoinType        = joinType;
             Table           = table;
@@ -20,17 +20,17 @@ namespace LinqToDB.SqlQuery.QueryElements
             CanConvertApply = true;
         }
 
-        public JoinedTable(JoinType joinType, ITableSource table, bool isWeak)
+        public JoinedTable(EJoinType joinType, ITableSource table, bool isWeak)
             : this(joinType, table, isWeak, new SearchCondition())
         {
         }
 
-        public JoinedTable(JoinType joinType, ISqlTableSource table, string alias, bool isWeak)
+        public JoinedTable(EJoinType joinType, ISqlTableSource table, string alias, bool isWeak)
             : this(joinType, new TableSource(table, alias), isWeak)
         {
         }
 
-        public JoinType        JoinType        { get; set; }
+        public EJoinType        JoinType        { get; set; }
         public ITableSource Table           { get; set; }
         public ISearchCondition Condition       { get; private set; }
         public bool            IsWeak          { get; set; }
@@ -94,10 +94,10 @@ namespace LinqToDB.SqlQuery.QueryElements
 
             switch (JoinType)
             {
-                case JoinType.Inner      : sb.Append("INNER JOIN ");  break;
-                case JoinType.Left       : sb.Append("LEFT JOIN ");   break;
-                case JoinType.CrossApply : sb.Append("CROSS APPLY "); break;
-                case JoinType.OuterApply : sb.Append("OUTER APPLY "); break;
+                case EJoinType.Inner      : sb.Append("INNER JOIN ");  break;
+                case EJoinType.Left       : sb.Append("LEFT JOIN ");   break;
+                case EJoinType.CrossApply : sb.Append("CROSS APPLY "); break;
+                case EJoinType.OuterApply : sb.Append("OUTER APPLY "); break;
                 default                  : sb.Append("SOME JOIN "); break;
             }
 

@@ -1356,8 +1356,8 @@ namespace LinqToDB.Linq.Builder
 					association = association.ParentAssociation as AssociatedTableContext)
 				{
 					isLeft =
-						association.ParentAssociationJoin.JoinType == JoinType.Left ||
-						association.ParentAssociationJoin.JoinType == JoinType.OuterApply;
+						association.ParentAssociationJoin.JoinType == EJoinType.Left ||
+						association.ParentAssociationJoin.JoinType == EJoinType.OuterApply;
 				}
 
 				if (isLeft)

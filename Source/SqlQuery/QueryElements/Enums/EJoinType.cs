@@ -1,6 +1,6 @@
 namespace LinqToDB.SqlQuery.QueryElements.Enums
 {
-    public enum JoinType
+    public enum EJoinType
     {
         Auto,
         Inner,

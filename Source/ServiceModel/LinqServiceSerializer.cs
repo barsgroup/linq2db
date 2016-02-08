@@ -1478,7 +1478,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.JoinedTable :
 						{
-							var joinType  = (JoinType)ReadInt();
+							var joinType  = (EJoinType)ReadInt();
 							var table     = Read<ITableSource>();
 							var isWeak    = ReadBool();
 							var condition = Read<ISearchCondition>();
