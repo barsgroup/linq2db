@@ -34,13 +34,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         bool IsUpdate { get; }
 
-        SelectClause Select { get; }
+        ISelectClause Select { get; }
 
         ICreateTableStatement CreateTable { get; }
 
         IInsertClause Insert { get; }
 
-        UpdateClause Update { get; }
+        IUpdateClause Update { get; }
 
         DeleteClause Delete { get; }
 
@@ -87,9 +87,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
         ISqlTableSource GetTableSource(ISqlTableSource table);
 
         void Init(IInsertClause insert,
-                  UpdateClause update,
+                  IUpdateClause update,
                   DeleteClause delete,
-                  SelectClause select,
+                  ISelectClause select,
                   IFromClause from,
                   WhereClause where,
                   GroupByClause groupBy,

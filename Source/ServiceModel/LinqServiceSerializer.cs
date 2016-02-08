@@ -952,7 +952,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SelectClause :
 						{
-							var elem = (SelectClause)e;
+							var elem = (ISelectClause)e;
 
 							Append(elem.IsDistinct);
 							Append(elem.SkipValue);
@@ -975,7 +975,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.UpdateClause :
 						{
-							var elem = (UpdateClause)e;
+							var elem = (IUpdateClause)e;
 
 							Append(elem.Items);
 							Append(elem.Keys);
@@ -1392,7 +1392,7 @@ namespace LinqToDB.ServiceModel
 							var readDelete         = ReadBool();
 							var delete             = readDelete ? Read<DeleteClause>() : null;
 							var readSelect         = ReadBool();
-							var select             = readSelect ? Read<SelectClause>() : new SelectClause(null);
+							var select             = readSelect ? Read<ISelectClause>() : new SelectClause(null);
 							var readCreateTable    = ReadBool();
 							var createTable        = readCreateTable ?
 								Read<ICreateTableStatement>() :

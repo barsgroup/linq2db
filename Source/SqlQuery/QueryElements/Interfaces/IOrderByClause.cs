@@ -28,7 +28,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         bool IsEmpty { get; }
 
-        SelectClause Select { get; }
+        ISelectClause Select { get; }
 
         IFromClause From { get; }
 

@@ -9,7 +9,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class UpdateClause : BaseQueryElement, IQueryElement, ISqlExpressionWalkable, ICloneableElement
+    public class UpdateClause : BaseQueryElement,
+                                IUpdateClause
     {
         public UpdateClause()
         {

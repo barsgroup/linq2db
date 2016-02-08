@@ -194,7 +194,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.UpdateClause:
 					{
-						var sc = (UpdateClause)element;
+						var sc = (IUpdateClause)element;
 						return
 							Find(sc.Table, find) ??
 							Find(sc.Items, find) ??
@@ -216,7 +216,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.SelectClause:
 					{
-						var sc = (SelectClause)element;
+						var sc = (ISelectClause)element;
 						return
 							Find(sc.TakeValue, find) ??
 							Find(sc.SkipValue, find) ??
@@ -539,7 +539,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.UpdateClause:
 					{
-						var s = (UpdateClause)element;
+						var s = (IUpdateClause)element;
 						var t = s.Table != null ? (SqlTable)ConvertInternal(s.Table, action) : null;
 						var i = Convert(s.Items, action);
 						var k = Convert(s.Keys,  action);
@@ -587,7 +587,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.SelectClause:
 					{
-						var sc   = (SelectClause)element;
+						var sc   = (ISelectClause)element;
 						var cols = Convert(sc.Columns, action);
 						var take = (ISqlExpression)ConvertInternal(sc.TakeValue, action);
 						var skip = (ISqlExpression)ConvertInternal(sc.SkipValue, action);
@@ -601,7 +601,7 @@ namespace LinqToDB.SqlQuery
 							skip != null && !ReferenceEquals(sc.SkipValue, skip))
 						{
 							newElement = new SelectClause(sc.IsDistinct, take ?? sc.TakeValue, skip ?? sc.SkipValue, cols ?? sc.Columns);
-							((SelectClause)newElement).SetSqlQuery((ISelectQuery)parent);
+							((ISelectClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 
 						break;
@@ -741,9 +741,9 @@ namespace LinqToDB.SqlQuery
 						_visitedElements.Add(q.All, nq.All);
 
 						var fc = (IFromClause)   ConvertInternal(q.From,    action) ?? q.From;
-						var sc = (SelectClause) ConvertInternal(q.Select,  action) ?? q.Select;
+						var sc = (ISelectClause) ConvertInternal(q.Select,  action) ?? q.Select;
 						var ic = q.IsInsert ? ((IInsertClause)ConvertInternal(q.Insert, action) ?? q.Insert) : null;
-						var uc = q.IsUpdate ? ((UpdateClause)ConvertInternal(q.Update, action) ?? q.Update) : null;
+						var uc = q.IsUpdate ? ((IUpdateClause)ConvertInternal(q.Update, action) ?? q.Update) : null;
 						var dc = q.IsDelete ? ((DeleteClause)ConvertInternal(q.Delete, action) ?? q.Delete) : null;
 						var wc = (WhereClause)  ConvertInternal(q.Where,   action) ?? q.Where;
 						var gc = (GroupByClause)ConvertInternal(q.GroupBy, action) ?? q.GroupBy;

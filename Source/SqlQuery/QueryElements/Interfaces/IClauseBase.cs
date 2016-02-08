@@ -6,7 +6,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
     {
         ISelectQuery SelectQuery { get; }
 
-        SelectClause Select { get; }
+        ISelectClause Select { get; }
 
         IFromClause From { get; }
 

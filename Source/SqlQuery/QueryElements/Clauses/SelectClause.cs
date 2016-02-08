@@ -10,7 +10,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class SelectClause : ClauseBase, ISqlExpressionWalkable
+    public class SelectClause : ClauseBase,
+                                ISelectClause
     {
         #region Init
 
@@ -20,7 +21,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         internal SelectClause(
             ISelectQuery selectQuery,
-            SelectClause clone,
+            ISelectClause clone,
             Dictionary<ICloneableElement,ICloneableElement> objectTree,
             Predicate<ICloneableElement> doClone)
             : base(selectQuery)
@@ -78,7 +79,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         //    return this;
         //}
 
-        public SelectClause Expr(ISqlExpression expr)
+        public ISelectClause Expr(ISqlExpression expr)
         {
             AddOrGetColumn(new Column(SelectQuery, expr));
             return this;
@@ -182,7 +183,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region Distinct
 
-        public SelectClause Distinct
+        public ISelectClause Distinct
         {
             get { IsDistinct = true; return this; }
         }
@@ -193,13 +194,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region Take
 
-        public SelectClause Take(int value)
+        public ISelectClause Take(int value)
         {
             TakeValue = new SqlValue(value);
             return this;
         }
 
-        public SelectClause Take(ISqlExpression value)
+        public ISelectClause Take(ISqlExpression value)
         {
             TakeValue = value;
             return this;
@@ -211,13 +212,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region Skip
 
-        public SelectClause Skip(int value)
+        public ISelectClause Skip(int value)
         {
             SkipValue = new SqlValue(value);
             return this;
         }
 
-        public SelectClause Skip(ISqlExpression value)
+        public ISelectClause Skip(ISqlExpression value)
         {
             SkipValue = value;
             return this;

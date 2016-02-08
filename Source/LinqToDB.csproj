@@ -419,10 +419,12 @@
     <Compile Include="SqlQuery\QueryElements\Interfaces\IOrderByClause.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IOrderByItem.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IQueryElement.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\ISelectClause.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ISelectQuery.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ISetExpression.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ITableSource.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IUnion.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IUpdateClause.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IValueContainer.cs" />
     <Compile Include="SqlQuery\QueryElements\Enums\EQueryElementType.cs" />
     <Compile Include="SqlQuery\QueryElements\JoinedTable.cs" />

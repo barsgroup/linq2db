@@ -15,7 +15,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             SelectQuery = selectQuery;
         }
 
-        public SelectClause Select => SelectQuery.Select;
+        public ISelectClause Select => SelectQuery.Select;
 
         public IFromClause From => SelectQuery.From;
 
@@ -52,7 +52,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             SelectQuery = selectQuery;
         }
 
-        public SelectClause  Select => SelectQuery.Select;
+        public ISelectClause Select => SelectQuery.Select;
 
         public IFromClause From => SelectQuery.From;
 

@@ -61,9 +61,9 @@
 
 		public void Init(
             IInsertClause insert,
-			UpdateClause         update,
+            IUpdateClause update,
 			DeleteClause         delete,
-			SelectClause         select,
+            ISelectClause        select,
             IFromClause          from,
 			WhereClause          where,
 			GroupByClause        groupBy,
@@ -127,7 +127,7 @@
 
 	    #endregion
 
-        public  SelectClause  Select { get; private set; }
+        public ISelectClause Select { get; private set; }
 
         public ICreateTableStatement CreateTable { get; private set; } = new CreateTableStatement();
 
@@ -140,7 +140,7 @@
 		}
 
 
-        public UpdateClause Update { get; private set; } = new UpdateClause();
+        public IUpdateClause Update { get; private set; } = new UpdateClause();
 
         public void ClearUpdate()
         {
@@ -444,7 +444,7 @@
 			EQueryType = clone.EQueryType;
 
 			if (IsInsert) Insert = (IInsertClause)clone.Insert.Clone(objectTree, doClone);
-			if (IsUpdate) Update = (UpdateClause)clone.Update.Clone(objectTree, doClone);
+			if (IsUpdate) Update = (IUpdateClause)clone.Update.Clone(objectTree, doClone);
 			if (IsDelete) Delete = (DeleteClause)clone.Delete.Clone(objectTree, doClone);
 
 			Select  = new SelectClause (this, clone.Select,  objectTree, doClone);
