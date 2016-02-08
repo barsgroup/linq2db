@@ -49,7 +49,7 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 
 		public SqlDataType([NotNull]Type type)
 		{
-			if (type == null) throw new ArgumentNullException("type");
+			if (type == null) throw new ArgumentNullException(nameof(type));
 
 			var defaultType = GetDataType(type);
 
@@ -62,8 +62,8 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 
 		public SqlDataType([NotNull] Type type, int length)
 		{
-			if (type   == null) throw new ArgumentNullException      ("type");
-			if (length <= 0)    throw new ArgumentOutOfRangeException("length");
+			if (type   == null) throw new ArgumentNullException      (nameof(type));
+			if (length <= 0)    throw new ArgumentOutOfRangeException(nameof(length));
 
 			DataType = GetDataType(type).DataType;
 			Type     = type;
@@ -72,9 +72,9 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 
 		public SqlDataType([NotNull] Type type, int precision, int scale)
 		{
-			if (type  == null)  throw new ArgumentNullException      ("type");
-			if (precision <= 0) throw new ArgumentOutOfRangeException("precision");
-			if (scale     <  0) throw new ArgumentOutOfRangeException("scale");
+			if (type  == null)  throw new ArgumentNullException      (nameof(type));
+			if (precision <= 0) throw new ArgumentOutOfRangeException(nameof(precision));
+			if (scale     <  0) throw new ArgumentOutOfRangeException(nameof(scale));
 
 			DataType  = GetDataType(type).DataType;
 			Type      = type;
@@ -84,7 +84,7 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 
 		public SqlDataType(DataType dbType, [NotNull]Type type)
 		{
-			if (type == null) throw new ArgumentNullException("type");
+			if (type == null) throw new ArgumentNullException(nameof(type));
 
 			var defaultType = GetDataType(dbType);
 
@@ -97,8 +97,8 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 
 		public SqlDataType(DataType dbType, [NotNull] Type type, int length)
 		{
-			if (type   == null) throw new ArgumentNullException      ("type");
-			if (length <= 0)    throw new ArgumentOutOfRangeException("length");
+			if (type   == null) throw new ArgumentNullException      (nameof(type));
+			if (length <= 0)    throw new ArgumentOutOfRangeException(nameof(length));
 
 			DataType = dbType;
 			Type     = type;
@@ -107,9 +107,9 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 
 		public SqlDataType(DataType dbType, [NotNull] Type type, int precision, int scale)
 		{
-			if (type  == null)  throw new ArgumentNullException      ("type");
-			if (precision <= 0) throw new ArgumentOutOfRangeException("precision");
-			if (scale     <  0) throw new ArgumentOutOfRangeException("scale");
+			if (type  == null)  throw new ArgumentNullException      (nameof(type));
+			if (precision <= 0) throw new ArgumentOutOfRangeException(nameof(precision));
+			if (scale     <  0) throw new ArgumentOutOfRangeException(nameof(scale));
 
 			DataType  = dbType;
 			Type      = type;

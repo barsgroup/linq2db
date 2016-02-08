@@ -16,7 +16,7 @@ namespace LinqToDB.Linq.Builder
 			: base(subQuery)
 		{
 			if (selectQuery == subQuery.Select)
-				throw new ArgumentException("Wrong subQuery argument.", "subQuery");
+				throw new ArgumentException("Wrong subQuery argument.", nameof(subQuery));
 
 			SubQuery        = subQuery;
 			SubQuery.Parent = this;
@@ -111,7 +111,7 @@ namespace LinqToDB.Linq.Builder
 				.Select(idx =>
 				{
 					idx.Query = Select;
-					idx.Index = GetIndex((Column)idx.Sql);
+					idx.Index = GetIndex((IColumn)idx.Sql);
 
 					return idx;
 				})
@@ -130,7 +130,7 @@ namespace LinqToDB.Linq.Builder
 
 		internal protected readonly Dictionary<ISqlExpression,int> ColumnIndexes = new Dictionary<ISqlExpression,int>();
 
-		protected virtual int GetIndex(Column column)
+		protected virtual int GetIndex(IColumn column)
 		{
 			int idx;
 

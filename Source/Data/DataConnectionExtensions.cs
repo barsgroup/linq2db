@@ -193,13 +193,13 @@ namespace LinqToDB.Data
 
 		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
-			if (dataConnection == null) throw new ArgumentNullException("dataConnection");
+			if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
 			return dataConnection.DataProvider.BulkCopy(dataConnection, options, source);
 		}
 
 		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DataConnection dataConnection, int maxBatchSize, IEnumerable<T> source)
 		{
-			if (dataConnection == null) throw new ArgumentNullException("dataConnection");
+			if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
 
 			return dataConnection.DataProvider.BulkCopy(
 				dataConnection,
@@ -209,7 +209,7 @@ namespace LinqToDB.Data
 
 		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this DataConnection dataConnection, IEnumerable<T> source)
 		{
-			if (dataConnection == null) throw new ArgumentNullException("dataConnection");
+			if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
 
 			return dataConnection.DataProvider.BulkCopy(
 				dataConnection,
@@ -219,7 +219,7 @@ namespace LinqToDB.Data
 
 		public static BulkCopyRowsCopied BulkCopy<T>([NotNull] this ITable<T> table, BulkCopyOptions options, IEnumerable<T> source)
 		{
-			if (table == null) throw new ArgumentNullException("table");
+			if (table == null) throw new ArgumentNullException(nameof(table));
 
 			var tbl            = (Table<T>)table;
 			var dataConnection = tbl.DataContextInfo.DataContext as DataConnection;
@@ -236,7 +236,7 @@ namespace LinqToDB.Data
 
 		public static BulkCopyRowsCopied BulkCopy<T>(this ITable<T> table, int maxBatchSize, IEnumerable<T> source)
 		{
-			if (table == null) throw new ArgumentNullException("table");
+			if (table == null) throw new ArgumentNullException(nameof(table));
 
 			var tbl            = (Table<T>)table;
 			var dataConnection = tbl.DataContextInfo.DataContext as DataConnection;
@@ -258,7 +258,7 @@ namespace LinqToDB.Data
 
 		public static BulkCopyRowsCopied BulkCopy<T>(this ITable<T> table, IEnumerable<T> source)
 		{
-			if (table == null) throw new ArgumentNullException("table");
+			if (table == null) throw new ArgumentNullException(nameof(table));
 
 			var tbl            = (Table<T>)table;
 			var dataConnection = tbl.DataContextInfo.DataContext as DataConnection;
@@ -313,7 +313,7 @@ namespace LinqToDB.Data
 			string tableName = null, string databaseName = null, string schemaName = null)
 			where T : class 
 		{
-			if (table == null) throw new ArgumentNullException("table");
+			if (table == null) throw new ArgumentNullException(nameof(table));
 
 			var tbl            = (Table<T>)table;
 			var dataConnection = tbl.DataContextInfo.DataContext as DataConnection;
@@ -331,7 +331,7 @@ namespace LinqToDB.Data
 			string tableName = null, string databaseName = null, string schemaName = null)
 			where T : class 
 		{
-			if (table == null) throw new ArgumentNullException("table");
+			if (table == null) throw new ArgumentNullException(nameof(table));
 
 			var tbl            = (Table<T>)table;
 			var dataConnection = tbl.DataContextInfo.DataContext as DataConnection;
@@ -349,7 +349,7 @@ namespace LinqToDB.Data
 			string tableName = null, string databaseName = null, string schemaName = null)
 			where T : class 
 		{
-			if (table == null) throw new ArgumentNullException("table");
+			if (table == null) throw new ArgumentNullException(nameof(table));
 
 			var tbl            = (Table<T>)table;
 			var dataConnection = tbl.DataContextInfo.DataContext as DataConnection;
@@ -367,7 +367,7 @@ namespace LinqToDB.Data
 			string tableName = null, string databaseName = null, string schemaName = null)
 			where T : class 
 		{
-			if (table == null) throw new ArgumentNullException("table");
+			if (table == null) throw new ArgumentNullException(nameof(table));
 
 			var tbl            = (Table<T>)table;
 			var dataConnection = tbl.DataContextInfo.DataContext as DataConnection;

@@ -14,10 +14,10 @@
 	{
 		public SqlExpression(Type systemType, string expr, int precedence, params ISqlExpression[] parameters)
 		{
-			if (parameters == null) throw new ArgumentNullException("parameters");
+			if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
 			foreach (var value in parameters)
-				if (value == null) throw new ArgumentNullException("parameters");
+				if (value == null) throw new ArgumentNullException(nameof(parameters));
 
 			SystemType = systemType;
 			Expr       = expr;

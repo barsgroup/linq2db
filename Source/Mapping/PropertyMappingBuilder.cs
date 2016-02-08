@@ -14,8 +14,8 @@ namespace LinqToDB.Mapping
 			[Properties.NotNull] EntityMappingBuilder<T>    entity,
 			[Properties.NotNull] Expression<Func<T,object>> memberGetter)
 		{
-			if (entity       == null) throw new ArgumentNullException("entity");
-			if (memberGetter == null) throw new ArgumentNullException("memberGetter");
+			if (entity       == null) throw new ArgumentNullException(nameof(entity));
+			if (memberGetter == null) throw new ArgumentNullException(nameof(memberGetter));
 
 			_entity       = entity;
 			_memberGetter = memberGetter;

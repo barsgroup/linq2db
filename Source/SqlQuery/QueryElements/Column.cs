@@ -9,11 +9,12 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class Column : BaseQueryElement, IEquatable<Column>, ISqlExpression
+    public class Column : BaseQueryElement,
+                          IColumn
     {
         public Column(ISelectQuery parent, ISqlExpression expression, string alias)
         {
-            if (expression == null) throw new ArgumentNullException("expression");
+            if (expression == null) throw new ArgumentNullException(nameof(expression));
 
             Parent     = parent;
             Expression = expression;
@@ -50,9 +51,9 @@ namespace LinqToDB.SqlQuery.QueryElements
                         return field.Alias ?? field.PhysicalName;
                     }
 
-                    if (Expression is Column)
+                    if (Expression is IColumn)
                     {
-                        var col = (Column)Expression;
+                        var col = (IColumn)Expression;
                         return col.Alias;
                     }
                 }
@@ -62,7 +63,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             set { _alias = value; }
         }
 
-        public bool Equals(Column other)
+        public bool Equals(IColumn other)
         {
             return Expression.Equals(other.Expression) && Equals(Parent, other.Parent);
         }
@@ -89,8 +90,8 @@ namespace LinqToDB.SqlQuery.QueryElements
                 return true;
 
             return
-                other is Column &&
-                Expression.Equals(((Column)other).Expression, comparer) &&
+                other is IColumn &&
+                Expression.Equals(((IColumn)other).Expression, comparer) &&
                 comparer(this, other);
         }
 
@@ -125,7 +126,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             if (this == other)
                 return true;
 
-            return other is Column && Equals((Column)other);
+            return other is IColumn && Equals((IColumn)other);
         }
 
         #endregion
@@ -134,7 +135,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public ISqlExpression Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
         {
-            if (!(skipColumns && Expression is Column))
+            if (!(skipColumns && Expression is IColumn))
                 Expression = Expression.Walk(skipColumns, func);
 
             return func(this);

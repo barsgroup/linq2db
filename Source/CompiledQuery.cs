@@ -169,7 +169,7 @@ namespace LinqToDB
 			[NotNull] Expression<Func<TDC,TResult>> query)
 			  where TDC : IDataContext
 		{
-			if (query == null) throw new ArgumentNullException("query");
+			if (query == null) throw new ArgumentNullException(nameof(query));
 			return new CompiledQuery(query).Invoke<TDC,TResult>;
 		}
 
@@ -195,7 +195,7 @@ namespace LinqToDB
 			[NotNull] Expression<Func<TDC,TArg1,TResult>> query)
 			where TDC : IDataContext
 		{
-			if (query == null) throw new ArgumentNullException("query");
+			if (query == null) throw new ArgumentNullException(nameof(query));
 			return new CompiledQuery(query).Invoke<TDC,TArg1,TResult>;
 		}
 
@@ -224,7 +224,7 @@ namespace LinqToDB
 			[NotNull] Expression<Func<TDC,TArg1,TArg2,TResult>> query)
 			where TDC : IDataContext
 		{
-			if (query == null) throw new ArgumentNullException("query");
+			if (query == null) throw new ArgumentNullException(nameof(query));
 			return new CompiledQuery(query).Invoke<TDC,TArg1,TArg2,TResult>;
 		}
 
@@ -256,7 +256,7 @@ namespace LinqToDB
 			[NotNull] Expression<Func<TDC,TArg1,TArg2,TArg3,TResult>> query)
 			where TDC : IDataContext
 		{
-			if (query == null) throw new ArgumentNullException("query");
+			if (query == null) throw new ArgumentNullException(nameof(query));
 			return new CompiledQuery(query).Invoke<TDC,TArg1,TArg2,TArg3,TResult>;
 		}
 
@@ -291,7 +291,7 @@ namespace LinqToDB
 			[NotNull] Expression<Func<TDC,TArg1,TArg2,TArg3,TArg4,TResult>> query)
 			where TDC : IDataContext
 		{
-			if (query == null) throw new ArgumentNullException("query");
+			if (query == null) throw new ArgumentNullException(nameof(query));
 			return new CompiledQuery(query).Invoke<TDC,TArg1,TArg2,TArg3,TArg4,TResult>;
 		}
 
@@ -329,7 +329,7 @@ namespace LinqToDB
 			[NotNull] Expression<Func<TDC,TArg1,TArg2,TArg3,TArg4,TArg5,TResult>> query)
 			where TDC : IDataContext
 		{
-			if (query == null) throw new ArgumentNullException("query");
+			if (query == null) throw new ArgumentNullException(nameof(query));
 			return new CompiledQuery(query).Invoke<TDC,TArg1,TArg2,TArg3,TArg4,TArg5,TResult>;
 		}
 

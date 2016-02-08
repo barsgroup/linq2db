@@ -14,7 +14,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
         public Expr([NotNull] ISqlExpression exp1, int precedence)
             : base(precedence)
         {
-            if (exp1 == null) throw new ArgumentNullException("exp1");
+            if (exp1 == null) throw new ArgumentNullException(nameof(exp1));
 
             Expr1 = exp1;
         }
@@ -22,7 +22,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
         public Expr([NotNull] ISqlExpression exp1)
             : base(exp1.Precedence)
         {
-            if (exp1 == null) throw new ArgumentNullException("exp1");
+            if (exp1 == null) throw new ArgumentNullException(nameof(exp1));
 
             Expr1 = exp1;
         }

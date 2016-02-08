@@ -17,7 +17,7 @@ namespace LinqToDB.ServiceModel
 		public SoapDataContext([NotNull] string endpointConfigurationName)
 			: this()
 		{
-			if (endpointConfigurationName == null) throw new ArgumentNullException("endpointConfigurationName");
+			if (endpointConfigurationName == null) throw new ArgumentNullException(nameof(endpointConfigurationName));
 
 			_endpointConfigurationName = endpointConfigurationName;
 		}
@@ -25,8 +25,8 @@ namespace LinqToDB.ServiceModel
 		public SoapDataContext([NotNull] string endpointConfigurationName, [NotNull] string remoteAddress)
 			: this()
 		{
-			if (endpointConfigurationName == null) throw new ArgumentNullException("endpointConfigurationName");
-			if (remoteAddress             == null) throw new ArgumentNullException("remoteAddress");
+			if (endpointConfigurationName == null) throw new ArgumentNullException(nameof(endpointConfigurationName));
+			if (remoteAddress             == null) throw new ArgumentNullException(nameof(remoteAddress));
 
 			_endpointConfigurationName = endpointConfigurationName;
 			_remoteAddress             = remoteAddress;
@@ -35,8 +35,8 @@ namespace LinqToDB.ServiceModel
 		public SoapDataContext([NotNull] string endpointConfigurationName, [NotNull] EndpointAddress endpointAddress)
 			: this()
 		{
-			if (endpointConfigurationName == null) throw new ArgumentNullException("endpointConfigurationName");
-			if (endpointAddress           == null) throw new ArgumentNullException("endpointAddress");
+			if (endpointConfigurationName == null) throw new ArgumentNullException(nameof(endpointConfigurationName));
+			if (endpointAddress           == null) throw new ArgumentNullException(nameof(endpointAddress));
 
 			_endpointConfigurationName = endpointConfigurationName;
 			_endpointAddress           = endpointAddress;
@@ -45,8 +45,8 @@ namespace LinqToDB.ServiceModel
 		public SoapDataContext([NotNull] Binding binding, [NotNull] EndpointAddress endpointAddress)
 			: this()
 		{
-			if (binding         == null) throw new ArgumentNullException("binding");
-			if (endpointAddress == null) throw new ArgumentNullException("endpointAddress");
+			if (binding         == null) throw new ArgumentNullException(nameof(binding));
+			if (endpointAddress == null) throw new ArgumentNullException(nameof(endpointAddress));
 
 			Binding          = binding;
 			_endpointAddress = endpointAddress;

@@ -13,7 +13,7 @@ namespace LinqToDB.Mapping
 
 		public FluentMappingBuilder([Properties.NotNull] MappingSchema mappingSchema)
 		{
-			if (mappingSchema == null) throw new ArgumentNullException("mappingSchema");
+			if (mappingSchema == null) throw new ArgumentNullException(nameof(mappingSchema));
 
 			MappingSchema = mappingSchema;
 			MappingSchema.AddMetadataReader(_reader);

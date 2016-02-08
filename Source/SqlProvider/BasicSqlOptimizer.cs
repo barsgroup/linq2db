@@ -121,7 +121,7 @@ namespace LinqToDB.SqlProvider
 						switch (e.ElementType)
 						{
 							case EQueryElementType.SqlField : return !allTables.Contains(((SqlField)       e).Table);
-							case EQueryElementType.Column   : return !allTables.Contains(((Column)e).Parent);
+							case EQueryElementType.Column   : return !allTables.Contains(((IColumn)e).Parent);
 						}
 						return false;
 					};
@@ -161,10 +161,10 @@ namespace LinqToDB.SqlProvider
 									if (replaced.TryGetValue(e, out ne))
 										return ne;
 
-									if (levelTables.Contains(((Column)e).Parent))
+									if (levelTables.Contains(((IColumn)e).Parent))
 									{
-										subQuery.GroupBy.Expr((Column)e);
-										ne = subQuery.Select.Columns[subQuery.Select.Add((Column)e)];
+										subQuery.GroupBy.Expr((IColumn)e);
+										ne = subQuery.Select.Columns[subQuery.Select.Add((IColumn)e)];
 									}
 
 									break;
@@ -321,11 +321,11 @@ namespace LinqToDB.SqlProvider
 										if (replaced.TryGetValue(e, out ne))
 											return ne;
 
-										if (levelTables.Contains(((Column)e).Parent))
+										if (levelTables.Contains(((IColumn)e).Parent))
 										{
 											if (isAggregated)
-												subQuery.GroupBy.Expr((Column)e);
-											ne = subQuery.Select.Columns[subQuery.Select.Add((Column)e)];
+												subQuery.GroupBy.Expr((IColumn)e);
+											ne = subQuery.Select.Columns[subQuery.Select.Add((IColumn)e)];
 										}
 
 										break;
@@ -825,8 +825,8 @@ namespace LinqToDB.SqlProvider
 										if (expr1 is SqlParameter || expr2 is SqlParameter)
 											selectQuery.IsParameterDependent = true;
 										else
-											if (expr1 is Column || expr1 is SqlField)
-											if (expr2 is Column || expr2 is SqlField)
+											if (expr1 is IColumn || expr1 is SqlField)
+											if (expr2 is IColumn || expr2 is SqlField)
 												predicate = ConvertEqualPredicate(expr);
 									}
 
@@ -1313,7 +1313,7 @@ namespace LinqToDB.SqlProvider
                     case EQueryElementType.SqlField: ((SqlField)elementType).Alias = SetAlias(((SqlField)elementType).Alias, maxLen); break;
                     case EQueryElementType.SqlParameter: ((SqlParameter)elementType).Name = SetAlias(((SqlParameter)elementType).Name, maxLen); break;
                     case EQueryElementType.SqlTable: ((SqlTable)elementType).Alias = SetAlias(((SqlTable)elementType).Alias, maxLen); break;
-                    case EQueryElementType.Column: ((Column)elementType).Alias = SetAlias(((Column)elementType).Alias, maxLen); break;
+                    case EQueryElementType.Column: ((IColumn)elementType).Alias = SetAlias(((IColumn)elementType).Alias, maxLen); break;
                     case EQueryElementType.TableSource: ((ITableSource)elementType).Alias = SetAlias(((ITableSource)elementType).Alias, maxLen); break;
                 }
             }

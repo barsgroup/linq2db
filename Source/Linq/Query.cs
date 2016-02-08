@@ -55,7 +55,7 @@ namespace LinqToDB.Linq
                 var column = SelectQuery.Select.Columns.FirstOrDefault(
                     c =>
                     {
-                        var expression = c.Expression as Column;
+                        var expression = c.Expression as IColumn;
                         if (expression != null)
                         {
                             return ((SqlField)expression.Expression).Name == fieldName;

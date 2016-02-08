@@ -27,8 +27,8 @@ namespace LinqToDB
 
 		public DataContext([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] string connectionString)
 		{
-			if (dataProvider     == null) throw new ArgumentNullException("dataProvider");
-			if (connectionString == null) throw new ArgumentNullException("connectionString");
+			if (dataProvider     == null) throw new ArgumentNullException(nameof(dataProvider));
+			if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
 
 			DataProvider     = dataProvider;
 			ConnectionString = connectionString;

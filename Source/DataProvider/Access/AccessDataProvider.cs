@@ -109,7 +109,7 @@ namespace LinqToDB.DataProvider.Access
 
 		public void CreateDatabase([Properties.NotNull] string databaseName, bool   deleteIfExists = false)
 		{
-			if (databaseName == null) throw new ArgumentNullException("databaseName");
+			if (databaseName == null) throw new ArgumentNullException(nameof(databaseName));
 
 			databaseName = databaseName.Trim();
 
@@ -142,7 +142,7 @@ namespace LinqToDB.DataProvider.Access
 
 		public void DropDatabase([Properties.NotNull] string databaseName)
 		{
-			if (databaseName == null) throw new ArgumentNullException("databaseName");
+			if (databaseName == null) throw new ArgumentNullException(nameof(databaseName));
 
 			DropFileDatabase(databaseName, ".mdb");
 		}

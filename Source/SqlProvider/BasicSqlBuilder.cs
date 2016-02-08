@@ -257,7 +257,7 @@ namespace LinqToDB.SqlProvider
 			BuildColumns();
 		}
 
-		protected virtual IEnumerable<Column> GetSelectedColumns()
+		protected virtual IEnumerable<IColumn> GetSelectedColumns()
 		{
 			return SelectQuery.Select.Columns;
 		}
@@ -1446,7 +1446,7 @@ namespace LinqToDB.SqlProvider
 			switch (expr.ElementType)
 			{
 				case EQueryElementType.SqlField: return (SqlField)expr;
-				case EQueryElementType.Column  : return GetUnderlayingField(((Column)expr).Expression);
+				case EQueryElementType.Column  : return GetUnderlayingField(((IColumn)expr).Expression);
 			}
 
 			throw new InvalidOperationException();
@@ -1787,7 +1787,7 @@ namespace LinqToDB.SqlProvider
 
 				case EQueryElementType.Column:
 					{
-						var column = (Column)expr;
+						var column = (IColumn)expr;
 
 						var table = SelectQuery.GetTableSource(column.Parent);
 
@@ -2128,7 +2128,7 @@ namespace LinqToDB.SqlProvider
 
 		#region Alternative Builders
 
-		void BuildAliases(string table, List<Column> columns, string postfix)
+		void BuildAliases(string table, List<IColumn> columns, string postfix)
 		{
 			Indent++;
 
@@ -2335,9 +2335,9 @@ namespace LinqToDB.SqlProvider
 			Indent--;
 		}
 
-		protected delegate IEnumerable<Column> ColumnSelector();
+		protected delegate IEnumerable<IColumn> ColumnSelector();
 
-		protected IEnumerable<Column> AlternativeGetSelectedColumns(ColumnSelector columnSelector)
+		protected IEnumerable<IColumn> AlternativeGetSelectedColumns(ColumnSelector columnSelector)
 		{
 			foreach (var col in columnSelector())
 				yield return col;

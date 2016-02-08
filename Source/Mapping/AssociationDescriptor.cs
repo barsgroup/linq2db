@@ -17,13 +17,13 @@ namespace LinqToDB.Mapping
 			           string     storage,
 			           bool       canBeNull)
 		{
-			if (memberInfo == null) throw new ArgumentNullException("memberInfo");
-			if (thisKey    == null) throw new ArgumentNullException("thisKey");
-			if (otherKey   == null) throw new ArgumentNullException("otherKey");
+			if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
+			if (thisKey    == null) throw new ArgumentNullException(nameof(thisKey));
+			if (otherKey   == null) throw new ArgumentNullException(nameof(otherKey));
 
 			if (thisKey.Length == 0)
 				throw new ArgumentOutOfRangeException(
-					"thisKey",
+					nameof(thisKey),
 					string.Format("Association '{0}.{1}' does not define keys.", type.Name, memberInfo.Name));
 
 			if (thisKey.Length != otherKey.Length)

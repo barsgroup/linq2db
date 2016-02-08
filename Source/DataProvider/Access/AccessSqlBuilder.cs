@@ -91,7 +91,7 @@ namespace LinqToDB.DataProvider.Access
 			base.BuildSql();
 		}
 
-		Column _selectColumn;
+        IColumn _selectColumn;
 
 		void BuildAnyAsCount()
 		{
@@ -117,7 +117,7 @@ namespace LinqToDB.DataProvider.Access
 			_selectColumn = null;
 		}
 
-		protected override IEnumerable<Column> GetSelectedColumns()
+		protected override IEnumerable<IColumn> GetSelectedColumns()
 		{
 			if (_selectColumn != null)
 				return new[] { _selectColumn };

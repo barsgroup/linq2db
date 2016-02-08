@@ -47,7 +47,7 @@ namespace LinqToDB.Linq.Builder
 			var crossApply     = null != new QueryVisitor().Find(sql, e =>
 				e.ElementType == EQueryElementType.TableSource && sequenceTables.Contains((ISqlTableSource)e)  ||
 				e.ElementType == EQueryElementType.SqlField    && sequenceTables.Contains(((SqlField)e).Table) ||
-				e.ElementType == EQueryElementType.Column      && sequenceTables.Contains(((Column)e).Parent));
+				e.ElementType == EQueryElementType.Column      && sequenceTables.Contains(((IColumn)e).Parent));
 
 			if (collection is JoinBuilder.GroupJoinSubQueryContext)
 			{

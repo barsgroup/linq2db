@@ -15,9 +15,9 @@
     {
 		public SqlBinaryExpression(Type systemType, ISqlExpression expr1, string operation, ISqlExpression expr2, int precedence)
 		{
-			if (expr1     == null) throw new ArgumentNullException("expr1");
-			if (operation == null) throw new ArgumentNullException("operation");
-			if (expr2     == null) throw new ArgumentNullException("expr2");
+			if (expr1     == null) throw new ArgumentNullException(nameof(expr1));
+			if (operation == null) throw new ArgumentNullException(nameof(operation));
+			if (expr2     == null) throw new ArgumentNullException(nameof(expr2));
 
 			Expr1      = expr1;
 			Operation  = operation;

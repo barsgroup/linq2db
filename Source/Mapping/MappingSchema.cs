@@ -263,9 +263,9 @@ namespace LinqToDB.Mapping
 			[Properties.NotNull] LambdaExpression expr,
 			bool addNullCheck = true)
 		{
-			if (fromType == null) throw new ArgumentNullException("fromType");
-			if (toType   == null) throw new ArgumentNullException("toType");
-			if (expr     == null) throw new ArgumentNullException("expr");
+			if (fromType == null) throw new ArgumentNullException(nameof(fromType));
+			if (toType   == null) throw new ArgumentNullException(nameof(toType));
+			if (expr     == null) throw new ArgumentNullException(nameof(expr));
 
 			var ex = addNullCheck && expr.Find(Converter.IsDefaultValuePlaceHolder) == null?
 				AddNullCheck(expr) :
@@ -278,7 +278,7 @@ namespace LinqToDB.Mapping
 			[Properties.NotNull] Expression<Func<TFrom,TTo>> expr,
 			bool addNullCheck = true)
 		{
-			if (expr == null) throw new ArgumentNullException("expr");
+			if (expr == null) throw new ArgumentNullException(nameof(expr));
 
 			var ex = addNullCheck && expr.Find(Converter.IsDefaultValuePlaceHolder) == null?
 				AddNullCheck(expr) :
@@ -291,14 +291,14 @@ namespace LinqToDB.Mapping
 			[Properties.NotNull] Expression<Func<TFrom,TTo>> checkNullExpr,
 			[Properties.NotNull] Expression<Func<TFrom,TTo>> expr)
 		{
-			if (expr == null) throw new ArgumentNullException("expr");
+			if (expr == null) throw new ArgumentNullException(nameof(expr));
 
 			_schemas[0].SetConvertInfo(typeof(TFrom), typeof(TTo), new ConvertInfo.LambdaInfo(checkNullExpr, expr, null, false));
 		}
 
 		public void SetConverter<TFrom,TTo>([Properties.NotNull] Func<TFrom,TTo> func)
 		{
-			if (func == null) throw new ArgumentNullException("func");
+			if (func == null) throw new ArgumentNullException(nameof(func));
 
 			var p  = Expression.Parameter(typeof(TFrom), "p");
 			var ex = Expression.Lambda<Func<TFrom,TTo>>(Expression.Invoke(Expression.Constant(func), p), p);
@@ -911,7 +911,7 @@ namespace LinqToDB.Mapping
 
 		public virtual MapValue[] GetMapValues([Properties.NotNull] Type type)
 		{
-			if (type == null) throw new ArgumentNullException("type");
+			if (type == null) throw new ArgumentNullException(nameof(type));
 
 			if (_mapValues == null)
 				_mapValues = new ConcurrentDictionary<Type,MapValue[]>();

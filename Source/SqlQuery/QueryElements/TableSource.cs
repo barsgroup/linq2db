@@ -19,7 +19,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public TableSource(ISqlTableSource source, string alias, params IJoinedTable[] joins)
         {
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
 
             Source = source;
             _alias = alias;
@@ -30,7 +30,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public TableSource(ISqlTableSource source, string alias, IEnumerable<IJoinedTable> joins)
         {
-            if (source == null) throw new ArgumentNullException("source");
+            if (source == null) throw new ArgumentNullException(nameof(source));
 
             Source = source;
             _alias = alias;

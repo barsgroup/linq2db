@@ -63,7 +63,7 @@
 
 		public SqlTable([Properties.NotNull] MappingSchema mappingSchema, Type objectType) : this()
 		{
-			if (mappingSchema == null) throw new ArgumentNullException("mappingSchema");
+			if (mappingSchema == null) throw new ArgumentNullException(nameof(mappingSchema));
 
 			var ed = mappingSchema.GetEntityDescriptor(objectType);
 

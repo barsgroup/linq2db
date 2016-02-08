@@ -24,8 +24,8 @@ namespace LinqToDB.Metadata
 
 		public XmlAttributeReader([NotNull] string xmlFile, [NotNull] Assembly assembly)
 		{
-			if (xmlFile  == null) throw new ArgumentNullException("xmlFile");
-			if (assembly == null) throw new ArgumentNullException("assembly");
+			if (xmlFile  == null) throw new ArgumentNullException(nameof(xmlFile));
+			if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 
 			StreamReader streamReader = null;
 
@@ -71,7 +71,7 @@ namespace LinqToDB.Metadata
 
 		public XmlAttributeReader([NotNull] Stream xmlDocStream)
 		{
-			if (xmlDocStream == null) throw new ArgumentNullException("xmlDocStream");
+			if (xmlDocStream == null) throw new ArgumentNullException(nameof(xmlDocStream));
 
 			_types = LoadStream(xmlDocStream, "");
 		}

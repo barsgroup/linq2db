@@ -25,13 +25,13 @@ namespace LinqToDB.DataProvider.Firebird
 
 		public static void ResolveFirebird([NotNull] string path)
 		{
-			if (path == null) throw new ArgumentNullException("path");
+			if (path == null) throw new ArgumentNullException(nameof(path));
 			new AssemblyResolver(path, "FirebirdSql.Data.FirebirdClient");
 		}
 
 		public static void ResolveFirebird([NotNull] Assembly assembly)
 		{
-			if (assembly == null) throw new ArgumentNullException("assembly");
+			if (assembly == null) throw new ArgumentNullException(nameof(assembly));
 			new AssemblyResolver(assembly, "FirebirdSql.Data.FirebirdClient");
 		}
 

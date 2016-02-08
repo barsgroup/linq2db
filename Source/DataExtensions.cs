@@ -30,8 +30,8 @@ namespace LinqToDB
 			[NotNull] params object[] parameters)
 			where T : class
 		{
-			if (methodInfo == null) throw new ArgumentNullException("methodInfo");
-			if (parameters == null) throw new ArgumentNullException("parameters");
+			if (methodInfo == null) throw new ArgumentNullException(nameof(methodInfo));
+			if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
 			if (!typeof(ITable<>).IsSameOrParentOf(methodInfo.ReturnType))
 				throw new LinqException(
@@ -186,7 +186,7 @@ namespace LinqToDB
 		public static int Insert<T>([NotNull] this IDataContextInfo dataContextInfo, T obj,
 			string tableName = null, string databaseName = null, string schemaName = null)
 		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
+			if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
 			return Query<T>.Insert(dataContextInfo, obj, tableName, databaseName, schemaName);
 		}
 
@@ -202,7 +202,7 @@ namespace LinqToDB
 
 		public static int InsertOrReplace<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
 		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
+			if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
 			return Query<T>.InsertOrReplace(dataContextInfo, obj);
 		}
 
@@ -217,7 +217,7 @@ namespace LinqToDB
 
 		public static object InsertWithIdentity<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
 		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
+			if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
 			return Query<T>.InsertWithIdentity(dataContextInfo, obj);
 		}
 
@@ -232,7 +232,7 @@ namespace LinqToDB
 
 		public static int Update<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
 		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
+			if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
 			return Query<T>.Update(dataContextInfo, obj);
 		}
 
@@ -247,13 +247,13 @@ namespace LinqToDB
 
 		public static int Delete<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
 		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
+			if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
 			return Query<T>.Delete(dataContextInfo, obj);
 		}
 
 		public static int Delete<T>([NotNull] this IDataContext dataContext, T obj)
 		{
-			if (dataContext == null) throw new ArgumentNullException("dataContext");
+			if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
 			return Query<T>.Delete(DataContextInfo.Create(dataContext), obj);
 		}
 		#endregion
@@ -270,7 +270,7 @@ namespace LinqToDB
 			string         statementFooter = null,
 			EDefaulNullable eDefaulNullable  = EDefaulNullable.None)
 		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
+			if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
 			return Query<T>.CreateTable(dataContextInfo,
 				tableName, databaseName, ownerName, statementHeader, statementFooter, eDefaulNullable);
 		}
@@ -283,7 +283,7 @@ namespace LinqToDB
 			string         statementFooter = null,
 			EDefaulNullable eDefaulNullable  = EDefaulNullable.None)
 		{
-			if (dataContext == null) throw new ArgumentNullException("dataContext");
+			if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
 			return Query<T>.CreateTable(DataContextInfo.Create(dataContext),
 				tableName, databaseName, ownerName, statementHeader, statementFooter, eDefaulNullable);
 		}
@@ -293,19 +293,19 @@ namespace LinqToDB
 			string databaseName = null,
 			string schemaName    = null)
 		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
+			if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
 			Query<T>.DropTable(dataContextInfo, tableName, databaseName, schemaName);
 		}
 
 		public static void DropTable<T>([NotNull] this IDataContext dataContext, string tableName = null, string databaseName = null, string schemaName = null)
 		{
-			if (dataContext == null) throw new ArgumentNullException("dataContext");
+			if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
 			Query<T>.DropTable(DataContextInfo.Create(dataContext), tableName, databaseName, schemaName);
 		}
 
 		public static void DropTable<T>([NotNull] this ITable<T> table, string tableName = null, string databaseName = null, string schemaName = null)
 		{
-			if (table == null) throw new ArgumentNullException("table");
+			if (table == null) throw new ArgumentNullException(nameof(table));
 
 			var tbl = (Table<T>)table;
 

@@ -9,7 +9,7 @@ namespace LinqToDB
 	{
 		public DataContextTransaction([NotNull] DataContext dataContext)
 		{
-			if (dataContext == null) throw new ArgumentNullException("dataContext");
+			if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
 
 			DataContext = dataContext;
 		}

@@ -11,8 +11,8 @@ namespace LinqToDB.DataProvider
 	{
 		public AssemblyResolver([NotNull] string path, [NotNull] string resolveName)
 		{
-			if (path        == null) throw new ArgumentNullException("path");
-			if (resolveName == null) throw new ArgumentNullException("resolveName");
+			if (path        == null) throw new ArgumentNullException(nameof(path));
+			if (resolveName == null) throw new ArgumentNullException(nameof(resolveName));
 
 			_path        = path;
 			_resolveName = resolveName;
@@ -25,8 +25,8 @@ namespace LinqToDB.DataProvider
 
 		public AssemblyResolver([NotNull] Assembly assembly, [NotNull] string resolveName)
 		{
-			if (assembly    == null) throw new ArgumentNullException("assembly");
-			if (resolveName == null) throw new ArgumentNullException("resolveName");
+			if (assembly    == null) throw new ArgumentNullException(nameof(assembly));
+			if (resolveName == null) throw new ArgumentNullException(nameof(resolveName));
 
 			_assembly    = assembly;
 			_resolveName = resolveName;

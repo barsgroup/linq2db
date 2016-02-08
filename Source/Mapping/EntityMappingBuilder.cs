@@ -13,7 +13,7 @@ namespace LinqToDB.Mapping
 
 		public EntityMappingBuilder([Properties.NotNull] FluentMappingBuilder builder, string configuration)
 		{
-			if (builder == null) throw new ArgumentNullException("builder");
+			if (builder == null) throw new ArgumentNullException(nameof(builder));
 
 			_builder      = builder;
 			Configuration = configuration;

@@ -50,7 +50,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             foreach (var item in Items)
                 if (item.Expression.Equals(expr, (x, y) =>
                 {
-                    var col = x as Column;
+                    var col = x as IColumn;
                     return col == null || !col.Parent.HasUnion || x == y;
                 }))
                     return;

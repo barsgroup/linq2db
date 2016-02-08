@@ -43,8 +43,8 @@ namespace LinqToDB.Data
 
 		public DataConnection([Properties.NotNull] string providerName, [Properties.NotNull] string connectionString)
 		{
-			if (providerName     == null) throw new ArgumentNullException("providerName");
-			if (connectionString == null) throw new ArgumentNullException("connectionString");
+			if (providerName     == null) throw new ArgumentNullException(nameof(providerName));
+			if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
 
 			var dataProvider =
 			(
@@ -67,8 +67,8 @@ namespace LinqToDB.Data
 
         public DataConnection([Properties.NotNull] string providerName, [Properties.NotNull] IDbConnection connection)
         {
-            if (providerName == null) throw new ArgumentNullException("providerName");
-            if (connection == null) throw new ArgumentNullException("connection");
+            if (providerName == null) throw new ArgumentNullException(nameof(providerName));
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
 
             var dataProvider = (
                 from key in _dataProviders.Keys
@@ -87,8 +87,8 @@ namespace LinqToDB.Data
 
 		public DataConnection([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] string connectionString)
 		{
-			if (dataProvider     == null) throw new ArgumentNullException("dataProvider");
-			if (connectionString == null) throw new ArgumentNullException("connectionString");
+			if (dataProvider     == null) throw new ArgumentNullException(nameof(dataProvider));
+			if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
 
 			InitConfig();
 
@@ -99,8 +99,8 @@ namespace LinqToDB.Data
 
 		public DataConnection([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] IDbConnection connection)
 		{
-			if (dataProvider == null) throw new ArgumentNullException("dataProvider");
-			if (connection   == null) throw new ArgumentNullException("connection");
+			if (dataProvider == null) throw new ArgumentNullException(nameof(dataProvider));
+			if (connection   == null) throw new ArgumentNullException(nameof(connection));
 			
 			InitConfig();
 
@@ -115,8 +115,8 @@ namespace LinqToDB.Data
 
 		public DataConnection([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] IDbTransaction transaction)
 		{
-			if (dataProvider == null) throw new ArgumentNullException("dataProvider");
-			if (transaction  == null) throw new ArgumentNullException("transaction");
+			if (dataProvider == null) throw new ArgumentNullException(nameof(dataProvider));
+			if (transaction  == null) throw new ArgumentNullException(nameof(transaction));
 			
 			InitConfig();
 
@@ -350,18 +350,18 @@ namespace LinqToDB.Data
 
 		public static void AddDataProvider([Properties.NotNull] string providerName, [Properties.NotNull] IDataProvider dataProvider)
 		{
-			if (providerName == null) throw new ArgumentNullException("providerName");
-			if (dataProvider == null) throw new ArgumentNullException("dataProvider");
+			if (providerName == null) throw new ArgumentNullException(nameof(providerName));
+			if (dataProvider == null) throw new ArgumentNullException(nameof(dataProvider));
 
 			if (string.IsNullOrEmpty(dataProvider.Name))
-				throw new ArgumentException("dataProvider.Name cant be empty.", "dataProvider");
+				throw new ArgumentException("dataProvider.Name cant be empty.", nameof(dataProvider));
 
 			_dataProviders[providerName] = dataProvider;
 		}
 
 		public static void AddDataProvider([Properties.NotNull] IDataProvider dataProvider)
 		{
-			if (dataProvider == null) throw new ArgumentNullException("dataProvider");
+			if (dataProvider == null) throw new ArgumentNullException(nameof(dataProvider));
 
 			AddDataProvider(dataProvider.Name, dataProvider);
 		}
@@ -468,8 +468,8 @@ namespace LinqToDB.Data
 			[Properties.NotNull] string connectionString,
 			IDataProvider dataProvider = null)
 		{
-			if (configuration    == null) throw new ArgumentNullException("configuration");
-			if (connectionString == null) throw new ArgumentNullException("connectionString");
+			if (configuration    == null) throw new ArgumentNullException(nameof(configuration));
+			if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
 
 			_configurations[configuration] = new ConfigurationInfo(
 				connectionString,
@@ -480,8 +480,8 @@ namespace LinqToDB.Data
 			[Properties.NotNull] string configuration,
 			[Properties.NotNull] string connectionString)
 		{
-			if (configuration    == null) throw new ArgumentNullException("configuration");
-			if (connectionString == null) throw new ArgumentNullException("connectionString");
+			if (configuration    == null) throw new ArgumentNullException(nameof(configuration));
+			if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
 
 			InitConfig();
 

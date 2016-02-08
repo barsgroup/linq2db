@@ -31,7 +31,7 @@ namespace LinqToDB.DataProvider.SapHana
 			BulkCopyOptions options,
 			IEnumerable<T> source)
 		{
-			if (dataConnection == null) throw new ArgumentNullException("dataConnection");
+			if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
 
 			var connection = dataConnection.Connection;
 

@@ -19,8 +19,8 @@ namespace LinqToDB
 
 		static public ITable<T> TableName<T>([NotNull] this ITable<T> table, [NotNull] string name)
 		{
-			if (table == null) throw new ArgumentNullException("table");
-			if (name  == null) throw new ArgumentNullException("name");
+			if (table == null) throw new ArgumentNullException(nameof(table));
+			if (name  == null) throw new ArgumentNullException(nameof(name));
 
 			table.Expression = Expression.Call(
 				null,
@@ -38,8 +38,8 @@ namespace LinqToDB
 
 		static public ITable<T> DatabaseName<T>([NotNull] this ITable<T> table, [NotNull] string name)
 		{
-			if (table == null) throw new ArgumentNullException("table");
-			if (name  == null) throw new ArgumentNullException("name");
+			if (table == null) throw new ArgumentNullException(nameof(table));
+			if (name  == null) throw new ArgumentNullException(nameof(name));
 
 			table.Expression = Expression.Call(
 				null,
@@ -57,8 +57,8 @@ namespace LinqToDB
 
 		static public ITable<T> OwnerName<T>([NotNull] this ITable<T> table, [NotNull] string name)
 		{
-			if (table == null) throw new ArgumentNullException("table");
-			if (name  == null) throw new ArgumentNullException("name");
+			if (table == null) throw new ArgumentNullException(nameof(table));
+			if (name  == null) throw new ArgumentNullException(nameof(name));
 
 			table.Expression = Expression.Call(
 				null,
@@ -76,8 +76,8 @@ namespace LinqToDB
 
 		static public ITable<T> SchemaName<T>([NotNull] this ITable<T> table, [NotNull] string name)
 		{
-			if (table == null) throw new ArgumentNullException("table");
-			if (name  == null) throw new ArgumentNullException("name");
+			if (table == null) throw new ArgumentNullException(nameof(table));
+			if (name  == null) throw new ArgumentNullException(nameof(name));
 
 			table.Expression = Expression.Call(
 				null,
@@ -95,7 +95,7 @@ namespace LinqToDB
 
 		static public ITable<T> WithTableExpression<T>([NotNull] this ITable<T> table, [NotNull] string expression)
 		{
-			if (expression == null) throw new ArgumentNullException("expression");
+			if (expression == null) throw new ArgumentNullException(nameof(expression));
 
 			table.Expression = Expression.Call(
 				null,
@@ -109,7 +109,7 @@ namespace LinqToDB
 
 		static public ITable<T> With<T>([NotNull] this ITable<T> table, [NotNull] string args)
 		{
-			if (args == null) throw new ArgumentNullException("args");
+			if (args == null) throw new ArgumentNullException(nameof(args));
 
 			table.Expression = Expression.Call(
 				null,
@@ -137,7 +137,7 @@ namespace LinqToDB
 			[NotNull]                this IExpressionQuery<T> table,
 			[NotNull, InstantHandle] Expression<Func<T, object>> selector)
 		{
-			if (table == null) throw new ArgumentNullException("table");
+			if (table == null) throw new ArgumentNullException(nameof(table));
 
 			table.Expression = GetExpressionLoadWith(table.Expression, selector);
 
@@ -160,8 +160,8 @@ namespace LinqToDB
 			[NotNull]                this IDataContext   dataContext,
 			[NotNull, InstantHandle] Expression<Func<T>> selector)
 		{
-			if (dataContext == null) throw new ArgumentNullException("dataContext");
-			if (selector    == null) throw new ArgumentNullException("selector");
+			if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
+			if (selector    == null) throw new ArgumentNullException(nameof(selector));
 
 			var q = new Table<T>(dataContext, selector);
 
@@ -179,7 +179,7 @@ namespace LinqToDB
 
 		public static int Delete<T>([NotNull] this IQueryable<T> source)
 		{
-			if (source == null) throw new ArgumentNullException("source");
+			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			return source.Provider.Execute<int>(
 				Expression.Call(
@@ -194,8 +194,8 @@ namespace LinqToDB
 			[NotNull]                this IQueryable<T>       source,
 			[NotNull, InstantHandle] Expression<Func<T,bool>> predicate)
 		{
-			if (source    == null) throw new ArgumentNullException("source");
-			if (predicate == null) throw new ArgumentNullException("predicate");
+			if (source    == null) throw new ArgumentNullException(nameof(source));
+			if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
 			return source.Provider.Execute<int>(
 				Expression.Call(
@@ -215,9 +215,9 @@ namespace LinqToDB
 			[NotNull]                ITable<TTarget>                   target,
 			[NotNull, InstantHandle] Expression<Func<TSource,TTarget>> setter)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (target == null) throw new ArgumentNullException("target");
-			if (setter == null) throw new ArgumentNullException("setter");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (target == null) throw new ArgumentNullException(nameof(target));
+			if (setter == null) throw new ArgumentNullException(nameof(setter));
 
 			return source.Provider.Execute<int>(
 				Expression.Call(
@@ -232,8 +232,8 @@ namespace LinqToDB
 			[NotNull]                this IQueryable<T>    source,
 			[NotNull, InstantHandle] Expression<Func<T,T>> setter)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (setter == null) throw new ArgumentNullException("setter");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (setter == null) throw new ArgumentNullException(nameof(setter));
 
 			return source.Provider.Execute<int>(
 				Expression.Call(
@@ -249,9 +249,9 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,bool>> predicate,
 			[NotNull, InstantHandle] Expression<Func<T,T>>    setter)
 		{
-			if (source    == null) throw new ArgumentNullException("source");
-			if (predicate == null) throw new ArgumentNullException("predicate");
-			if (setter    == null) throw new ArgumentNullException("setter");
+			if (source    == null) throw new ArgumentNullException(nameof(source));
+			if (predicate == null) throw new ArgumentNullException(nameof(predicate));
+			if (setter    == null) throw new ArgumentNullException(nameof(setter));
 
 			return source.Provider.Execute<int>(
 				Expression.Call(
@@ -264,7 +264,7 @@ namespace LinqToDB
 
 		public static int Update<T>([NotNull] this IUpdatable<T> source)
 		{
-			if (source == null) throw new ArgumentNullException("source");
+			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			var query = ((Updatable<T>)source).Query;
 
@@ -284,7 +284,7 @@ namespace LinqToDB
 
 		public static IUpdatable<T> AsUpdatable<T>([NotNull] this IQueryable<T> source)
 		{
-			if (source  == null) throw new ArgumentNullException("source");
+			if (source  == null) throw new ArgumentNullException(nameof(source));
 
 			var query = source.Provider.CreateQuery<T>(
 				Expression.Call(
@@ -303,9 +303,9 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,TV>> extract,
 			[NotNull, InstantHandle] Expression<Func<T,TV>> update)
 		{
-			if (source  == null) throw new ArgumentNullException("source");
-			if (extract == null) throw new ArgumentNullException("extract");
-			if (update  == null) throw new ArgumentNullException("update");
+			if (source  == null) throw new ArgumentNullException(nameof(source));
+			if (extract == null) throw new ArgumentNullException(nameof(extract));
+			if (update  == null) throw new ArgumentNullException(nameof(update));
 
 			var query = source.Provider.CreateQuery<T>(
 				Expression.Call(
@@ -324,9 +324,9 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,TV>> extract,
 			[NotNull, InstantHandle] Expression<Func<T,TV>> update)
 		{
-			if (source  == null) throw new ArgumentNullException("source");
-			if (extract == null) throw new ArgumentNullException("extract");
-			if (update  == null) throw new ArgumentNullException("update");
+			if (source  == null) throw new ArgumentNullException(nameof(source));
+			if (extract == null) throw new ArgumentNullException(nameof(extract));
+			if (update  == null) throw new ArgumentNullException(nameof(update));
 
 			var query = ((Updatable<T>)source).Query;
 
@@ -347,9 +347,9 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,TV>> extract,
 			[NotNull, InstantHandle] Expression<Func<TV>>   update)
 		{
-			if (source  == null) throw new ArgumentNullException("source");
-			if (extract == null) throw new ArgumentNullException("extract");
-			if (update  == null) throw new ArgumentNullException("update");
+			if (source  == null) throw new ArgumentNullException(nameof(source));
+			if (extract == null) throw new ArgumentNullException(nameof(extract));
+			if (update  == null) throw new ArgumentNullException(nameof(update));
 
 			var query = source.Provider.CreateQuery<T>(
 				Expression.Call(
@@ -368,9 +368,9 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,TV>> extract,
 			[NotNull, InstantHandle] Expression<Func<TV>>   update)
 		{
-			if (source  == null) throw new ArgumentNullException("source");
-			if (extract == null) throw new ArgumentNullException("extract");
-			if (update  == null) throw new ArgumentNullException("update");
+			if (source  == null) throw new ArgumentNullException(nameof(source));
+			if (extract == null) throw new ArgumentNullException(nameof(extract));
+			if (update  == null) throw new ArgumentNullException(nameof(update));
 
 			var query = ((Updatable<T>)source).Query;
 
@@ -390,8 +390,8 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,TV>> extract,
 			TV                                              value)
 		{
-			if (source  == null) throw new ArgumentNullException("source");
-			if (extract == null) throw new ArgumentNullException("extract");
+			if (source  == null) throw new ArgumentNullException(nameof(source));
+			if (extract == null) throw new ArgumentNullException(nameof(extract));
 
 			var query = source.Provider.CreateQuery<T>(
 				Expression.Call(
@@ -409,8 +409,8 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,TV>> extract,
 			TV                                              value)
 		{
-			if (source  == null) throw new ArgumentNullException("source");
-			if (extract == null) throw new ArgumentNullException("extract");
+			if (source  == null) throw new ArgumentNullException(nameof(source));
+			if (extract == null) throw new ArgumentNullException(nameof(extract));
 
 			var query = ((Updatable<T>)source).Query;
 
@@ -433,8 +433,8 @@ namespace LinqToDB
 			[NotNull]                this ITable<T>      target,
 			[NotNull, InstantHandle] Expression<Func<T>> setter)
 		{
-			if (target == null) throw new ArgumentNullException("target");
-			if (setter == null) throw new ArgumentNullException("setter");
+			if (target == null) throw new ArgumentNullException(nameof(target));
+			if (setter == null) throw new ArgumentNullException(nameof(setter));
 
 			IQueryable<T> query = target;
 
@@ -451,8 +451,8 @@ namespace LinqToDB
 			[NotNull]                this ITable<T>      target,
 			[NotNull, InstantHandle] Expression<Func<T>> setter)
 		{
-			if (target == null) throw new ArgumentNullException("target");
-			if (setter == null) throw new ArgumentNullException("setter");
+			if (target == null) throw new ArgumentNullException(nameof(target));
+			if (setter == null) throw new ArgumentNullException(nameof(setter));
 
 			IQueryable<T> query = target;
 
@@ -474,7 +474,7 @@ namespace LinqToDB
 
 		public static IValueInsertable<T> Into<T>(this IDataContext dataContext, [NotNull] ITable<T> target)
 		{
-			if (target == null) throw new ArgumentNullException("target");
+			if (target == null) throw new ArgumentNullException(nameof(target));
 
 			IQueryable<T> query = target;
 
@@ -495,9 +495,9 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,TV>> field,
 			[NotNull, InstantHandle] Expression<Func<TV>>   value)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (field  == null) throw new ArgumentNullException("field");
-			if (value  == null) throw new ArgumentNullException("value");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (field  == null) throw new ArgumentNullException(nameof(field));
+			if (value  == null) throw new ArgumentNullException(nameof(value));
 
 			var query = (IQueryable<T>)source;
 
@@ -518,8 +518,8 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,TV>> field,
 			TV                                              value)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (field  == null) throw new ArgumentNullException("field");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (field  == null) throw new ArgumentNullException(nameof(field));
 
 			var query = (IQueryable<T>)source;
 
@@ -540,9 +540,9 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,TV>>   field,
 			[NotNull, InstantHandle] Expression<Func<TV>>     value)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (field  == null) throw new ArgumentNullException("field");
-			if (value  == null) throw new ArgumentNullException("value");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (field  == null) throw new ArgumentNullException(nameof(field));
+			if (value  == null) throw new ArgumentNullException(nameof(value));
 
 			var query = ((ValueInsertable<T>)source).Query;
 
@@ -563,8 +563,8 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,TV>>   field,
 			TV                                                value)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (field  == null) throw new ArgumentNullException("field");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (field  == null) throw new ArgumentNullException(nameof(field));
 
 			var query = ((ValueInsertable<T>)source).Query;
 
@@ -581,7 +581,7 @@ namespace LinqToDB
 
 		public static int Insert<T>([NotNull] this IValueInsertable<T> source)
 		{
-			if (source == null) throw new ArgumentNullException("source");
+			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			var query = ((ValueInsertable<T>)source).Query;
 
@@ -596,7 +596,7 @@ namespace LinqToDB
 
 		public static object InsertWithIdentity<T>([NotNull] this IValueInsertable<T> source)
 		{
-			if (source == null) throw new ArgumentNullException("source");
+			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			var query = ((ValueInsertable<T>)source).Query;
 
@@ -619,9 +619,9 @@ namespace LinqToDB
 			[NotNull]                ITable<TTarget>                   target,
 			[NotNull, InstantHandle] Expression<Func<TSource,TTarget>> setter)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (target == null) throw new ArgumentNullException("target");
-			if (setter == null) throw new ArgumentNullException("setter");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (target == null) throw new ArgumentNullException(nameof(target));
+			if (setter == null) throw new ArgumentNullException(nameof(setter));
 
 			return source.Provider.Execute<int>(
 				Expression.Call(
@@ -638,9 +638,9 @@ namespace LinqToDB
 			[NotNull]                ITable<TTarget>                   target,
 			[NotNull, InstantHandle] Expression<Func<TSource,TTarget>> setter)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (target == null) throw new ArgumentNullException("target");
-			if (setter == null) throw new ArgumentNullException("setter");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (target == null) throw new ArgumentNullException(nameof(target));
+			if (setter == null) throw new ArgumentNullException(nameof(setter));
 
 			return source.Provider.Execute<object>(
 				Expression.Call(
@@ -661,7 +661,7 @@ namespace LinqToDB
 			[NotNull] this IQueryable<TSource> source,
 			[NotNull] ITable<TTarget>          target)
 		{
-			if (target == null) throw new ArgumentNullException("target");
+			if (target == null) throw new ArgumentNullException(nameof(target));
 
 			var q = source.Provider.CreateQuery<TSource>(
 				Expression.Call(
@@ -680,9 +680,9 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<TTarget,TValue>>        field,
 			[NotNull, InstantHandle] Expression<Func<TSource,TValue>>        value)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (field  == null) throw new ArgumentNullException("field");
-			if (value  == null) throw new ArgumentNullException("value");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (field  == null) throw new ArgumentNullException(nameof(field));
+			if (value  == null) throw new ArgumentNullException(nameof(value));
 
 			var query = ((SelectInsertable<TSource,TTarget>)source).Query;
 
@@ -703,9 +703,9 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<TTarget,TValue>>        field,
 			[NotNull, InstantHandle] Expression<Func<TValue>>                value)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (field  == null) throw new ArgumentNullException("field");
-			if (value  == null) throw new ArgumentNullException("value");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (field  == null) throw new ArgumentNullException(nameof(field));
+			if (value  == null) throw new ArgumentNullException(nameof(value));
 
 			var query = ((SelectInsertable<TSource,TTarget>)source).Query;
 
@@ -726,8 +726,8 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<TTarget,TValue>>        field,
 			TValue                                                           value)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (field  == null) throw new ArgumentNullException("field");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (field  == null) throw new ArgumentNullException(nameof(field));
 
 			var query = ((SelectInsertable<TSource,TTarget>)source).Query;
 
@@ -745,7 +745,7 @@ namespace LinqToDB
 
 		public static int Insert<TSource,TTarget>([NotNull] this ISelectInsertable<TSource,TTarget> source)
 		{
-			if (source == null) throw new ArgumentNullException("source");
+			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			var query = ((SelectInsertable<TSource,TTarget>)source).Query;
 
@@ -761,7 +761,7 @@ namespace LinqToDB
 
 		public static object InsertWithIdentity<TSource,TTarget>([NotNull] this ISelectInsertable<TSource,TTarget> source)
 		{
-			if (source == null) throw new ArgumentNullException("source");
+			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			var query = ((SelectInsertable<TSource,TTarget>)source).Query;
 
@@ -786,9 +786,9 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T>>   insertSetter,
 			[NotNull, InstantHandle] Expression<Func<T,T>> onDuplicateKeyUpdateSetter)
 		{
-			if (target                     == null) throw new ArgumentNullException("target");
-			if (insertSetter               == null) throw new ArgumentNullException("insertSetter");
-			if (onDuplicateKeyUpdateSetter == null) throw new ArgumentNullException("onDuplicateKeyUpdateSetter");
+			if (target                     == null) throw new ArgumentNullException(nameof(target));
+			if (insertSetter               == null) throw new ArgumentNullException(nameof(insertSetter));
+			if (onDuplicateKeyUpdateSetter == null) throw new ArgumentNullException(nameof(onDuplicateKeyUpdateSetter));
 
 			IQueryable<T> query = target;
 
@@ -808,10 +808,10 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T,T>> onDuplicateKeyUpdateSetter,
 			[NotNull, InstantHandle] Expression<Func<T>>   keySelector)
 		{
-			if (target                     == null) throw new ArgumentNullException("target");
-			if (insertSetter               == null) throw new ArgumentNullException("insertSetter");
-			if (onDuplicateKeyUpdateSetter == null) throw new ArgumentNullException("onDuplicateKeyUpdateSetter");
-			if (keySelector                == null) throw new ArgumentNullException("keySelector");
+			if (target                     == null) throw new ArgumentNullException(nameof(target));
+			if (insertSetter               == null) throw new ArgumentNullException(nameof(insertSetter));
+			if (onDuplicateKeyUpdateSetter == null) throw new ArgumentNullException(nameof(onDuplicateKeyUpdateSetter));
+			if (keySelector                == null) throw new ArgumentNullException(nameof(keySelector));
 
 			IQueryable<T> query = target;
 
@@ -836,7 +836,7 @@ namespace LinqToDB
 
 		public static int Drop<T>([NotNull] this ITable<T> target)
 		{
-			if (target == null) throw new ArgumentNullException("target");
+			if (target == null) throw new ArgumentNullException(nameof(target));
 
 			IQueryable<T> query = target;
 
@@ -857,8 +857,8 @@ namespace LinqToDB
 			[NotNull]                this IQueryable<TSource> source,
 			[NotNull, InstantHandle] Expression<Func<int>>    count)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (count  == null) throw new ArgumentNullException("count");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (count  == null) throw new ArgumentNullException(nameof(count));
 
 			return source.Provider.CreateQuery<TSource>(
 				Expression.Call(
@@ -873,8 +873,8 @@ namespace LinqToDB
 			[NotNull]                this IQueryable<TSource> source,
 			[NotNull, InstantHandle] Expression<Func<int>>    count)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (count  == null) throw new ArgumentNullException("count");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (count  == null) throw new ArgumentNullException(nameof(count));
 
 			return source.Provider.CreateQuery<TSource>(
 				Expression.Call(
@@ -889,8 +889,8 @@ namespace LinqToDB
 			[NotNull]                this IQueryable<TSource> source,
 			[NotNull, InstantHandle] Expression<Func<int>>    index)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (index  == null) throw new ArgumentNullException("index");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (index  == null) throw new ArgumentNullException(nameof(index));
 
 			return source.Provider.Execute<TSource>(
 				Expression.Call(
@@ -905,8 +905,8 @@ namespace LinqToDB
 			[NotNull]                this IQueryable<TSource> source,
 			[NotNull, InstantHandle] Expression<Func<int>>    index)
 		{
-			if (source == null) throw new ArgumentNullException("source");
-			if (index  == null) throw new ArgumentNullException("index");
+			if (source == null) throw new ArgumentNullException(nameof(source));
+			if (index  == null) throw new ArgumentNullException(nameof(index));
 
 			return source.Provider.Execute<TSource>(
 				Expression.Call(
@@ -925,8 +925,8 @@ namespace LinqToDB
 			[NotNull]                this IQueryable<TSource>       source,
 			[NotNull, InstantHandle] Expression<Func<TSource,bool>> predicate)
 		{
-			if (source    == null) throw new ArgumentNullException("source");
-			if (predicate == null) throw new ArgumentNullException("predicate");
+			if (source    == null) throw new ArgumentNullException(nameof(source));
+			if (predicate == null) throw new ArgumentNullException(nameof(predicate));
 
 			return source.Provider.CreateQuery<TSource>(
 				Expression.Call(
@@ -941,7 +941,7 @@ namespace LinqToDB
 
 		internal static ContextParser.Context GetContext<TSource>(this IQueryable<TSource> source)
 		{
-			if (source == null) throw new ArgumentNullException("source");
+			if (source == null) throw new ArgumentNullException(nameof(source));
 
 			return source.Provider.Execute<ContextParser.Context>(
 				Expression.Call(

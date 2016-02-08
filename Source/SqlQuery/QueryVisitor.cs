@@ -87,7 +87,7 @@ namespace LinqToDB.SqlQuery
 			{
 				case EQueryElementType.SqlFunction       : return Find(((SqlFunction)                element).Parameters,      find);
 				case EQueryElementType.SqlExpression     : return Find(((SqlExpression)              element).Parameters,      find);
-				case EQueryElementType.Column            : return Find(((Column)            element).Expression,      find);
+				case EQueryElementType.Column            : return Find(((IColumn)            element).Expression,      find);
 				case EQueryElementType.SearchCondition   : return Find(((SearchCondition)   element).Conditions,      find);
 				case EQueryElementType.Condition         : return Find(((Condition)         element).Predicate,       find);
 				case EQueryElementType.ExprPredicate     : return Find(((Expr)    element).Expr1,           find);
@@ -336,14 +336,14 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.Column:
 					{
-						var col  = (Column)element;
+						var col  = (IColumn)element;
 						var expr = (ISqlExpression)ConvertInternal(col.Expression, action);
 
 						IQueryElement parent;
 						_visitedElements.TryGetValue(col.Parent, out parent);
 
 						if (parent != null || expr != null && !ReferenceEquals(expr, col.Expression))
-							newElement = new Column(parent == null ? col.Parent : (ISelectQuery)parent, expr ?? col.Expression, col._alias);
+							newElement = new Column(parent == null ? col.Parent : (ISelectQuery)parent, expr ?? col.Expression, col.Alias);
 
 						break;
 					}

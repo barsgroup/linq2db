@@ -31,7 +31,7 @@ namespace LinqToDB.DataProvider.Oracle
 			BulkCopyOptions options,
 			IEnumerable<T>  source)
 		{
-			if (dataConnection == null) throw new ArgumentNullException("dataConnection");
+			if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
 
 			var sqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
 			var descriptor = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));

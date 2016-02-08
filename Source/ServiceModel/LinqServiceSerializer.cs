@@ -901,11 +901,11 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.Column :
 						{
-							var elem = (Column) e;
+							var elem = (IColumn) e;
 
 							Append(elem.Parent.SourceID);
 							Append(elem.Expression);
-							Append(elem._alias);
+							Append(elem.Alias);
 
 							break;
 						}
@@ -1492,7 +1492,7 @@ namespace LinqToDB.ServiceModel
 							var isDistinct = ReadBool();
 							var skipValue  = Read<ISqlExpression>();
 							var takeValue  = Read<ISqlExpression>();
-							var columns    = ReadArray<Column>();
+							var columns    = ReadArray<IColumn>();
 
 							obj = new SelectClause(isDistinct, takeValue, skipValue, columns);
 

@@ -419,7 +419,7 @@
 			switch (expr.ElementType)
 			{
 				case EQueryElementType.SqlField: return (SqlField)expr;
-				case EQueryElementType.Column  : return GetUnderlayingField(((Column)expr).Expression);
+				case EQueryElementType.Column  : return GetUnderlayingField(((IColumn)expr).Expression);
 			}
 
 			throw new InvalidOperationException();
@@ -569,7 +569,7 @@
                         {
                             objs.Add(element, element);
 
-                            var c = (Column)element;
+                            var c = (IColumn)element;
 
                             if (c.Alias != "*")
                                 c.Alias = GetAlias(c.Alias, "c");

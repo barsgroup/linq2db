@@ -189,7 +189,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 	        var sqlField = expr1 as SqlField;
 	        if (sqlField == null)
 	        {
-	            var column = expr1 as Column;
+	            var column = expr1 as IColumn;
 	            if (column != null)
 	            {
 	                sqlField = column.Expression as SqlField;
@@ -313,7 +313,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
                     return field;
                 }
 
-                var column = parameter as Column;
+                var column = parameter as IColumn;
                 if (column != null)
                 {
                     return column;

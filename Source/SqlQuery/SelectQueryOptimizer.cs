@@ -100,7 +100,7 @@ namespace LinqToDB.SqlQuery
 						}
 
 					case EQueryElementType.Column :
-						return ((Column)e).Parent == selectQuery;
+						return ((IColumn)e).Parent == selectQuery;
 
 					case EQueryElementType.SqlTable :
 						return false;
@@ -277,7 +277,7 @@ namespace LinqToDB.SqlQuery
 
 						case EQueryElementType.Column :
 							{
-								var expr = (Column)e;
+								var expr = (IColumn)e;
 
 								if (expr.Parent != data.Query)
 									return false;
@@ -357,7 +357,7 @@ namespace LinqToDB.SqlQuery
 	                var ucol = union.Select.Columns[i];
 
 	                scol.Expression = ucol.Expression;
-	                scol._alias = ucol._alias;
+	                scol.Alias = ucol.Alias;
 
 	                exprs.Add(ucol, scol);
 	            }
@@ -661,9 +661,9 @@ namespace LinqToDB.SqlQuery
 				source;
 		}
 
-	    static bool CheckColumn(Column column, ISqlExpression expr, ISelectQuery query, bool optimizeValues, bool optimizeColumns)
+	    static bool CheckColumn(IColumn column, ISqlExpression expr, ISelectQuery query, bool optimizeValues, bool optimizeColumns)
 	    {
-	        if (expr is SqlField || expr is Column)
+	        if (expr is SqlField || expr is IColumn)
 	            return false;
 
 	        if (expr is SqlValue)
@@ -687,7 +687,7 @@ namespace LinqToDB.SqlQuery
 	        if (optimizeColumns && visitor.Find(expr, e => e is ISelectQuery || IsAggregationFunction(e)) == null)
 	        {
 	            var q = query.ParentSelect ?? query;
-	            var count = QueryVisitor.FindAll<Column>(q).Count(e => e == column);
+	            var count = QueryVisitor.FindAll<IColumn>(q).Count(e => e == column);
 
 	            return count > 2;
 	        }
@@ -846,7 +846,7 @@ namespace LinqToDB.SqlQuery
 			return null != new QueryVisitor().Find(sql, e =>
 				e == table ||
 				e.ElementType == EQueryElementType.SqlField && table == ((SqlField)e).Table ||
-				e.ElementType == EQueryElementType.Column   && table == ((Column)  e).Parent);
+				e.ElementType == EQueryElementType.Column   && table == ((IColumn)  e).Parent);
 		}
 
 		static void ConcatSearchCondition(WhereClause where1, WhereClause where2)

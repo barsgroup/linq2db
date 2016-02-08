@@ -21,10 +21,10 @@
 		{
 			//_sourceID = Interlocked.Increment(ref SqlQuery.SourceIDCounter);
 
-			if (parameters == null) throw new ArgumentNullException("parameters");
+			if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
 			foreach (var p in parameters)
-				if (p == null) throw new ArgumentNullException("parameters");
+				if (p == null) throw new ArgumentNullException(nameof(parameters));
 
 			SystemType = systemType;
 			Name       = name;

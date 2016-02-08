@@ -534,7 +534,7 @@ namespace LinqToDB.Extensions
 		public static T[] GetAttributes<T>([NotNull] this Type type)
 			where T : Attribute
 		{
-			if (type == null) throw new ArgumentNullException("type");
+			if (type == null) throw new ArgumentNullException(nameof(type));
 
 			T[] attrs;
 
@@ -590,7 +590,7 @@ namespace LinqToDB.Extensions
 		/// </returns>
 		public static Type ToUnderlying([NotNull] this Type type)
 		{
-			if (type == null) throw new ArgumentNullException("type");
+			if (type == null) throw new ArgumentNullException(nameof(type));
 
 			if (type.IsNullable()) type = type.GetGenericArgumentsEx()[0];
 			if (type.IsEnumEx  ()) type = Enum.GetUnderlyingType(type);
@@ -600,7 +600,7 @@ namespace LinqToDB.Extensions
 
 		public static Type ToNullableUnderlying([NotNull] this Type type)
 		{
-			if (type == null) throw new ArgumentNullException("type");
+			if (type == null) throw new ArgumentNullException(nameof(type));
 			return type.IsNullable() ? type.GetGenericArgumentsEx()[0] : type;
 		}
 
@@ -640,8 +640,8 @@ namespace LinqToDB.Extensions
 		/// aren't a parent and it's child.</remarks>
 		public static bool IsSameOrParentOf([NotNull] this Type parent, [NotNull] Type child)
 		{
-			if (parent == null) throw new ArgumentNullException("parent");
-			if (child  == null) throw new ArgumentNullException("child");
+			if (parent == null) throw new ArgumentNullException(nameof(parent));
+			if (child  == null) throw new ArgumentNullException(nameof(child));
 
 			if (parent == child ||
 				child.IsEnumEx() && Enum.GetUnderlyingType(child) == parent ||
@@ -676,7 +676,7 @@ namespace LinqToDB.Extensions
 
 		public static Type GetGenericType([NotNull] this Type genericType, Type type)
 		{
-			if (genericType == null) throw new ArgumentNullException("genericType");
+			if (genericType == null) throw new ArgumentNullException(nameof(genericType));
 
 			while (type != null && type != typeof(object))
 			{

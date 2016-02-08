@@ -6,6 +6,7 @@ namespace LinqToDB.DataProvider.SqlServer
 {
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -63,7 +64,7 @@ namespace LinqToDB.DataProvider.SqlServer
 				base.BuildOrderByClause();
 		}
 
-		protected override IEnumerable<Column> GetSelectedColumns()
+		protected override IEnumerable<IColumn> GetSelectedColumns()
 		{
 			if (BuildAlternativeSql && NeedSkip && !SelectQuery.OrderBy.IsEmpty)
 				return AlternativeGetSelectedColumns(base.GetSelectedColumns);

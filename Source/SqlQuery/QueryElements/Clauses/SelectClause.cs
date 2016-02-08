@@ -25,13 +25,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
-            _columns.AddRange(clone.Columns.Select(c => (Column)c.Clone(objectTree, doClone)));
+            _columns.AddRange(clone.Columns.Select(c => (IColumn)c.Clone(objectTree, doClone)));
             IsDistinct = clone.IsDistinct;
             TakeValue  = (ISqlExpression)clone.TakeValue?.Clone(objectTree, doClone);
             SkipValue  = (ISqlExpression)clone.SkipValue?.Clone(objectTree, doClone);
         }
 
-        internal SelectClause(bool isDistinct, ISqlExpression takeValue, ISqlExpression skipValue, IEnumerable<Column> columns)
+        internal SelectClause(bool isDistinct, ISqlExpression takeValue, ISqlExpression skipValue, IEnumerable<IColumn> columns)
             : base(null)
         {
             IsDistinct = isDistinct;
@@ -158,7 +158,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return _columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr, alias)));
         }
 
-        Column AddOrGetColumn(Column col)
+        IColumn AddOrGetColumn(IColumn col)
         {
             if (Columns.All(c => !c.Equals(col)))
             {
@@ -168,9 +168,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return col;
         }
 
-        private readonly List<Column> _columns = new List<Column>();
+        private readonly List<IColumn> _columns = new List<IColumn>();
 
-        public List<Column> Columns => _columns;
+        public List<IColumn> Columns => _columns;
 
         #endregion
 
@@ -236,7 +236,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
                 var col  = _columns[i];
                 var expr = col.Walk(skipColumns, func);
 
-                var column = expr as Column;
+                var column = expr as IColumn;
                 if (column != null)
                     _columns[i] = column;
                 else

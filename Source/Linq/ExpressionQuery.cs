@@ -120,7 +120,7 @@ namespace LinqToDB.Linq
 		IQueryable<TElement> IQueryProvider.CreateQuery<TElement>(Expression expression)
 		{
 			if (expression == null)
-				throw new ArgumentNullException("expression");
+				throw new ArgumentNullException(nameof(expression));
 
 			return new ExpressionQueryImpl<TElement>(DataContextInfo, expression);
 		}
@@ -128,7 +128,7 @@ namespace LinqToDB.Linq
 		IQueryable IQueryProvider.CreateQuery(Expression expression)
 		{
 			if (expression == null)
-				throw new ArgumentNullException("expression");
+				throw new ArgumentNullException(nameof(expression));
 
 			var elementType = expression.Type.GetItemType() ?? expression.Type;
 

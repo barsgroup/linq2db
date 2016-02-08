@@ -8,7 +8,7 @@ namespace LinqToDB.Data
 	{
 		public DataConnectionTransaction([NotNull] DataConnection dataConnection)
 		{
-			if (dataConnection == null) throw new ArgumentNullException("dataConnection");
+			if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
 
 			DataConnection = dataConnection;
 		}
