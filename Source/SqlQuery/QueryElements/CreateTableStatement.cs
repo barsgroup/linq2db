@@ -9,7 +9,8 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class CreateTableStatement : BaseQueryElement, IQueryElement, ISqlExpressionWalkable, ICloneableElement
+    public class CreateTableStatement : BaseQueryElement,
+                                        ICreateTableStatement
     {
         public SqlTable       Table           { get; set; }
         public bool           IsDrop          { get; set; }

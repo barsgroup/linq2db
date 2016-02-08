@@ -209,7 +209,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.CreateTableStatement:
 					{
-						var sc = (CreateTableStatement)element;
+						var sc = (ICreateTableStatement)element;
 						return
 							Find(sc.Table, find);
 					}
@@ -574,7 +574,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.CreateTableStatement:
 					{
-						var s = (CreateTableStatement)element;
+						var s = (ICreateTableStatement)element;
 						var t = s.Table != null ? (SqlTable)ConvertInternal(s.Table, action) : null;
 
 						if (t != null && !ReferenceEquals(s.Table, t))

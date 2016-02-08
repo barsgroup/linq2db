@@ -410,6 +410,7 @@
     <Compile Include="SqlQuery\QueryElements\Enums\Operator.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IBaseQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ICloneableElement.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\ICreateTableStatement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IJoinedTable.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IOrderByItem.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IQueryElement.cs" />

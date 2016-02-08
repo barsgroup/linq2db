@@ -36,7 +36,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         SelectClause Select { get; }
 
-        CreateTableStatement CreateTable { get; }
+        ICreateTableStatement CreateTable { get; }
 
         InsertClause Insert { get; }
 
@@ -97,7 +97,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
                   OrderByClause orderBy,
                   List<IUnion> unions,
                   ISelectQuery parentSelect,
-                  CreateTableStatement createTable,
+                  ICreateTableStatement createTable,
                   bool parameterDependent,
                   List<SqlParameter> parameters);
     }

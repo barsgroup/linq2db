@@ -51,7 +51,7 @@ namespace LinqToDB.DataProvider.SapHana
 		
 		public override bool IsNestedJoinParenthesisRequired { get { return true; } }
 
-		protected override void BuildStartCreateTableStatement(CreateTableStatement createTable)
+		protected override void BuildStartCreateTableStatement(ICreateTableStatement createTable)
 		{
 			if (createTable.StatementHeader == null)
 			{

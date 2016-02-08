@@ -602,7 +602,7 @@ namespace LinqToDB.SqlProvider
 			StringBuilder.AppendLine();
 		}
 
-		protected virtual void BuildStartCreateTableStatement(CreateTableStatement createTable)
+		protected virtual void BuildStartCreateTableStatement(ICreateTableStatement createTable)
 		{
 			if (createTable.StatementHeader == null)
 			{
@@ -623,7 +623,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		protected virtual void BuildEndCreateTableStatement(CreateTableStatement createTable)
+		protected virtual void BuildEndCreateTableStatement(ICreateTableStatement createTable)
 		{
 			if (createTable.StatementFooter != null)
 				AppendIndent().Append(createTable.StatementFooter);

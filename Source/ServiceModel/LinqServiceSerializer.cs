@@ -1002,7 +1002,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.CreateTableStatement :
 						{
-							var elem = (CreateTableStatement)e;
+							var elem = (ICreateTableStatement)e;
 
 							Append(elem.Table);
 							Append(elem.IsDrop);
@@ -1395,7 +1395,7 @@ namespace LinqToDB.ServiceModel
 							var select             = readSelect ? Read<SelectClause>() : new SelectClause(null);
 							var readCreateTable    = ReadBool();
 							var createTable        = readCreateTable ?
-								Read<CreateTableStatement>() :
+								Read<ICreateTableStatement>() :
 								new CreateTableStatement();
 							var where              = Read<WhereClause>();
 							var groupBy            = Read<GroupByClause>();

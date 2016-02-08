@@ -71,7 +71,7 @@
 			OrderByClause        orderBy,
 			List<IUnion>          unions,
             ISelectQuery         parentSelect,
-			CreateTableStatement createTable,
+            ICreateTableStatement createTable,
 			bool                 parameterDependent,
 			List<SqlParameter>   parameters)
 		{
@@ -129,7 +129,7 @@
 
         public  SelectClause  Select { get; private set; }
 
-        public CreateTableStatement CreateTable { get; private set; } = new CreateTableStatement();
+        public ICreateTableStatement CreateTable { get; private set; } = new CreateTableStatement();
 
 
         public InsertClause Insert { get; private set; } = new InsertClause();
