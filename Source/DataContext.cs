@@ -25,7 +25,7 @@ namespace LinqToDB
 			MappingSchema       = DataProvider.MappingSchema;
 		}
 
-		public DataContext([JetBrains.Annotations.NotNull] IDataProvider dataProvider, [JetBrains.Annotations.NotNull] string connectionString)
+		public DataContext([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] string connectionString)
 		{
 			if (dataProvider     == null) throw new ArgumentNullException("dataProvider");
 			if (connectionString == null) throw new ArgumentNullException("connectionString");

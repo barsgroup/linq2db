@@ -4,7 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class Join : ConditionBase<Join,Join.Next>
     {

@@ -7,7 +7,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class SearchCondition : ConditionBase<SearchCondition, NextCondition>, ISqlPredicate, ISqlExpression
     {

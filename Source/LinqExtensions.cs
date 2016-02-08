@@ -3,15 +3,15 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB
 {
 	using Expressions;
 	using Linq;
 	using Linq.Builder;
 
-	public static class LinqExtensions
+	using LinqToDB.Properties;
+
+    public static class LinqExtensions
 	{
 		#region Table Helpers
 
@@ -488,7 +488,7 @@ namespace LinqToDB
 		}
 
 		static readonly MethodInfo _valueMethodInfo =
-			MemberHelper.MethodOf(() => Value<int,int>((ITable<int>)null,null,(Expression<Func<int>>)null)).GetGenericMethodDefinition();
+			MemberHelper.MethodOf(() => Value<int,int>((ITable<int>)null,null,null)).GetGenericMethodDefinition();
 
 		public static IValueInsertable<T> Value<T,TV>(
 			[NotNull]                this ITable<T>         source,
@@ -533,7 +533,7 @@ namespace LinqToDB
 		}
 
 		static readonly MethodInfo _valueMethodInfo3 =
-			MemberHelper.MethodOf(() => Value<int,int>((IValueInsertable<int>)null,null,(Expression<Func<int>>)null)).GetGenericMethodDefinition();
+			MemberHelper.MethodOf(() => Value<int,int>((IValueInsertable<int>)null,null,null)).GetGenericMethodDefinition();
 
 		public static IValueInsertable<T> Value<T,TV>(
 			[NotNull]                this IValueInsertable<T> source,

@@ -1,8 +1,8 @@
-﻿using JetBrains.Annotations;
-
-namespace LinqToDB.Common
+﻿namespace LinqToDB.Common
 {
-	public static class Array<T>
+    using LinqToDB.Properties;
+
+    public static class Array<T>
 	{
 		[NotNull]
 		public static readonly T[] Empty = new T[0];

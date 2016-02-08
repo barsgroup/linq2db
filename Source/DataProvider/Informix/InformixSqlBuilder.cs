@@ -7,7 +7,7 @@ namespace LinqToDB.DataProvider.Informix
 {
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
-    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
     using SqlProvider;
 
@@ -18,7 +18,7 @@ namespace LinqToDB.DataProvider.Informix
 		{
 		}
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}
@@ -33,7 +33,7 @@ namespace LinqToDB.DataProvider.Informix
 			return new InformixSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override void BuildSql(int commandNumber, SelectQuery selectQuery, StringBuilder sb, int indent, bool skipAlias)
+		protected override void BuildSql(int commandNumber, ISelectQuery selectQuery, StringBuilder sb, int indent, bool skipAlias)
 		{
 			base.BuildSql(commandNumber, selectQuery, sb, indent, skipAlias);
 

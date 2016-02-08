@@ -12,8 +12,8 @@ namespace LinqToDB.Linq.Builder
 	using Extensions;
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlQuery;
 
@@ -71,8 +71,8 @@ namespace LinqToDB.Linq.Builder
 			var key      = new KeyContext(buildInfo.Parent, keySelector, sequence);
 			var groupSql = builder.ConvertExpressions(key, keySelector.Body.Unwrap(), ConvertFlags.Key);
 
-			if (sequence.SelectQuery.Select.IsDistinct       ||
-			    sequence.SelectQuery.GroupBy.Items.Count > 0 ||
+			if (sequence.Select.Select.IsDistinct       ||
+			    sequence.Select.GroupBy.Items.Count > 0 ||
 			    groupSql.Any(_ => !(_.Sql is SqlField || _.Sql is Column)))
 			{
 				sequence = new SubQueryContext(sequence);
@@ -81,9 +81,9 @@ namespace LinqToDB.Linq.Builder
 			}
 
 			foreach (var sql in groupSql)
-				sequence.SelectQuery.GroupBy.Expr(sql.Sql);
+				sequence.Select.GroupBy.Expr(sql.Sql);
 
-		    foreach (var join in QueryVisitor.FindOnce<JoinedTable>(sequence.SelectQuery.From).Where(f => f.JoinType == JoinType.Inner))
+		    foreach (var join in QueryVisitor.FindOnce<JoinedTable>(sequence.Select.From).Where(f => f.JoinType == JoinType.Inner))
 		    {
 		        join.IsWeak = false;
 		    }
@@ -391,13 +391,13 @@ namespace LinqToDB.Linq.Builder
 					var ctx = Builder.GetSubQuery(this, call);
 
 					if (Builder.DataContextInfo.SqlProviderFlags.IsSubQueryColumnSupported)
-						return ctx.SelectQuery;
+						return ctx.Select;
 
-					var join = ctx.SelectQuery.CrossApply();
+					var join = ctx.Select.CrossApply();
 
-					SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
+					Select.From.Tables[0].Joins.Add(join.JoinedTable);
 
-					return ctx.SelectQuery.Select.Columns[0];
+					return ctx.Select.Select.Columns[0];
 				}
 
 				var args = new ISqlExpression[call.Arguments.Count - 1];
@@ -407,7 +407,7 @@ namespace LinqToDB.Linq.Builder
 					if (args.Length > 0)
 						throw new InvalidOperationException();
 
-					return SqlFunction.CreateCount(call.Type, SelectQuery);
+					return SqlFunction.CreateCount(call.Type, Select);
 				}
 
 				if (call.Arguments.Count > 1)
@@ -510,8 +510,8 @@ namespace LinqToDB.Linq.Builder
 
 					foreach (var item in info)
 					{
-						item.Query = SelectQuery;
-						item.Index = SelectQuery.Select.Add(item.Sql);
+						item.Query = Select;
+						item.Index = Select.Select.Add(item.Sql);
 					}
 				}
 
@@ -545,10 +545,10 @@ namespace LinqToDB.Linq.Builder
 
 			public override int ConvertToParentIndex(int index, IBuildContext context)
 			{
-				var expr = SelectQuery.Select.Columns[index].Expression;
+				var expr = Select.Select.Columns[index].Expression;
 
-				if (!SelectQuery.GroupBy.Items.Any(_ => ReferenceEquals(_, expr) || (expr is Column && ReferenceEquals(_, ((Column)expr).Expression))))
-					SelectQuery.GroupBy.Items.Add(expr);
+				if (!Select.GroupBy.Items.Any(_ => ReferenceEquals(_, expr) || (expr is Column && ReferenceEquals(_, ((Column)expr).Expression))))
+					Select.GroupBy.Items.Add(expr);
 
 				return base.ConvertToParentIndex(index, this);
 			}
@@ -602,7 +602,7 @@ namespace LinqToDB.Linq.Builder
 
 						var ctx = Builder.BuildSequence(new BuildInfo(buildInfo, expr));
 
-						ctx.SelectQuery.Properties.Add(Tuple.Create("from_group_by", SelectQuery));
+						ctx.Select.Properties.Add(Tuple.Create("from_group_by", Select));
 
 						return ctx;
 					}

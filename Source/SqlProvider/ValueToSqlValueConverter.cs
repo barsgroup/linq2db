@@ -7,9 +7,9 @@ namespace LinqToDB.SqlProvider
 	using Common;
 	using Extensions;
 
-	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
-	using ConverterType = Func<SqlQuery.SqlElements.SqlDataType,object, string>;
+	using ConverterType = Func<SqlQuery.QueryElements.SqlElements.SqlDataType,object, string>;
 
 	public class ValueToSqlValueConverter
 	{
@@ -20,21 +20,21 @@ namespace LinqToDB.SqlProvider
 
 		internal void SetDefauls()
 		{
-			SetConverter(typeof(Boolean),  (dt,v) => (bool)v ? "1" : "0");
-			SetConverter(typeof(Char),     (dt,v) => BuildChar((char)v));
-		    SetConverter(typeof (SByte), (dt, v) => ((SByte) v).ToString());
-			SetConverter(typeof(Byte),     (dt,v) => ((Byte)  v).ToString());
-			SetConverter(typeof(Int16),    (dt,v) => ((Int16) v).ToString());
-			SetConverter(typeof(UInt16),   (dt,v) => ((UInt16)v).ToString());
-			SetConverter(typeof(Int32),    (dt,v) => ((Int32) v).ToString());
-			SetConverter(typeof(UInt32),   (dt,v) => ((UInt32)v).ToString());
-			SetConverter(typeof(Int64),    (dt,v) => ((Int64) v).ToString());
-			SetConverter(typeof(UInt64),   (dt,v) => ((UInt64)v).ToString());
-			SetConverter(typeof(Single),   (dt,v) => ((float)  v).ToString(NumberFormatInfo));
-			SetConverter(typeof(Double),   (dt,v) => ((double) v).ToString(NumberFormatInfo));
-			SetConverter(typeof(Decimal),  (dt,v) => ((decimal)v).ToString(NumberFormatInfo));
+			SetConverter(typeof(bool),  (dt,v) => (bool)v ? "1" : "0");
+			SetConverter(typeof(char),     (dt,v) => BuildChar((char)v));
+		    SetConverter(typeof (sbyte), (dt, v) => ((sbyte) v).ToString());
+			SetConverter(typeof(byte),     (dt,v) => ((byte)  v).ToString());
+			SetConverter(typeof(short),    (dt,v) => ((short) v).ToString());
+			SetConverter(typeof(ushort),   (dt,v) => ((ushort)v).ToString());
+			SetConverter(typeof(int),    (dt,v) => ((int) v).ToString());
+			SetConverter(typeof(uint),   (dt,v) => ((uint)v).ToString());
+			SetConverter(typeof(long),    (dt,v) => ((long) v).ToString());
+			SetConverter(typeof(ulong),   (dt,v) => ((ulong)v).ToString());
+			SetConverter(typeof(float),   (dt,v) => ((float)  v).ToString(NumberFormatInfo));
+			SetConverter(typeof(double),   (dt,v) => ((double) v).ToString(NumberFormatInfo));
+			SetConverter(typeof(decimal),  (dt,v) => ((decimal)v).ToString(NumberFormatInfo));
 			SetConverter(typeof(DateTime), (dt,v) => BuildDateTime((DateTime)v));
-			SetConverter(typeof(String),   (dt,v) => BuildString  (v.ToString()));
+			SetConverter(typeof(string),   (dt,v) => BuildString  (v.ToString()));
             SetConverter(typeof(Guid), (dt, v) => string.Format(@"'{0}'", v));
 		}
 

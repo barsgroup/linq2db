@@ -23,12 +23,12 @@
 		public bool IsUpdateSetTableAliasSupported { get; set; }
 		public bool IsSybaseBuggyGroupBy           { get; set; }
 
-		public bool GetAcceptsTakeAsParameterFlag(SelectQuery selectQuery)
+		public bool GetAcceptsTakeAsParameterFlag(ISelectQuery selectQuery)
 		{
 			return AcceptsTakeAsParameter || AcceptsTakeAsParameterIfSkip && selectQuery.Select.SkipValue != null;
 		}
 
-		public bool GetIsSkipSupportedFlag(SelectQuery selectQuery)
+		public bool GetIsSkipSupportedFlag(ISelectQuery selectQuery)
 		{
 			return IsSkipSupported || IsSkipSupportedIfTake && selectQuery.Select.TakeValue != null;
 		}

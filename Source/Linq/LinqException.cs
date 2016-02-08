@@ -3,7 +3,9 @@ using System.Runtime.Serialization;
 
 namespace LinqToDB.Linq
 {
-	/// <summary>
+    using LinqToDB.Properties;
+
+    /// <summary>
 	/// Defines the base class for the namespace exceptions.
 	/// </summary>
 	/// <remarks>
@@ -34,7 +36,7 @@ namespace LinqToDB.Linq
 		/// <param name="message">The message to display to the client when the exception is thrown.</param>
 		/// <param name="args">An System.Object array containing zero or more objects to format.</param>
 		/// <seealso cref="Exception.Message"/>
-		[JetBrains.Annotations.StringFormatMethod("args")]
+		[StringFormatMethod("args")]
 		public LinqException(string message, params object[] args)
 			: base(string.Format(message, args))
 		{

@@ -1,4 +1,4 @@
-﻿namespace LinqToDB.SqlQuery.SqlElements
+﻿namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 {
     using System;
     using System.Collections.Generic;
@@ -9,7 +9,7 @@
     using LinqToDB.Mapping;
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class SqlTable : BaseQueryElement, ISqlTableSource
     {
@@ -60,7 +60,7 @@
 
 		#region Init from type
 
-		public SqlTable([JetBrains.Annotations.NotNull] MappingSchema mappingSchema, Type objectType) : this()
+		public SqlTable([Properties.NotNull] MappingSchema mappingSchema, Type objectType) : this()
 		{
 			if (mappingSchema == null) throw new ArgumentNullException("mappingSchema");
 
@@ -212,10 +212,19 @@
 		private SqlField _all;
 		public  SqlField  All
 		{
-			get { return _all ?? (_all = new SqlField { Name = "*", PhysicalName = "*", Table = this }); }
+		    get
+		    {
+		        return _all ?? (_all = new SqlField
+		                               {
+		                                   Name = "*",
+		                                   PhysicalName = "*",
+		                                   Table = this
+		                               });
+		    }
+		    set { }
 		}
 
-		public SqlField GetIdentityField()
+        public SqlField GetIdentityField()
 		{
 			foreach (var field in Fields)
 				if (field.Value.IsIdentity)

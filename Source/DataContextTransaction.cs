@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Data;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB
 {
-	public class DataContextTransaction : IDisposable
+    using LinqToDB.Properties;
+
+    public class DataContextTransaction : IDisposable
 	{
 		public DataContextTransaction([NotNull] DataContext dataContext)
 		{

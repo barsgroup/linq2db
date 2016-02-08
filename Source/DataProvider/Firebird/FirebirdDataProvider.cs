@@ -104,7 +104,7 @@ namespace LinqToDB.DataProvider.Firebird
 		#region BulkCopy
 
 		public override BulkCopyRowsCopied BulkCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+			[Properties.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
 			return new FirebirdBulkCopy().BulkCopy(
 				options.BulkCopyType == BulkCopyType.Default ? FirebirdTools.DefaultBulkCopyType : options.BulkCopyType,

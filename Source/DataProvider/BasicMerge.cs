@@ -11,7 +11,8 @@ namespace LinqToDB.DataProvider
 	using Linq;
 
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
 	using Mapping;
 	using SqlQuery;
@@ -168,14 +169,14 @@ namespace LinqToDB.DataProvider
 
 						var q   = dataConnection.GetTable<T>().Where(deletePredicate);
 						var ctx = q.GetContext();
-						var sql = ctx.SelectQuery;
+						var sql = ctx.Select;
 
 						var tableSet  = new HashSet<SqlTable>();
 						var tables    = new List<SqlTable>();
 
 						var fromTable = (SqlTable)sql.From.Tables[0].Source;
 
-					    foreach (var tableSource in QueryVisitor.FindOnce<TableSource>(sql.From))
+					    foreach (var tableSource in QueryVisitor.FindOnce<ITableSource>(sql.From))
 					    {
                             tableSet.Add((SqlTable)tableSource.Source);
                             tables.Add((SqlTable)tableSource.Source);
@@ -196,9 +197,9 @@ namespace LinqToDB.DataProvider
 								if (tbl != fromTable && tableSet.Contains(tbl))
 								{
 									var tempCopy   = sql.Clone();
-									var tempTables = new List<TableSource>();
+									var tempTables = new List<ITableSource>();
 
-                                    tempTables.AddRange(QueryVisitor.FindOnce<TableSource>(tempCopy.From));
+                                    tempTables.AddRange(QueryVisitor.FindOnce<ITableSource>(tempCopy.From));
 
 									var tt = tempTables[tables.IndexOf(tbl)];
 
@@ -256,7 +257,7 @@ namespace LinqToDB.DataProvider
 
 		class QueryContext : IQueryContext
 		{
-			public SelectQuery    SelectQuery { get; set; }
+			public ISelectQuery SelectQuery { get; set; }
 			public object         Context     { get; set; }
 			public SqlParameter[] SqlParameters;
 			public List<string>   QueryHints  { get; set; }

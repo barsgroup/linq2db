@@ -15,8 +15,8 @@ namespace LinqToDB.Linq
 	using LinqToDB.Expressions;
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using Mapping;
 	using SqlQuery;
@@ -46,7 +46,7 @@ namespace LinqToDB.Linq
                 SelectQuery = new SelectQuery();
             }
 
-            public SelectQuery SelectQuery { get; set; }
+            public ISelectQuery SelectQuery { get; set; }
             public object Context { get; set; }
 
             public string GetQueryFieldAliasByFieldName(string fieldName)
@@ -147,7 +147,7 @@ namespace LinqToDB.Linq
 		{
 			Queries.Add(new QueryInfo
 			{
-				SelectQuery = parseContext.SelectQuery,
+				SelectQuery = parseContext.Select,
 				Parameters  = sqlParameters,
 			});
 
@@ -840,11 +840,11 @@ namespace LinqToDB.Linq
 			return (int)ei.GetElement(null, dataContextInfo, Expression.Constant(obj), null);
 		}
 
-		internal void MakeAlternativeInsertOrUpdate(SelectQuery selectQuery)
+		internal void MakeAlternativeInsertOrUpdate(ISelectQuery selectQuery)
 		{
 			var dic = new Dictionary<ICloneableElement,ICloneableElement>();
 
-			var insertQuery = (SelectQuery)selectQuery.Clone(dic, _ => true);
+			var insertQuery = (ISelectQuery)selectQuery.Clone(dic, _ => true);
 
 			insertQuery.QueryType = QueryType.Insert;
 			insertQuery.ClearUpdate();

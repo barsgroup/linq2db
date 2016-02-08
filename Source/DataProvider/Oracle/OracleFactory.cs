@@ -1,10 +1,10 @@
 ﻿using System.Collections.Specialized;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.DataProvider.Oracle
 {
-	[UsedImplicitly]
+    using LinqToDB.Properties;
+
+    [UsedImplicitly]
 	class OracleFactory : IDataProviderFactory
 	{
 		IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)

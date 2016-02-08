@@ -1,4 +1,4 @@
-﻿namespace LinqToDB.SqlQuery.SqlElements
+﻿namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 {
     using System;
     using System.Collections.Generic;
@@ -7,7 +7,7 @@
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class SqlParameter : BaseQueryElement, ISqlExpression, IValueContainer
 	{
@@ -176,7 +176,7 @@
 				return true;
 
 			var p = other as SqlParameter;
-			return (object)p != null && Name != null && p.Name != null && Name == p.Name && SystemType == p.SystemType;
+			return p != null && Name != null && p.Name != null && Name == p.Name && SystemType == p.SystemType;
 		}
 
 		#endregion

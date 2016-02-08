@@ -7,8 +7,8 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     class ContainsBuilder : MethodCallBuilder
 	{
@@ -63,10 +63,10 @@ namespace LinqToDB.Linq.Builder
 				if (expression == null)
 				{
 					var sql   = GetSubQuery(null);
-					var query = SelectQuery;
+					var query = Select;
 
 					if (Parent != null)
-						query = Parent.SelectQuery;
+						query = Parent.Select;
 
 					return new[] { new SqlInfo { Query = query, Sql = sql } };
 				}
@@ -127,18 +127,18 @@ namespace LinqToDB.Linq.Builder
 
 					Condition cond;
 
-					if (Sequence.SelectQuery != SelectQuery &&
+					if (Sequence.Select != Select &&
 						(ctx.IsExpression(expr, 0, RequestFor.Field).     Result ||
 						 ctx.IsExpression(expr, 0, RequestFor.Expression).Result))
 					{
 						Sequence.ConvertToIndex(null, 0, ConvertFlags.All);
 						var ex = Builder.ConvertToSql(ctx, _methodCall.Arguments[1]);
-						cond = new Condition(false, new InSubQuery(ex, false, SelectQuery));
+						cond = new Condition(false, new InSubQuery(ex, false, Select));
 					}
 					else
 					{
 						var sequence = Builder.BuildWhere(Parent, Sequence, condition, true);
-						cond = new Condition(false, new FuncLike(SqlFunction.CreateExists(sequence.SelectQuery)));
+						cond = new Condition(false, new FuncLike(SqlFunction.CreateExists(sequence.Select)));
 					}
 
 					_subQuerySql = new SearchCondition(cond);

@@ -10,8 +10,8 @@ namespace LinqToDB.SqlQuery
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     // The casts to object in the below code are an unfortunate necessity due to
     // C#'s restriction against a where T : Enum constraint. (There are ways around
@@ -119,7 +119,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.TableSource:
 					{
-						var table = (TableSource)element;
+						var table = (ITableSource)element;
 						return
 							Find(table.Source, find) ??
 							Find(table.Joins,  find);
@@ -224,7 +224,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.SqlQuery:
 					{
-						var q = (SelectQuery)element;
+						var q = (ISelectQuery)element;
 						return
 							Find(q.Select,  find) ??
 							(q.IsInsert ? Find(q.Insert, find) : null) ??
@@ -342,20 +342,20 @@ namespace LinqToDB.SqlQuery
 						_visitedElements.TryGetValue(col.Parent, out parent);
 
 						if (parent != null || expr != null && !ReferenceEquals(expr, col.Expression))
-							newElement = new Column(parent == null ? col.Parent : (SelectQuery)parent, expr ?? col.Expression, col._alias);
+							newElement = new Column(parent == null ? col.Parent : (ISelectQuery)parent, expr ?? col.Expression, col._alias);
 
 						break;
 					}
 
 				case QueryElementType.TableSource:
 					{
-						var table  = (TableSource)element;
+						var table  = (ITableSource)element;
 						var source = (ISqlTableSource)ConvertInternal(table.Source, action);
 						var joins  = Convert(table.Joins, action);
 
 						if (source != null && !ReferenceEquals(source, table.Source) ||
 							joins  != null && !ReferenceEquals(table.Joins, joins))
-							newElement = new TableSource(source ?? table.Source, table._alias, joins ?? table.Joins);
+							newElement = new TableSource(source ?? table.Source, table.Alias, joins ?? table.Joins);
 
 						break;
 					}
@@ -363,7 +363,7 @@ namespace LinqToDB.SqlQuery
 				case QueryElementType.JoinedTable:
 					{
 						var join  = (JoinedTable)element;
-						var table = (TableSource)    ConvertInternal(join.Table,     action);
+						var table = (ITableSource)    ConvertInternal(join.Table,     action);
 						var cond  = (SearchCondition)ConvertInternal(join.Condition, action);
 
 						if (table != null && !ReferenceEquals(table, join.Table) ||
@@ -474,7 +474,7 @@ namespace LinqToDB.SqlQuery
 					{
 						var p = (InSubQuery)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1,    action);
-						var q = (SelectQuery)ConvertInternal(p.SubQuery, action);
+						var q = (ISelectQuery)ConvertInternal(p.SubQuery, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e) || q != null && !ReferenceEquals(p.SubQuery, q))
 							newElement = new InSubQuery(e ?? p.Expr1, p.IsNot, q ?? p.SubQuery);
@@ -600,7 +600,7 @@ namespace LinqToDB.SqlQuery
 							skip != null && !ReferenceEquals(sc.SkipValue, skip))
 						{
 							newElement = new SelectClause(sc.IsDistinct, take ?? sc.TakeValue, skip ?? sc.SkipValue, cols ?? sc.Columns);
-							((SelectClause)newElement).SetSqlQuery((SelectQuery)parent);
+							((SelectClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 
 						break;
@@ -617,7 +617,7 @@ namespace LinqToDB.SqlQuery
 						if (parent != null || ts != null && !ReferenceEquals(fc.Tables, ts))
 						{
 							newElement = new FromClause(ts ?? fc.Tables);
-							((FromClause)newElement).SetSqlQuery((SelectQuery)parent);
+							((FromClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 
 						break;
@@ -634,7 +634,7 @@ namespace LinqToDB.SqlQuery
 						if (parent != null || cond != null && !ReferenceEquals(wc.SearchCondition, cond))
 						{
 							newElement = new WhereClause(cond ?? wc.SearchCondition);
-							((WhereClause)newElement).SetSqlQuery((SelectQuery)parent);
+							((WhereClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 
 						break;
@@ -651,7 +651,7 @@ namespace LinqToDB.SqlQuery
 						if (parent != null || es != null && !ReferenceEquals(gc.Items, es))
 						{
 							newElement = new GroupByClause(es ?? gc.Items);
-							((GroupByClause)newElement).SetSqlQuery((SelectQuery)parent);
+							((GroupByClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 
 						break;
@@ -668,7 +668,7 @@ namespace LinqToDB.SqlQuery
 						if (parent != null || es != null && !ReferenceEquals(oc.Items, es))
 						{
 							newElement = new OrderByClause(es ?? oc.Items);
-							((OrderByClause)newElement).SetSqlQuery((SelectQuery)parent);
+							((OrderByClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 
 						break;
@@ -688,7 +688,7 @@ namespace LinqToDB.SqlQuery
 				case QueryElementType.Union:
 					{
 						var u = (Union)element;
-						var q = (SelectQuery)ConvertInternal(u.SelectQuery, action);
+						var q = (ISelectQuery)ConvertInternal(u.SelectQuery, action);
 
 						if (q != null && !ReferenceEquals(u.SelectQuery, q))
 							newElement = new Union(q, u.IsAll);
@@ -698,7 +698,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.SqlQuery:
 					{
-						var q = (SelectQuery)element;
+						var q = (ISelectQuery)element;
 						IQueryElement parent = null;
 
 						var doConvert = false;
@@ -766,7 +766,7 @@ namespace LinqToDB.SqlQuery
 						}
 
 						nq.Init(ic, uc, dc, sc, fc, wc, gc, hc, oc, us,
-							(SelectQuery)parent,
+							(ISelectQuery)parent,
 							q.CreateTable,
 							q.IsParameterDependent,
 							ps);

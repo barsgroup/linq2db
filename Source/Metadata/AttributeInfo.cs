@@ -34,14 +34,14 @@ namespace LinqToDB.Metadata
 						Expression.Convert(
 							Expression.MemberInit(
 								Expression.New(ctor),
-								(IEnumerable<MemberBinding>)Values.Select(k =>
+								Values.Select(k =>
 								{
-									var member = type.GetPublicMemberEx(k.Key)[0];
-									var mtype  = member.GetMemberType();
+								    var member = type.GetPublicMemberEx(k.Key)[0];
+								    var mtype  = member.GetMemberType();
 
-									return Expression.Bind(
-										member,
-										Expression.Constant(Converter.ChangeType(k.Value, mtype), mtype));
+								    return Expression.Bind(
+								        member,
+								        Expression.Constant(Converter.ChangeType(k.Value, mtype), mtype));
 								})),
 							typeof(Attribute)));
 

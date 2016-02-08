@@ -1,10 +1,10 @@
 ﻿using System.Collections.Specialized;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.DataProvider.PostgreSQL
 {
-	[UsedImplicitly]
+    using LinqToDB.Properties;
+
+    [UsedImplicitly]
 	class PostgreSQLFactory: IDataProviderFactory
 	{
 		IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)

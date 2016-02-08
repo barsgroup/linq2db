@@ -11,8 +11,8 @@ namespace LinqToDB.SqlProvider
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlQuery;
 
@@ -31,7 +31,7 @@ namespace LinqToDB.SqlProvider
 
 		#region ISqlOptimizer Members
 
-		public virtual SelectQuery Finalize(SelectQuery selectQuery)
+		public virtual ISelectQuery Finalize(ISelectQuery selectQuery)
 		{
 			new SelectQueryOptimizer(SqlProviderFlags, selectQuery).FinalizeAndValidate(
 				SqlProviderFlags.IsApplyJoinSupported,
@@ -48,9 +48,9 @@ namespace LinqToDB.SqlProvider
 			return selectQuery;
 		}
 
-		SelectQuery MoveCountSubQuery(SelectQuery selectQuery)
+        ISelectQuery MoveCountSubQuery(ISelectQuery selectQuery)
 		{
-		    foreach (var query in QueryVisitor.FindOnce<SelectQuery>(selectQuery))
+		    foreach (var query in QueryVisitor.FindOnce<ISelectQuery>(selectQuery))
 		    {
                 MoveCountSubSubQuery(query);
 		    }
@@ -58,7 +58,7 @@ namespace LinqToDB.SqlProvider
 			return selectQuery;
 		}
 
-		void MoveCountSubSubQuery(SelectQuery query)
+		void MoveCountSubSubQuery(ISelectQuery query)
 		{
 			for (var i = 0; i < query.Select.Columns.Count; i++)
 			{
@@ -68,7 +68,7 @@ namespace LinqToDB.SqlProvider
 				//
 				if (col.Expression.ElementType == QueryElementType.SqlQuery)
 				{
-					var subQuery = (SelectQuery)col.Expression;
+					var subQuery = (ISelectQuery)col.Expression;
 					var isCount  = false;
 
 					// Check if subquery is Count subquery.
@@ -200,16 +200,16 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		public virtual bool ConvertCountSubQuery(SelectQuery subQuery)
+		public virtual bool ConvertCountSubQuery(ISelectQuery subQuery)
 		{
 			return true;
 		}
 
-		SelectQuery MoveSubQueryColumn(SelectQuery selectQuery)
+        ISelectQuery MoveSubQueryColumn(ISelectQuery selectQuery)
 		{
 			var dic = new Dictionary<IQueryElement,IQueryElement>();
 
-		    foreach (var query in QueryVisitor.FindOnce<SelectQuery>(selectQuery))
+		    foreach (var query in QueryVisitor.FindOnce<ISelectQuery>(selectQuery))
 		    {
 		        
 				for (var i = 0; i < query.Select.Columns.Count; i++)
@@ -218,7 +218,7 @@ namespace LinqToDB.SqlProvider
 
 					if (col.Expression.ElementType == QueryElementType.SqlQuery)
 					{
-						var subQuery    = (SelectQuery)col.Expression;
+						var subQuery    = (ISelectQuery)col.Expression;
 						var allTables   = new HashSet<ISqlTableSource>();
 						var levelTables = new HashSet<ISqlTableSource>();
 
@@ -771,7 +771,7 @@ namespace LinqToDB.SqlProvider
 			return expression;
 		}
 
-		public virtual ISqlPredicate ConvertPredicate(SelectQuery selectQuery, ISqlPredicate predicate)
+		public virtual ISqlPredicate ConvertPredicate(ISelectQuery selectQuery, ISqlPredicate predicate)
 		{
 			switch (predicate.ElementType)
 			{
@@ -906,7 +906,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		ISqlPredicate OptimizeCase(SelectQuery selectQuery, ExprExpr expr)
+		ISqlPredicate OptimizeCase(ISelectQuery selectQuery, ExprExpr expr)
 		{
 			var value = expr.Expr1 as SqlValue;
 			var func  = expr.Expr2 as SqlFunction;
@@ -1162,7 +1162,7 @@ namespace LinqToDB.SqlProvider
 				new SqlFunction(func.SystemType, "Floor", par1) : par1;
 		}
 
-		protected SelectQuery GetAlternativeDelete(SelectQuery selectQuery)
+		protected ISelectQuery GetAlternativeDelete(ISelectQuery selectQuery)
 		{
 			if (selectQuery.IsDelete && 
 				(selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables[0].Joins.Count > 0) && 
@@ -1212,7 +1212,7 @@ namespace LinqToDB.SqlProvider
 			return selectQuery;
 		}
 
-		protected SelectQuery GetAlternativeUpdate(SelectQuery selectQuery)
+		protected ISelectQuery GetAlternativeUpdate(ISelectQuery selectQuery)
 		{
 			if (selectQuery.IsUpdate && (selectQuery.From.Tables[0].Source is SqlTable || selectQuery.Update.Table != null))
 			{
@@ -1303,7 +1303,7 @@ namespace LinqToDB.SqlProvider
 			return alias.Length == 0 || alias.Length > maxLen ? null : alias;
 		}
 
-		protected void CheckAliases(SelectQuery selectQuery, int maxLen)
+		protected void CheckAliases(ISelectQuery selectQuery, int maxLen)
 		{
 		    foreach (var elementType in QueryVisitor.FindOnce<IQueryElement>(selectQuery))
 		    {
@@ -1313,7 +1313,7 @@ namespace LinqToDB.SqlProvider
                     case QueryElementType.SqlParameter: ((SqlParameter)elementType).Name = SetAlias(((SqlParameter)elementType).Name, maxLen); break;
                     case QueryElementType.SqlTable: ((SqlTable)elementType).Alias = SetAlias(((SqlTable)elementType).Alias, maxLen); break;
                     case QueryElementType.Column: ((Column)elementType).Alias = SetAlias(((Column)elementType).Alias, maxLen); break;
-                    case QueryElementType.TableSource: ((TableSource)elementType).Alias = SetAlias(((TableSource)elementType).Alias, maxLen); break;
+                    case QueryElementType.TableSource: ((ITableSource)elementType).Alias = SetAlias(((ITableSource)elementType).Alias, maxLen); break;
                 }
             }
 		}

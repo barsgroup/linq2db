@@ -150,7 +150,7 @@ namespace LinqToDB.DataProvider.SqlCe
 
 		#endregion
 
-		public void CreateDatabase([JetBrains.Annotations.NotNull] string databaseName, bool deleteIfExists = false)
+		public void CreateDatabase([Properties.NotNull] string databaseName, bool deleteIfExists = false)
 		{
 			if (databaseName == null) throw new ArgumentNullException("databaseName");
 
@@ -171,7 +171,7 @@ namespace LinqToDB.DataProvider.SqlCe
 				});
 		}
 
-		public void DropDatabase([JetBrains.Annotations.NotNull] string databaseName)
+		public void DropDatabase([Properties.NotNull] string databaseName)
 		{
 			if (databaseName == null) throw new ArgumentNullException("databaseName");
 
@@ -180,7 +180,7 @@ namespace LinqToDB.DataProvider.SqlCe
 		#region BulkCopy
 
 		public override BulkCopyRowsCopied BulkCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+			[Properties.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
 			return new SqlCeBulkCopy().BulkCopy(
 				options.BulkCopyType == BulkCopyType.Default ? SqlCeTools.DefaultBulkCopyType : options.BulkCopyType,

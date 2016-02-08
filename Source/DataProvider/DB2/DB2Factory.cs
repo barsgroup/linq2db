@@ -1,10 +1,10 @@
 ﻿using System.Collections.Specialized;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.DataProvider.DB2
 {
-	[UsedImplicitly]
+    using LinqToDB.Properties;
+
+    [UsedImplicitly]
 	class DB2Factory : IDataProviderFactory
 	{
 		IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)

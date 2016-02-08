@@ -233,11 +233,11 @@ namespace LinqToDB.DataProvider.MySql
 			{
 				switch (dataType.ToLower())
 				{
-					case "smallint"   : return typeof(UInt16);
-					case "int"        : return typeof(UInt32);
-					case "mediumint"  : return typeof(UInt32);
-					case "bigint"     : return typeof(UInt64);
-					case "tiny int"   : return typeof(Byte);
+					case "smallint"   : return typeof(ushort);
+					case "int"        : return typeof(uint);
+					case "mediumint"  : return typeof(uint);
+					case "bigint"     : return typeof(ulong);
+					case "tiny int"   : return typeof(byte);
 				}
 			}
 
@@ -245,7 +245,7 @@ namespace LinqToDB.DataProvider.MySql
 			{
 				case "tinyint"   :
 					if (columnType == "tinyint(1)")
-						return typeof(Boolean);
+						return typeof(bool);
 					break;
 				case "datetime2" : return typeof(DateTime);
 			}

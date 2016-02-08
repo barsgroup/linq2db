@@ -103,7 +103,7 @@ namespace LinqToDB.DataProvider.Informix
 
 			if (!Configuration.AvoidSpecificDataProviderAPI)
 			{
-				SetField(typeof(Int64), "BIGINT", "GetBigInt");
+				SetField(typeof(long), "BIGINT", "GetBigInt");
 
 				SetProviderField(_ifxDecimal,  typeof(decimal),  "GetIfxDecimal");
 				SetProviderField(_ifxDateTime, typeof(DateTime), "GetIfxDateTime");
@@ -206,7 +206,7 @@ namespace LinqToDB.DataProvider.Informix
 		#region BulkCopy
 
 		public override BulkCopyRowsCopied BulkCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+			[Properties.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
 			return new InformixBulkCopy().BulkCopy(
 				options.BulkCopyType == BulkCopyType.Default ? InformixTools.DefaultBulkCopyType : options.BulkCopyType,

@@ -7,8 +7,8 @@ namespace LinqToDB.Linq.Builder
 	using Extensions;
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlQuery;
 
@@ -36,7 +36,7 @@ namespace LinqToDB.Linq.Builder
 			}
 			else
 			{
-				BuildSkip(builder, sequence, sequence.SelectQuery.Select.SkipValue, expr);
+				BuildSkip(builder, sequence, sequence.Select.Select.SkipValue, expr);
 			}
 
 			return sequence;
@@ -66,7 +66,7 @@ namespace LinqToDB.Linq.Builder
 
 		static void BuildTake(ExpressionBuilder builder, IBuildContext sequence, ISqlExpression expr)
 		{
-			var sql = sequence.SelectQuery;
+			var sql = sequence.Select;
 
 			sql.Select.Take(expr);
 
@@ -111,7 +111,7 @@ namespace LinqToDB.Linq.Builder
 
 		static void BuildSkip(ExpressionBuilder builder, IBuildContext sequence, ISqlExpression prevSkipValue, ISqlExpression expr)
 		{
-			var sql = sequence.SelectQuery;
+			var sql = sequence.Select;
 
 			sql.Select.Skip(expr);
 

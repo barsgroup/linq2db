@@ -1,4 +1,4 @@
-namespace LinqToDB.SqlQuery.SqlElements.Interfaces
+namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 {
     using System;
 

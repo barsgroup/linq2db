@@ -5,7 +5,7 @@ namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
     class DefaultIfEmptyBuilder : MethodCallBuilder
 	{
@@ -25,8 +25,8 @@ namespace LinqToDB.Linq.Builder
 
 				if (groupJoin != null)
 				{
-					groupJoin.SelectQuery.From.Tables[0].Joins[0].JoinType = JoinType.Left;
-					groupJoin.SelectQuery.From.Tables[0].Joins[0].IsWeak   = false;
+					groupJoin.Select.From.Tables[0].Joins[0].JoinType = JoinType.Left;
+					groupJoin.Select.From.Tables[0].Joins[0].IsWeak   = false;
 				}
 			}
 
@@ -56,14 +56,14 @@ namespace LinqToDB.Linq.Builder
 				if (expression == null)
 				{
 					var q =
-						from col in SelectQuery.Select.Columns
+						from col in Select.Select.Columns
 						where !col.CanBeNull()
-						select SelectQuery.Select.Columns.IndexOf(col);
+						select Select.Select.Columns.IndexOf(col);
 
 					var idx = q.DefaultIfEmpty(-1).First();
 
 					if (idx == -1)
-						idx = SelectQuery.Select.Add(new SqlValue((int?)1));
+						idx = Select.Select.Add(new SqlValue((int?)1));
 
 					var n = ConvertToParentIndex(idx, this);
 

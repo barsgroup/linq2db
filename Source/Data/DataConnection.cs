@@ -41,7 +41,7 @@ namespace LinqToDB.Data
 			_mappingSchema   = DataProvider.MappingSchema;
 		}
 
-		public DataConnection([JetBrains.Annotations.NotNull] string providerName, [JetBrains.Annotations.NotNull] string connectionString)
+		public DataConnection([Properties.NotNull] string providerName, [Properties.NotNull] string connectionString)
 		{
 			if (providerName     == null) throw new ArgumentNullException("providerName");
 			if (connectionString == null) throw new ArgumentNullException("connectionString");
@@ -65,7 +65,7 @@ namespace LinqToDB.Data
 			_mappingSchema   = DataProvider.MappingSchema;
 		}
 
-        public DataConnection([JetBrains.Annotations.NotNull] string providerName, [JetBrains.Annotations.NotNull] IDbConnection connection)
+        public DataConnection([Properties.NotNull] string providerName, [Properties.NotNull] IDbConnection connection)
         {
             if (providerName == null) throw new ArgumentNullException("providerName");
             if (connection == null) throw new ArgumentNullException("connection");
@@ -85,7 +85,7 @@ namespace LinqToDB.Data
             _connection = connection;
         }
 
-		public DataConnection([JetBrains.Annotations.NotNull] IDataProvider dataProvider, [JetBrains.Annotations.NotNull] string connectionString)
+		public DataConnection([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] string connectionString)
 		{
 			if (dataProvider     == null) throw new ArgumentNullException("dataProvider");
 			if (connectionString == null) throw new ArgumentNullException("connectionString");
@@ -97,7 +97,7 @@ namespace LinqToDB.Data
 			ConnectionString = connectionString;
 		}
 
-		public DataConnection([JetBrains.Annotations.NotNull] IDataProvider dataProvider, [JetBrains.Annotations.NotNull] IDbConnection connection)
+		public DataConnection([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] IDbConnection connection)
 		{
 			if (dataProvider == null) throw new ArgumentNullException("dataProvider");
 			if (connection   == null) throw new ArgumentNullException("connection");
@@ -113,7 +113,7 @@ namespace LinqToDB.Data
 			_connection    = connection;
 		}
 
-		public DataConnection([JetBrains.Annotations.NotNull] IDataProvider dataProvider, [JetBrains.Annotations.NotNull] IDbTransaction transaction)
+		public DataConnection([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] IDbTransaction transaction)
 		{
 			if (dataProvider == null) throw new ArgumentNullException("dataProvider");
 			if (transaction  == null) throw new ArgumentNullException("transaction");
@@ -348,7 +348,7 @@ namespace LinqToDB.Data
 		static readonly ConcurrentDictionary<string,IDataProvider> _dataProviders =
 			new ConcurrentDictionary<string,IDataProvider>();
 
-		public static void AddDataProvider([JetBrains.Annotations.NotNull] string providerName, [JetBrains.Annotations.NotNull] IDataProvider dataProvider)
+		public static void AddDataProvider([Properties.NotNull] string providerName, [Properties.NotNull] IDataProvider dataProvider)
 		{
 			if (providerName == null) throw new ArgumentNullException("providerName");
 			if (dataProvider == null) throw new ArgumentNullException("dataProvider");
@@ -359,14 +359,14 @@ namespace LinqToDB.Data
 			_dataProviders[providerName] = dataProvider;
 		}
 
-		public static void AddDataProvider([JetBrains.Annotations.NotNull] IDataProvider dataProvider)
+		public static void AddDataProvider([Properties.NotNull] IDataProvider dataProvider)
 		{
 			if (dataProvider == null) throw new ArgumentNullException("dataProvider");
 
 			AddDataProvider(dataProvider.Name, dataProvider);
 		}
 
-		public static IDataProvider GetDataProvider([JetBrains.Annotations.NotNull] string configurationString)
+		public static IDataProvider GetDataProvider([Properties.NotNull] string configurationString)
 		{
 			InitConfig();
 
@@ -464,8 +464,8 @@ namespace LinqToDB.Data
 			new ConcurrentDictionary<string, ConfigurationInfo>();
 
 		public static void AddConfiguration(
-			[JetBrains.Annotations.NotNull] string configuration,
-			[JetBrains.Annotations.NotNull] string connectionString,
+			[Properties.NotNull] string configuration,
+			[Properties.NotNull] string connectionString,
 			IDataProvider dataProvider = null)
 		{
 			if (configuration    == null) throw new ArgumentNullException("configuration");
@@ -477,8 +477,8 @@ namespace LinqToDB.Data
 		}
 
 		public static void SetConnectionString(
-			[JetBrains.Annotations.NotNull] string configuration,
-			[JetBrains.Annotations.NotNull] string connectionString)
+			[Properties.NotNull] string configuration,
+			[Properties.NotNull] string connectionString)
 		{
 			if (configuration    == null) throw new ArgumentNullException("configuration");
 			if (connectionString == null) throw new ArgumentNullException("connectionString");

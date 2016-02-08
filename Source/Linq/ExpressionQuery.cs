@@ -6,13 +6,13 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.Linq
 {
 	using Extensions;
 
-	public abstract class ExpressionQuery<T> : IExpressionQuery<T>
+	using LinqToDB.Properties;
+
+    public abstract class ExpressionQuery<T> : IExpressionQuery<T>
 	{
 		#region Init
 

@@ -7,7 +7,7 @@ namespace LinqToDB.DataProvider
 {
 	using Data;
 
-	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
 	using Mapping;
 	using SqlProvider;

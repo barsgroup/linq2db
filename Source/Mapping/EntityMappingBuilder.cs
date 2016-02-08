@@ -11,7 +11,7 @@ namespace LinqToDB.Mapping
 	{
 		#region Init
 
-		public EntityMappingBuilder([JetBrains.Annotations.NotNull] FluentMappingBuilder builder, string configuration)
+		public EntityMappingBuilder([Properties.NotNull] FluentMappingBuilder builder, string configuration)
 		{
 			if (builder == null) throw new ArgumentNullException("builder");
 

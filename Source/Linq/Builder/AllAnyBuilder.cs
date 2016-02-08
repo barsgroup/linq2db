@@ -7,8 +7,8 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     class AllAnyBuilder : MethodCallBuilder
 	{
@@ -101,10 +101,10 @@ namespace LinqToDB.Linq.Builder
 				if (expression == null)
 				{
 					var sql   = GetSubQuery(null);
-					var query = SelectQuery;
+					var query = Select;
 
 					if (Parent != null)
-						query = Parent.SelectQuery;
+						query = Parent.Select;
 
 					return new[] { new SqlInfo { Query = query, Sql = sql } };
 				}
@@ -149,7 +149,7 @@ namespace LinqToDB.Linq.Builder
 				{
 					var cond = new Condition(
 						_methodCall.Method.Name == "All",
-						new FuncLike(SqlFunction.CreateExists(SelectQuery)));
+						new FuncLike(SqlFunction.CreateExists(Select)));
 
 					_subQuerySql = new SearchCondition(cond);
 				}

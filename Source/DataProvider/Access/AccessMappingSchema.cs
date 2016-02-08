@@ -3,7 +3,7 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.Access
 {
-    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
     using Mapping;
 
@@ -23,8 +23,8 @@ namespace LinqToDB.DataProvider.Access
 
 			SetDataType(typeof(string), new SqlDataType(DataType.NVarChar, typeof(string), 255));
 
-			SetValueToSqlConverter(typeof(String),   (sb,dt,v) => ConvertStringToSql  (sb, v.ToString()));
-			SetValueToSqlConverter(typeof(Char),     (sb,dt,v) => ConvertCharToSql    (sb, (char)v));
+			SetValueToSqlConverter(typeof(string),   (sb,dt,v) => ConvertStringToSql  (sb, v.ToString()));
+			SetValueToSqlConverter(typeof(char),     (sb,dt,v) => ConvertCharToSql    (sb, (char)v));
 		}
 
 		static void AppendConversion(StringBuilder stringBuilder, int value)

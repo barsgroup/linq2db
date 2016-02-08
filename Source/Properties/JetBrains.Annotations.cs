@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace JetBrains.Annotations
+﻿namespace LinqToDB.Properties
 {
-	/// <summary>
+    using System;
+    using System.Collections.Generic;
+
+    /// <summary>
 	/// Indicates that marked method builds string by format pattern and (optional) arguments. 
 	/// Parameter, which contains format string, should be given in constructor.
 	/// The format string should be in <see cref="string.Format(IFormatProvider,string,object[])"/> -like form

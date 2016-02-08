@@ -49,16 +49,16 @@ namespace LinqToDB.DataProvider.DB2
 			DB2Types.DB2RowId.       Type = connectionType.Assembly.GetType("IBM.Data.DB2Types.DB2RowId",        true);
 			DB2Types.DB2DateTime.    Type = connectionType.Assembly.GetType("IBM.Data.DB2Types.DB2DateTime",     false);
 
-			SetProviderField(DB2Types.DB2Int64,        typeof(Int64),    "GetDB2Int64");
-			SetProviderField(DB2Types.DB2Int32,        typeof(Int32),    "GetDB2Int32");
-			SetProviderField(DB2Types.DB2Int16,        typeof(Int16),    "GetDB2Int16");
-			SetProviderField(DB2Types.DB2Decimal,      typeof(Decimal),  "GetDB2Decimal");
-			SetProviderField(DB2Types.DB2DecimalFloat, typeof(Decimal),  "GetDB2DecimalFloat");
-			SetProviderField(DB2Types.DB2Real,         typeof(Single),   "GetDB2Real");
-			SetProviderField(DB2Types.DB2Real370,      typeof(Single),   "GetDB2Real370");
-			SetProviderField(DB2Types.DB2Double,       typeof(Double),   "GetDB2Double");
-			SetProviderField(DB2Types.DB2String,       typeof(String),   "GetDB2String");
-			SetProviderField(DB2Types.DB2Clob,         typeof(String),   "GetDB2Clob");
+			SetProviderField(DB2Types.DB2Int64,        typeof(long),    "GetDB2Int64");
+			SetProviderField(DB2Types.DB2Int32,        typeof(int),    "GetDB2Int32");
+			SetProviderField(DB2Types.DB2Int16,        typeof(short),    "GetDB2Int16");
+			SetProviderField(DB2Types.DB2Decimal,      typeof(decimal),  "GetDB2Decimal");
+			SetProviderField(DB2Types.DB2DecimalFloat, typeof(decimal),  "GetDB2DecimalFloat");
+			SetProviderField(DB2Types.DB2Real,         typeof(float),   "GetDB2Real");
+			SetProviderField(DB2Types.DB2Real370,      typeof(float),   "GetDB2Real370");
+			SetProviderField(DB2Types.DB2Double,       typeof(double),   "GetDB2Double");
+			SetProviderField(DB2Types.DB2String,       typeof(string),   "GetDB2String");
+			SetProviderField(DB2Types.DB2Clob,         typeof(string),   "GetDB2Clob");
 			SetProviderField(DB2Types.DB2Binary,       typeof(byte[]),   "GetDB2Binary");
 			SetProviderField(DB2Types.DB2Blob,         typeof(byte[]),   "GetDB2Blob");
 			SetProviderField(DB2Types.DB2Date,         typeof(DateTime), "GetDB2Date");

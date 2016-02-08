@@ -4,12 +4,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.Properties;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class Expr : Predicate
     {
-        public Expr([JetBrains.Annotations.NotNull] ISqlExpression exp1, int precedence)
+        public Expr([NotNull] ISqlExpression exp1, int precedence)
             : base(precedence)
         {
             if (exp1 == null) throw new ArgumentNullException("exp1");
@@ -17,7 +18,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             Expr1 = exp1;
         }
 
-        public Expr([JetBrains.Annotations.NotNull] ISqlExpression exp1)
+        public Expr([NotNull] ISqlExpression exp1)
             : base(exp1.Precedence)
         {
             if (exp1 == null) throw new ArgumentNullException("exp1");

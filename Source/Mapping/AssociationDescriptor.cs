@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-using JNotNull = JetBrains.Annotations.NotNullAttribute;
+using JNotNull = LinqToDB.Properties.NotNullAttribute;
 
 namespace LinqToDB.Mapping
 {

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 using LinqToDB;
+using LinqToDB.Properties;
 
 [assembly: AssemblyTitle           (LinqToDBConstants.ProductName)]
 [assembly: AssemblyDescription     (LinqToDBConstants.ProductDescription)]

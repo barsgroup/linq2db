@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB
 {
 	using Extensions;
 	using Linq;
+
+	using LinqToDB.Properties;
 
 	using SqlQuery;
 

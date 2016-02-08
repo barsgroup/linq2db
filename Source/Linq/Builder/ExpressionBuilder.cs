@@ -164,7 +164,7 @@ namespace LinqToDB.Linq.Builder
 			return (Query<T>)_query;
 		}
 
-		[JetBrains.Annotations.NotNull]
+		[Properties.NotNull]
 		public IBuildContext BuildSequence(BuildInfo buildInfo)
 		{
 			buildInfo.Expression = buildInfo.Expression.Unwrap();
@@ -191,7 +191,7 @@ namespace LinqToDB.Linq.Builder
 			throw new LinqException("Sequence '{0}' cannot be converted to SQL.", buildInfo.Expression);
 		}
 
-		[JetBrains.Annotations.NotNull]
+		[Properties.NotNull]
 		public ISequenceBuilder GetBuilder(BuildInfo buildInfo)
 		{
 			buildInfo.Expression = buildInfo.Expression.Unwrap();

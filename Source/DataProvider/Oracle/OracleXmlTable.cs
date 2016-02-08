@@ -11,8 +11,9 @@ namespace LinqToDB.DataProvider.Oracle
 	using Common;
 	using Expressions;
 
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlEntities;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
 

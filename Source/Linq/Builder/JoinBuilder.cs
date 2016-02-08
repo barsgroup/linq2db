@@ -48,8 +48,8 @@ namespace LinqToDB.Linq.Builder
 			var context  = new SubQueryContext(outerContext);
 			innerContext = isGroup ? new GroupJoinSubQueryContext(innerContext) : new SubQueryContext(innerContext);
 
-			var join = isGroup ? innerContext.SelectQuery.WeakLeftJoin() : innerContext.SelectQuery.InnerJoin();
-			var sql  = context.SelectQuery;
+			var join = isGroup ? innerContext.Select.WeakLeftJoin() : innerContext.Select.InnerJoin();
+			var sql  = context.Select;
 
 			sql.From.Tables[0].Joins.Add(join.JoinedTable);
 
@@ -132,7 +132,7 @@ namespace LinqToDB.Linq.Builder
 		}
 
 		IBuildContext GetSubQueryContext(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo,
-			SelectQuery sql,
+            ISelectQuery sql,
 			LambdaExpression innerKeyLambda,
 			Expression outerKeySelector,
 			Expression innerKeySelector,
@@ -147,7 +147,7 @@ namespace LinqToDB.Linq.Builder
 
 			// Process SubQuery.
 			//
-			var subQuerySql = ((SubQueryContext)subQueryContext).SelectQuery;
+			var subQuerySql = ((SubQueryContext)subQueryContext).Select;
 
 			// Make join and where for the counter.
 			//
@@ -227,7 +227,7 @@ namespace LinqToDB.Linq.Builder
 			ExpressionBuilder           builder,
 			IBuildContext outerKeyContext, Expression  outerKeySelector,
 			Expression    innerKeySelector,
-			IBuildContext subQueryKeyContext, SelectQuery subQuerySelect)
+			IBuildContext subQueryKeyContext, ISelectQuery subQuerySelect)
 		{
 			var predicate = builder.ConvertObjectComparison(
 				ExpressionType.Equal,
@@ -260,11 +260,11 @@ namespace LinqToDB.Linq.Builder
 					.ConvertToSql(expression, level, flags)
 					.Select(idx =>
 					{
-						var n = SelectQuery.Select.Add(idx.Sql);
+						var n = Select.Select.Add(idx.Sql);
 
 						return new SqlInfo(idx.Members)
 						{
-							Sql   = SelectQuery.Select.Columns[n],
+							Sql   = Select.Select.Columns[n],
 							Index = n
 						};
 					})
@@ -467,7 +467,7 @@ namespace LinqToDB.Linq.Builder
 		internal class GroupJoinSubQueryContext : SubQueryContext
 		{
 			public JoinedTable Join;
-			public SelectQuery             CounterSelect;
+			public ISelectQuery CounterSelect;
 			public GroupJoinContext        GroupJoin;
 			public Func<IBuildContext>     GetSubQueryContext;
 

@@ -2,11 +2,11 @@
 using System.ServiceModel;
 using System.ServiceModel.Channels;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.ServiceModel
 {
-	public class ServiceModelDataContext : RemoteDataContextBase
+    using LinqToDB.Properties;
+
+    public class ServiceModelDataContext : RemoteDataContextBase
 	{
 		#region Init
 

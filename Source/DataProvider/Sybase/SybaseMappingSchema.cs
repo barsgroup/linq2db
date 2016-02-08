@@ -4,7 +4,7 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.Sybase
 {
-    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
     using Mapping;
 
@@ -16,8 +16,8 @@ namespace LinqToDB.DataProvider.Sybase
 
 		protected SybaseMappingSchema(string configuration) : base(configuration)
 		{
-			SetValueToSqlConverter(typeof(String), (sb,dt,v) => ConvertStringToSql(sb, v.ToString()));
-			SetValueToSqlConverter(typeof(Char),   (sb,dt,v) => ConvertCharToSql  (sb, (char)v));
+			SetValueToSqlConverter(typeof(string), (sb,dt,v) => ConvertStringToSql(sb, v.ToString()));
+			SetValueToSqlConverter(typeof(char),   (sb,dt,v) => ConvertCharToSql  (sb, (char)v));
 
 			SetDataType(typeof(string), new SqlDataType(DataType.NVarChar, typeof(string), 255));
 		}

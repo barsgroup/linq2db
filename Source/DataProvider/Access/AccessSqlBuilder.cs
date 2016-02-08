@@ -11,8 +11,8 @@ namespace LinqToDB.DataProvider.Access
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlQuery;
 	using SqlProvider;
@@ -24,7 +24,7 @@ namespace LinqToDB.DataProvider.Access
 		{
 		}
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}
@@ -107,7 +107,7 @@ namespace LinqToDB.DataProvider.Access
 			}
 
 			var exist = ((FuncLike)cond.Conditions[0].Predicate).Function;
-			var query = (SelectQuery)exist.Parameters[0];
+			var query = (ISelectQuery)exist.Parameters[0];
 
 			_selectColumn = new Column(SelectQuery, new SqlExpression(cond.Conditions[0].IsNot ? "Count(*) = 0" : "Count(*) > 0"), SelectQuery.Select.Columns[0].Alias);
 

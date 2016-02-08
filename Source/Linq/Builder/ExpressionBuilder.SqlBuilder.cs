@@ -14,12 +14,13 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.Expressions;
 	using Extensions;
 
+	using LinqToDB.SqlEntities;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
 	using Reflection;
@@ -49,9 +50,9 @@ namespace LinqToDB.Linq.Builder
 			BuildSearchCondition(
 				ctx,
 				expr,
-				enforceHaving || makeHaving && !ctx.SelectQuery.GroupBy.IsEmpty?
-					ctx.SelectQuery.Having.SearchCondition.Conditions :
-					ctx.SelectQuery.Where. SearchCondition.Conditions);
+				enforceHaving || makeHaving && !ctx.Select.GroupBy.IsEmpty?
+					ctx.Select.Having.SearchCondition.Conditions :
+					ctx.Select.Where. SearchCondition.Conditions);
 
 			ReplaceParent(ctx, prevParent);
 
@@ -188,7 +189,7 @@ namespace LinqToDB.Linq.Builder
 
 		public void BuildTake(IBuildContext context, ISqlExpression expr)
 		{
-			var sql = context.SelectQuery;
+			var sql = context.Select;
 
 			sql.Select.Take(expr);
 
@@ -196,7 +197,7 @@ namespace LinqToDB.Linq.Builder
 				 DataContextInfo.SqlProviderFlags.IsTakeSupported &&
 				!DataContextInfo.SqlProviderFlags.GetIsSkipSupportedFlag(sql))
 			{
-				if (context.SelectQuery.Select.SkipValue is SqlParameter && sql.Select.TakeValue is SqlValue)
+				if (context.Select.Select.SkipValue is SqlParameter && sql.Select.TakeValue is SqlValue)
 				{
 					var skip = (SqlParameter)sql.Select.SkipValue;
 					var parm = (SqlParameter)sql.Select.SkipValue.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
@@ -237,10 +238,10 @@ namespace LinqToDB.Linq.Builder
 
 		public IBuildContext GetSubQuery(IBuildContext context, MethodCallExpression expr)
 		{
-			var info = new BuildInfo(context, expr, new SelectQuery { ParentSelect = context.SelectQuery });
+			var info = new BuildInfo(context, expr, new SelectQuery { ParentSelect = context.Select });
 			var ctx  = BuildSequence(info);
 
-			if (ctx.SelectQuery.Select.Columns.Count == 0 &&
+			if (ctx.Select.Select.Columns.Count == 0 &&
 				(ctx.IsExpression(null, 0, RequestFor.Expression).Result ||
 				 ctx.IsExpression(null, 0, RequestFor.Field).     Result))
 			{
@@ -258,16 +259,16 @@ namespace LinqToDB.Linq.Builder
 			if (subSql != null)
 				return subSql;
 
-			var query    = context.SelectQuery;
-			var subQuery = sequence.SelectQuery;
+			var query    = context.Select;
+			var subQuery = sequence.Select;
 
 			// This code should be moved to context.
 			//
 			if (!query.GroupBy.IsEmpty && !subQuery.Where.IsEmpty)
 			{
-				var fromGroupBy = sequence.SelectQuery.Properties
-					.OfType<Tuple<string,SelectQuery>>()
-					.Any(p => p.Item1 == "from_group_by" && ReferenceEquals(p.Item2, context.SelectQuery));
+				var fromGroupBy = sequence.Select.Properties
+					.OfType<Tuple<string,ISelectQuery>>()
+					.Any(p => p.Item1 == "from_group_by" && ReferenceEquals(p.Item2, context.Select));
 
 				if (fromGroupBy)
 				{
@@ -291,7 +292,7 @@ namespace LinqToDB.Linq.Builder
 				}
 			}
 
-			return sequence.SelectQuery;
+			return sequence.Select;
 		}
 
 		#endregion
@@ -302,7 +303,7 @@ namespace LinqToDB.Linq.Builder
 		{
 			if (call.IsQueryable())
 			{
-				var info = new BuildInfo(context, call, new SelectQuery { ParentSelect = context.SelectQuery });
+				var info = new BuildInfo(context, call, new SelectQuery { ParentSelect = context.Select });
 
 				if (!IsSequence(info))
 					return false;
@@ -1436,9 +1437,9 @@ namespace LinqToDB.Linq.Builder
 				case ExpressionType.Equal   :
 				case ExpressionType.NotEqual:
 
-					if (!context.SelectQuery.IsParameterDependent &&
+					if (!context.Select.IsParameterDependent &&
 						(l is SqlParameter && l.CanBeNull() || r is SqlParameter && r.CanBeNull()))
-						context.SelectQuery.IsParameterDependent = true;
+						context.Select.IsParameterDependent = true;
 
 					// | (SqlQuery(Select([]) as q), SqlValue(null))
 					// | (SqlValue(null), SqlQuery(Select([]) as q))  =>
@@ -1447,21 +1448,18 @@ namespace LinqToDB.Linq.Builder
 						l.ElementType == QueryElementType.SqlQuery &&
 						r.ElementType == QueryElementType.SqlValue &&
 						((SqlValue)r).Value == null &&
-						((SelectQuery)l).Select.Columns.Count == 0 ?
-							(SelectQuery)l :
+						((ISelectQuery)l).Select.Columns.Count == 0 ?
+							(ISelectQuery)l :
 						r.ElementType == QueryElementType.SqlQuery &&
 						l.ElementType == QueryElementType.SqlValue &&
 						((SqlValue)l).Value == null &&
-						((SelectQuery)r).Select.Columns.Count == 0 ?
-							(SelectQuery)r :
+						((ISelectQuery)r).Select.Columns.Count == 0 ?
+							(ISelectQuery)r :
 							null;
 
-					if (q != null)
-					{
-						q.Select.Columns.Add(new Column(q, new SqlValue(1)));
-					}
+			        q?.Select.Columns.Add(new Column(q, new SqlValue(1)));
 
-					break;
+			        break;
 			}
 
 			if (l is SearchCondition)
@@ -1861,10 +1859,10 @@ namespace LinqToDB.Linq.Builder
 			var ctx = GetContext(context, arg);
 
 			if (ctx is TableBuilder.TableContext &&
-			    ctx.SelectQuery != context.SelectQuery &&
+			    ctx.Select != context.Select &&
 			    ctx.IsExpression(arg, 0, RequestFor.Object).Result)
 			{
-				expr = ctx.SelectQuery;
+				expr = ctx.Select;
 			}
 
 			if (expr == null)
@@ -2348,7 +2346,7 @@ namespace LinqToDB.Linq.Builder
 
 		#region Helpers
 
-		public IBuildContext GetContext([JetBrains.Annotations.NotNull] IBuildContext current, Expression expression)
+		public IBuildContext GetContext([Properties.NotNull] IBuildContext current, Expression expression)
 		{
 			var root = expression.GetRootObject();
 
@@ -2359,7 +2357,7 @@ namespace LinqToDB.Linq.Builder
 			return null;
 		}
 
-		Sql.FunctionAttribute GetFunctionAttribute(MemberInfo member)
+		SqlEntities.Sql.FunctionAttribute GetFunctionAttribute(MemberInfo member)
 		{
 			return MappingSchema.GetAttribute<Sql.FunctionAttribute>(member, a => a.Configuration);
 		}
@@ -2376,7 +2374,7 @@ namespace LinqToDB.Linq.Builder
 
 		public ISqlPredicate Convert(IBuildContext context, ISqlPredicate predicate)
 		{
-			return DataContextInfo.GetSqlOptimizer().ConvertPredicate(context.SelectQuery, predicate);
+			return DataContextInfo.GetSqlOptimizer().ConvertPredicate(context.Select, predicate);
 		}
 
 		internal ISqlExpression ConvertSearchCondition(IBuildContext context, ISqlExpression sqlExpression)

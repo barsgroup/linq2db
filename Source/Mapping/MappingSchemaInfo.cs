@@ -9,7 +9,7 @@ namespace LinqToDB.Mapping
 	using Expressions;
 	using Extensions;
 
-	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
 	using Metadata;
 

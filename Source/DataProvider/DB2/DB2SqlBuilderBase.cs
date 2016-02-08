@@ -6,8 +6,8 @@ namespace LinqToDB.DataProvider.DB2
 {
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using SqlProvider;
 
@@ -22,7 +22,7 @@ namespace LinqToDB.DataProvider.DB2
 
 		protected abstract DB2Version Version { get; }
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			if (Version == DB2Version.LUW && selectQuery.IsInsert && selectQuery.Insert.WithIdentity)
 			{
@@ -35,7 +35,7 @@ namespace LinqToDB.DataProvider.DB2
 			return 1;
 		}
 
-		protected override void BuildSql(int commandNumber, SelectQuery selectQuery, StringBuilder sb, int indent, bool skipAlias)
+		protected override void BuildSql(int commandNumber, ISelectQuery selectQuery, StringBuilder sb, int indent, bool skipAlias)
 		{
 			SelectQuery   = selectQuery;
 			StringBuilder = sb;

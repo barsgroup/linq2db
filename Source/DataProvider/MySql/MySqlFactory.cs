@@ -1,10 +1,10 @@
 ﻿using System.Collections.Specialized;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.DataProvider.MySql
 {
-	[UsedImplicitly]
+    using LinqToDB.Properties;
+
+    [UsedImplicitly]
 	class MySqlFactory : IDataProviderFactory
 	{
 		IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)

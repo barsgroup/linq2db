@@ -3,7 +3,7 @@
 namespace LinqToDB.Linq.Builder
 {
     using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     abstract class PassThroughContext : IBuildContext
 	{
@@ -22,7 +22,7 @@ namespace LinqToDB.Linq.Builder
 
 		public virtual ExpressionBuilder Builder     { get { return Context.Builder;     } }
 		public virtual Expression        Expression  { get { return Context.Expression;  } }
-		public virtual SelectQuery       SelectQuery { get { return Context.SelectQuery; } set { Context.SelectQuery = value; } }
+		public virtual ISelectQuery Select { get { return Context.Select; } set { Context.Select = value; } }
 		public virtual IBuildContext     Parent      { get { return Context.Parent;      } set { Context.Parent      = value; } }
 
 		public virtual void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)

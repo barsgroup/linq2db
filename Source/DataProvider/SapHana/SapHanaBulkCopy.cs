@@ -9,7 +9,9 @@ namespace LinqToDB.DataProvider.SapHana
 
 	using Data;
 
-	class SapHanaBulkCopy : BasicBulkCopy
+	using LinqToDB.Properties;
+
+    class SapHanaBulkCopy : BasicBulkCopy
 	{
 		public SapHanaBulkCopy(SapHanaDataProvider dataProvider, Type connectionType)
 		{
@@ -25,7 +27,7 @@ namespace LinqToDB.DataProvider.SapHana
 		Action<object,Action<object>>                      _bulkCopySubscriber;
 
 		protected override BulkCopyRowsCopied ProviderSpecificCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection,
+			[NotNull] DataConnection dataConnection,
 			BulkCopyOptions options,
 			IEnumerable<T> source)
 		{

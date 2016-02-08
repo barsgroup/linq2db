@@ -4,7 +4,7 @@ using System.Linq;
 namespace LinqToDB.DataProvider.SQLite
 {
     using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
     using SqlProvider;
 
@@ -15,7 +15,7 @@ namespace LinqToDB.DataProvider.SQLite
 		{
 		}
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}

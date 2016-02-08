@@ -11,8 +11,8 @@ namespace LinqToDB.Linq.Builder
 
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     // This class implements double functionality (scalar and member type selects)
 	// and could be implemented as two different classes.
@@ -24,7 +24,7 @@ namespace LinqToDB.Linq.Builder
 		#region Init
 
 #if DEBUG
-		public string _sqlQueryText { get { return SelectQuery == null ? "" : SelectQuery.SqlText; } }
+		public string _sqlQueryText { get { return Select == null ? "" : Select.SqlText; } }
 
 		public MethodCallExpression MethodCall;
 #endif
@@ -33,7 +33,7 @@ namespace LinqToDB.Linq.Builder
 		public LambdaExpression  Lambda      { get; set; }
 		public Expression        Body        { get; set; }
 		public ExpressionBuilder Builder     { get; private set; }
-		public SelectQuery       SelectQuery { get; set; }
+		public ISelectQuery Select { get; set; }
 		public IBuildContext     Parent      { get; set; }
 		public bool              IsScalar    { get; private set; }
 
@@ -48,7 +48,7 @@ namespace LinqToDB.Linq.Builder
 			Builder     = sequences[0].Builder;
 			Lambda      = lambda;
 			Body        = lambda.Body;
-			SelectQuery = sequences[0].SelectQuery;
+			Select = sequences[0].Select;
 
 			foreach (var context in Sequence)
 				context.Parent = this;
@@ -415,13 +415,13 @@ namespace LinqToDB.Linq.Builder
 				var newInfo = info
 					.Select(i =>
 					{
-						if (i.Query == SelectQuery)
+						if (i.Query == Select)
 							return i;
 
 						return new SqlInfo(i.Members)
 						{
-							Query = SelectQuery,
-							Index = SelectQuery.Select.Add(i.Query.Select.Columns[i.Index])
+							Query = Select,
+							Index = Select.Select.Add(i.Query.Select.Columns[i.Index])
 						};
 					})
 					.ToArray();
@@ -578,12 +578,12 @@ namespace LinqToDB.Linq.Builder
 
 		void SetInfo(SqlInfo info)
 		{
-			info.Query = SelectQuery;
+			info.Query = Select;
 
-			if (info.Sql == SelectQuery)
-				info.Index = SelectQuery.Select.Columns.Count - 1;
+			if (info.Sql == Select)
+				info.Index = Select.Select.Columns.Count - 1;
 			else
-				info.Index = SelectQuery.Select.Add(info.Sql);
+				info.Index = Select.Select.Add(info.Sql);
 		}
 
 		#endregion
@@ -836,8 +836,8 @@ namespace LinqToDB.Linq.Builder
 
 		public virtual int ConvertToParentIndex(int index, IBuildContext context)
 		{
-			if (!ReferenceEquals(context.SelectQuery, SelectQuery))
-				index = SelectQuery.Select.Add(context.SelectQuery.Select.Columns[index]);
+			if (!ReferenceEquals(context.Select, Select))
+				index = Select.Select.Add(context.Select.Select.Columns[index]);
 
 			return Parent == null ? index : Parent.ConvertToParentIndex(index, this);
 		}

@@ -1,10 +1,10 @@
 ﻿using System.Collections.Specialized;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.DataProvider.Firebird
 {
-	[UsedImplicitly]
+    using LinqToDB.Properties;
+
+    [UsedImplicitly]
 	class FirebirdFactory: IDataProviderFactory
 	{
 		IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)

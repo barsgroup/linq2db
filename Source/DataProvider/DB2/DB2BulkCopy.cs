@@ -7,6 +7,8 @@ namespace LinqToDB.DataProvider.DB2
 {
 	using Data;
 
+	using LinqToDB.Properties;
+
     class DB2BulkCopy : BasicBulkCopy
 	{
 		public DB2BulkCopy(Type connectionType)
@@ -21,7 +23,7 @@ namespace LinqToDB.DataProvider.DB2
 		Action<object,Action<object>>       _bulkCopySubscriber;
 
 		protected override BulkCopyRowsCopied ProviderSpecificCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection  dataConnection,
+			[NotNull] DataConnection  dataConnection,
 			BulkCopyOptions options,
 			IEnumerable<T>  source)
 		{

@@ -6,11 +6,11 @@ namespace LinqToDB.SqlQuery.QueryElements
 
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class JoinedTable : BaseQueryElement, ISqlExpressionWalkable, ICloneableElement
     {
-        public JoinedTable(JoinType joinType, TableSource table, bool isWeak, SearchCondition searchCondition)
+        public JoinedTable(JoinType joinType, ITableSource table, bool isWeak, SearchCondition searchCondition)
         {
             JoinType        = joinType;
             Table           = table;
@@ -19,7 +19,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             CanConvertApply = true;
         }
 
-        public JoinedTable(JoinType joinType, TableSource table, bool isWeak)
+        public JoinedTable(JoinType joinType, ITableSource table, bool isWeak)
             : this(joinType, table, isWeak, new SearchCondition())
         {
         }
@@ -30,7 +30,7 @@ namespace LinqToDB.SqlQuery.QueryElements
         }
 
         public JoinType        JoinType        { get; set; }
-        public TableSource     Table           { get; set; }
+        public ITableSource Table           { get; set; }
         public SearchCondition Condition       { get; private set; }
         public bool            IsWeak          { get; set; }
         public bool            CanConvertApply { get; set; }
@@ -45,7 +45,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             if (!objectTree.TryGetValue(this, out clone))
                 objectTree.Add(this, clone = new JoinedTable(
                                                  JoinType,
-                                                 (TableSource)Table.Clone(objectTree, doClone), 
+                                                 (ITableSource)Table.Clone(objectTree, doClone), 
                                                  IsWeak,
                                                  (SearchCondition)Condition.Clone(objectTree, doClone)));
 
@@ -100,7 +100,7 @@ namespace LinqToDB.SqlQuery.QueryElements
                 default                  : sb.Append("SOME JOIN "); break;
             }
 
-            ((IQueryElement)Table).ToString(sb, dic);
+            Table.ToString(sb, dic);
             sb.Append(" ON ");
             ((IQueryElement)Condition).ToString(sb, dic);
 

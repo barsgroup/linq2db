@@ -4,12 +4,13 @@
 
     using Extensions;
 
-	using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlEntities;
+    using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	using SqlProvider;
+    using SqlProvider;
 	using SqlQuery;
 
 	class FirebirdSqlOptimizer : BasicSqlOptimizer
@@ -45,7 +46,7 @@
 			return true;
 		}
 
-		public override SelectQuery Finalize(SelectQuery selectQuery)
+		public override ISelectQuery Finalize(ISelectQuery selectQuery)
 		{
 			CheckAliases(selectQuery, int.MaxValue);
 

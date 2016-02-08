@@ -12,8 +12,8 @@ namespace LinqToDB.DataProvider.Firebird
 
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlQuery;
 	using SqlProvider;
@@ -220,7 +220,7 @@ namespace LinqToDB.DataProvider.Firebird
 
 		SqlField _identityField;
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			if (selectQuery.IsCreateTable)
 			{

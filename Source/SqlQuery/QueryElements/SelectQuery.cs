@@ -15,12 +15,107 @@
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    public interface ISelectQuery : ISqlTableSource
+    {
+        List<SqlParameter> Parameters { get; }
+
+        List<object> Properties { get; }
+
+        bool IsParameterDependent { get; set; }
+
+        ISelectQuery ParentSelect { get; set; }
+
+        bool IsSimple { get; }
+
+        QueryType QueryType { get; set; }
+
+        bool IsCreateTable { get; }
+
+        bool IsSelect { get; }
+
+        bool IsDelete { get; }
+
+        bool IsInsertOrUpdate { get; }
+
+        bool IsInsert { get; }
+
+        bool IsUpdate { get; }
+
+        SelectClause Select { get; }
+
+        CreateTableStatement CreateTable { get; }
+
+        InsertClause Insert { get; }
+
+        UpdateClause Update { get; }
+
+        DeleteClause Delete { get; }
+
+        FromClause From { get; }
+
+        WhereClause Where { get; }
+
+        GroupByClause GroupBy { get; }
+
+        WhereClause Having { get; }
+
+        OrderByClause OrderBy { get; }
+
+        List<Union> Unions { get; }
+
+        bool HasUnion { get; }
+
+        string SqlText { get; }
+
+        void ClearInsert();
+
+        void ClearUpdate();
+
+        void ClearDelete();
+
+        void AddUnion(ISelectQuery union, bool isAll);
+
+        ISelectQuery ProcessParameters();
+
+        ISelectQuery Clone();
+
+        ISelectQuery Clone(Predicate<ICloneableElement> doClone);
+
+        void RemoveAlias(string alias);
+
+        void SetAliases();
+
+        string GetAlias(string desiredAlias, string defaultAlias);
+
+        string[] GetTempAliases(int n, string defaultAlias);
+
+        void ForEachTable(Action<ITableSource> action, HashSet<ISelectQuery> visitedQueries);
+
+        ISqlTableSource GetTableSource(ISqlTableSource table);
+
+        void Init(InsertClause insert,
+                         UpdateClause update,
+                         DeleteClause delete,
+                         SelectClause select,
+                         FromClause from,
+                         WhereClause where,
+                         GroupByClause groupBy,
+                         WhereClause having,
+                         OrderByClause orderBy,
+                         List<Union> unions,
+                         ISelectQuery parentSelect,
+                         CreateTableStatement createTable,
+                         bool parameterDependent,
+                         List<SqlParameter> parameters);
+    }
 
     [DebuggerDisplay("SQL = {SqlText}")]
-	public class SelectQuery : BaseQueryElement, ISqlTableSource
-	{
+	public class SelectQuery : BaseQueryElement, ISqlTableSource,
+	                           ISelectQuery
+    {
 		#region Init
 
 		static readonly Dictionary<string,object> _reservedWords = new Dictionary<string,object>();
@@ -30,7 +125,7 @@
 #if NETFX_CORE
 			using (var stream = typeof(SelectQuery).AssemblyEx().GetManifestResourceStream("ReservedWords.txt"))
 #else
-			using (var stream = typeof(SelectQuery).AssemblyEx().GetManifestResourceStream(typeof(SelectQuery), "ReservedWords.txt"))
+			using (var stream = typeof(ISelectQuery).AssemblyEx().GetManifestResourceStream(typeof(SelectQuery), "ReservedWords.txt"))
 #endif
 			using (var reader = new StreamReader(stream))
 			{
@@ -57,7 +152,7 @@
 			SourceID = id;
 		}
 
-		internal void Init(
+		public void Init(
 			InsertClause         insert,
 			UpdateClause         update,
 			DeleteClause         delete,
@@ -68,7 +163,7 @@
 			WhereClause          having,
 			OrderByClause        orderBy,
 			List<Union>          unions,
-			SelectQuery          parentSelect,
+            ISelectQuery         parentSelect,
 			CreateTableStatement createTable,
 			bool                 parameterDependent,
 			List<SqlParameter>   parameters)
@@ -105,7 +200,7 @@
 		public  List<object>  Properties { get; } = new List<object>();
 
 	    public bool        IsParameterDependent { get; set; }
-		public SelectQuery ParentSelect         { get; set; }
+		public ISelectQuery ParentSelect         { get; set; }
 
 		public bool IsSimple => !Select.HasModifier && Where.IsEmpty && GroupBy.IsEmpty && Having.IsEmpty && OrderBy.IsEmpty;
 
@@ -188,14 +283,14 @@
 
 	    public bool HasUnion => Unions != null && Unions.Count > 0;
 
-	    public void AddUnion(SelectQuery union, bool isAll)
+	    public void AddUnion(ISelectQuery union, bool isAll)
 		{
 			Unions.Add(new Union(union, isAll));
 		}
 
 		#region ProcessParameters
 
-        public SelectQuery ProcessParameters()
+        public ISelectQuery ProcessParameters()
         {
             if (!IsParameterDependent)
             {
@@ -427,7 +522,7 @@
 
 		#region Clone
 
-		SelectQuery(SelectQuery clone, Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+		SelectQuery(ISelectQuery clone, Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
 		{
 			objectTree.Add(clone,     this);
 			objectTree.Add(clone.All, All);
@@ -437,7 +532,7 @@
 			ICloneableElement parentClone;
 
 			if (clone.ParentSelect != null)
-				ParentSelect = objectTree.TryGetValue(clone.ParentSelect, out parentClone) ? (SelectQuery)parentClone : clone.ParentSelect;
+				ParentSelect = objectTree.TryGetValue(clone.ParentSelect, out parentClone) ? (ISelectQuery)parentClone : clone.ParentSelect;
 
 			QueryType = clone.QueryType;
 
@@ -455,20 +550,20 @@
 			Parameters.AddRange(clone.Parameters.Select(p => (SqlParameter)p.Clone(objectTree, doClone)));
 			IsParameterDependent = clone.IsParameterDependent;
 
-		    foreach (var query in QueryVisitor.FindOnce<SelectQuery>(this).Where(sq => sq.ParentSelect == clone))
+		    foreach (var query in QueryVisitor.FindOnce<ISelectQuery>(this).Where(sq => sq.ParentSelect == clone))
 		    {
 		        query.ParentSelect = this;
 		    }
 		}
 
-		public SelectQuery Clone()
+		public ISelectQuery Clone()
 		{
-			return (SelectQuery)Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
+			return (ISelectQuery)Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
 		}
 
-		public SelectQuery Clone(Predicate<ICloneableElement> doClone)
+		public ISelectQuery Clone(Predicate<ICloneableElement> doClone)
 		{
-			return (SelectQuery)Clone(new Dictionary<ICloneableElement,ICloneableElement>(), doClone);
+			return (ISelectQuery)Clone(new Dictionary<ICloneableElement,ICloneableElement>(), doClone);
 		}
 
 		#endregion
@@ -529,7 +624,7 @@
 			return aliases;
 		}
 
-        internal void SetAliases()
+        public void SetAliases()
         {
             _aliases = null;
 
@@ -578,7 +673,7 @@
 
                     case QueryElementType.TableSource:
                     {
-                        var table = (TableSource)element;
+                        var table = (ITableSource)element;
 
                         if (!objs.ContainsKey(table))
                         {
@@ -591,7 +686,7 @@
 
                     case QueryElementType.SqlQuery:
                     {
-                        var sql = (SelectQuery)element;
+                        var sql = (ISelectQuery)element;
 
                         if (sql.HasUnion)
                         {
@@ -616,7 +711,7 @@
             }
         }
 
-        public void ForEachTable(Action<TableSource> action, HashSet<SelectQuery> visitedQueries)
+        public void ForEachTable(Action<ITableSource> action, HashSet<ISelectQuery> visitedQueries)
         {
             if (!visitedQueries.Add(this))
                 return;
@@ -624,7 +719,7 @@
             foreach (var table in From.Tables)
                 table.ForEach(action, visitedQueries);
 
-            foreach (var query in QueryVisitor.FindOnce<SelectQuery>(this).Where(q => q != this))
+            foreach (var query in QueryVisitor.FindOnce<ISelectQuery>(this).Where(q => q != this))
             {
                 query.ForEachTable(action, visitedQueries);
 
@@ -641,7 +736,7 @@
 			return ts == null && ParentSelect != null? ParentSelect.GetTableSource(table) : ts;
 		}
 
-		public static TableSource CheckTableSource(TableSource ts, ISqlTableSource table, string alias)
+		public static ITableSource CheckTableSource(ITableSource ts, ISqlTableSource table, string alias)
 		{
 			if (ts.Source == table && (alias == null || ts.Alias == alias))
 				return ts;
@@ -651,9 +746,9 @@
 			if (jt != null)
 				return jt;
 
-			if (ts.Source is SelectQuery)
+			if (ts.Source is ISelectQuery)
 			{
-				var s = ((SelectQuery)ts.Source).From[table, alias];
+				var s = ((ISelectQuery)ts.Source).From[table, alias];
 
 				if (s != null)
 					return s;
@@ -730,7 +825,7 @@
 
 			if (HasUnion)
 				foreach (var union in Unions)
-					((ISqlExpressionWalkable)union.SelectQuery).Walk(skipColumns, func);
+					union.SelectQuery.Walk(skipColumns, func);
 
 			return func(this);
 		}
@@ -758,7 +853,7 @@
 		{
 			get { return _all ?? (_all = new SqlField { Name = "*", PhysicalName = "*", Table = this }); }
 
-			internal set
+			set
 			{
 				_all = value;
 
@@ -776,7 +871,7 @@
 				_keys = new List<ISqlExpression>();
 
 				var q =
-					from key in ((ISqlTableSource)From.Tables[0]).GetKeys(allIfEmpty)
+					from key in From.Tables[0].GetKeys(allIfEmpty)
 					from col in Select.Columns
 					where col.Expression == key
 					select col as ISqlExpression;

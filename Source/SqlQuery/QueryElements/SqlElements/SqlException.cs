@@ -1,7 +1,9 @@
-namespace LinqToDB.SqlQuery.SqlElements
+namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 {
     using System;
     using System.Runtime.Serialization;
+
+    using LinqToDB.Properties;
 
     public class SqlException : Exception
 	{
@@ -15,7 +17,7 @@ namespace LinqToDB.SqlQuery.SqlElements
 		{
 		}
 
-		[JetBrains.Annotations.StringFormatMethod("message")]
+		[StringFormatMethod("message")]
 		public SqlException(string message, params object[] args)
 			: base(string.Format(message, args))
 		{

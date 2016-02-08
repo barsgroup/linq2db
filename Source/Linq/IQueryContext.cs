@@ -3,11 +3,11 @@
 namespace LinqToDB.Linq
 {
     using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
     public interface IQueryContext
 	{
-		SelectQuery    SelectQuery { get; }
+        ISelectQuery   SelectQuery { get; }
 		object         Context     { get; set; }
 		List<string>   QueryHints  { get; }
 		SqlParameter[] GetParameters();

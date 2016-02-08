@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.DataProvider.Firebird
 {
 	using Data;
 
-	public static class FirebirdTools
+	using LinqToDB.Properties;
+
+    public static class FirebirdTools
 	{
 		static readonly FirebirdDataProvider _firebirdDataProvider = new FirebirdDataProvider();
 

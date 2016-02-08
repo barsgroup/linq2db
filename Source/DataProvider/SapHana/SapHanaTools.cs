@@ -29,7 +29,7 @@ namespace LinqToDB.DataProvider.SapHana
 
 				path = Path.GetDirectoryName(path);
 
-				if (!String.IsNullOrEmpty(path))
+				if (!string.IsNullOrEmpty(path))
 				{
 					if (!File.Exists(Path.Combine(path, AssemblyName + ".dll")))
 					{

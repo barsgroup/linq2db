@@ -9,11 +9,11 @@ using System.Linq;
 using System.Reflection;
 using System.Xml;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.Extensions
 {
-	public static class ReflectionExtensions
+    using LinqToDB.Properties;
+
+    public static class ReflectionExtensions
 	{
 		#region Type extensions
 

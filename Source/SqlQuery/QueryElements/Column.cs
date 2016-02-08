@@ -7,12 +7,12 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class Column : BaseQueryElement, IEquatable<Column>, ISqlExpression
     {
-        public Column(SelectQuery parent, ISqlExpression expression, string alias)
+        public Column(ISelectQuery parent, ISqlExpression expression, string alias)
         {
             if (expression == null) throw new ArgumentNullException("expression");
 
@@ -25,7 +25,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 #endif
         }
 
-        public Column(SelectQuery builder, ISqlExpression expression)
+        public Column(ISelectQuery builder, ISqlExpression expression)
             : this(builder, expression, null)
         {
         }
@@ -36,7 +36,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 #endif
 
         public ISqlExpression Expression { get; set; }
-        public SelectQuery    Parent     { get; set; }
+        public ISelectQuery Parent     { get; set; }
 
         internal string _alias;
         public   string  Alias
@@ -106,7 +106,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
             ICloneableElement clone;
 
-            var parent = (SelectQuery)Parent.Clone(objectTree, doClone);
+            var parent = (ISelectQuery)Parent.Clone(objectTree, doClone);
 
             if (!objectTree.TryGetValue(this, out clone))
                 objectTree.Add(this, clone = new Column(
@@ -168,7 +168,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             sb.Append('[').Append(_columnNumber).Append(']');
 #endif
 
-            if (Expression is SelectQuery)
+            if (Expression is ISelectQuery)
             {
                 sb
                     .Append("(\n\t\t");

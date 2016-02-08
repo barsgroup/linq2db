@@ -12,7 +12,7 @@ namespace LinqToDB.Data
 	using Linq;
 
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
 	using Mapping;
 
@@ -43,7 +43,7 @@ namespace LinqToDB.Data
 			public string[]           Commands;
 			public List<SqlParameter> SqlParameters;
 			public IDbDataParameter[] Parameters;
-			public SelectQuery        SelectQuery;
+			public ISelectQuery SelectQuery;
 			public ISqlBuilder        SqlProvider;
 			public List<string>       QueryHints;
 		}
@@ -100,7 +100,7 @@ namespace LinqToDB.Data
 			};
 		}
 
-		protected virtual SelectQuery ProcessQuery(SelectQuery selectQuery)
+		protected virtual ISelectQuery ProcessQuery(ISelectQuery selectQuery)
 		{
 			return selectQuery;
 		}

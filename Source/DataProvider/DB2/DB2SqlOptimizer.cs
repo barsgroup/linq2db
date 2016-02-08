@@ -2,10 +2,11 @@
 {
 	using Extensions;
 
+	using LinqToDB.SqlEntities;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlProvider;
 	using SqlQuery;
@@ -16,7 +17,7 @@
 		{
 		}
 
-		public override SelectQuery Finalize(SelectQuery selectQuery)
+		public override ISelectQuery Finalize(ISelectQuery selectQuery)
 		{
 		    foreach (var parameter in QueryVisitor.FindOnce<SqlParameter>(selectQuery.Select) )
 		    {

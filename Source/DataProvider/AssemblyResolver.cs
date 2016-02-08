@@ -3,11 +3,11 @@ using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.DataProvider
 {
-	class AssemblyResolver
+    using LinqToDB.Properties;
+
+    class AssemblyResolver
 	{
 		public AssemblyResolver([NotNull] string path, [NotNull] string resolveName)
 		{

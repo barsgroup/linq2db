@@ -7,31 +7,31 @@ namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     class SubQueryContext : PassThroughContext
 	{
-		public SubQueryContext(IBuildContext subQuery, SelectQuery selectQuery, bool addToSql)
+		public SubQueryContext(IBuildContext subQuery, ISelectQuery selectQuery, bool addToSql)
 			: base(subQuery)
 		{
-			if (selectQuery == subQuery.SelectQuery)
+			if (selectQuery == subQuery.Select)
 				throw new ArgumentException("Wrong subQuery argument.", "subQuery");
 
 			SubQuery        = subQuery;
 			SubQuery.Parent = this;
-			SelectQuery     = selectQuery;
+			Select     = selectQuery;
 
 			if (addToSql)
-				selectQuery.From.Table(SubQuery.SelectQuery);
+				selectQuery.From.Table(SubQuery.Select);
 		}
 
 		public SubQueryContext(IBuildContext subQuery, bool addToSql = true)
-			: this(subQuery, new SelectQuery { ParentSelect = subQuery.SelectQuery.ParentSelect }, addToSql)
+			: this(subQuery, new SelectQuery { ParentSelect = subQuery.Select.ParentSelect }, addToSql)
 		{
 		}
 
 		public          IBuildContext SubQuery    { get; private set; }
-		public override SelectQuery   SelectQuery { get; set; }
+		public override ISelectQuery Select { get; set; }
 		public override IBuildContext Parent      { get; set; }
 
 		public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
@@ -54,7 +54,7 @@ namespace LinqToDB.Linq.Builder
 							Expression.Lambda(
 								Expression.New(
 									ne.Constructor,
-									(IEnumerable<Expression>)ne.Members.Select(m => Expression.MakeMemberAccess(p, m)),
+									ne.Members.Select(m => Expression.MakeMemberAccess(p, m)),
 									ne.Members),
 								p),
 							this);
@@ -77,9 +77,9 @@ namespace LinqToDB.Linq.Builder
 								Expression.Lambda(
 								Expression.MemberInit(
 									mi.NewExpression,
-									(IEnumerable<MemberBinding>)mi.Bindings
-										.OfType<MemberAssignment>()
-										.Select(ma => Expression.Bind(ma.Member, Expression.MakeMemberAccess(p, ma.Member)))),
+									mi.Bindings
+									  .OfType<MemberAssignment>()
+									  .Select(ma => Expression.Bind(ma.Member, Expression.MakeMemberAccess(p, ma.Member)))),
 									p),
 								this);
 
@@ -98,7 +98,7 @@ namespace LinqToDB.Linq.Builder
 		{
 			return SubQuery
 				.ConvertToIndex(expression, level, flags)
-				.Select(idx => new SqlInfo((idx.Members)) { Sql = SubQuery.SelectQuery.Select.Columns[idx.Index] })
+				.Select(idx => new SqlInfo((idx.Members)) { Sql = SubQuery.Select.Select.Columns[idx.Index] })
 				.ToArray();
 		}
 
@@ -109,7 +109,7 @@ namespace LinqToDB.Linq.Builder
 			return ConvertToSql(expression, level, flags)
 				.Select(idx =>
 				{
-					idx.Query = SelectQuery;
+					idx.Query = Select;
 					idx.Index = GetIndex((Column)idx.Sql);
 
 					return idx;
@@ -135,7 +135,7 @@ namespace LinqToDB.Linq.Builder
 
 			if (!ColumnIndexes.TryGetValue(column, out idx))
 			{
-				idx = SelectQuery.Select.Add(column);
+				idx = Select.Select.Add(column);
 				ColumnIndexes.Add(column, idx);
 			}
 
@@ -144,7 +144,7 @@ namespace LinqToDB.Linq.Builder
 
 		public override int ConvertToParentIndex(int index, IBuildContext context)
 		{
-			var idx = GetIndex(context.SelectQuery.Select.Columns[index]);
+			var idx = GetIndex(context.Select.Select.Columns[index]);
 			return Parent == null ? idx : Parent.ConvertToParentIndex(idx, this);
 		}
 
@@ -157,8 +157,8 @@ namespace LinqToDB.Linq.Builder
 #endif
 				return;
 
-			if (SelectQuery.From.Tables[0].Alias == null)
-				SelectQuery.From.Tables[0].Alias = alias;
+			if (Select.From.Tables[0].Alias == null)
+				Select.From.Tables[0].Alias = alias;
 		}
 
 		public override ISqlExpression GetSubQuery(IBuildContext context)

@@ -9,7 +9,7 @@
 namespace LinqToDB.Linq.Builder
 {
     using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public interface IBuildContext
 	{
@@ -19,7 +19,7 @@ namespace LinqToDB.Linq.Builder
 
 		ExpressionBuilder  Builder     { get; }
 		Expression         Expression  { get; }
-		SelectQuery        SelectQuery { get; set; }
+        ISelectQuery        Select { get; set; }
 		IBuildContext      Parent      { get; set; }
 
 		void               BuildQuery<T>       (Query<T> query, ParameterExpression queryParameter);

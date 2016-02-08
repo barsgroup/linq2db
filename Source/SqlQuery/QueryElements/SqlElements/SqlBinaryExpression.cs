@@ -1,4 +1,4 @@
-﻿namespace LinqToDB.SqlQuery.SqlElements
+﻿namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 {
     using System;
     using System.Collections.Generic;
@@ -7,7 +7,7 @@
 
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     [Serializable, DebuggerDisplay("SQL = {SqlText}")]
 	public class SqlBinaryExpression : BaseQueryElement, ISqlExpression

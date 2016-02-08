@@ -7,12 +7,12 @@ namespace LinqToDB.Linq.Builder
 	using Extensions;
 
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class SqlInfo
 	{
 		public ISqlExpression   Sql;
-		public SelectQuery      Query;
+		public ISelectQuery      Query;
 		public int              Index = -1;
 		public readonly List<MemberInfo> Members = new List<MemberInfo>();
 

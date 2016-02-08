@@ -408,6 +408,7 @@
     <Compile Include="SqlQuery\QueryElements\Interfaces\IBaseQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ICloneableElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IQueryElement.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\ITableSource.cs" />
     <Compile Include="SqlQuery\QueryElements\JoinedTable.cs" />
     <Compile Include="SqlQuery\QueryElements\JoinType.cs" />
     <Compile Include="SqlQuery\QueryElements\Operator.cs" />
@@ -431,14 +432,14 @@
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlExpression.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlExpressionWalkable.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlTableSource.cs" />
-    <Compile Include="Sql\Sql.cs" />
-    <Compile Include="Sql\Sql.EnumAttribute.cs" />
-    <Compile Include="Sql\Sql.ExpressionAttribute.cs" />
-    <Compile Include="Sql\Sql.FunctionAttribute.cs" />
-    <Compile Include="Sql\Sql.GroupBy.cs" />
-    <Compile Include="Sql\Sql.PropertyAttribute.cs" />
-    <Compile Include="Sql\Sql.TableExpressionAttribute.cs" />
-    <Compile Include="Sql\Sql.TableFunctionAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.cs" />
+    <Compile Include="SqlEntities\Sql.EnumAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.ExpressionAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.FunctionAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.GroupBy.cs" />
+    <Compile Include="SqlEntities\Sql.PropertyAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.TableExpressionAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.TableFunctionAttribute.cs" />
     <Compile Include="Linq\TableT.cs" />
     <Compile Include="SqlQuery\Extensions.cs" />
     <Compile Include="SqlQuery\IValueContainer.cs" />
@@ -506,6 +507,7 @@
   <ItemGroup>
     <None Include="Compile.bat" />
     <None Include="linq2db.snk" />
+    <None Include="paket.references" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

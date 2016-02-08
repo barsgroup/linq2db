@@ -9,8 +9,9 @@ namespace LinqToDB.DataProvider.SapHana
 	using System.Linq.Expressions;
 	using System.Reflection;
 
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlEntities;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class CalculationViewInputParametersExpressionAttribute : Sql.TableExpressionAttribute
 	{
@@ -22,10 +23,10 @@ namespace LinqToDB.DataProvider.SapHana
 		// we can't use BasicSqlBuilder.GetValueBuilder, because
 		// a) we need to escape with ' every value, 
 		// b) we don't have dataprovider here ether
-		private static String ValueToString(object value)
+		private static string ValueToString(object value)
 		{
-			if (value is String)
-				return value as String;
+			if (value is string)
+				return value as string;
 			if (value is decimal)
 				return ((decimal)value).ToString(new NumberFormatInfo());
 			if (value is double)
@@ -63,7 +64,7 @@ namespace LinqToDB.DataProvider.SapHana
 			var arg = new ISqlExpression[1];
 
 			arg[0] = new SqlExpression(
-				String.Join(", ",
+				string.Join(", ",
 					Enumerable.Range(0, sqlValues.Count)
 						.Select(x => "{" + x + "}")),
 				sqlValues.ToArray());

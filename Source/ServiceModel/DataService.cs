@@ -10,7 +10,7 @@ namespace LinqToDB.ServiceModel
 	using Extensions;
 	using Linq;
 
-	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
 	using Mapping;
 

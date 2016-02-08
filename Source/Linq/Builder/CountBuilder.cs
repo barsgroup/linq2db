@@ -4,8 +4,8 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     class CountBuilder : MethodCallBuilder
 	{
@@ -21,7 +21,7 @@ namespace LinqToDB.Linq.Builder
 			var returnType = methodCall.Method.ReturnType;
 			var sequence   = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]) { CreateSubQuery = true });
 
-			if (sequence.SelectQuery != buildInfo.SelectQuery)
+			if (sequence.Select != buildInfo.SelectQuery)
 			{
 //				if (sequence is JoinBuilder.GroupJoinSubQueryContext)
 //				{
@@ -42,42 +42,42 @@ namespace LinqToDB.Linq.Builder
 				{
 					return new CountContext(buildInfo.Parent, sequence, returnType)
 					{
-						Sql        = SqlFunction.CreateCount(returnType, sequence.SelectQuery),
+						Sql        = SqlFunction.CreateCount(returnType, sequence.Select),
 						FieldIndex = -1
 					};
 				}
 			}
 
-			if (sequence.SelectQuery.Select.IsDistinct        ||
-			    sequence.SelectQuery.Select.TakeValue != null ||
-			    sequence.SelectQuery.Select.SkipValue != null)
+			if (sequence.Select.Select.IsDistinct        ||
+			    sequence.Select.Select.TakeValue != null ||
+			    sequence.Select.Select.SkipValue != null)
 			{
 				sequence.ConvertToIndex(null, 0, ConvertFlags.Key);
 				sequence = new SubQueryContext(sequence);
 			}
-			else if (!sequence.SelectQuery.GroupBy.IsEmpty)
+			else if (!sequence.Select.GroupBy.IsEmpty)
 			{
 				if (!builder.DataContextInfo.SqlProviderFlags.IsSybaseBuggyGroupBy)
-					sequence.SelectQuery.Select.Add(new SqlValue(0));
+					sequence.Select.Select.Add(new SqlValue(0));
 				else
-					foreach (var item in sequence.SelectQuery.GroupBy.Items)
-						sequence.SelectQuery.Select.Add(item);
+					foreach (var item in sequence.Select.GroupBy.Items)
+						sequence.Select.Select.Add(item);
 
 				sequence = new SubQueryContext(sequence);
 			}
 
-			if (sequence.SelectQuery.OrderBy.Items.Count > 0)
+			if (sequence.Select.OrderBy.Items.Count > 0)
 			{
-				if (sequence.SelectQuery.Select.TakeValue == null && sequence.SelectQuery.Select.SkipValue == null)
-					sequence.SelectQuery.OrderBy.Items.Clear();
+				if (sequence.Select.Select.TakeValue == null && sequence.Select.Select.SkipValue == null)
+					sequence.Select.OrderBy.Items.Clear();
 				else
 					sequence = new SubQueryContext(sequence);
 			}
 
 			var context = new CountContext(buildInfo.Parent, sequence, returnType);
 
-			context.Sql        = context.SelectQuery;
-			context.FieldIndex = context.SelectQuery.Select.Add(SqlFunction.CreateCount(returnType, context.SelectQuery), "cnt");
+			context.Sql        = context.Select;
+			context.FieldIndex = context.Select.Select.Add(SqlFunction.CreateCount(returnType, context.Select), "cnt");
 
 			return context;
 		}
@@ -119,7 +119,7 @@ namespace LinqToDB.Linq.Builder
 			{
 				switch (flags)
 				{
-					case ConvertFlags.Field : return new[] { new SqlInfo { Query = Parent.SelectQuery, Sql = Sql } };
+					case ConvertFlags.Field : return new[] { new SqlInfo { Query = Parent.Select, Sql = Sql } };
 				}
 
 				throw new NotImplementedException();
@@ -132,7 +132,7 @@ namespace LinqToDB.Linq.Builder
 					case ConvertFlags.Field :
 						return _index ?? (_index = new[]
 						{
-							new SqlInfo { Query = Parent.SelectQuery, Index = Parent.SelectQuery.Select.Add(Sql), Sql = Sql, }
+							new SqlInfo { Query = Parent.Select, Index = Parent.Select.Select.Add(Sql), Sql = Sql, }
 						});
 				}
 
@@ -156,9 +156,9 @@ namespace LinqToDB.Linq.Builder
 
 			public override ISqlExpression GetSubQuery(IBuildContext context)
 			{
-				var query = context.SelectQuery;
+				var query = context.Select;
 
-				if (query == SelectQuery)
+				if (query == Select)
 				{
 					var col = query.Select.Columns[query.Select.Columns.Count - 1];
 

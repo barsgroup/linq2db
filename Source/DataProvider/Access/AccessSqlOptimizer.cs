@@ -11,7 +11,7 @@
 		{
 		}
 
-		public override SelectQuery Finalize(SelectQuery selectQuery)
+		public override ISelectQuery Finalize(ISelectQuery selectQuery)
 		{
 			selectQuery = base.Finalize(selectQuery);
 
@@ -22,7 +22,7 @@
 			}
 		}
 
-		public override bool ConvertCountSubQuery(SelectQuery subQuery)
+		public override bool ConvertCountSubQuery(ISelectQuery subQuery)
 		{
 			return !subQuery.Where.IsEmpty;
 		}

@@ -11,21 +11,21 @@ namespace LinqToDB.SqlQuery
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using SqlProvider;
 
 	class SelectQueryOptimizer
 	{
-		public SelectQueryOptimizer(SqlProviderFlags flags, SelectQuery selectQuery)
+		public SelectQueryOptimizer(SqlProviderFlags flags, ISelectQuery selectQuery)
 		{
 			_flags       = flags;
 			_selectQuery = selectQuery;
 		}
 
 		readonly SqlProviderFlags _flags;
-		readonly SelectQuery      _selectQuery;
+		readonly ISelectQuery _selectQuery;
 
 		public void FinalizeAndValidate(bool isApplySupported, bool optimizeColumns)
 		{
@@ -59,7 +59,7 @@ namespace LinqToDB.SqlQuery
 
 		class QueryData
 		{
-			public SelectQuery          Query;
+			public ISelectQuery Query;
 			public List<ISqlExpression> Fields  = new List<ISqlExpression>();
 			public List<QueryData>      Queries = new List<QueryData>();
 		}
@@ -71,7 +71,7 @@ namespace LinqToDB.SqlQuery
 			ResolveFields(root);
 		}
 
-		static QueryData GetQueryData(SelectQuery selectQuery)
+		static QueryData GetQueryData(ISelectQuery selectQuery)
 		{
 			var data = new QueryData { Query = selectQuery };
 
@@ -93,7 +93,7 @@ namespace LinqToDB.SqlQuery
 						{
 							if (e != selectQuery)
 							{
-								data.Queries.Add(GetQueryData((SelectQuery)e));
+								data.Queries.Add(GetQueryData((ISelectQuery)e));
 								return false;
 							}
 
@@ -113,7 +113,7 @@ namespace LinqToDB.SqlQuery
 			return data;
 		}
 
-		static TableSource FindField(SqlField field, TableSource table)
+		static ITableSource FindField(SqlField field, ITableSource table)
 		{
 			if (field.Table == table.Source)
 				return table;
@@ -326,17 +326,17 @@ namespace LinqToDB.SqlQuery
 	    {
 	        var exprs = new Dictionary<ISqlExpression, ISqlExpression>();
 
-	        foreach (var element in QueryVisitor.FindOnce<SelectQuery>(_selectQuery))
+	        foreach (var element in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery))
 	        {
 	            if (element.From.Tables.Count != 1 || !element.IsSimple || element.IsInsert || element.IsUpdate || element.IsDelete)
 	                return;
 
 	            var table = element.From.Tables[0];
 
-	            if (table.Joins.Count != 0 || !(table.Source is SelectQuery))
+	            if (table.Joins.Count != 0 || !(table.Source is ISelectQuery))
 	                return;
 
-	            var union = (SelectQuery)table.Source;
+	            var union = (ISelectQuery)table.Source;
 
 	            if (!union.HasUnion)
 	                return;
@@ -376,7 +376,7 @@ namespace LinqToDB.SqlQuery
 	            element.Unions.InsertRange(0, union.Unions);
 	        }
 
-	        ((ISqlExpressionWalkable)_selectQuery).Walk(
+	        _selectQuery.Walk(
 	            false,
 	            expr =>
 	            {
@@ -400,10 +400,10 @@ namespace LinqToDB.SqlQuery
 	                foreach (var join in table.Joins)
 	                    OptimizeSearchCondition(join.Condition);
 	            },
-	            new HashSet<SelectQuery>());
+	            new HashSet<ISelectQuery>());
 
 	        foreach (var query in QueryVisitor.FindOnce<
-                SelectQuery>(_selectQuery).Where(item => item != _selectQuery))
+                ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
 	        {
                 query.ParentSelect = _selectQuery;
 
@@ -419,7 +419,7 @@ namespace LinqToDB.SqlQuery
 	        OptimizeSubQueries(isApplySupported, optimizeColumns);
 	        OptimizeApplies(isApplySupported, optimizeColumns);
 
-	        foreach (var item in QueryVisitor.FindAll<SelectQuery>(_selectQuery).Where(item => item != _selectQuery))
+	        foreach (var item in QueryVisitor.FindAll<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
 	        {
 	            RemoveOrderBy(item);
 	        }
@@ -548,7 +548,7 @@ namespace LinqToDB.SqlQuery
 			}
 		}
 
-		static void RemoveOrderBy(SelectQuery selectQuery)
+		static void RemoveOrderBy(ISelectQuery selectQuery)
 		{
 			if (selectQuery.OrderBy.Items.Count > 0 && selectQuery.Select.SkipValue == null && selectQuery.Select.TakeValue == null)
 				selectQuery.OrderBy.Items.Clear();
@@ -556,7 +556,7 @@ namespace LinqToDB.SqlQuery
 
 		internal void ResolveWeakJoins(List<ISqlTableSource> tables)
 		{
-			Func<TableSource,bool> findTable = null; findTable = table =>
+			Func<ITableSource, bool> findTable = null; findTable = table =>
 			{
 				if (tables.Contains(table.Source))
 					return true;
@@ -570,8 +570,8 @@ namespace LinqToDB.SqlQuery
 					}
 				}
 
-				if (table.Source is SelectQuery)
-					foreach (var t in ((SelectQuery)table.Source).From.Tables)
+				if (table.Source is ISelectQuery)
+					foreach (var t in ((ISelectQuery)table.Source).From.Tables)
 						if (findTable(t))
 							return true;
 
@@ -624,11 +624,11 @@ namespace LinqToDB.SqlQuery
 						}
 					}
 				}
-			}, new HashSet<SelectQuery>());
+			}, new HashSet<ISelectQuery>());
 		}
 
-		TableSource OptimizeSubQuery(
-			TableSource source,
+        ITableSource OptimizeSubQuery(
+            ITableSource source,
 			bool optimizeWhere,
 			bool allColumns,
 			bool isApplySupported,
@@ -647,7 +647,7 @@ namespace LinqToDB.SqlQuery
 
 				if (table != jt.Table)
 				{
-					var sql = jt.Table.Source as SelectQuery;
+					var sql = jt.Table.Source as ISelectQuery;
 
 					if (sql != null && sql.OrderBy.Items.Count > 0)
 						foreach (var item in sql.OrderBy.Items)
@@ -657,12 +657,12 @@ namespace LinqToDB.SqlQuery
 				}
 			}
 
-			return source.Source is SelectQuery ?
+			return source.Source is ISelectQuery ?
 				RemoveSubQuery(source, optimizeWhere, allColumns && !isApplySupported, optimizeValues, optimizeColumns) :
 				source;
 		}
 
-	    static bool CheckColumn(Column column, ISqlExpression expr, SelectQuery query, bool optimizeValues, bool optimizeColumns)
+	    static bool CheckColumn(Column column, ISqlExpression expr, ISelectQuery query, bool optimizeValues, bool optimizeColumns)
 	    {
 	        if (expr is SqlField || expr is Column)
 	            return false;
@@ -685,7 +685,7 @@ namespace LinqToDB.SqlQuery
 
 	        var visitor = new QueryVisitor();
 
-	        if (optimizeColumns && visitor.Find(expr, e => e is SelectQuery || IsAggregationFunction(e)) == null)
+	        if (optimizeColumns && visitor.Find(expr, e => e is ISelectQuery || IsAggregationFunction(e)) == null)
 	        {
 	            var q = query.ParentSelect ?? query;
 	            var count = QueryVisitor.FindAll<Column>(q).Count(e => e == column);
@@ -696,14 +696,14 @@ namespace LinqToDB.SqlQuery
 	        return true;
 	    }
 
-	    TableSource RemoveSubQuery(
-			TableSource childSource,
+        ITableSource RemoveSubQuery(
+            ITableSource childSource,
 			bool concatWhere,
 			bool allColumns,
 			bool optimizeValues,
 			bool optimizeColumns)
 		{
-			var query = (SelectQuery)childSource. Source;
+			var query = (ISelectQuery)childSource. Source;
 
 			var isQueryOK = query.From.Tables.Count == 1;
 
@@ -731,7 +731,7 @@ namespace LinqToDB.SqlQuery
 			while (top.ParentSelect != null)
 				top = top.ParentSelect;
 
-			((ISqlExpressionWalkable)top).Walk(false, expr =>
+			top.Walk(false, expr =>
 			{
 				ISqlExpression fld;
 				return map.TryGetValue(expr, out fld) ? fld : expr;
@@ -750,11 +750,11 @@ namespace LinqToDB.SqlQuery
 			if (!query.Where. IsEmpty) ConcatSearchCondition(_selectQuery.Where,  query.Where);
 			if (!query.Having.IsEmpty) ConcatSearchCondition(_selectQuery.Having, query.Having);
 
-			((ISqlExpressionWalkable)top).Walk(false, expr =>
+			top.Walk(false, expr =>
 			{
-				if (expr is SelectQuery)
+				if (expr is ISelectQuery)
 				{
-					var sql = (SelectQuery)expr;
+					var sql = (ISelectQuery)expr;
 
 					if (sql.ParentSelect == query)
 						sql.ParentSelect = query.ParentSelect ?? _selectQuery;
@@ -781,7 +781,7 @@ namespace LinqToDB.SqlQuery
 			return false;
 		}
 
-		void OptimizeApply(TableSource tableSource, JoinedTable joinTable, bool isApplySupported, bool optimizeColumns)
+		void OptimizeApply(ITableSource tableSource, JoinedTable joinTable, bool isApplySupported, bool optimizeColumns)
 		{
 			var joinSource = joinTable.Table;
 
@@ -794,7 +794,7 @@ namespace LinqToDB.SqlQuery
 
 			if (joinSource.Source.ElementType == QueryElementType.SqlQuery)
 			{
-				var sql   = (SelectQuery)joinSource.Source;
+				var sql   = (ISelectQuery)joinSource.Source;
 				var isAgg = sql.Select.Columns.Any(c => IsAggregationFunction(c.Expression));
 
 				if (isApplySupported && (isAgg || sql.Select.TakeValue != null || sql.Select.SkipValue != null))
@@ -823,7 +823,7 @@ namespace LinqToDB.SqlQuery
 
 					if (table != joinTable.Table)
 					{
-						var q = joinTable.Table.Source as SelectQuery;
+						var q = joinTable.Table.Source as ISelectQuery;
 
 						if (q != null && q.OrderBy.Items.Count > 0)
 							foreach (var item in q.OrderBy.Items)
@@ -889,7 +889,7 @@ namespace LinqToDB.SqlQuery
 
 				if (table != _selectQuery.From.Tables[i])
 				{
-					var sql = _selectQuery.From.Tables[i].Source as SelectQuery;
+					var sql = _selectQuery.From.Tables[i].Source as ISelectQuery;
 
 					if (!_selectQuery.Select.Columns.All(c => IsAggregationFunction(c.Expression)))
 						if (sql != null && sql.OrderBy.Items.Count > 0)
@@ -913,12 +913,12 @@ namespace LinqToDB.SqlQuery
 		{
 			((ISqlExpressionWalkable)_selectQuery.Select).Walk(false, expr =>
 			{
-				var query = expr as SelectQuery;
+				var query = expr as ISelectQuery;
 					
 				if (query != null && query.From.Tables.Count == 0 && query.Select.Columns.Count == 1)
 				{
 
-				    foreach (var q in QueryVisitor.FindAll<SelectQuery>(query.Select.Columns[0].Expression).Where(q => q.ParentSelect == query))
+				    foreach (var q in QueryVisitor.FindAll<ISelectQuery>(query.Select.Columns[0].Expression).Where(q => q.ParentSelect == query))
 				    {
                         q.ParentSelect = query.ParentSelect;
                     }

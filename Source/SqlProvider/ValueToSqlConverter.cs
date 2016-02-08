@@ -8,9 +8,9 @@ namespace LinqToDB.SqlProvider
 	using Common;
 	using Extensions;
 
-	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
-	using ConverterType = Action<StringBuilder,SqlQuery.SqlElements.SqlDataType,object>;
+	using ConverterType = Action<StringBuilder,SqlQuery.QueryElements.SqlElements.SqlDataType,object>;
 
 	public class ValueToSqlConverter
 	{
@@ -21,21 +21,21 @@ namespace LinqToDB.SqlProvider
 
 		internal void SetDefauls()
 		{
-			SetConverter(typeof(Boolean),  (sb,dt,v) => sb.Append((bool)v ? "1" : "0"));
-			SetConverter(typeof(Char),     (sb,dt,v) => BuildChar(sb, (char)v));
-			SetConverter(typeof(SByte),    (sb,dt,v) => sb.Append((SByte) v));
-			SetConverter(typeof(Byte),     (sb,dt,v) => sb.Append((Byte)  v));
-			SetConverter(typeof(Int16),    (sb,dt,v) => sb.Append((Int16) v));
-			SetConverter(typeof(UInt16),   (sb,dt,v) => sb.Append((UInt16)v));
-			SetConverter(typeof(Int32),    (sb,dt,v) => sb.Append((Int32) v));
-			SetConverter(typeof(UInt32),   (sb,dt,v) => sb.Append((UInt32)v));
-			SetConverter(typeof(Int64),    (sb,dt,v) => sb.Append((Int64) v));
-			SetConverter(typeof(UInt64),   (sb,dt,v) => sb.Append((UInt64)v));
-			SetConverter(typeof(Single),   (sb,dt,v) => sb.Append(((float)  v).ToString(_numberFormatInfo)));
-			SetConverter(typeof(Double),   (sb,dt,v) => sb.Append(((double) v).ToString(_numberFormatInfo)));
-			SetConverter(typeof(Decimal),  (sb,dt,v) => sb.Append(((decimal)v).ToString(_numberFormatInfo)));
+			SetConverter(typeof(bool),  (sb,dt,v) => sb.Append((bool)v ? "1" : "0"));
+			SetConverter(typeof(char),     (sb,dt,v) => BuildChar(sb, (char)v));
+			SetConverter(typeof(sbyte),    (sb,dt,v) => sb.Append((sbyte) v));
+			SetConverter(typeof(byte),     (sb,dt,v) => sb.Append((byte)  v));
+			SetConverter(typeof(short),    (sb,dt,v) => sb.Append((short) v));
+			SetConverter(typeof(ushort),   (sb,dt,v) => sb.Append((ushort)v));
+			SetConverter(typeof(int),    (sb,dt,v) => sb.Append((int) v));
+			SetConverter(typeof(uint),   (sb,dt,v) => sb.Append((uint)v));
+			SetConverter(typeof(long),    (sb,dt,v) => sb.Append((long) v));
+			SetConverter(typeof(ulong),   (sb,dt,v) => sb.Append((ulong)v));
+			SetConverter(typeof(float),   (sb,dt,v) => sb.Append(((float)  v).ToString(_numberFormatInfo)));
+			SetConverter(typeof(double),   (sb,dt,v) => sb.Append(((double) v).ToString(_numberFormatInfo)));
+			SetConverter(typeof(decimal),  (sb,dt,v) => sb.Append(((decimal)v).ToString(_numberFormatInfo)));
 			SetConverter(typeof(DateTime), (sb,dt,v) => BuildDateTime(sb, (DateTime)v));
-			SetConverter(typeof(String),   (sb,dt,v) => BuildString  (sb, v.ToString()));
+			SetConverter(typeof(string),   (sb,dt,v) => BuildString  (sb, v.ToString()));
 			SetConverter(typeof(Guid),     (sb,dt,v) => sb.Append('\'').Append(v).Append('\''));
 		}
 

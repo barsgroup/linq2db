@@ -1,4 +1,4 @@
-﻿namespace LinqToDB.SqlQuery.SqlElements
+﻿namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,7 @@
 
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class SqlValue : BaseQueryElement, ISqlExpression, IValueContainer
 	{

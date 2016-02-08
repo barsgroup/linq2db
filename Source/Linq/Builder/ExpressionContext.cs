@@ -13,10 +13,10 @@ namespace LinqToDB.Linq.Builder
 		{
 		}
 
-		public ExpressionContext(IBuildContext parent, IBuildContext sequence, LambdaExpression lambda, SelectQuery selectQuery)
+		public ExpressionContext(IBuildContext parent, IBuildContext sequence, LambdaExpression lambda, ISelectQuery selectQuery)
 			: base(parent, sequence, lambda)
 		{
-			SelectQuery = selectQuery;
+			Select = selectQuery;
 		}
 
 		public override Expression BuildExpression(Expression expression, int level)

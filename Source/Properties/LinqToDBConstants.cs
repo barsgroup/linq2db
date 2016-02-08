@@ -1,4 +1,4 @@
-namespace LinqToDB
+namespace LinqToDB.Properties
 {
 	public static class LinqToDBConstants
 	{

@@ -12,7 +12,7 @@ namespace LinqToDB.ServiceModel
 	using Linq;
 
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
     [ServiceBehavior  (InstanceContextMode = InstanceContextMode.Single, ConcurrencyMode = ConcurrencyMode.Multiple)]
 	[WebService       (Namespace  = "http://tempuri.org/")]
@@ -58,7 +58,7 @@ namespace LinqToDB.ServiceModel
 
 		class QueryContext : IQueryContext
 		{
-			public SelectQuery    SelectQuery { get; set; }
+			public ISelectQuery SelectQuery { get; set; }
 			public object         Context     { get; set; }
 			public SqlParameter[] Parameters  { get; set; }
 			public List<string>   QueryHints  { get; set; }

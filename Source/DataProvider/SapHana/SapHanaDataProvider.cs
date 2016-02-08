@@ -69,8 +69,8 @@ namespace LinqToDB.DataProvider.SapHana
 
 		protected override void OnConnectionTypeCreated(Type connectionType)
 		{
-			const String paramTypeName = "HanaParameter";
-			const String dataTypeName  = "HanaDbType";
+			const string paramTypeName = "HanaParameter";
+			const string dataTypeName  = "HanaDbType";
 
 			_setText      = GetSetParameter(connectionType, paramTypeName, dataTypeName, dataTypeName, "Text");
 			_setNText     = GetSetParameter(connectionType, paramTypeName, dataTypeName, dataTypeName, "NClob");
@@ -104,7 +104,7 @@ namespace LinqToDB.DataProvider.SapHana
 			{
 				case DataType.NChar:
 				case DataType.Char:
-					type = typeof (String);
+					type = typeof (string);
 					break;
 				case DataType.Boolean: if (type == typeof(bool)) return typeof(byte);  break;
 				case DataType.Guid   : if (type == typeof(Guid)) return typeof(string); break;
@@ -149,7 +149,7 @@ namespace LinqToDB.DataProvider.SapHana
 		}
 
 		public override BulkCopyRowsCopied BulkCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+			[Properties.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
 			return new SapHanaBulkCopy(this, GetConnectionType()).BulkCopy(
 				options.BulkCopyType == BulkCopyType.Default ? SapHanaTools.DefaultBulkCopyType : options.BulkCopyType,

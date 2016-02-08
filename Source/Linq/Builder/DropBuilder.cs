@@ -19,9 +19,9 @@ namespace LinqToDB.Linq.Builder
 		{
 			var sequence = (TableBuilder.TableContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
-			sequence.SelectQuery.QueryType          = QueryType.CreateTable;
-			sequence.SelectQuery.CreateTable.Table  = sequence.SqlTable;
-			sequence.SelectQuery.CreateTable.IsDrop = true;
+			sequence.Select.QueryType          = QueryType.CreateTable;
+			sequence.Select.CreateTable.Table  = sequence.SqlTable;
+			sequence.Select.CreateTable.IsDrop = true;
 
 			return new DropContext(buildInfo.Parent, sequence);
 		}

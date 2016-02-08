@@ -1,6 +1,6 @@
 namespace LinqToDB.SqlQuery.QueryElements.Conditions
 {
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class NextCondition
     {

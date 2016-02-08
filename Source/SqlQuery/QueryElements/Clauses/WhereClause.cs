@@ -6,7 +6,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class WhereClause : ClauseBase<WhereClause,WhereClause.Next>, IQueryElement, ISqlExpressionWalkable
     {
@@ -28,13 +28,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             }
         }
 
-        internal WhereClause(SelectQuery selectQuery) : base(selectQuery)
+        internal WhereClause(ISelectQuery selectQuery) : base(selectQuery)
         {
             SearchCondition = new SearchCondition();
         }
 
         internal WhereClause(
-            SelectQuery selectQuery,
+            ISelectQuery selectQuery,
             WhereClause clone,
             Dictionary<ICloneableElement,ICloneableElement> objectTree,
             Predicate<ICloneableElement> doClone)

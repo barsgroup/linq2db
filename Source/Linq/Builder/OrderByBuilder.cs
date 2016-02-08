@@ -37,9 +37,9 @@ namespace LinqToDB.Linq.Builder
 		{
 			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
-			if (sequence.SelectQuery.Select.TakeValue != null ||
-				sequence.SelectQuery.Select.SkipValue != null ||
-				sequence.SelectQuery.Select.IsDistinct && !builder.DataContextInfo.SqlProviderFlags.IsDistinctOrderBySupported)
+			if (sequence.Select.Select.TakeValue != null ||
+				sequence.Select.Select.SkipValue != null ||
+				sequence.Select.Select.IsDistinct && !builder.DataContextInfo.SqlProviderFlags.IsDistinctOrderBySupported)
 				sequence = new SubQueryContext(sequence);
 
 			var lambda  = (LambdaExpression)methodCall.Arguments[1].Unwrap();
@@ -51,12 +51,12 @@ namespace LinqToDB.Linq.Builder
 			builder.ReplaceParent(order, sparent);
 
 			if (!methodCall.Method.Name.StartsWith("Then"))
-				sequence.SelectQuery.OrderBy.Items.Clear();
+				sequence.Select.OrderBy.Items.Clear();
 
 			foreach (var expr in sql)
 			{
 				var e = builder.ConvertSearchCondition(sequence, expr.Sql);
-				sequence.SelectQuery.OrderBy.Expr(e, methodCall.Method.Name.EndsWith("Descending"));
+				sequence.Select.OrderBy.Expr(e, methodCall.Method.Name.EndsWith("Descending"));
 			}
 
 			return sequence;

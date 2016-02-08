@@ -11,13 +11,13 @@ namespace LinqToDB.SqlQuery.QueryElements
         {
         }
 
-        public Union(SelectQuery selectQuery, bool isAll)
+        public Union(ISelectQuery selectQuery, bool isAll)
         {
             SelectQuery = selectQuery;
             IsAll    = isAll;
         }
 
-        public SelectQuery SelectQuery { get; private set; }
+        public ISelectQuery SelectQuery { get; private set; }
         public bool IsAll { get; private set; }
 
         public override QueryElementType ElementType => QueryElementType.Union;
@@ -39,7 +39,7 @@ namespace LinqToDB.SqlQuery.QueryElements
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {
             sb.Append(" \nUNION").Append(IsAll ? " ALL" : "").Append(" \n");
-            return ((IQueryElement)SelectQuery).ToString(sb, dic);
+            return SelectQuery.ToString(sb, dic);
         }
     }
 }

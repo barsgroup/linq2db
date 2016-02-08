@@ -3,13 +3,13 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.Reflection
 {
 	using Common;
 
-	[DebuggerDisplay("Type = {Type}")]
+	using LinqToDB.Properties;
+
+    [DebuggerDisplay("Type = {Type}")]
 	public abstract class TypeAccessor
 	{
 		#region Protected Emit Helpers

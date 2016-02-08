@@ -76,7 +76,7 @@ namespace LinqToDB.Linq.Builder
 										context,
 										ma.Expression.Type.IsPrimitiveEx() ?
 											Expression.Call(
-												MemberHelper.MethodOf(() => Sql.AsSql(true)),
+												MemberHelper.MethodOf(() => SqlEntities.Sql.AsSql(true)),
 												e) :
 											e),
 									true);
@@ -286,7 +286,7 @@ namespace LinqToDB.Linq.Builder
 
 		static bool EnforceServerSide(IBuildContext context)
 		{
-			return context.SelectQuery.Select.IsDistinct;
+			return context.Select.Select.IsDistinct;
 		}
 
 		#endregion
@@ -296,7 +296,7 @@ namespace LinqToDB.Linq.Builder
 		Expression BuildSql(IBuildContext context, Expression expression)
 		{
 			var sqlex = ConvertToSqlExpression(context, expression);
-			var idx   = context.SelectQuery.Select.Add(sqlex);
+			var idx   = context.Select.Select.Add(sqlex);
 
 			idx = context.ConvertToParentIndex(idx, context);
 

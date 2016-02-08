@@ -9,7 +9,9 @@ namespace LinqToDB
 	using Extensions;
 	using Linq;
 
-	/// <summary>
+	using LinqToDB.Properties;
+
+    /// <summary>
 	/// Provides for compilation and caching of queries for reuse.
 	/// </summary>
 	public class CompiledQuery
@@ -164,7 +166,7 @@ namespace LinqToDB
 		/// Returned type of the delegate returned by the method.
 		/// </typeparam>
 		public static Func<TDC,TResult> Compile<TDC,TResult>(
-			[JetBrains.Annotations.NotNull] Expression<Func<TDC,TResult>> query)
+			[NotNull] Expression<Func<TDC,TResult>> query)
 			  where TDC : IDataContext
 		{
 			if (query == null) throw new ArgumentNullException("query");
@@ -190,7 +192,7 @@ namespace LinqToDB
 		/// Returned type of the delegate returned by the method.
 		/// </typeparam>
 		public static Func<TDC,TArg1,TResult> Compile<TDC,TArg1,TResult>(
-			[JetBrains.Annotations.NotNull] Expression<Func<TDC,TArg1,TResult>> query)
+			[NotNull] Expression<Func<TDC,TArg1,TResult>> query)
 			where TDC : IDataContext
 		{
 			if (query == null) throw new ArgumentNullException("query");
@@ -219,7 +221,7 @@ namespace LinqToDB
 		/// Returned type of the delegate returned by the method.
 		/// </typeparam>
 		public static Func<TDC,TArg1,TArg2,TResult> Compile<TDC,TArg1,TArg2,TResult>(
-			[JetBrains.Annotations.NotNull] Expression<Func<TDC,TArg1,TArg2,TResult>> query)
+			[NotNull] Expression<Func<TDC,TArg1,TArg2,TResult>> query)
 			where TDC : IDataContext
 		{
 			if (query == null) throw new ArgumentNullException("query");
@@ -251,7 +253,7 @@ namespace LinqToDB
 		/// Returned type of the delegate returned by the method.
 		/// </typeparam>
 		public static Func<TDC,TArg1,TArg2,TArg3,TResult> Compile<TDC,TArg1,TArg2,TArg3,TResult>(
-			[JetBrains.Annotations.NotNull] Expression<Func<TDC,TArg1,TArg2,TArg3,TResult>> query)
+			[NotNull] Expression<Func<TDC,TArg1,TArg2,TArg3,TResult>> query)
 			where TDC : IDataContext
 		{
 			if (query == null) throw new ArgumentNullException("query");
@@ -286,7 +288,7 @@ namespace LinqToDB
 		/// Returned type of the delegate returned by the method.
 		/// </typeparam>
 		public static Func<TDC,TArg1,TArg2,TArg3,TArg4,TResult> Compile<TDC,TArg1,TArg2,TArg3,TArg4,TResult>(
-			[JetBrains.Annotations.NotNull] Expression<Func<TDC,TArg1,TArg2,TArg3,TArg4,TResult>> query)
+			[NotNull] Expression<Func<TDC,TArg1,TArg2,TArg3,TArg4,TResult>> query)
 			where TDC : IDataContext
 		{
 			if (query == null) throw new ArgumentNullException("query");
@@ -324,7 +326,7 @@ namespace LinqToDB
 		/// Returned type of the delegate returned by the method.
 		/// </typeparam>
 		public static Func<TDC,TArg1,TArg2,TArg3,TArg4,TArg5,TResult> Compile<TDC,TArg1,TArg2,TArg3,TArg4,TArg5,TResult>(
-			[JetBrains.Annotations.NotNull] Expression<Func<TDC,TArg1,TArg2,TArg3,TArg4,TArg5,TResult>> query)
+			[NotNull] Expression<Func<TDC,TArg1,TArg2,TArg3,TArg4,TArg5,TResult>> query)
 			where TDC : IDataContext
 		{
 			if (query == null) throw new ArgumentNullException("query");

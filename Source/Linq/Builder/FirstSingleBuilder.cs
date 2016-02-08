@@ -8,7 +8,7 @@ namespace LinqToDB.Linq.Builder
 	using Extensions;
 
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
     class FirstSingleBuilder : MethodCallBuilder
 	{
@@ -115,9 +115,9 @@ namespace LinqToDB.Linq.Builder
 				{
 					_isJoinCreated = true;
 
-					var join = SelectQuery.OuterApply(SelectQuery);
+					var join = SelectQuery.OuterApply(Select);
 
-					Parent.SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
+					Parent.Select.From.Tables[0].Joins.Add(join.JoinedTable);
 				}
 			}
 
@@ -127,7 +127,7 @@ namespace LinqToDB.Linq.Builder
 			{
 				if (_checkNullIndex < 0)
 				{
-					_checkNullIndex = SelectQuery.Select.Add(new SqlValue(1));
+					_checkNullIndex = Select.Select.Add(new SqlValue(1));
 					_checkNullIndex = ConvertToParentIndex(_checkNullIndex, this);
 				}
 
@@ -139,8 +139,8 @@ namespace LinqToDB.Linq.Builder
 				if (expression == null || level == 0)
 				{
 					if (Builder.DataContextInfo.SqlProviderFlags.IsApplyJoinSupported &&
-						Parent.SelectQuery.GroupBy.IsEmpty &&
-						Parent.SelectQuery.From.Tables.Count > 0)
+						Parent.Select.GroupBy.IsEmpty &&
+						Parent.Select.From.Tables.Count > 0)
 					{
 						CreateJoin();
 
@@ -173,7 +173,7 @@ namespace LinqToDB.Linq.Builder
 						if (Sequence.IsExpression(null, level, RequestFor.Object).Result)
 							return Builder.BuildMultipleQuery(Parent, _methodCall);
 
-						return Builder.BuildSql(_methodCall.Type, Parent.SelectQuery.Select.Add(SelectQuery));
+						return Builder.BuildSql(_methodCall.Type, Parent.Select.Select.Add(Select));
 					}
 
 					return null;

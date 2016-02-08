@@ -6,6 +6,9 @@ using System.Linq;
 namespace LinqToDB.DataProvider.SqlServer
 {
 	using Data;
+
+	using LinqToDB.Properties;
+
 	using SqlProvider;
 
 	class SqlServerBulkCopy : BasicBulkCopy
@@ -18,7 +21,7 @@ namespace LinqToDB.DataProvider.SqlServer
 		readonly SqlServerDataProvider _dataProvider;
 
 		protected override BulkCopyRowsCopied ProviderSpecificCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection,
+			[NotNull] DataConnection dataConnection,
 			BulkCopyOptions options,
 			IEnumerable<T>  source)
 		{

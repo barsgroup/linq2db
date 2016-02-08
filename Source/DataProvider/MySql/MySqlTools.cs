@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.DataProvider.MySql
 {
 	using Data;
 
-	public static class MySqlTools
+	using LinqToDB.Properties;
+
+    public static class MySqlTools
 	{
 		static readonly MySqlDataProvider _mySqlDataProvider = new MySqlDataProvider();
 		

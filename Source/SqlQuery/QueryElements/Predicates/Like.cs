@@ -5,7 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class Like : NotExpr
     {

@@ -8,8 +8,8 @@ namespace LinqToDB.DataProvider.Oracle
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlQuery;
 	using SqlProvider;
@@ -246,7 +246,7 @@ namespace LinqToDB.DataProvider.Oracle
 
 		SqlField _identityField;
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			if (selectQuery.IsCreateTable)
 			{

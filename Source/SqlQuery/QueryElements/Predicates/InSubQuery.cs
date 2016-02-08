@@ -5,22 +5,22 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class InSubQuery : NotExpr
     {
-        public InSubQuery(ISqlExpression exp1, bool isNot, SelectQuery subQuery)
+        public InSubQuery(ISqlExpression exp1, bool isNot, ISelectQuery subQuery)
             : base(exp1, isNot, SqlQuery.Precedence.Comparison)
         {
             SubQuery = subQuery;
         }
 
-        public SelectQuery SubQuery { get; private set; }
+        public ISelectQuery SubQuery { get; private set; }
 
         protected override void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
         {
             base.Walk(skipColumns, func);
-            SubQuery = (SelectQuery)((ISqlExpression)SubQuery).Walk(skipColumns, func);
+            SubQuery = (ISelectQuery)SubQuery.Walk(skipColumns, func);
         }
 
         protected override ICloneableElement Clone(Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
@@ -34,7 +34,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
                 objectTree.Add(this, clone = new InSubQuery(
                                                  (ISqlExpression)Expr1.Clone(objectTree, doClone),
                                                  IsNot,
-                                                 (SelectQuery)SubQuery.Clone(objectTree, doClone)));
+                                                 (ISelectQuery)SubQuery.Clone(objectTree, doClone)));
 
             return clone;
         }
@@ -53,7 +53,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             if (IsNot) sb.Append(" NOT");
             sb.Append(" IN (");
 
-            ((IQueryElement)SubQuery).ToString(sb, dic);
+            SubQuery.ToString(sb, dic);
             sb.Append(")");
         }
     }

@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.Common
 {
-	public static class Tools
+    using LinqToDB.Properties;
+
+    public static class Tools
 	{
 		[StringFormatMethod("format")]
 		public static string Args(this string format, params object[] args)

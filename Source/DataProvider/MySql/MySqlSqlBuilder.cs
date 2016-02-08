@@ -7,8 +7,8 @@ using System.Text;
 namespace LinqToDB.DataProvider.MySql
 {
     using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using SqlQuery;
 	using SqlProvider;
@@ -25,7 +25,7 @@ namespace LinqToDB.DataProvider.MySql
 			ParameterSymbol = '@';
 		}
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}

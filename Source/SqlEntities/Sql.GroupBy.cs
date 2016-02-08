@@ -1,8 +1,8 @@
-﻿namespace LinqToDB
+﻿namespace LinqToDB.SqlEntities
 {
 	partial class Sql
 	{
-		[Enum]
+		[Sql.EnumAttribute]
 		public enum GroupBy
 		{
 			None

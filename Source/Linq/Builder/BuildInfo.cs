@@ -6,7 +6,7 @@ namespace LinqToDB.Linq.Builder
 
     public class BuildInfo
 	{
-		public BuildInfo(IBuildContext parent, Expression expression, SelectQuery selectQuery)
+		public BuildInfo(IBuildContext parent, Expression expression, ISelectQuery selectQuery)
 		{
 			Parent      = parent;
 			Expression  = expression;
@@ -20,7 +20,7 @@ namespace LinqToDB.Linq.Builder
 			CreateSubQuery = buildInfo.CreateSubQuery;
 		}
 
-		public BuildInfo(BuildInfo buildInfo, Expression expression, SelectQuery selectQuery)
+		public BuildInfo(BuildInfo buildInfo, Expression expression, ISelectQuery selectQuery)
 			: this(buildInfo.Parent, expression, selectQuery)
 		{
 			SequenceInfo   = buildInfo;
@@ -30,7 +30,7 @@ namespace LinqToDB.Linq.Builder
 		public BuildInfo     SequenceInfo   { get; set; }
 		public IBuildContext Parent         { get; set; }
 		public Expression    Expression     { get; set; }
-		public SelectQuery   SelectQuery    { get; set; }
+		public ISelectQuery SelectQuery    { get; set; }
 		public bool          CopyTable      { get; set; }
 		public bool          CreateSubQuery { get; set; }
 

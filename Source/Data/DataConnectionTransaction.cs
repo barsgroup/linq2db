@@ -1,10 +1,10 @@
 ﻿using System;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.Data
 {
-	public class DataConnectionTransaction : IDisposable
+    using LinqToDB.Properties;
+
+    public class DataConnectionTransaction : IDisposable
 	{
 		public DataConnectionTransaction([NotNull] DataConnection dataConnection)
 		{

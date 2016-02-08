@@ -3,7 +3,7 @@
 namespace LinqToDB.Linq.Builder
 {
     using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     abstract class SequenceContextBase : IBuildContext
 	{
@@ -13,7 +13,7 @@ namespace LinqToDB.Linq.Builder
 			Sequence    = sequence;
 			Builder     = sequence.Builder;
 			Lambda      = lambda;
-			SelectQuery = sequence.SelectQuery;
+			Select = sequence.Select;
 
 			Sequence.Parent = this;
 
@@ -21,14 +21,14 @@ namespace LinqToDB.Linq.Builder
 		}
 
 #if DEBUG
-		public string _sqlQueryText { get { return SelectQuery == null ? "" : SelectQuery.SqlText; } }
+		public string _sqlQueryText { get { return Select == null ? "" : Select.SqlText; } }
 #endif
 
 		public IBuildContext     Parent      { get; set; }
 		public IBuildContext     Sequence    { get; set; }
 		public ExpressionBuilder Builder     { get; set; }
 		public LambdaExpression  Lambda      { get; set; }
-		public SelectQuery       SelectQuery { get; set; }
+		public ISelectQuery      Select { get; set; }
 
 		Expression IBuildContext.Expression { get { return Lambda; } }
 

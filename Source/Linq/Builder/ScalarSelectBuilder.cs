@@ -5,8 +5,8 @@ namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     class ScalarSelectBuilder : ISequenceBuilder
 	{
@@ -25,7 +25,7 @@ namespace LinqToDB.Linq.Builder
 			{
 				Parent      = buildInfo.Parent,
 				Expression  = buildInfo.Expression,
-				SelectQuery = buildInfo.SelectQuery
+				Select = buildInfo.SelectQuery
 			};
 		}
 
@@ -49,12 +49,12 @@ namespace LinqToDB.Linq.Builder
 			}
 
 #if DEBUG
-			public string _sqlQueryText { get { return SelectQuery == null ? "" : SelectQuery.SqlText; } }
+			public string _sqlQueryText { get { return Select == null ? "" : Select.SqlText; } }
 #endif
 
 			public ExpressionBuilder Builder     { get; private set; }
 			public Expression        Expression  { get; set; }
-			public SelectQuery       SelectQuery { get; set; }
+			public ISelectQuery Select { get; set; }
 			public IBuildContext     Parent      { get; set; }
 
 			public void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
@@ -77,8 +77,8 @@ namespace LinqToDB.Linq.Builder
 						{
 							var expr = Builder.BuildExpression(this, expression);
 
-							if (SelectQuery.Select.Columns.Count == 0)
-								SelectQuery.Select.Expr(new SqlValue(1));
+							if (Select.Select.Columns.Count == 0)
+								Select.Select.Expr(new SqlValue(1));
 
 							return expr;
 						}
@@ -86,7 +86,7 @@ namespace LinqToDB.Linq.Builder
 					default :
 						{
 							var expr = Builder.ConvertToSql(this, expression);
-							var idx  = SelectQuery.Select.Add(expr);
+							var idx  = Select.Select.Add(expr);
 
 							return Builder.BuildSql(expression.Type, idx);
 						}

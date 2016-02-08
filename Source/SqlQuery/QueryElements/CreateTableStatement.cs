@@ -5,8 +5,8 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class CreateTableStatement : BaseQueryElement, IQueryElement, ISqlExpressionWalkable, ICloneableElement
     {

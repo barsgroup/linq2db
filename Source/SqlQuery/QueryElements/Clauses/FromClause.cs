@@ -7,26 +7,26 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class FromClause : ClauseBase, IQueryElement, ISqlExpressionWalkable
     {
-        internal FromClause(SelectQuery selectQuery) : base(selectQuery)
+        internal FromClause(ISelectQuery selectQuery) : base(selectQuery)
         {
         }
 
         internal FromClause(
-            SelectQuery selectQuery,
+            ISelectQuery selectQuery,
             FromClause  clone,
             Dictionary<ICloneableElement,ICloneableElement> objectTree,
             Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
-            _tables.AddRange(clone._tables.Select(ts => (TableSource)ts.Clone(objectTree, doClone)));
+            _tables.AddRange(clone._tables.Select(ts => (ITableSource)ts.Clone(objectTree, doClone)));
         }
 
-        internal FromClause(IEnumerable<TableSource> tables)
+        internal FromClause(IEnumerable<ITableSource> tables)
             : base(null)
         {
             _tables.AddRange(tables);
@@ -48,7 +48,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return this;
         }
 
-        TableSource GetTable(ISqlTableSource table, string alias)
+        ITableSource GetTable(ISqlTableSource table, string alias)
         {
             foreach (var ts in Tables)
                 if (ts.Source == table)
@@ -60,7 +60,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return null;
         }
 
-        TableSource AddOrGetTable(ISqlTableSource table, string alias)
+        ITableSource AddOrGetTable(ISqlTableSource table, string alias)
         {
             var ts = GetTable(table, alias);
 
@@ -74,15 +74,15 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return t;
         }
 
-        public TableSource this[ISqlTableSource table] => this[table, null];
+        public ITableSource this[ISqlTableSource table] => this[table, null];
 
-        public TableSource this[ISqlTableSource table, string alias]
+        public ITableSource this[ISqlTableSource table, string alias]
         {
             get
             {
                 foreach (var ts in Tables)
                 {
-                    var t = SelectQuery.CheckTableSource(ts, table, alias);
+                    var t = QueryElements.SelectQuery.CheckTableSource(ts, table, alias);
 
                     if (t != null)
                         return t;
@@ -105,10 +105,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return false;
         }
 
-        readonly List<TableSource> _tables = new List<TableSource>();
-        public   List<TableSource>  Tables => _tables;
+        readonly List<ITableSource> _tables = new List<ITableSource>();
+        public   List<ITableSource>  Tables => _tables;
 
-        static IEnumerable<ISqlTableSource> GetJoinTables(TableSource source, QueryElementType elementType)
+        static IEnumerable<ISqlTableSource> GetJoinTables(ITableSource source, QueryElementType elementType)
         {
             if (source.Source.ElementType == elementType)
                 yield return source.Source;
@@ -128,7 +128,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return Tables.SelectMany(_ => GetJoinTables(_, QueryElementType.SqlQuery));
         }
 
-        static TableSource FindTableSource(TableSource source, SqlTable table)
+        static ITableSource FindTableSource(ITableSource source, SqlTable table)
         {
             if (source.Source == table)
                 return source;

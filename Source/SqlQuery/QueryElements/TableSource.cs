@@ -5,12 +5,11 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Linq;
     using System.Text;
 
-    using LinqToDB.DataProvider.SapHana;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class TableSource : BaseQueryElement, ISqlTableSource
+    public class TableSource : BaseQueryElement, ITableSource
     {
         public TableSource(ISqlTableSource source, string alias)
             : this(source, alias, null)
@@ -48,10 +47,10 @@ namespace LinqToDB.SqlQuery.QueryElements
         {
             get
             {
-                if (String.IsNullOrEmpty(_alias))
+                if (string.IsNullOrEmpty(_alias))
                 {
-                    if (Source is TableSource)
-                        return (Source as TableSource).Alias;
+                    if (Source is ITableSource)
+                        return (Source as ITableSource).Alias;
 
                     if (Source is SqlTable)
                         return ((SqlTable)Source).Alias;
@@ -62,9 +61,9 @@ namespace LinqToDB.SqlQuery.QueryElements
             set { _alias = value; }
         }
 
-        public TableSource this[ISqlTableSource table] => this[table, null];
+        public ITableSource this[ISqlTableSource table] => this[table, null];
 
-        public TableSource this[ISqlTableSource table, string alias]
+        public ITableSource this[ISqlTableSource table, string alias]
         {
             get
             {
@@ -83,14 +82,14 @@ namespace LinqToDB.SqlQuery.QueryElements
         readonly List<JoinedTable> _joins = new List<JoinedTable>();
         public   List<JoinedTable>  Joins => _joins;
 
-        public void ForEach(Action<TableSource> action, HashSet<SelectQuery> visitedQueries)
+        public void ForEach(Action<ITableSource> action, HashSet<ISelectQuery> visitedQueries)
         {
             action(this);
             foreach (var join in Joins)
                 @join.Table.ForEach(action, visitedQueries);
 
-            if (Source is SelectQuery && visitedQueries.Contains((SelectQuery)Source))
-                ((SelectQuery)Source).ForEachTable(action, visitedQueries);
+            if (Source is ISelectQuery && visitedQueries.Contains((ISelectQuery)Source))
+                ((ISelectQuery)Source).ForEachTable(action, visitedQueries);
         }
 
         public IEnumerable<ISqlTableSource> GetTables()
@@ -148,7 +147,11 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public int       SourceID => Source.SourceID;
 
-        public SqlField  All => Source.All;
+        public SqlField  All
+        {
+            get { return Source.All; }
+            set {  }
+        }
 
         IList<ISqlExpression> ISqlTableSource.GetKeys(bool allIfEmpty)
         {
@@ -197,7 +200,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
             dic.Add(this, this);
 
-            if (Source is SelectQuery)
+            if (Source is ISelectQuery)
             {
                 sb.Append("(\n\t");
                 var len = sb.Length;

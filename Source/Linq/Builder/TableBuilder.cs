@@ -13,8 +13,8 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
 	using Reflection;
@@ -131,12 +131,12 @@ namespace LinqToDB.Linq.Builder
 			#region Properties
 
 #if DEBUG
-			public string _sqlQueryText { get { return SelectQuery == null ? "" : SelectQuery.SqlText; } }
+			public string _sqlQueryText { get { return Select == null ? "" : Select.SqlText; } }
 #endif
 
 			public ExpressionBuilder  Builder     { get; private set; }
 			public Expression         Expression  { get; private set; }
-			public SelectQuery        SelectQuery { get; set; }
+			public ISelectQuery Select { get; set; }
 			public List<MemberInfo[]> LoadWith    { get; set; }
 
 			public virtual IBuildContext Parent { get; set; }
@@ -155,22 +155,22 @@ namespace LinqToDB.Linq.Builder
 				Builder          = builder;
 				Parent           = buildInfo.Parent;
 				Expression       = buildInfo.Expression;
-				SelectQuery         = buildInfo.SelectQuery;
+				Select         = buildInfo.SelectQuery;
 
 				OriginalType     = originalType;
 				ObjectType       = GetObjectType();
 				SqlTable         = new SqlTable(builder.MappingSchema, ObjectType);
 				EntityDescriptor = Builder.MappingSchema.GetEntityDescriptor(ObjectType);
 
-				SelectQuery.From.Table(SqlTable);
+				Select.From.Table(SqlTable);
 
 				Init();
 			}
 
-			protected TableContext(ExpressionBuilder builder, SelectQuery selectQuery)
+			protected TableContext(ExpressionBuilder builder, ISelectQuery selectQuery)
 			{
 				Builder     = builder;
-				SelectQuery = selectQuery;
+				Select = selectQuery;
 			}
 
 			public TableContext(ExpressionBuilder builder, BuildInfo buildInfo)
@@ -178,7 +178,7 @@ namespace LinqToDB.Linq.Builder
 				Builder     = builder;
 				Parent      = buildInfo.Parent;
 				Expression  = buildInfo.Expression;
-				SelectQuery = buildInfo.SelectQuery;
+				Select = buildInfo.SelectQuery;
 
 				var mc   = (MethodCallExpression)Expression;
 				var attr = builder.GetTableFunctionAttribute(mc.Method);
@@ -191,7 +191,7 @@ namespace LinqToDB.Linq.Builder
 				SqlTable         = new SqlTable(builder.MappingSchema, ObjectType);
 				EntityDescriptor = Builder.MappingSchema.GetEntityDescriptor(ObjectType);
 
-				SelectQuery.From.Table(SqlTable);
+				Select.From.Table(SqlTable);
 
 				var args = mc.Arguments.Select(a => builder.ConvertToSql(this, a));
 
@@ -234,7 +234,7 @@ namespace LinqToDB.Linq.Builder
 
 			protected virtual List<Condition> GetDescriminatorConditionsStorage()
 			{
-				return SelectQuery.Where.SearchCondition.Conditions;
+				return Select.Where.SearchCondition.Conditions;
 			}
 
 			#endregion
@@ -716,14 +716,14 @@ namespace LinqToDB.Linq.Builder
 				if (expr.Sql is SqlField)
 				{
 					var field = (SqlField)expr.Sql;
-					expr.Index = SelectQuery.Select.Add(field, field.Alias);
+					expr.Index = Select.Select.Add(field, field.Alias);
 				}
 				else
 				{
-					expr.Index = SelectQuery.Select.Add(expr.Sql);
+					expr.Index = Select.Select.Add(expr.Sql);
 				}
 
-				expr.Query = SelectQuery;
+				expr.Query = Select;
 
 				_indexes.Add(expr.Sql, expr);
 
@@ -853,7 +853,7 @@ namespace LinqToDB.Linq.Builder
 								isPrevList = typeof(IEnumerable).IsSameOrParentOf(obj.Type);
 							}
 
-							expression = (ITable<T>) expression.LoadWith(Expression.Lambda<Func<T,object>>(obj, pLoadWith));
+							expression = expression.LoadWith(Expression.Lambda<Func<T,object>>(obj, pLoadWith));
 						}
 					}
 
@@ -1177,7 +1177,7 @@ namespace LinqToDB.Linq.Builder
 				return null;
 			}
 
-			[JetBrains.Annotations.NotNull]
+			[Properties.NotNull]
 			readonly Dictionary<MemberInfo,AssociatedTableContext> _associations =
 				new Dictionary<MemberInfo,AssociatedTableContext>(new MemberInfoComparer());
 
@@ -1289,7 +1289,7 @@ namespace LinqToDB.Linq.Builder
 			}
 
 			public AssociatedTableContext(ExpressionBuilder builder, TableContext parent, AssociationDescriptor association)
-				: base(builder, parent.SelectQuery)
+				: base(builder, parent.Select)
 			{
 				var type = association.MemberInfo.GetMemberType();
 				var left = association.CanBeNull;
@@ -1306,7 +1306,7 @@ namespace LinqToDB.Linq.Builder
 				EntityDescriptor = Builder.MappingSchema.GetEntityDescriptor(ObjectType);
 				SqlTable         = new SqlTable(builder.MappingSchema, ObjectType);
 
-				var psrc = parent.SelectQuery.From[parent.SqlTable];
+				var psrc = parent.Select.From[parent.SqlTable];
 				var join = left ? SqlTable.WeakLeftJoin() : SqlTable.WeakInnerJoin();
 
 				Association           = association;
@@ -1446,7 +1446,7 @@ namespace LinqToDB.Linq.Builder
 								isPrevList = typeof(IEnumerable).IsSameOrParentOf(obj.Type);
 							}
 
-							tableExpression = (ITable<T>) tableExpression.LoadWith(Expression.Lambda<Func<T,object>>(obj, pLoadWith));
+							tableExpression = tableExpression.LoadWith(Expression.Lambda<Func<T,object>>(obj, pLoadWith));
 						}
 					}
 

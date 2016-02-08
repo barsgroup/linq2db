@@ -11,8 +11,8 @@ namespace LinqToDB.Mapping
 		#region Init
 
 		public PropertyMappingBuilder(
-			[JetBrains.Annotations.NotNull] EntityMappingBuilder<T>    entity,
-			[JetBrains.Annotations.NotNull] Expression<Func<T,object>> memberGetter)
+			[Properties.NotNull] EntityMappingBuilder<T>    entity,
+			[Properties.NotNull] Expression<Func<T,object>> memberGetter)
 		{
 			if (entity       == null) throw new ArgumentNullException("entity");
 			if (memberGetter == null) throw new ArgumentNullException("memberGetter");

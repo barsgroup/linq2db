@@ -35,7 +35,7 @@ namespace LinqToDB.Common
 
 		static readonly ConcurrentDictionary<Type,object> _values = new ConcurrentDictionary<Type,object>();
 
-		public static object GetValue([JetBrains.Annotations.NotNull] Type type, MappingSchema mappingSchema = null)
+		public static object GetValue([Properties.NotNull] Type type, MappingSchema mappingSchema = null)
 		{
 			if (type == null) throw new ArgumentNullException("type");
 

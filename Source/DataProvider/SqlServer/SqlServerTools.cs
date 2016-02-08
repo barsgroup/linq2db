@@ -5,13 +5,13 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.DataProvider.SqlServer
 {
 	using Data;
 
-	public static class SqlServerTools
+	using LinqToDB.Properties;
+
+    public static class SqlServerTools
 	{
 		#region Init
 

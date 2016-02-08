@@ -6,17 +6,17 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class OrderByClause : ClauseBase, ISqlExpressionWalkable
     {
-        internal OrderByClause(SelectQuery selectQuery) : base(selectQuery)
+        internal OrderByClause(ISelectQuery selectQuery) : base(selectQuery)
         {
         }
 
         internal OrderByClause(
-            SelectQuery   selectQuery,
+            ISelectQuery selectQuery,
             OrderByClause clone,
             Dictionary<ICloneableElement,ICloneableElement> objectTree,
             Predicate<ICloneableElement> doClone)

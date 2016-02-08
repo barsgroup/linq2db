@@ -6,17 +6,17 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class GroupByClause : ClauseBase, ISqlExpressionWalkable
     {
-        internal GroupByClause(SelectQuery selectQuery) : base(selectQuery)
+        internal GroupByClause(ISelectQuery selectQuery) : base(selectQuery)
         {
         }
 
         internal GroupByClause(
-            SelectQuery   selectQuery,
+            ISelectQuery selectQuery,
             GroupByClause clone,
             Dictionary<ICloneableElement,ICloneableElement> objectTree,
             Predicate<ICloneableElement> doClone)

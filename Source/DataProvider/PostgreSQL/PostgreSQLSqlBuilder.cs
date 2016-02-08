@@ -8,8 +8,8 @@ namespace LinqToDB.DataProvider.PostgreSQL
 
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlQuery;
 	using SqlProvider;
@@ -21,7 +21,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 		{
 		}
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}

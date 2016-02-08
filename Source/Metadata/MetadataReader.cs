@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Reflection;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.Metadata
 {
-	public class MetadataReader : IMetadataReader
+    using LinqToDB.Properties;
+
+    public class MetadataReader : IMetadataReader
 	{
 		public static MetadataReader Default = new MetadataReader(
 			new AttributeReader()

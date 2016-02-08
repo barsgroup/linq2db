@@ -9,7 +9,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
     public abstract class ClauseBase : BaseQueryElement
     {
-        protected ClauseBase(SelectQuery selectQuery)
+        protected ClauseBase(ISelectQuery selectQuery)
         {
             SelectQuery = selectQuery;
         }
@@ -26,11 +26,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public OrderByClause OrderBy => SelectQuery.OrderBy;
 
-        public SelectQuery End() { return SelectQuery; }
+        public ISelectQuery End() { return SelectQuery; }
 
-        protected internal SelectQuery SelectQuery { get; private set; }
+        protected internal ISelectQuery SelectQuery { get; private set; }
 
-        internal void SetSqlQuery(SelectQuery selectQuery)
+        internal void SetSqlQuery(ISelectQuery selectQuery)
         {
             SelectQuery = selectQuery;
         }
@@ -46,7 +46,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     public abstract class ClauseBase<T1, T2> : ConditionBase<T1, T2>
         where T1 : ClauseBase<T1, T2>
     {
-        protected ClauseBase(SelectQuery selectQuery)
+        protected ClauseBase(ISelectQuery selectQuery)
         {
             SelectQuery = selectQuery;
         }
@@ -61,11 +61,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public OrderByClause OrderBy => SelectQuery.OrderBy;
 
-        public SelectQuery   End()   { return SelectQuery; }
+        public ISelectQuery End()   { return SelectQuery; }
 
-        protected internal SelectQuery SelectQuery { get; private set; }
+        protected internal ISelectQuery SelectQuery { get; private set; }
 
-        internal void SetSqlQuery(SelectQuery selectQuery)
+        internal void SetSqlQuery(ISelectQuery selectQuery)
         {
             SelectQuery = selectQuery;
         }

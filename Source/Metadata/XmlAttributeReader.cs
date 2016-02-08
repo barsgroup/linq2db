@@ -5,13 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Linq;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.Metadata
 {
 	using Common;
 
-	public class XmlAttributeReader : IMetadataReader
+	using LinqToDB.Properties;
+
+    public class XmlAttributeReader : IMetadataReader
 	{
 		readonly Dictionary<string,MetaTypeInfo> _types;
 

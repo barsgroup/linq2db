@@ -5,8 +5,9 @@ using System.Reflection;
 
 namespace LinqToDB.DataProvider.SqlServer
 {
-    using LinqToDB.SqlQuery.SqlElements;
-    using LinqToDB.SqlQuery.SqlElements.Interfaces;
+    using LinqToDB.SqlEntities;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using Mapping;
 	using SqlQuery;

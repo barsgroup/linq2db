@@ -7,6 +7,8 @@ namespace LinqToDB.DataProvider.Oracle
 {
 	using Data;
 
+	using LinqToDB.Properties;
+
 	using SqlProvider;
 
 	class OracleBulkCopy : BasicBulkCopy
@@ -25,7 +27,7 @@ namespace LinqToDB.DataProvider.Oracle
 		Action<object,Action<object>>       _bulkCopySubscriber;
 
 		protected override BulkCopyRowsCopied ProviderSpecificCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection,
+			[NotNull] DataConnection dataConnection,
 			BulkCopyOptions options,
 			IEnumerable<T>  source)
 		{

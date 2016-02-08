@@ -9,8 +9,8 @@ namespace LinqToDB.Linq.Builder
 	using Extensions;
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlQuery;
 
@@ -42,7 +42,7 @@ namespace LinqToDB.Linq.Builder
 							buildInfo,
 							(LambdaExpression)methodCall.Arguments[1].Unwrap(),
 							sequence,
-							sequence.SelectQuery.Update.Items,
+							sequence.Select.Update.Items,
 							sequence);
 						break;
 					}
@@ -64,7 +64,7 @@ namespace LinqToDB.Linq.Builder
 								buildInfo,
 								(LambdaExpression)methodCall.Arguments[2].Unwrap(),
 								sequence,
-								sequence.SelectQuery.Update.Items,
+								sequence.Select.Update.Items,
 								sequence);
 						}
 						else
@@ -74,19 +74,19 @@ namespace LinqToDB.Linq.Builder
 							var into = builder.BuildSequence(new BuildInfo(buildInfo, expr, new SelectQuery()));
 
 							sequence.ConvertToIndex(null, 0, ConvertFlags.All);
-							new SelectQueryOptimizer(builder.DataContextInfo.SqlProviderFlags, sequence.SelectQuery)
+							new SelectQueryOptimizer(builder.DataContextInfo.SqlProviderFlags, sequence.Select)
 								.ResolveWeakJoins(new List<ISqlTableSource>());
-							sequence.SelectQuery.Select.Columns.Clear();
+							sequence.Select.Select.Columns.Clear();
 
 							BuildSetter(
 								builder,
 								buildInfo,
 								(LambdaExpression)methodCall.Arguments[2].Unwrap(),
 								into,
-								sequence.SelectQuery.Update.Items,
+								sequence.Select.Update.Items,
 								sequence);
 
-							var sql = sequence.SelectQuery;
+							var sql = sequence.Select;
 
 							sql.Select.Columns.Clear();
 
@@ -100,7 +100,7 @@ namespace LinqToDB.Linq.Builder
 					}
 			}
 
-			sequence.SelectQuery.QueryType = QueryType.Update;
+			sequence.Select.QueryType = QueryType.Update;
 
 			return new UpdateContext(buildInfo.Parent, sequence);
 		}
@@ -116,7 +116,7 @@ namespace LinqToDB.Linq.Builder
 				if (res.Result && res.Context is TableBuilder.AssociatedTableContext)
 				{
 					var atc = (TableBuilder.AssociatedTableContext)res.Context;
-					sequence.SelectQuery.Update.Table = atc.SqlTable;
+					sequence.Select.Update.Table = atc.SqlTable;
 				}
 				else
 				{
@@ -126,8 +126,8 @@ namespace LinqToDB.Linq.Builder
 					{
 						var tc = (TableBuilder.TableContext)res.Context;
 
-						if (sequence.SelectQuery.From.Tables.Count == 0 || sequence.SelectQuery.From.Tables[0].Source != tc.SelectQuery)
-							sequence.SelectQuery.Update.Table = tc.SqlTable;
+						if (sequence.Select.From.Tables.Count == 0 || sequence.Select.From.Tables[0].Source != tc.Select)
+							sequence.Select.Update.Table = tc.SqlTable;
 					}
 				}
 			}
@@ -398,8 +398,8 @@ namespace LinqToDB.Linq.Builder
 						extract,
 						(LambdaExpression)update,
 						sequence,
-						sequence.SelectQuery.Update.Table,
-						sequence.SelectQuery.Update.Items);
+						sequence.Select.Update.Table,
+						sequence.Select.Update.Items);
 				else
 					ParseSet(
 						builder,
@@ -407,7 +407,7 @@ namespace LinqToDB.Linq.Builder
 						extract,
 						update,
 						sequence,
-						sequence.SelectQuery.Update.Items);
+						sequence.Select.Update.Items);
 
 				return sequence;
 			}

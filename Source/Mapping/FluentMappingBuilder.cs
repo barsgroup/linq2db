@@ -11,7 +11,7 @@ namespace LinqToDB.Mapping
 	{
 		#region Init
 
-		public FluentMappingBuilder([JetBrains.Annotations.NotNull] MappingSchema mappingSchema)
+		public FluentMappingBuilder([Properties.NotNull] MappingSchema mappingSchema)
 		{
 			if (mappingSchema == null) throw new ArgumentNullException("mappingSchema");
 

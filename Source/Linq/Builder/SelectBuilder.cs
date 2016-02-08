@@ -59,7 +59,7 @@ namespace LinqToDB.Linq.Builder
 
 		static IBuildContext CheckSubQueryForSelect(IBuildContext context)
 		{
-			return context.SelectQuery.Select.IsDistinct ? new SubQueryContext(context) : context;
+			return context.Select.Select.IsDistinct ? new SubQueryContext(context) : context;
 		}
 
 		#endregion

@@ -255,7 +255,7 @@ namespace LinqToDB.Common
 							.Select(f =>
 								Expression.SwitchCase(
 									Expression.Constant(f.value),
-									(IEnumerable<Expression>)f.attrs.Select(a => Expression.Constant(a, @from))))
+									f.attrs.Select(a => Expression.Constant(a, @from))))
 							.ToArray());
 
 					return expr;

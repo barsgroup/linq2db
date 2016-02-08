@@ -1,10 +1,8 @@
 ﻿namespace LinqToDB.DataProvider.SqlServer
 {
-    using LinqToDB.SqlQuery.SqlElements;
-
     using SqlProvider;
-
-	class SqlServer2000SqlBuilder : SqlServerSqlBuilder
+    using SqlQuery.QueryElements.SqlElements;
+    class SqlServer2000SqlBuilder : SqlServerSqlBuilder
 	{
 		public SqlServer2000SqlBuilder(ISqlOptimizer sqlOptimizer, SqlProviderFlags sqlProviderFlags, ValueToSqlConverter valueToSqlConverter)
 			: base(sqlOptimizer, sqlProviderFlags, valueToSqlConverter)

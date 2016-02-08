@@ -11,9 +11,10 @@ namespace LinqToDB.SqlProvider
 
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
 	using SqlQuery;
@@ -29,7 +30,7 @@ namespace LinqToDB.SqlProvider
 			ValueToSqlConverter = valueToSqlConverter;
 		}
 
-		protected SelectQuery         SelectQuery;
+		protected ISelectQuery SelectQuery;
 		protected int                 Indent;
 		protected Step                BuildStep;
 		protected ISqlOptimizer       SqlOptimizer;
@@ -49,7 +50,7 @@ namespace LinqToDB.SqlProvider
 
 		#region CommandCount
 
-		public virtual int CommandCount(SelectQuery selectQuery)
+		public virtual int CommandCount(ISelectQuery selectQuery)
 		{
 			return 1;
 		}
@@ -58,12 +59,12 @@ namespace LinqToDB.SqlProvider
 
 		#region BuildSql
 
-		public void BuildSql(int commandNumber, SelectQuery selectQuery, StringBuilder sb)
+		public void BuildSql(int commandNumber, ISelectQuery selectQuery, StringBuilder sb)
 		{
 			BuildSql(commandNumber, selectQuery, sb, 0, false);
 		}
 
-		protected virtual void BuildSql(int commandNumber, SelectQuery selectQuery, StringBuilder sb, int indent, bool skipAlias)
+		protected virtual void BuildSql(int commandNumber, ISelectQuery selectQuery, StringBuilder sb, int indent, bool skipAlias)
 		{
 			SelectQuery   = selectQuery;
 			StringBuilder = sb;
@@ -101,7 +102,7 @@ namespace LinqToDB.SqlProvider
 
 		#region Overrides
 
-		protected virtual void BuildSqlBuilder(SelectQuery selectQuery, int indent, bool skipAlias)
+		protected virtual void BuildSqlBuilder(ISelectQuery selectQuery, int indent, bool skipAlias)
 		{
 			if (!SqlProviderFlags.GetIsSkipSupportedFlag(selectQuery)
 				&& selectQuery.Select.SkipValue != null)
@@ -949,7 +950,7 @@ namespace LinqToDB.SqlProvider
 
 				case QueryElementType.SqlQuery    :
 					StringBuilder.Append("(").AppendLine();
-					BuildSqlBuilder((SelectQuery)table, Indent + 1, false);
+					BuildSqlBuilder((ISelectQuery)table, Indent + 1, false);
 					AppendIndent().Append(")");
 
 					break;
@@ -959,7 +960,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		protected void BuildTableName(TableSource ts, bool buildName, bool buildAlias)
+		protected void BuildTableName(ITableSource ts, bool buildName, bool buildAlias)
 		{
 			if (buildName)
 			{
@@ -1817,7 +1818,7 @@ namespace LinqToDB.SqlProvider
 							StringBuilder.Append("(");
 						StringBuilder.AppendLine();
 
-						BuildSqlBuilder((SelectQuery)expr, Indent + 1, BuildStep != Step.FromClause);
+						BuildSqlBuilder((ISelectQuery)expr, Indent + 1, BuildStep != Step.FromClause);
 
 						AppendIndent();
 
@@ -2468,7 +2469,7 @@ namespace LinqToDB.SqlProvider
 			switch (table.ElementType)
 			{
 				case QueryElementType.TableSource :
-					var ts    = (TableSource)table;
+					var ts    = (ITableSource)table;
 					var alias = string.IsNullOrEmpty(ts.Alias) ? GetTableAlias(ts.Source) : ts.Alias;
 					return alias != "$" ? alias : null;
 
@@ -2476,7 +2477,7 @@ namespace LinqToDB.SqlProvider
 					return ((SqlTable)table).Alias;
 
                 case QueryElementType.SqlQuery:
-                    return GetTableAlias(((SelectQuery)table).From.Tables[0]);
+                    return GetTableAlias(((ISelectQuery)table).From.Tables[0]);
 
                 default :
 					throw new InvalidOperationException();
@@ -2560,7 +2561,7 @@ namespace LinqToDB.SqlProvider
 					}
 
 				case QueryElementType.TableSource :
-					return GetPhysicalTableName(((TableSource)table).Source, alias);
+					return GetPhysicalTableName(((ITableSource)table).Source, alias);
 
 				default :
 					throw new InvalidOperationException();

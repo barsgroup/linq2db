@@ -17,11 +17,11 @@ namespace LinqToDB.Linq.Builder
 		{
 			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 			var query    = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQuery()));
-			var except   = query.SelectQuery;
+			var except   = query.Select;
 
 			sequence = new SubQueryContext(sequence);
 
-			var sql = sequence.SelectQuery;
+			var sql = sequence.Select;
 
 			except.ParentSelect = sql;
 

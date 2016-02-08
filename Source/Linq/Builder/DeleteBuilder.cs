@@ -20,7 +20,7 @@ namespace LinqToDB.Linq.Builder
 			if (methodCall.Arguments.Count == 2)
 				sequence = builder.BuildWhere(buildInfo.Parent, sequence, (LambdaExpression)methodCall.Arguments[1].Unwrap(), false);
 
-			sequence.SelectQuery.QueryType = QueryType.Delete;
+			sequence.Select.QueryType = QueryType.Delete;
 
 			// Check association.
 			//
@@ -33,7 +33,7 @@ namespace LinqToDB.Linq.Builder
 				if (res.Result && res.Context is TableBuilder.AssociatedTableContext)
 				{
 					var atc = (TableBuilder.AssociatedTableContext)res.Context;
-					sequence.SelectQuery.Delete.Table = atc.SqlTable;
+					sequence.Select.Delete.Table = atc.SqlTable;
 				}
 				else
 				{
@@ -43,8 +43,8 @@ namespace LinqToDB.Linq.Builder
 					{
 						var tc = (TableBuilder.TableContext)res.Context;
 
-						if (sequence.SelectQuery.From.Tables.Count == 0 || sequence.SelectQuery.From.Tables[0].Source != tc.SelectQuery)
-							sequence.SelectQuery.Delete.Table = tc.SqlTable;
+						if (sequence.Select.From.Tables.Count == 0 || sequence.Select.From.Tables[0].Source != tc.Select)
+							sequence.Select.Delete.Table = tc.SqlTable;
 					}
 				}
 			}

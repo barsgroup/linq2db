@@ -8,8 +8,9 @@ using System.Reflection;
 namespace LinqToDB.Linq
 {
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlEntities;
 
-	class ReflectionHelper
+    class ReflectionHelper
 	{
 		public class Expressor<T>
 		{

@@ -10,8 +10,8 @@ namespace LinqToDB.Linq.Builder
 	using Extensions;
 
 	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.SqlElements;
-	using LinqToDB.SqlQuery.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     class AggregationBuilder : MethodCallBuilder
 	{
@@ -26,18 +26,18 @@ namespace LinqToDB.Linq.Builder
 		{
 			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
-			if (sequence.SelectQuery.Select.IsDistinct        ||
-			    sequence.SelectQuery.Select.TakeValue != null ||
-			    sequence.SelectQuery.Select.SkipValue != null ||
-			   !sequence.SelectQuery.GroupBy.IsEmpty)
+			if (sequence.Select.Select.IsDistinct        ||
+			    sequence.Select.Select.TakeValue != null ||
+			    sequence.Select.Select.SkipValue != null ||
+			   !sequence.Select.GroupBy.IsEmpty)
 			{
 				sequence = new SubQueryContext(sequence);
 			}
 
-			if (sequence.SelectQuery.OrderBy.Items.Count > 0)
+			if (sequence.Select.OrderBy.Items.Count > 0)
 			{
-				if (sequence.SelectQuery.Select.TakeValue == null && sequence.SelectQuery.Select.SkipValue == null)
-					sequence.SelectQuery.OrderBy.Items.Clear();
+				if (sequence.Select.Select.TakeValue == null && sequence.Select.Select.SkipValue == null)
+					sequence.Select.OrderBy.Items.Clear();
 				else
 					sequence = new SubQueryContext(sequence);
 			}
@@ -45,20 +45,20 @@ namespace LinqToDB.Linq.Builder
 			var context = new AggregationContext(buildInfo.Parent, sequence, methodCall);
 			var sql     = sequence.ConvertToSql(null, 0, ConvertFlags.Field).Select(_ => _.Sql).ToArray();
 
-			if (sql.Length == 1 && sql[0] is SelectQuery)
+			if (sql.Length == 1 && sql[0] is ISelectQuery)
 			{
-				var query = (SelectQuery)sql[0];
+				var query = (ISelectQuery)sql[0];
 
 				if (query.Select.Columns.Count == 1)
 				{
 					var join = SelectQuery.OuterApply(query);
-					context.SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
+					context.Select.From.Tables[0].Joins.Add(join.JoinedTable);
 					sql[0] = query.Select.Columns[0];
 				}
 			}
 
-			context.Sql        = context.SelectQuery;
-			context.FieldIndex = context.SelectQuery.Select.Add(
+			context.Sql        = context.Select;
+			context.FieldIndex = context.Select.Select.Add(
 				new SqlFunction(methodCall.Type, methodCall.Method.Name, sql));
 
 			return context;
@@ -145,7 +145,7 @@ namespace LinqToDB.Linq.Builder
 					case ConvertFlags.Field :
 						return _index ?? (_index = new[]
 						{
-							new SqlInfo { Query = Parent.SelectQuery, Index = Parent.SelectQuery.Select.Add(Sql), Sql = Sql, }
+							new SqlInfo { Query = Parent.Select, Index = Parent.Select.Select.Add(Sql), Sql = Sql, }
 						});
 				}
 

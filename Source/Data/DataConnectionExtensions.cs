@@ -4,13 +4,13 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.Data
 {
 	using Linq;
 
-	public static class DataConnectionExtensions
+	using LinqToDB.Properties;
+
+    public static class DataConnectionExtensions
 	{
 		#region SetCommand
 
