@@ -68,7 +68,7 @@
 			WhereClause          where,
 			GroupByClause        groupBy,
 			WhereClause          having,
-			OrderByClause        orderBy,
+            IOrderByClause orderBy,
 			List<IUnion>          unions,
             ISelectQuery         parentSelect,
             ICreateTableStatement createTable,
@@ -184,7 +184,7 @@
 
         public  WhereClause  Having { get; private set; }
 
-        public  OrderByClause  OrderBy { get; private set; }
+        public IOrderByClause OrderBy { get; private set; }
 
         public List<IUnion> Unions { get; private set; } = new List<IUnion>();
 

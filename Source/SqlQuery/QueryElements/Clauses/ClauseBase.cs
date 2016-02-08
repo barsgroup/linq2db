@@ -25,7 +25,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public WhereClause Having => SelectQuery.Having;
 
-        public OrderByClause OrderBy => SelectQuery.OrderBy;
+        public IOrderByClause OrderBy => SelectQuery.OrderBy;
 
         public ISelectQuery End() { return SelectQuery; }
 
@@ -60,7 +60,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public WhereClause   Having => SelectQuery.Having;
 
-        public OrderByClause OrderBy => SelectQuery.OrderBy;
+        public IOrderByClause OrderBy => SelectQuery.OrderBy;
 
         public ISelectQuery End()   { return SelectQuery; }
 

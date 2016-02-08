@@ -1016,7 +1016,7 @@ namespace LinqToDB.ServiceModel
 					case EQueryElementType.FromClause    : Append(((IFromClause)   e).Tables);          break;
 					case EQueryElementType.WhereClause   : Append(((WhereClause)  e).SearchCondition); break;
 					case EQueryElementType.GroupByClause : Append(((GroupByClause)e).Items);           break;
-					case EQueryElementType.OrderByClause : Append(((OrderByClause)e).Items);           break;
+					case EQueryElementType.OrderByClause : Append(((IOrderByClause)e).Items);           break;
 
 					case EQueryElementType.OrderByItem :
 						{
@@ -1400,7 +1400,7 @@ namespace LinqToDB.ServiceModel
 							var where              = Read<WhereClause>();
 							var groupBy            = Read<GroupByClause>();
 							var having             = Read<WhereClause>();
-							var orderBy            = Read<OrderByClause>();
+							var orderBy            = Read<IOrderByClause>();
 							var parentSql          = ReadInt();
 							var parameterDependent = ReadBool();
 							var unions             = ReadArray<IUnion>();

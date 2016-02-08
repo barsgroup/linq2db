@@ -414,7 +414,9 @@
     <Compile Include="SqlQuery\QueryElements\Interfaces\IColumn.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ICreateTableStatement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IFromClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IInsertClause.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IJoinedTable.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IOrderByClause.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IOrderByItem.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ISelectQuery.cs" />

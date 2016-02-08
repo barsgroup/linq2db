@@ -96,7 +96,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.FromClause        : return Find(((IFromClause)        element).Tables,          find);
 				case EQueryElementType.WhereClause       : return Find(((WhereClause)       element).SearchCondition, find);
 				case EQueryElementType.GroupByClause     : return Find(((GroupByClause)     element).Items,           find);
-				case EQueryElementType.OrderByClause     : return Find(((OrderByClause)     element).Items,           find);
+				case EQueryElementType.OrderByClause     : return Find(((IOrderByClause)     element).Items,           find);
 				case EQueryElementType.OrderByItem       : return Find(((IOrderByItem)       element).Expression,      find);
 				case EQueryElementType.Union             : return Find(((IUnion)             element).SelectQuery,        find);
 				case EQueryElementType.FuncLikePredicate : return Find(((FuncLike)element).Function,        find);
@@ -660,7 +660,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.OrderByClause:
 					{
-						var oc = (OrderByClause)element;
+						var oc = (IOrderByClause)element;
 						var es = Convert(oc.Items, action);
 
 						IQueryElement parent;
@@ -669,7 +669,7 @@ namespace LinqToDB.SqlQuery
 						if (parent != null || es != null && !ReferenceEquals(oc.Items, es))
 						{
 							newElement = new OrderByClause(es ?? oc.Items);
-							((OrderByClause)newElement).SetSqlQuery((ISelectQuery)parent);
+							((IOrderByClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 
 						break;
@@ -748,7 +748,7 @@ namespace LinqToDB.SqlQuery
 						var wc = (WhereClause)  ConvertInternal(q.Where,   action) ?? q.Where;
 						var gc = (GroupByClause)ConvertInternal(q.GroupBy, action) ?? q.GroupBy;
 						var hc = (WhereClause)  ConvertInternal(q.Having,  action) ?? q.Having;
-						var oc = (OrderByClause)ConvertInternal(q.OrderBy, action) ?? q.OrderBy;
+						var oc = (IOrderByClause)ConvertInternal(q.OrderBy, action) ?? q.OrderBy;
 						var us = q.HasUnion ? Convert(q.Unions, action) : q.Unions;
 
 						var ps = new List<SqlParameter>(q.Parameters.Count);

@@ -10,7 +10,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class OrderByClause : ClauseBase, ISqlExpressionWalkable
+    public class OrderByClause : ClauseBase,
+                                 IOrderByClause
     {
         internal OrderByClause(ISelectQuery selectQuery) : base(selectQuery)
         {
@@ -18,12 +19,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         internal OrderByClause(
             ISelectQuery selectQuery,
-            OrderByClause clone,
+            IOrderByClause clone,
             Dictionary<ICloneableElement,ICloneableElement> objectTree,
             Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
-            _items.AddRange(clone._items.Select(item => (IOrderByItem)item.Clone(objectTree, doClone)));
+            _items.AddRange(clone.Items.Select(item => (IOrderByItem)item.Clone(objectTree, doClone)));
         }
 
         internal OrderByClause(IEnumerable<IOrderByItem> items) : base(null)
@@ -31,19 +32,19 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             _items.AddRange(items);
         }
 
-        public OrderByClause Expr(ISqlExpression expr, bool isDescending)
+        public IOrderByClause Expr(ISqlExpression expr, bool isDescending)
         {
             Add(expr, isDescending);
             return this;
         }
 
-        public OrderByClause Expr     (ISqlExpression expr)               { return Expr(expr,  false);        }
-        public OrderByClause ExprAsc  (ISqlExpression expr)               { return Expr(expr,  false);        }
-        public OrderByClause ExprDesc (ISqlExpression expr)               { return Expr(expr,  true);         }
-        public OrderByClause Field    (SqlField field, bool isDescending) { return Expr(field, isDescending); }
-        public OrderByClause Field    (SqlField field)                    { return Expr(field, false);        }
-        public OrderByClause FieldAsc (SqlField field)                    { return Expr(field, false);        }
-        public OrderByClause FieldDesc(SqlField field)                    { return Expr(field, true);         }
+        public IOrderByClause Expr     (ISqlExpression expr)               { return Expr(expr,  false);        }
+        public IOrderByClause ExprAsc  (ISqlExpression expr)               { return Expr(expr,  false);        }
+        public IOrderByClause ExprDesc (ISqlExpression expr)               { return Expr(expr,  true);         }
+        public IOrderByClause Field    (SqlField field, bool isDescending) { return Expr(field, isDescending); }
+        public IOrderByClause Field    (SqlField field)                    { return Expr(field, false);        }
+        public IOrderByClause FieldAsc (SqlField field)                    { return Expr(field, false);        }
+        public IOrderByClause FieldDesc(SqlField field)                    { return Expr(field, true);         }
 
         void Add(ISqlExpression expr, bool isDescending)
         {

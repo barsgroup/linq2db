@@ -16,7 +16,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         WhereClause Having { get; }
 
-        OrderByClause OrderBy { get; }
+        IOrderByClause OrderBy { get; }
 
         ISelectQuery End();
 
