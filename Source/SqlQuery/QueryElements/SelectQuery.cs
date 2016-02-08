@@ -60,7 +60,7 @@
 		}
 
 		public void Init(
-			InsertClause         insert,
+            IInsertClause insert,
 			UpdateClause         update,
 			DeleteClause         delete,
 			SelectClause         select,
@@ -132,7 +132,7 @@
         public ICreateTableStatement CreateTable { get; private set; } = new CreateTableStatement();
 
 
-        public InsertClause Insert { get; private set; } = new InsertClause();
+        public IInsertClause Insert { get; private set; } = new InsertClause();
 
 	    public void ClearInsert()
 		{
@@ -443,7 +443,7 @@
 
 			EQueryType = clone.EQueryType;
 
-			if (IsInsert) Insert = (InsertClause)clone.Insert.Clone(objectTree, doClone);
+			if (IsInsert) Insert = (IInsertClause)clone.Insert.Clone(objectTree, doClone);
 			if (IsUpdate) Update = (UpdateClause)clone.Update.Clone(objectTree, doClone);
 			if (IsDelete) Delete = (DeleteClause)clone.Delete.Clone(objectTree, doClone);
 

@@ -964,7 +964,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.InsertClause :
 						{
-							var elem = (InsertClause)e;
+							var elem = (IInsertClause)e;
 
 							Append(elem.Items);
 							Append(elem.Into);
@@ -1386,7 +1386,7 @@ namespace LinqToDB.ServiceModel
 							var queryType          = (EQueryType)ReadInt();
 							var from               = Read<IFromClause>();
 							var readInsert         = ReadBool();
-							var insert             = readInsert ? Read<InsertClause>() : null;
+							var insert             = readInsert ? Read<IInsertClause>() : null;
 							var readUpdate         = ReadBool();
 							var update             = readUpdate ? Read<UpdateClause>() : null;
 							var readDelete         = ReadBool();

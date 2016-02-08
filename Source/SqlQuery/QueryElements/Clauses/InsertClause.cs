@@ -9,7 +9,19 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class InsertClause : BaseQueryElement, ISqlExpressionWalkable, ICloneableElement
+    public interface IInsertClause : IQueryElement, 
+                                     ISqlExpressionWalkable,
+                                     ICloneableElement
+    {
+        List<ISetExpression> Items { get; }
+
+        SqlTable Into { get; set; }
+
+        bool WithIdentity { get; set; }
+    }
+
+    public class InsertClause : BaseQueryElement,
+                                IInsertClause
     {
         public InsertClause()
         {

@@ -38,7 +38,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         ICreateTableStatement CreateTable { get; }
 
-        InsertClause Insert { get; }
+        IInsertClause Insert { get; }
 
         UpdateClause Update { get; }
 
@@ -86,7 +86,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         ISqlTableSource GetTableSource(ISqlTableSource table);
 
-        void Init(InsertClause insert,
+        void Init(IInsertClause insert,
                   UpdateClause update,
                   DeleteClause delete,
                   SelectClause select,

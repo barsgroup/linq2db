@@ -186,7 +186,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.InsertClause:
 					{
-						var sc = (InsertClause)element;
+						var sc = (IInsertClause)element;
 						return
 							Find(sc.Into,  find) ??
 							Find(sc.Items, find);
@@ -520,7 +520,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.InsertClause:
 					{
-						var s = (InsertClause)element;
+						var s = (IInsertClause)element;
 						var t = s.Into != null ? (SqlTable)ConvertInternal(s.Into, action) : null;
 						var i = Convert(s.Items, action);
 
@@ -742,7 +742,7 @@ namespace LinqToDB.SqlQuery
 
 						var fc = (IFromClause)   ConvertInternal(q.From,    action) ?? q.From;
 						var sc = (SelectClause) ConvertInternal(q.Select,  action) ?? q.Select;
-						var ic = q.IsInsert ? ((InsertClause)ConvertInternal(q.Insert, action) ?? q.Insert) : null;
+						var ic = q.IsInsert ? ((IInsertClause)ConvertInternal(q.Insert, action) ?? q.Insert) : null;
 						var uc = q.IsUpdate ? ((UpdateClause)ConvertInternal(q.Update, action) ?? q.Update) : null;
 						var dc = q.IsDelete ? ((DeleteClause)ConvertInternal(q.Delete, action) ?? q.Delete) : null;
 						var wc = (WhereClause)  ConvertInternal(q.Where,   action) ?? q.Where;
