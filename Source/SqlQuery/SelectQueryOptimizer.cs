@@ -289,7 +289,7 @@ namespace LinqToDB.SqlQuery
 
 						case EQueryElementType.SetExpression :
 							{
-								var expr = (SetExpression)e;
+								var expr = (ISetExpression)e;
 								if (dic.TryGetValue(expr.Expression, out ex)) expr.Expression = ex;
 								break;
 							}

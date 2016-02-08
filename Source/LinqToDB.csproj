@@ -411,6 +411,7 @@
     <Compile Include="SqlQuery\QueryElements\Interfaces\IOrderByItem.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ISelectQuery.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\ISetExpression.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ITableSource.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IUnion.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IValueContainer.cs" />

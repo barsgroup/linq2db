@@ -992,7 +992,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SetExpression :
 						{
-							var elem = (SetExpression)e;
+							var elem = (ISetExpression)e;
 
 							Append(elem.Column);
 							Append(elem.Expression);
@@ -1501,7 +1501,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.InsertClause :
 						{
-							var items = ReadArray<SetExpression>();
+							var items = ReadArray<ISetExpression>();
 							var into  = Read<SqlTable>();
 							var wid   = ReadBool();
 
@@ -1515,8 +1515,8 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.UpdateClause :
 						{
-							var items = ReadArray<SetExpression>();
-							var keys  = ReadArray<SetExpression>();
+							var items = ReadArray<ISetExpression>();
+							var keys  = ReadArray<ISetExpression>();
 							var table = Read<SqlTable>();
 
 							var c = new UpdateClause { Table = table };

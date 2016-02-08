@@ -13,10 +13,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     {
         public InsertClause()
         {
-            Items = new List<SetExpression>();
+            Items = new List<ISetExpression>();
         }
 
-        public List<SetExpression> Items        { get; private set; }
+        public List<ISetExpression> Items        { get; private set; }
         public SqlTable            Into         { get; set; }
         public bool                WithIdentity { get; set; }
 
@@ -33,7 +33,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
                 clone.Into = (SqlTable)Into.Clone(objectTree, doClone);
 
             foreach (var item in Items)
-                clone.Items.Add((SetExpression)item.Clone(objectTree, doClone));
+                clone.Items.Add((ISetExpression)item.Clone(objectTree, doClone));
 
             objectTree.Add(this, clone);
 

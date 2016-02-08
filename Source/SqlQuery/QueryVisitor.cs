@@ -178,7 +178,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.SetExpression:
 					{
-						var s = (SetExpression)element;
+						var s = (ISetExpression)element;
 						return
 							Find(s.Column,     find) ??
 							Find(s.Expression, find);
@@ -508,7 +508,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.SetExpression:
 					{
-						var s = (SetExpression)element;
+						var s = (ISetExpression)element;
 						var c = (ISqlExpression)ConvertInternal(s.Column,     action);
 						var e = (ISqlExpression)ConvertInternal(s.Expression, action);
 

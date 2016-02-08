@@ -13,12 +13,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     {
         public UpdateClause()
         {
-            Items = new List<SetExpression>();
-            Keys  = new List<SetExpression>();
+            Items = new List<ISetExpression>();
+            Keys  = new List<ISetExpression>();
         }
 
-        public List<SetExpression> Items { get; private set; }
-        public List<SetExpression> Keys  { get; private set; }
+        public List<ISetExpression> Items { get; private set; }
+        public List<ISetExpression> Keys  { get; private set; }
         public SqlTable            Table { get; set; }
 
         #region ICloneableElement Members
@@ -34,10 +34,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
                 clone.Table = (SqlTable)Table.Clone(objectTree, doClone);
 
             foreach (var item in Items)
-                clone.Items.Add((SetExpression)item.Clone(objectTree, doClone));
+                clone.Items.Add((ISetExpression)item.Clone(objectTree, doClone));
 
             foreach (var item in Keys)
-                clone.Keys.Add((SetExpression)item.Clone(objectTree, doClone));
+                clone.Keys.Add((ISetExpression)item.Clone(objectTree, doClone));
 
             objectTree.Add(this, clone);
 

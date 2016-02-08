@@ -150,7 +150,7 @@ namespace LinqToDB.Linq.Builder
 			BuildInfo                       buildInfo,
 			LambdaExpression                setter,
 			IBuildContext                   into,
-			List<SetExpression> items,
+			List<ISetExpression> items,
 			IBuildContext                   sequence)
 		{
 			var path = Expression.Parameter(setter.Body.Type, "p");
@@ -190,7 +190,7 @@ namespace LinqToDB.Linq.Builder
 		static void BuildSetter(
 			ExpressionBuilder               builder,
 			IBuildContext                   into,
-			List<SetExpression> items,
+			List<ISetExpression> items,
 			IBuildContext                   ctx,
 			MemberInitExpression            expression,
 			Expression                      path)
@@ -245,7 +245,7 @@ namespace LinqToDB.Linq.Builder
 			LambdaExpression                update,
 			IBuildContext                   select,
 			SqlTable                        table,
-			List<SetExpression> items)
+			List<ISetExpression> items)
 		{
 			var ext = extract.Body;
 
@@ -305,7 +305,7 @@ namespace LinqToDB.Linq.Builder
 			LambdaExpression                extract,
 			Expression                      update,
 			IBuildContext                   select,
-			List<SetExpression> items)
+			List<ISetExpression> items)
 		{
 			var ext = extract.Body;
 

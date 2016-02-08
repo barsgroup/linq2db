@@ -9,7 +9,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class SetExpression : BaseQueryElement, ISqlExpressionWalkable, ICloneableElement
+    public class SetExpression : BaseQueryElement, ISetExpression
     {
         public SetExpression(ISqlExpression column, ISqlExpression expression)
         {
