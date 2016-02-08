@@ -44,7 +44,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         DeleteClause Delete { get; }
 
-        FromClause From { get; }
+        IFromClause From { get; }
 
         WhereClause Where { get; }
 
@@ -90,7 +90,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
                   UpdateClause update,
                   DeleteClause delete,
                   SelectClause select,
-                  FromClause from,
+                  IFromClause from,
                   WhereClause where,
                   GroupByClause groupBy,
                   WhereClause having,

@@ -64,7 +64,7 @@
 			UpdateClause         update,
 			DeleteClause         delete,
 			SelectClause         select,
-			FromClause           from,
+            IFromClause          from,
 			WhereClause          where,
 			GroupByClause        groupBy,
 			WhereClause          having,
@@ -174,7 +174,7 @@
 		public static Join WeakJoin     (ISqlTableSource table,               params Join[] joins) { return new Join(JoinType.Auto,       table, null,  true,  joins); }
 		public static Join WeakJoin     (ISqlTableSource table, string alias, params Join[] joins) { return new Join(JoinType.Auto,       table, alias, true,  joins); }
 
-        public  FromClause  From { get; private set; }
+        public IFromClause From { get; private set; }
 
         #endregion
 

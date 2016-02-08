@@ -1013,7 +1013,7 @@ namespace LinqToDB.ServiceModel
 							break;
 						}
 
-					case EQueryElementType.FromClause    : Append(((FromClause)   e).Tables);          break;
+					case EQueryElementType.FromClause    : Append(((IFromClause)   e).Tables);          break;
 					case EQueryElementType.WhereClause   : Append(((WhereClause)  e).SearchCondition); break;
 					case EQueryElementType.GroupByClause : Append(((GroupByClause)e).Items);           break;
 					case EQueryElementType.OrderByClause : Append(((OrderByClause)e).Items);           break;
@@ -1384,7 +1384,7 @@ namespace LinqToDB.ServiceModel
 						{
 							var sid                = ReadInt();
 							var queryType          = (EQueryType)ReadInt();
-							var from               = Read<FromClause>();
+							var from               = Read<IFromClause>();
 							var readInsert         = ReadBool();
 							var insert             = readInsert ? Read<InsertClause>() : null;
 							var readUpdate         = ReadBool();

@@ -7,7 +7,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
-    public abstract class ClauseBase : BaseQueryElement
+    public abstract class ClauseBase : BaseQueryElement,
+                                       IClauseBase
     {
         protected ClauseBase(ISelectQuery selectQuery)
         {
@@ -16,7 +17,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public SelectClause Select => SelectQuery.Select;
 
-        public FromClause From => SelectQuery.From;
+        public IFromClause From => SelectQuery.From;
 
         public WhereClause Where => SelectQuery.Where;
 
@@ -28,9 +29,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public ISelectQuery End() { return SelectQuery; }
 
-        protected internal ISelectQuery SelectQuery { get; private set; }
+        public ISelectQuery SelectQuery { get; private set; }
 
-        internal void SetSqlQuery(ISelectQuery selectQuery)
+        public void SetSqlQuery(ISelectQuery selectQuery)
         {
             SelectQuery = selectQuery;
         }
@@ -53,7 +54,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public SelectClause  Select => SelectQuery.Select;
 
-        public FromClause    From => SelectQuery.From;
+        public IFromClause From => SelectQuery.From;
 
         public GroupByClause GroupBy => SelectQuery.GroupBy;
 

@@ -8,6 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
     public interface IQueryElement : IBaseQueryElement//: ICloneableElement
     {
         EQueryElementType ElementType { get; }
+
         StringBuilder    ToString (StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic);
     }
 }

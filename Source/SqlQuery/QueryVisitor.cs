@@ -93,7 +93,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.ExprPredicate     : return Find(((Expr)    element).Expr1,           find);
 				case EQueryElementType.NotExprPredicate  : return Find(((NotExpr) element).Expr1,           find);
 				case EQueryElementType.IsNullPredicate   : return Find(((IsNull)  element).Expr1,           find);
-				case EQueryElementType.FromClause        : return Find(((FromClause)        element).Tables,          find);
+				case EQueryElementType.FromClause        : return Find(((IFromClause)        element).Tables,          find);
 				case EQueryElementType.WhereClause       : return Find(((WhereClause)       element).SearchCondition, find);
 				case EQueryElementType.GroupByClause     : return Find(((GroupByClause)     element).Items,           find);
 				case EQueryElementType.OrderByClause     : return Find(((OrderByClause)     element).Items,           find);
@@ -609,7 +609,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.FromClause:
 					{
-						var fc   = (FromClause)element;
+						var fc   = (IFromClause)element;
 						var ts = Convert(fc.Tables, action);
 
 						IQueryElement parent;
@@ -618,7 +618,7 @@ namespace LinqToDB.SqlQuery
 						if (parent != null || ts != null && !ReferenceEquals(fc.Tables, ts))
 						{
 							newElement = new FromClause(ts ?? fc.Tables);
-							((FromClause)newElement).SetSqlQuery((ISelectQuery)parent);
+							((IFromClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 
 						break;
@@ -740,7 +740,7 @@ namespace LinqToDB.SqlQuery
 						_visitedElements.Add(q,     nq);
 						_visitedElements.Add(q.All, nq.All);
 
-						var fc = (FromClause)   ConvertInternal(q.From,    action) ?? q.From;
+						var fc = (IFromClause)   ConvertInternal(q.From,    action) ?? q.From;
 						var sc = (SelectClause) ConvertInternal(q.Select,  action) ?? q.Select;
 						var ic = q.IsInsert ? ((InsertClause)ConvertInternal(q.Insert, action) ?? q.Insert) : null;
 						var uc = q.IsUpdate ? ((UpdateClause)ConvertInternal(q.Update, action) ?? q.Update) : null;
