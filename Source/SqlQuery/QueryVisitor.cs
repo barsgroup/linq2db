@@ -128,7 +128,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.JoinedTable:
 					{
-						var join = (JoinedTable)element;
+						var join = (IJoinedTable)element;
 						return
 							Find(join.Table,     find) ??
 							Find(join.Condition, find);
@@ -363,7 +363,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.JoinedTable:
 					{
-						var join  = (JoinedTable)element;
+						var join  = (IJoinedTable)element;
 						var table = (ITableSource)    ConvertInternal(join.Table,     action);
 						var cond  = (SearchCondition)ConvertInternal(join.Condition, action);
 

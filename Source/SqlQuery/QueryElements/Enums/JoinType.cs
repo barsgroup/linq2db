@@ -1,4 +1,4 @@
-namespace LinqToDB.SqlQuery.QueryElements
+namespace LinqToDB.SqlQuery.QueryElements.Enums
 {
     public enum JoinType
     {

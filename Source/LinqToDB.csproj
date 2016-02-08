@@ -406,8 +406,11 @@
     <Compile Include="SqlQuery\QueryElements\CreateTableStatement.cs" />
     <Compile Include="SqlQuery\QueryElements\Enums\EDefaulNullable.cs" />
     <Compile Include="SqlQuery\QueryElements\Enums\EQueryType.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\JoinType.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\Operator.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IBaseQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ICloneableElement.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IJoinedTable.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IOrderByItem.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ISelectQuery.cs" />
@@ -417,8 +420,6 @@
     <Compile Include="SqlQuery\QueryElements\Interfaces\IValueContainer.cs" />
     <Compile Include="SqlQuery\QueryElements\Enums\EQueryElementType.cs" />
     <Compile Include="SqlQuery\QueryElements\JoinedTable.cs" />
-    <Compile Include="SqlQuery\QueryElements\JoinType.cs" />
-    <Compile Include="SqlQuery\QueryElements\Operator.cs" />
     <Compile Include="SqlQuery\QueryElements\OrderByItem.cs" />
     <Compile Include="SqlQuery\QueryElements\Predicates\Between.cs" />
     <Compile Include="SqlQuery\QueryElements\Predicates\Expr.cs" />

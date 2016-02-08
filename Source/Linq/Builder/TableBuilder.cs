@@ -12,6 +12,7 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -1279,7 +1280,7 @@ namespace LinqToDB.Linq.Builder
 		public class AssociatedTableContext : TableContext
 		{
 			public readonly TableContext             ParentAssociation;
-			public readonly JoinedTable  ParentAssociationJoin;
+			public readonly IJoinedTable ParentAssociationJoin;
 			public readonly AssociationDescriptor    Association;
 			public readonly bool                     IsList;
 

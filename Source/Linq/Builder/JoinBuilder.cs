@@ -9,6 +9,7 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
 
@@ -467,7 +468,7 @@ namespace LinqToDB.Linq.Builder
 
 		internal class GroupJoinSubQueryContext : SubQueryContext
 		{
-			public JoinedTable Join;
+			public IJoinedTable Join;
 			public ISelectQuery CounterSelect;
 			public GroupJoinContext        GroupJoin;
 			public Func<IBuildContext>     GetSubQueryContext;

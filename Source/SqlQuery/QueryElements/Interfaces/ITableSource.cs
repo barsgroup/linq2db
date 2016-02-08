@@ -11,7 +11,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         string Alias { get; set; }
 
-        List<JoinedTable> Joins { get; }
+        List<IJoinedTable> Joins { get; }
 
         ITableSource this[ISqlTableSource table] { get; }
 

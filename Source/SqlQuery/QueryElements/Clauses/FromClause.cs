@@ -98,7 +98,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return Tables.Any(ts => ts.Source == table || CheckChild(ts.Joins, table));
         }
 
-        static bool CheckChild(IEnumerable<JoinedTable> joins, ISqlTableSource table)
+        static bool CheckChild(IEnumerable<IJoinedTable> joins, ISqlTableSource table)
         {
             foreach (var j in joins)
                 if (j.Table.Source == table || CheckChild(j.Table.Joins, table))

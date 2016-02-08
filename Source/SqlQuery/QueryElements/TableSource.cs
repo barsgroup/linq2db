@@ -17,7 +17,7 @@ namespace LinqToDB.SqlQuery.QueryElements
         {
         }
 
-        public TableSource(ISqlTableSource source, string alias, params JoinedTable[] joins)
+        public TableSource(ISqlTableSource source, string alias, params IJoinedTable[] joins)
         {
             if (source == null) throw new ArgumentNullException("source");
 
@@ -28,7 +28,7 @@ namespace LinqToDB.SqlQuery.QueryElements
                 _joins.AddRange(joins);
         }
 
-        public TableSource(ISqlTableSource source, string alias, IEnumerable<JoinedTable> joins)
+        public TableSource(ISqlTableSource source, string alias, IEnumerable<IJoinedTable> joins)
         {
             if (source == null) throw new ArgumentNullException("source");
 
@@ -80,8 +80,8 @@ namespace LinqToDB.SqlQuery.QueryElements
             }
         }
 
-        readonly List<JoinedTable> _joins = new List<JoinedTable>();
-        public   List<JoinedTable>  Joins => _joins;
+        readonly List<IJoinedTable> _joins = new List<IJoinedTable>();
+        public   List<IJoinedTable>  Joins => _joins;
 
         public void ForEach(Action<ITableSource> action, HashSet<ISelectQuery> visitedQueries)
         {
@@ -176,7 +176,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
                 objectTree.Add(this, clone = ts);
 
-                ts._joins.AddRange(_joins.Select(jt => (JoinedTable)jt.Clone(objectTree, doClone)));
+                ts._joins.AddRange(_joins.Select(jt => (IJoinedTable)jt.Clone(objectTree, doClone)));
             }
 
             return clone;

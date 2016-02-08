@@ -12,6 +12,8 @@ namespace LinqToDB.Linq.Builder
 	using Extensions;
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -83,7 +85,7 @@ namespace LinqToDB.Linq.Builder
 			foreach (var sql in groupSql)
 				sequence.Select.GroupBy.Expr(sql.Sql);
 
-		    foreach (var join in QueryVisitor.FindOnce<JoinedTable>(sequence.Select.From).Where(f => f.JoinType == JoinType.Inner))
+		    foreach (var join in QueryVisitor.FindOnce<IJoinedTable>(sequence.Select.From).Where(f => f.JoinType == JoinType.Inner))
 		    {
 		        join.IsWeak = false;
 		    }

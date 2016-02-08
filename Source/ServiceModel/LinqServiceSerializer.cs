@@ -940,7 +940,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.JoinedTable :
 						{
-							var elem = (JoinedTable)e;
+							var elem = (IJoinedTable)e;
 
 							Append((int)elem.JoinType);
 							Append(elem.Table);
@@ -1468,7 +1468,7 @@ namespace LinqToDB.ServiceModel
 						{
 							var source = Read<ISqlTableSource>();
 							var alias  = ReadString();
-							var joins  = ReadArray<JoinedTable>();
+							var joins  = ReadArray<IJoinedTable>();
 
 							obj = new TableSource(source, alias, joins);
 

@@ -9,7 +9,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class JoinedTable : BaseQueryElement, ISqlExpressionWalkable, ICloneableElement
+    public class JoinedTable : BaseQueryElement, IJoinedTable
     {
         public JoinedTable(JoinType joinType, ITableSource table, bool isWeak, SearchCondition searchCondition)
         {

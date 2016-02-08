@@ -44,7 +44,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
                     JoinedTable.Table.Joins.Add(@join.JoinedTable);
         }
 
-        public JoinedTable JoinedTable { get; }
+        public IJoinedTable JoinedTable { get; }
 
         protected override void GetChildrenInternal(List<IQueryElement> list)
         {

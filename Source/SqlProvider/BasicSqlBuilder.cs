@@ -985,7 +985,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		void BuildJoinTable(JoinedTable join, ref int joinCounter)
+		void BuildJoinTable(IJoinedTable join, ref int joinCounter)
 		{
 			StringBuilder.AppendLine();
 			Indent++;
@@ -1037,7 +1037,7 @@ namespace LinqToDB.SqlProvider
 			Indent--;
 		}
 
-		protected virtual bool BuildJoinType(JoinedTable join)
+		protected virtual bool BuildJoinType(IJoinedTable join)
 		{
 			switch (join.JoinType)
 			{

@@ -780,7 +780,7 @@ namespace LinqToDB.SqlQuery
 			return false;
 		}
 
-		void OptimizeApply(ITableSource tableSource, JoinedTable joinTable, bool isApplySupported, bool optimizeColumns)
+		void OptimizeApply(ITableSource tableSource, IJoinedTable joinTable, bool isApplySupported, bool optimizeColumns)
 		{
 			var joinSource = joinTable.Table;
 
