@@ -308,7 +308,7 @@ namespace LinqToDB.SqlQuery
 
 						case QueryElementType.OrderByItem :
 							{
-								var expr = (OrderByItem)e;
+								var expr = (IOrderByItem)e;
 								if (dic.TryGetValue(expr.Expression, out ex)) expr.Expression = ex;
 								break;
 							}

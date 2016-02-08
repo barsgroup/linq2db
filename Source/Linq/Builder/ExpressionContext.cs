@@ -5,6 +5,7 @@ namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     class ExpressionContext : SequenceContextBase
 	{

@@ -1019,7 +1019,7 @@ namespace LinqToDB.ServiceModel
 
 					case QueryElementType.OrderByItem :
 						{
-							var elem = (OrderByItem)e;
+							var elem = (IOrderByItem)e;
 
 							Append(elem.Expression);
 							Append(elem.IsDescending);
@@ -1558,7 +1558,7 @@ namespace LinqToDB.ServiceModel
 					case QueryElementType.FromClause    : obj = new FromClause   (ReadArray<ITableSource>());                break;
 					case QueryElementType.WhereClause   : obj = new WhereClause  (Read     <SearchCondition>());            break;
 					case QueryElementType.GroupByClause : obj = new GroupByClause(ReadArray<ISqlExpression>());                         break;
-					case QueryElementType.OrderByClause : obj = new OrderByClause(ReadArray<OrderByItem>());                break;
+					case QueryElementType.OrderByClause : obj = new OrderByClause(ReadArray<IOrderByItem>());                break;
 
 					case QueryElementType.OrderByItem :
 						{

@@ -96,7 +96,7 @@ namespace LinqToDB.SqlQuery
 				case QueryElementType.WhereClause       : return Find(((WhereClause)       element).SearchCondition, find);
 				case QueryElementType.GroupByClause     : return Find(((GroupByClause)     element).Items,           find);
 				case QueryElementType.OrderByClause     : return Find(((OrderByClause)     element).Items,           find);
-				case QueryElementType.OrderByItem       : return Find(((OrderByItem)       element).Expression,      find);
+				case QueryElementType.OrderByItem       : return Find(((IOrderByItem)       element).Expression,      find);
 				case QueryElementType.Union             : return Find(((Union)             element).SelectQuery,        find);
 				case QueryElementType.FuncLikePredicate : return Find(((FuncLike)element).Function,        find);
 
@@ -676,7 +676,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.OrderByItem:
 					{
-						var i = (OrderByItem)element;
+						var i = (IOrderByItem)element;
 						var e = (ISqlExpression)ConvertInternal(i.Expression, action);
 
 						if (e != null && !ReferenceEquals(i.Expression, e))

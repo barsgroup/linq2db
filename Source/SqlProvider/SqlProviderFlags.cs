@@ -1,6 +1,7 @@
 ﻿namespace LinqToDB.SqlProvider
 {
     using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     public class SqlProviderFlags
 	{

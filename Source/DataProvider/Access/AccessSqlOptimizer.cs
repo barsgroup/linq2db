@@ -1,6 +1,7 @@
 ﻿namespace LinqToDB.DataProvider.Access
 {
     using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     using SqlProvider;
 	using SqlQuery;

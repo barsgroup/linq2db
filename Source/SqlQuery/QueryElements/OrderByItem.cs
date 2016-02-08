@@ -7,7 +7,8 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class OrderByItem : BaseQueryElement, ICloneableElement
+    public class OrderByItem : BaseQueryElement,
+                               IOrderByItem
     {
         public OrderByItem(ISqlExpression expression, bool isDescending)
         {
@@ -15,12 +16,14 @@ namespace LinqToDB.SqlQuery.QueryElements
             IsDescending = isDescending;
         }
 
-        public ISqlExpression Expression   { get; internal set; }
+        public ISqlExpression Expression   { get;  set; }
         public bool           IsDescending { get; private set; }
 
-        internal void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        public ISqlExpression Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
         {
             Expression = Expression.Walk(skipColumns, func);
+
+            return null;
         }
 
         public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)

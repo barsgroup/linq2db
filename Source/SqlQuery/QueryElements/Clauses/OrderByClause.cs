@@ -22,10 +22,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
-            _items.AddRange(clone._items.Select(item => (OrderByItem)item.Clone(objectTree, doClone)));
+            _items.AddRange(clone._items.Select(item => (IOrderByItem)item.Clone(objectTree, doClone)));
         }
 
-        internal OrderByClause(IEnumerable<OrderByItem> items) : base(null)
+        internal OrderByClause(IEnumerable<IOrderByItem> items) : base(null)
         {
             _items.AddRange(items);
         }
@@ -57,8 +57,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             Items.Add(new OrderByItem(expr, isDescending));
         }
 
-        readonly List<OrderByItem> _items = new List<OrderByItem>();
-        public   List<OrderByItem>  Items => _items;
+        readonly List<IOrderByItem> _items = new List<IOrderByItem>();
+        public   List<IOrderByItem>  Items => _items;
 
         public bool IsEmpty => Items.Count == 0;
 
