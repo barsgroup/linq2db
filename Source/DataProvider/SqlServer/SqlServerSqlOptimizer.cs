@@ -4,6 +4,8 @@ namespace LinqToDB.DataProvider.SqlServer
 {
 	using Extensions;
 
+	using LinqToDB.SqlQuery.QueryElements.Enums;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -22,7 +24,7 @@ namespace LinqToDB.DataProvider.SqlServer
 
 			switch (expr.ElementType)
 			{
-				case QueryElementType.SqlBinaryExpression:
+				case EQueryElementType.SqlBinaryExpression:
 					{
 						var be = (SqlBinaryExpression)expr;
 
@@ -48,7 +50,7 @@ namespace LinqToDB.DataProvider.SqlServer
 						break;
 					}
 
-				case QueryElementType.SqlFunction:
+				case EQueryElementType.SqlFunction:
 					{
 						var func = (SqlFunction)expr;
 

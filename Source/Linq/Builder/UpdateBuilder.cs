@@ -9,6 +9,8 @@ namespace LinqToDB.Linq.Builder
 	using Extensions;
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -100,7 +102,7 @@ namespace LinqToDB.Linq.Builder
 					}
 			}
 
-			sequence.Select.QueryType = QueryType.Update;
+			sequence.Select.EQueryType = EQueryType.Update;
 
 			return new UpdateContext(buildInfo.Parent, sequence);
 		}
@@ -219,7 +221,7 @@ namespace LinqToDB.Linq.Builder
 						var column = into.ConvertToSql(pe, 1, ConvertFlags.Field);
 						var expr   = builder.ConvertToSqlExpression(ctx, ma.Expression);
 
-						if (expr.ElementType == QueryElementType.SqlParameter)
+						if (expr.ElementType == EQueryElementType.SqlParameter)
 						{
 							var parm  = (SqlParameter)expr;
 							var field = (SqlField)column[0].Sql;

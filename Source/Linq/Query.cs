@@ -14,6 +14,7 @@ namespace LinqToDB.Linq
 	using Extensions;
 	using LinqToDB.Expressions;
     using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -617,7 +618,7 @@ namespace LinqToDB.Linq
 					if (!ObjectOperation<T>.Insert.TryGetValue(key, out ei))
 					{
 						var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
-						var sqlQuery = new SelectQuery { QueryType = QueryType.Insert };
+						var sqlQuery = new SelectQuery { EQueryType = EQueryType.Insert };
 
 						if (tableName    != null) sqlTable.PhysicalName = tableName;
 						if (databaseName != null) sqlTable.Database     = databaseName;
@@ -679,7 +680,7 @@ namespace LinqToDB.Linq
 					if (!ObjectOperation<T>.InsertWithIdentity.TryGetValue(key, out ei))
 					{
 						var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
-						var sqlQuery = new SelectQuery { QueryType = QueryType.Insert };
+						var sqlQuery = new SelectQuery { EQueryType = EQueryType.Insert };
 
 						sqlQuery.Insert.Into         = sqlTable;
 						sqlQuery.Insert.WithIdentity = true;
@@ -741,7 +742,7 @@ namespace LinqToDB.Linq
 					{
 						var fieldDic = new Dictionary<SqlField, ParameterAccessor>();
 						var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
-						var sqlQuery = new SelectQuery { QueryType = QueryType.InsertOrUpdate };
+						var sqlQuery = new SelectQuery { EQueryType = EQueryType.InsertOrUpdate };
 
 						ParameterAccessor param;
 
@@ -846,7 +847,7 @@ namespace LinqToDB.Linq
 
 			var insertQuery = (ISelectQuery)selectQuery.Clone(dic, _ => true);
 
-			insertQuery.QueryType = QueryType.Insert;
+			insertQuery.EQueryType = EQueryType.Insert;
 			insertQuery.ClearUpdate();
 			insertQuery.From.Tables.Clear();
 
@@ -869,7 +870,7 @@ namespace LinqToDB.Linq
 			foreach (var key in keys)
 				selectQuery.Where.Expr(key.Column).Equal.Expr(key.Expression);
 
-			selectQuery.QueryType = QueryType.Update;
+			selectQuery.EQueryType = EQueryType.Update;
 			selectQuery.ClearInsert();
 
 			SetNonQueryQuery2();
@@ -899,7 +900,7 @@ namespace LinqToDB.Linq
 					if (!ObjectOperation<T>.Update.TryGetValue(key, out ei))
 					{
 						var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
-						var sqlQuery = new SelectQuery { QueryType = QueryType.Update };
+						var sqlQuery = new SelectQuery { EQueryType = EQueryType.Update };
 
 						sqlQuery.From.Table(sqlTable);
 
@@ -973,7 +974,7 @@ namespace LinqToDB.Linq
 					if (!ObjectOperation<T>.Delete.TryGetValue(key, out ei))
 					{
 						var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
-						var sqlQuery = new SelectQuery { QueryType = QueryType.Delete };
+						var sqlQuery = new SelectQuery { EQueryType = EQueryType.Delete };
 
 						sqlQuery.From.Table(sqlTable);
 
@@ -1022,10 +1023,10 @@ namespace LinqToDB.Linq
 			string         schemaName      = null,
 			string         statementHeader = null,
 			string         statementFooter = null,
-			DefaulNullable defaulNullable  = DefaulNullable.None)
+			EDefaulNullable eDefaulNullable  = EDefaulNullable.None)
 		{
 			var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
-			var sqlQuery = new SelectQuery { QueryType = QueryType.CreateTable };
+			var sqlQuery = new SelectQuery { EQueryType = EQueryType.CreateTable };
 
 			if (tableName    != null) sqlTable.PhysicalName = tableName;
 			if (databaseName != null) sqlTable.Database     = databaseName;
@@ -1034,7 +1035,7 @@ namespace LinqToDB.Linq
 			sqlQuery.CreateTable.Table           = sqlTable;
 			sqlQuery.CreateTable.StatementHeader = statementHeader;
 			sqlQuery.CreateTable.StatementFooter = statementFooter;
-			sqlQuery.CreateTable.DefaulNullable  = defaulNullable;
+			sqlQuery.CreateTable.EDefaulNullable  = eDefaulNullable;
 
 			var query = new Query<int>
 			{
@@ -1063,7 +1064,7 @@ namespace LinqToDB.Linq
 			string ownerName    = null)
 		{
 			var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
-			var sqlQuery = new SelectQuery { QueryType = QueryType.CreateTable };
+			var sqlQuery = new SelectQuery { EQueryType = EQueryType.CreateTable };
 
 			if (tableName    != null) sqlTable.PhysicalName = tableName;
 			if (databaseName != null) sqlTable.Database     = databaseName;

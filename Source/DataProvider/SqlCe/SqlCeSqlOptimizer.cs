@@ -4,7 +4,7 @@ namespace LinqToDB.DataProvider.SqlCe
 {
 	using Extensions;
 
-	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -29,14 +29,14 @@ namespace LinqToDB.DataProvider.SqlCe
 
             }
 
-			switch (selectQuery.QueryType)
+			switch (selectQuery.EQueryType)
 			{
-				case QueryType.Delete :
+				case EQueryType.Delete :
 					selectQuery = GetAlternativeDelete(selectQuery);
 					selectQuery.From.Tables[0].Alias = "$";
 					break;
 
-				case QueryType.Update :
+				case EQueryType.Update :
 					selectQuery = GetAlternativeUpdate(selectQuery);
 					break;
 			}

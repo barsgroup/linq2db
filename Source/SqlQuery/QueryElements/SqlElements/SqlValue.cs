@@ -5,6 +5,7 @@
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -111,7 +112,7 @@
         {
         }
 
-        public override QueryElementType ElementType { get { return QueryElementType.SqlValue; } }
+        public override EQueryElementType ElementType { get { return EQueryElementType.SqlValue; } }
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

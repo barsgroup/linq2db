@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
 	using SqlQuery;
@@ -78,7 +79,7 @@ namespace LinqToDB.Linq.Builder
 					sequence);
 			}
 
-			sequence.Select.QueryType = QueryType.InsertOrUpdate;
+			sequence.Select.EQueryType = EQueryType.InsertOrUpdate;
 
 			return new InsertOrUpdateContext(buildInfo.Parent, sequence);
 		}

@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Text;
 
     using LinqToDB.Properties;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -59,7 +60,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             list.Add(Expr1);
         }
 
-        public override QueryElementType ElementType => QueryElementType.ExprPredicate;
+        public override EQueryElementType ElementType => EQueryElementType.ExprPredicate;
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {

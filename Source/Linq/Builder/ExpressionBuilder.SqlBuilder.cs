@@ -17,6 +17,7 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.SqlEntities;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -273,14 +274,14 @@ namespace LinqToDB.Linq.Builder
 				if (fromGroupBy)
 				{
 					if (subQuery.Select.Columns.Count == 1 &&
-					    subQuery.Select.Columns[0].Expression.ElementType == QueryElementType.SqlFunction &&
+					    subQuery.Select.Columns[0].Expression.ElementType == EQueryElementType.SqlFunction &&
 					    subQuery.GroupBy.IsEmpty && !subQuery.Select.HasModifier && !subQuery.HasUnion &&
 					    subQuery.Where.SearchCondition.Conditions.Count == 1)
 					{
 						var cond = subQuery.Where.SearchCondition.Conditions[0];
 
-						if (cond.Predicate.ElementType == QueryElementType.ExprExprPredicate && query.GroupBy.Items.Count == 1 ||
-						    cond.Predicate.ElementType == QueryElementType.SearchCondition &&
+						if (cond.Predicate.ElementType == EQueryElementType.ExprExprPredicate && query.GroupBy.Items.Count == 1 ||
+						    cond.Predicate.ElementType == EQueryElementType.SearchCondition &&
 						    query.GroupBy.Items.Count == ((SearchCondition)cond.Predicate).Conditions.Count)
 						{
 							var func = (SqlFunction)subQuery.Select.Columns[0].Expression;
@@ -1445,13 +1446,13 @@ namespace LinqToDB.Linq.Builder
 					// | (SqlValue(null), SqlQuery(Select([]) as q))  =>
 
 					var q =
-						l.ElementType == QueryElementType.SqlQuery &&
-						r.ElementType == QueryElementType.SqlValue &&
+						l.ElementType == EQueryElementType.SqlQuery &&
+						r.ElementType == EQueryElementType.SqlValue &&
 						((SqlValue)r).Value == null &&
 						((ISelectQuery)l).Select.Columns.Count == 0 ?
 							(ISelectQuery)l :
-						r.ElementType == QueryElementType.SqlQuery &&
-						l.ElementType == QueryElementType.SqlValue &&
+						r.ElementType == EQueryElementType.SqlQuery &&
+						l.ElementType == EQueryElementType.SqlValue &&
 						((SqlValue)l).Value == null &&
 						((ISelectQuery)r).Select.Columns.Count == 0 ?
 							(ISelectQuery)r :
@@ -2211,7 +2212,7 @@ namespace LinqToDB.Linq.Builder
 					{
 						var expr = ((Expr)predicate).Expr1;
 
-						if (expr.ElementType == QueryElementType.SearchCondition)
+						if (expr.ElementType == EQueryElementType.SearchCondition)
 						{
 							var sc = (SearchCondition)expr;
 

@@ -4,6 +4,8 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
+
 	using SqlQuery;
 
 	class DropBuilder : MethodCallBuilder
@@ -19,7 +21,7 @@ namespace LinqToDB.Linq.Builder
 		{
 			var sequence = (TableBuilder.TableContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
-			sequence.Select.QueryType          = QueryType.CreateTable;
+			sequence.Select.EQueryType          = EQueryType.CreateTable;
 			sequence.Select.CreateTable.Table  = sequence.SqlTable;
 			sequence.Select.CreateTable.IsDrop = true;
 

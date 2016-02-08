@@ -386,7 +386,6 @@
     <Compile Include="Linq\ReflectionHelper.cs" />
     <Compile Include="SqlProvider\ValueToSqlValueConverter.cs" />
     <Compile Include="SqlProvider\ValueToSqlConverter.cs" />
-    <Compile Include="SqlQuery\DefaulNullable.cs" />
     <Compile Include="SqlQuery\QueryElements\BaseQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Clauses\ClauseBase.cs" />
     <Compile Include="SqlQuery\QueryElements\Clauses\DeleteClause.cs" />
@@ -405,6 +404,8 @@
     <Compile Include="SqlQuery\QueryElements\Conditions\NextCondition.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\SearchCondition.cs" />
     <Compile Include="SqlQuery\QueryElements\CreateTableStatement.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\EDefaulNullable.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\EQueryType.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IBaseQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ICloneableElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IOrderByItem.cs" />
@@ -412,6 +413,8 @@
     <Compile Include="SqlQuery\QueryElements\Interfaces\ISelectQuery.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ITableSource.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IUnion.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IValueContainer.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\EQueryElementType.cs" />
     <Compile Include="SqlQuery\QueryElements\JoinedTable.cs" />
     <Compile Include="SqlQuery\QueryElements\JoinType.cs" />
     <Compile Include="SqlQuery\QueryElements\Operator.cs" />
@@ -445,10 +448,7 @@
     <Compile Include="SqlEntities\Sql.TableFunctionAttribute.cs" />
     <Compile Include="Linq\TableT.cs" />
     <Compile Include="SqlQuery\Extensions.cs" />
-    <Compile Include="SqlQuery\IValueContainer.cs" />
     <Compile Include="SqlQuery\Precedence.cs" />
-    <Compile Include="SqlQuery\QueryElementType.cs" />
-    <Compile Include="SqlQuery\QueryType.cs" />
     <Compile Include="SqlQuery\QueryVisitor.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\SqlBinaryExpression.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\SqlDataType.cs" />
@@ -512,6 +512,7 @@
     <None Include="linq2db.snk" />
     <None Include="paket.references" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

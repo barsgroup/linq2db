@@ -4,11 +4,10 @@ using System.Linq;
 
 namespace LinqToDB.SqlQuery
 {
-    using System.Threading.Tasks;
-
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Clauses;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -79,7 +78,7 @@ namespace LinqToDB.SqlQuery
 			{
 				switch (e.ElementType)
 				{
-					case QueryElementType.SqlField :
+					case EQueryElementType.SqlField :
 						{
 							var field = (SqlField)e;
 
@@ -89,7 +88,7 @@ namespace LinqToDB.SqlQuery
 							break;
 						}
 
-					case QueryElementType.SqlQuery :
+					case EQueryElementType.SqlQuery :
 						{
 							if (e != selectQuery)
 							{
@@ -100,10 +99,10 @@ namespace LinqToDB.SqlQuery
 							break;
 						}
 
-					case QueryElementType.Column :
+					case EQueryElementType.Column :
 						return ((Column)e).Parent == selectQuery;
 
-					case QueryElementType.SqlTable :
+					case EQueryElementType.SqlTable :
 						return false;
 				}
 
@@ -194,10 +193,10 @@ namespace LinqToDB.SqlQuery
 
 					switch (e.ElementType)
 					{
-						case QueryElementType.SqlQuery :
+						case EQueryElementType.SqlQuery :
 							return e == data.Query;
 
-						case QueryElementType.SqlFunction :
+						case EQueryElementType.SqlFunction :
 							{
 								var parms = ((SqlFunction)e).Parameters;
 
@@ -208,7 +207,7 @@ namespace LinqToDB.SqlQuery
 								break;
 							}
 
-						case QueryElementType.SqlExpression :
+						case EQueryElementType.SqlExpression :
 							{
 								var parms = ((SqlExpression)e).Parameters;
 
@@ -219,7 +218,7 @@ namespace LinqToDB.SqlQuery
 								break;
 							}
 
-						case QueryElementType.SqlBinaryExpression :
+						case EQueryElementType.SqlBinaryExpression :
 							{
 								var expr = (SqlBinaryExpression)e;
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
@@ -227,17 +226,17 @@ namespace LinqToDB.SqlQuery
 								break;
 							}
 
-						case QueryElementType.ExprPredicate       :
-						case QueryElementType.NotExprPredicate    :
-						case QueryElementType.IsNullPredicate     :
-						case QueryElementType.InSubQueryPredicate :
+						case EQueryElementType.ExprPredicate       :
+						case EQueryElementType.NotExprPredicate    :
+						case EQueryElementType.IsNullPredicate     :
+						case EQueryElementType.InSubQueryPredicate :
 							{
 								var expr = (Expr)e;
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
 								break;
 							}
 
-						case QueryElementType.ExprExprPredicate :
+						case EQueryElementType.ExprExprPredicate :
 							{
 								var expr = (ExprExpr)e;
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
@@ -245,7 +244,7 @@ namespace LinqToDB.SqlQuery
 								break;
 							}
 
-						case QueryElementType.LikePredicate :
+						case EQueryElementType.LikePredicate :
 							{
 								var expr = (Like)e;
 								if (dic.TryGetValue(expr.Expr1,  out ex)) expr.Expr1  = ex;
@@ -254,7 +253,7 @@ namespace LinqToDB.SqlQuery
 								break;
 							}
 
-						case QueryElementType.BetweenPredicate :
+						case EQueryElementType.BetweenPredicate :
 							{
 								var expr = (Between)e;
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
@@ -263,7 +262,7 @@ namespace LinqToDB.SqlQuery
 								break;
 							}
 
-						case QueryElementType.InListPredicate :
+						case EQueryElementType.InListPredicate :
 							{
 								var expr = (InList)e;
 
@@ -276,7 +275,7 @@ namespace LinqToDB.SqlQuery
 								break;
 							}
 
-						case QueryElementType.Column :
+						case EQueryElementType.Column :
 							{
 								var expr = (Column)e;
 
@@ -288,14 +287,14 @@ namespace LinqToDB.SqlQuery
 								break;
 							}
 
-						case QueryElementType.SetExpression :
+						case EQueryElementType.SetExpression :
 							{
 								var expr = (SetExpression)e;
 								if (dic.TryGetValue(expr.Expression, out ex)) expr.Expression = ex;
 								break;
 							}
 
-						case QueryElementType.GroupByClause :
+						case EQueryElementType.GroupByClause :
 							{
 								var expr = (GroupByClause)e;
 
@@ -306,7 +305,7 @@ namespace LinqToDB.SqlQuery
 								break;
 							}
 
-						case QueryElementType.OrderByItem :
+						case EQueryElementType.OrderByItem :
 							{
 								var expr = (IOrderByItem)e;
 								if (dic.TryGetValue(expr.Expression, out ex)) expr.Expression = ex;
@@ -495,7 +494,7 @@ namespace LinqToDB.SqlQuery
 					}
 				}
 
-				if (cond.Predicate.ElementType == QueryElementType.ExprPredicate)
+				if (cond.Predicate.ElementType == EQueryElementType.ExprPredicate)
 				{
 					var expr = (Expr)cond.Predicate;
 
@@ -514,7 +513,7 @@ namespace LinqToDB.SqlQuery
 			{
 				var cond = searchCondition.Conditions[i];
 
-				if (cond.Predicate.ElementType == QueryElementType.ExprPredicate)
+				if (cond.Predicate.ElementType == EQueryElementType.ExprPredicate)
 				{
 					var expr = (Expr)cond.Predicate;
 
@@ -792,7 +791,7 @@ namespace LinqToDB.SqlQuery
 			if (isApplySupported && !joinTable.CanConvertApply)
 				return;
 
-			if (joinSource.Source.ElementType == QueryElementType.SqlQuery)
+			if (joinSource.Source.ElementType == EQueryElementType.SqlQuery)
 			{
 				var sql   = (ISelectQuery)joinSource.Source;
 				var isAgg = sql.Select.Columns.Any(c => IsAggregationFunction(c.Expression));
@@ -846,8 +845,8 @@ namespace LinqToDB.SqlQuery
 		{
 			return null != new QueryVisitor().Find(sql, e =>
 				e == table ||
-				e.ElementType == QueryElementType.SqlField && table == ((SqlField)e).Table ||
-				e.ElementType == QueryElementType.Column   && table == ((Column)  e).Parent);
+				e.ElementType == EQueryElementType.SqlField && table == ((SqlField)e).Table ||
+				e.ElementType == EQueryElementType.Column   && table == ((Column)  e).Parent);
 		}
 
 		static void ConcatSearchCondition(WhereClause where1, WhereClause where2)

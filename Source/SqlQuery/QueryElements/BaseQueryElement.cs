@@ -3,6 +3,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     public abstract class BaseQueryElement : IQueryElement
@@ -29,7 +30,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         protected abstract void GetChildrenInternal(List<IQueryElement> list);
 
-        public abstract QueryElementType ElementType { get; }
+        public abstract EQueryElementType ElementType { get; }
 
         public abstract StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic);
     }

@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using System.Linq;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -133,7 +134,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
             list.AddRange(Conditions);
         }
 
-        public override QueryElementType ElementType => QueryElementType.SearchCondition;
+        public override EQueryElementType ElementType => EQueryElementType.SearchCondition;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {

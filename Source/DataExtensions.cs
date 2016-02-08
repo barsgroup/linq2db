@@ -9,6 +9,7 @@ namespace LinqToDB
 	using Linq;
 
 	using LinqToDB.Properties;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 
 	using SqlQuery;
 
@@ -267,11 +268,11 @@ namespace LinqToDB
 			string         ownerName       = null,
 			string         statementHeader = null,
 			string         statementFooter = null,
-			DefaulNullable defaulNullable  = DefaulNullable.None)
+			EDefaulNullable eDefaulNullable  = EDefaulNullable.None)
 		{
 			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
 			return Query<T>.CreateTable(dataContextInfo,
-				tableName, databaseName, ownerName, statementHeader, statementFooter, defaulNullable);
+				tableName, databaseName, ownerName, statementHeader, statementFooter, eDefaulNullable);
 		}
 
 		public static ITable<T> CreateTable<T>([NotNull] this IDataContext dataContext,
@@ -280,11 +281,11 @@ namespace LinqToDB
 			string         ownerName       = null,
 			string         statementHeader = null,
 			string         statementFooter = null,
-			DefaulNullable defaulNullable  = DefaulNullable.None)
+			EDefaulNullable eDefaulNullable  = EDefaulNullable.None)
 		{
 			if (dataContext == null) throw new ArgumentNullException("dataContext");
 			return Query<T>.CreateTable(DataContextInfo.Create(dataContext),
-				tableName, databaseName, ownerName, statementHeader, statementFooter, defaulNullable);
+				tableName, databaseName, ownerName, statementHeader, statementFooter, eDefaulNullable);
 		}
 
 		public static void DropTable<T>([NotNull] this IDataContextInfo dataContextInfo,

@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -64,7 +65,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             list.AddRange(Items);
         }
 
-        public override QueryElementType ElementType => QueryElementType.InsertClause;
+        public override EQueryElementType ElementType => EQueryElementType.InsertClause;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {

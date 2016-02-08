@@ -1,10 +1,10 @@
 namespace LinqToDB.SqlQuery.QueryElements.Clauses
 {
-    using System;
     using System.Collections.Generic;
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     public abstract class ClauseBase : BaseQueryElement
@@ -35,7 +35,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             SelectQuery = selectQuery;
         }
 
-        public override QueryElementType ElementType => QueryElementType.None;
+        public override EQueryElementType ElementType => EQueryElementType.None;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {

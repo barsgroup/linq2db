@@ -2,10 +2,9 @@ namespace LinqToDB.SqlQuery.QueryElements
 {
     using System;
     using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -150,7 +149,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             list.Add(Expression);
         }
 
-        public sealed override QueryElementType ElementType => QueryElementType.Column;
+        public sealed override EQueryElementType ElementType => EQueryElementType.Column;
 
         public sealed override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {

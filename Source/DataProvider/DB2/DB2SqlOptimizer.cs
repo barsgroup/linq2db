@@ -3,7 +3,7 @@
 	using Extensions;
 
 	using LinqToDB.SqlEntities;
-	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -27,10 +27,10 @@
 
 			selectQuery = base.Finalize(selectQuery);
 
-			switch (selectQuery.QueryType)
+			switch (selectQuery.EQueryType)
 			{
-				case QueryType.Delete : return GetAlternativeDelete(selectQuery);
-				case QueryType.Update : return GetAlternativeUpdate(selectQuery);
+				case EQueryType.Delete : return GetAlternativeDelete(selectQuery);
+				case EQueryType.Update : return GetAlternativeUpdate(selectQuery);
 				default               : return selectQuery;
 			}
 		}

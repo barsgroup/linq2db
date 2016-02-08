@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -50,7 +51,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             list.Add(Expr3);
         }
 
-        public override QueryElementType ElementType => QueryElementType.BetweenPredicate;
+        public override EQueryElementType ElementType => EQueryElementType.BetweenPredicate;
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {

@@ -1,6 +1,6 @@
 ﻿namespace LinqToDB.DataProvider.Access
 {
-    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     using SqlProvider;
@@ -16,9 +16,9 @@
 		{
 			selectQuery = base.Finalize(selectQuery);
 
-			switch (selectQuery.QueryType)
+			switch (selectQuery.EQueryType)
 			{
-				case QueryType.Delete : return GetAlternativeDelete(selectQuery);
+				case EQueryType.Delete : return GetAlternativeDelete(selectQuery);
 				default               : return selectQuery;
 			}
 		}

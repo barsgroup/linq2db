@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -51,7 +52,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             list.Add(Table);
         }
 
-        public override QueryElementType ElementType => QueryElementType.DeleteClause;
+        public override EQueryElementType ElementType => EQueryElementType.DeleteClause;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {

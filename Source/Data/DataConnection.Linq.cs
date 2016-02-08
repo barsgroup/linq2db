@@ -11,7 +11,6 @@ namespace LinqToDB.Data
 	using DataProvider;
 	using Linq;
 
-	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 

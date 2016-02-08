@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -41,7 +42,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             return clone;
         }
 
-        public override QueryElementType ElementType => QueryElementType.FuncLikePredicate;
+        public override EQueryElementType ElementType => EQueryElementType.FuncLikePredicate;
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {

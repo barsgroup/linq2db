@@ -6,6 +6,7 @@ namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
 	using SqlQuery;
@@ -103,7 +104,7 @@ namespace LinqToDB.Linq.Builder
 				}
 			}
 
-			sequence.Select.QueryType           = QueryType.Insert;
+			sequence.Select.EQueryType           = EQueryType.Insert;
 			sequence.Select.Insert.WithIdentity = methodCall.Method.Name == "InsertWithIdentity";
 
 			return new InsertContext(buildInfo.Parent, sequence, sequence.Select.Insert.WithIdentity);

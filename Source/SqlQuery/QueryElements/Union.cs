@@ -3,6 +3,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     public class Union : BaseQueryElement,
@@ -17,7 +18,7 @@ namespace LinqToDB.SqlQuery.QueryElements
         public ISelectQuery SelectQuery { get; private set; }
         public bool IsAll { get; private set; }
 
-        public override QueryElementType ElementType => QueryElementType.Union;
+        public override EQueryElementType ElementType => EQueryElementType.Union;
 
 #if OVERRIDETOSTRING
 

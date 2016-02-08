@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -27,7 +28,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             return clone;
         }
 
-        public override QueryElementType ElementType => QueryElementType.LikePredicate;
+        public override EQueryElementType ElementType => EQueryElementType.LikePredicate;
 
         public HierarhicalLike(ISqlExpression exp1, ISqlExpression exp2, string start, string end)
             : base(exp1, false, exp2, null)

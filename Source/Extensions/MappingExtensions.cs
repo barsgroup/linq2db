@@ -4,7 +4,6 @@ namespace LinqToDB.Extensions
 {
 	using Common;
 
-	using LinqToDB.DataProvider.SqlServer;
 	using LinqToDB.SqlEntities;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 

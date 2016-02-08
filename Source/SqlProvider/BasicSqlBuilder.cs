@@ -11,6 +11,7 @@ namespace LinqToDB.SqlProvider
 
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -147,14 +148,14 @@ namespace LinqToDB.SqlProvider
 
 		protected virtual void BuildSql()
 		{
-			switch (SelectQuery.QueryType)
+			switch (SelectQuery.EQueryType)
 			{
-				case QueryType.Select         : BuildSelectQuery        (); break;
-				case QueryType.Delete         : BuildDeleteQuery        (); break;
-				case QueryType.Update         : BuildUpdateQuery        (); break;
-				case QueryType.Insert         : BuildInsertQuery        (); break;
-				case QueryType.InsertOrUpdate : BuildInsertOrUpdateQuery(); break;
-				case QueryType.CreateTable    :
+				case EQueryType.Select         : BuildSelectQuery        (); break;
+				case EQueryType.Delete         : BuildDeleteQuery        (); break;
+				case EQueryType.Update         : BuildUpdateQuery        (); break;
+				case EQueryType.Insert         : BuildInsertQuery        (); break;
+				case EQueryType.InsertOrUpdate : BuildInsertOrUpdateQuery(); break;
+				case EQueryType.CreateTable    :
 					if (SelectQuery.CreateTable.IsDrop)
 						BuildDropTableStatement();
 					else
@@ -201,7 +202,7 @@ namespace LinqToDB.SqlProvider
 		{
 			BuildStep = Step.InsertClause; BuildInsertClause();
 
-			if (SelectQuery.QueryType == QueryType.Insert && SelectQuery.From.Tables.Count != 0)
+			if (SelectQuery.EQueryType == EQueryType.Insert && SelectQuery.From.Tables.Count != 0)
 			{
 				BuildStep = Step.SelectClause;  BuildSelectClause ();
 				BuildStep = Step.FromClause;    BuildFromClause   ();
@@ -218,7 +219,7 @@ namespace LinqToDB.SqlProvider
 
 		protected virtual void BuildUnknownQuery()
 		{
-			throw new SqlException("Unknown query type '{0}'.", SelectQuery.QueryType);
+			throw new SqlException("Unknown query type '{0}'.", SelectQuery.EQueryType);
 		}
 
 		public virtual StringBuilder BuildTableName(StringBuilder sb, string database, string owner, string table)
@@ -426,7 +427,7 @@ namespace LinqToDB.SqlProvider
 
 				BuildOutputSubclause();
 
-				if (SelectQuery.QueryType == QueryType.InsertOrUpdate || SelectQuery.From.Tables.Count == 0)
+				if (SelectQuery.EQueryType == EQueryType.InsertOrUpdate || SelectQuery.From.Tables.Count == 0)
 				{
 					AppendIndent().AppendLine("VALUES");
 					AppendIndent().AppendLine("(");
@@ -760,7 +761,7 @@ namespace LinqToDB.SqlProvider
 
 				WithStringBuilder(
 					field.StringBuilder,
-					() => BuildCreateTableNullAttribute(field.Field, SelectQuery.CreateTable.DefaulNullable));
+					() => BuildCreateTableNullAttribute(field.Field, SelectQuery.CreateTable.EDefaulNullable));
 
 				if (field.Field.CreateFormat != null)
 				{
@@ -864,12 +865,12 @@ namespace LinqToDB.SqlProvider
 				createDbType : true);
 		}
 
-		protected virtual void BuildCreateTableNullAttribute(SqlField field, DefaulNullable defaulNullable)
+		protected virtual void BuildCreateTableNullAttribute(SqlField field, EDefaulNullable eDefaulNullable)
 		{
-			if (defaulNullable == DefaulNullable.Null && field.Nullable)
+			if (eDefaulNullable == EDefaulNullable.Null && field.Nullable)
 				return;
 
-			if (defaulNullable == DefaulNullable.NotNull && !field.Nullable)
+			if (eDefaulNullable == EDefaulNullable.NotNull && !field.Nullable)
 				return;
 
 			StringBuilder.Append(field.Nullable ? "    NULL" : "NOT NULL");
@@ -943,12 +944,12 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (table.ElementType)
 			{
-				case QueryElementType.SqlTable    :
-				case QueryElementType.TableSource :
+				case EQueryElementType.SqlTable    :
+				case EQueryElementType.TableSource :
 					StringBuilder.Append(GetPhysicalTableName(table, alias));
 					break;
 
-				case QueryElementType.SqlQuery    :
+				case EQueryElementType.SqlQuery    :
 					StringBuilder.Append("(").AppendLine();
 					BuildSqlBuilder((ISelectQuery)table, Indent + 1, false);
 					AppendIndent().Append(")");
@@ -1305,7 +1306,7 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (predicate.ElementType)
 			{
-				case QueryElementType.ExprExprPredicate :
+				case EQueryElementType.ExprExprPredicate :
 					{
 						var expr = (ExprExpr)predicate;
 
@@ -1351,11 +1352,11 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.LikePredicate :
+				case EQueryElementType.LikePredicate :
 					BuildLikePredicate((Like)predicate);
 					break;
 
-				case QueryElementType.BetweenPredicate :
+				case EQueryElementType.BetweenPredicate :
 					{
 						var p = (Between)predicate;
 						BuildExpression(GetPrecedence(p), p.Expr1);
@@ -1368,7 +1369,7 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.IsNullPredicate :
+				case EQueryElementType.IsNullPredicate :
 					{
 						var p = (IsNull)predicate;
 						BuildExpression(GetPrecedence(p), p.Expr1);
@@ -1377,7 +1378,7 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.InSubQueryPredicate :
+				case EQueryElementType.InSubQueryPredicate :
 					{
 						var p = (InSubQuery)predicate;
 						BuildExpression(GetPrecedence(p), p.Expr1);
@@ -1387,11 +1388,11 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.InListPredicate :
+				case EQueryElementType.InListPredicate :
 					BuildInListPredicate(predicate);
 					break;
 
-				case QueryElementType.FuncLikePredicate :
+				case EQueryElementType.FuncLikePredicate :
 					{
 						var f = (FuncLike)predicate;
 						BuildExpression(f.Function.Precedence, f.Function);
@@ -1399,11 +1400,11 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.SearchCondition :
+				case EQueryElementType.SearchCondition :
 					BuildSearchCondition(predicate.Precedence, (SearchCondition)predicate);
 					break;
 
-				case QueryElementType.NotExprPredicate :
+				case EQueryElementType.NotExprPredicate :
 					{
 						var p = (NotExpr)predicate;
 
@@ -1415,7 +1416,7 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.ExprPredicate :
+				case EQueryElementType.ExprPredicate :
 					{
 						var p = (Expr)predicate;
 
@@ -1444,8 +1445,8 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (expr.ElementType)
 			{
-				case QueryElementType.SqlField: return (SqlField)expr;
-				case QueryElementType.Column  : return GetUnderlayingField(((Column)expr).Expression);
+				case EQueryElementType.SqlField: return (SqlField)expr;
+				case EQueryElementType.Column  : return GetUnderlayingField(((Column)expr).Expression);
 			}
 
 			throw new InvalidOperationException();
@@ -1632,7 +1633,7 @@ namespace LinqToDB.SqlProvider
 
 					switch (predicate.Expr1.ElementType)
 					{
-						case QueryElementType.SqlField     :
+						case EQueryElementType.SqlField     :
 							{
 								var field = (SqlField)predicate.Expr1;
 
@@ -1645,7 +1646,7 @@ namespace LinqToDB.SqlProvider
 							}
 							break;
 
-						case QueryElementType.SqlParameter :
+						case EQueryElementType.SqlParameter :
 							{
 								var p = (SqlParameter)predicate.Expr1;
 								sqlDataType = new SqlDataType(p.DataType, p.SystemType, 0, 0, 0);
@@ -1737,7 +1738,7 @@ namespace LinqToDB.SqlProvider
 
 			switch (expr.ElementType)
 			{
-				case QueryElementType.SqlField:
+				case EQueryElementType.SqlField:
 					{
 						var field = (SqlField)expr;
 
@@ -1784,7 +1785,7 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.Column:
+				case EQueryElementType.Column:
 					{
 						var column = (Column)expr;
 
@@ -1810,7 +1811,7 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.SqlQuery:
+				case EQueryElementType.SqlQuery:
 					{
 						var hasParentheses = checkParentheses && StringBuilder[StringBuilder.Length - 1] == '(';
 
@@ -1828,7 +1829,7 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.SqlValue:
+				case EQueryElementType.SqlValue:
 			        var sqlValue = ((SqlValue)expr);
 
                     // Если значение не равно NULL, то CAST не требуется
@@ -1852,7 +1853,7 @@ namespace LinqToDB.SqlProvider
                     }
 					break;
 
-				case QueryElementType.SqlExpression:
+				case EQueryElementType.SqlExpression:
 					{
 						var e = (SqlExpression)expr;
 						var s = new StringBuilder();
@@ -1878,15 +1879,15 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.SqlBinaryExpression:
+				case EQueryElementType.SqlBinaryExpression:
 					BuildBinaryExpression((SqlBinaryExpression)expr);
 					break;
 
-				case QueryElementType.SqlFunction:
+				case EQueryElementType.SqlFunction:
 					BuildFunction((SqlFunction)expr);
 					break;
 
-				case QueryElementType.SqlParameter:
+				case EQueryElementType.SqlParameter:
 					{
 						var parm = (SqlParameter)expr;
 
@@ -1903,11 +1904,11 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.SqlDataType:
+				case EQueryElementType.SqlDataType:
 					BuildDataType((SqlDataType)expr);
 					break;
 
-				case QueryElementType.SearchCondition:
+				case EQueryElementType.SearchCondition:
 					BuildSearchCondition(expr.Precedence, (SearchCondition)expr);
 					break;
 
@@ -2351,8 +2352,8 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (expr.ElementType)
 			{
-				case QueryElementType.SqlDataType   : return ((SqlDataType)  expr).DataType == DataType.Date;
-				case QueryElementType.SqlExpression : return ((SqlExpression)expr).Expr     == dateName;
+				case EQueryElementType.SqlDataType   : return ((SqlDataType)  expr).DataType == DataType.Date;
+				case EQueryElementType.SqlExpression : return ((SqlExpression)expr).Expr     == dateName;
 			}
 
 			return false;
@@ -2362,8 +2363,8 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (expr.ElementType)
 			{
-				case QueryElementType.SqlDataType   : return ((SqlDataType)expr).  DataType == DataType.Time;
-				case QueryElementType.SqlExpression : return ((SqlExpression)expr).Expr     == "Time";
+				case EQueryElementType.SqlDataType   : return ((SqlDataType)expr).  DataType == DataType.Time;
+				case EQueryElementType.SqlExpression : return ((SqlExpression)expr).Expr     == "Time";
 			}
 
 			return false;
@@ -2375,7 +2376,7 @@ namespace LinqToDB.SqlProvider
 			{
 				switch (expr.ElementType)
 				{
-					case QueryElementType.SearchCondition : return true;
+					case EQueryElementType.SearchCondition : return true;
 				}
 			}
 
@@ -2468,15 +2469,15 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (table.ElementType)
 			{
-				case QueryElementType.TableSource :
+				case EQueryElementType.TableSource :
 					var ts    = (ITableSource)table;
 					var alias = string.IsNullOrEmpty(ts.Alias) ? GetTableAlias(ts.Source) : ts.Alias;
 					return alias != "$" ? alias : null;
 
-				case QueryElementType.SqlTable :
+				case EQueryElementType.SqlTable :
 					return ((SqlTable)table).Alias;
 
-                case QueryElementType.SqlQuery:
+                case EQueryElementType.SqlQuery:
                     return GetTableAlias(((ISelectQuery)table).From.Tables[0]);
 
                 default :
@@ -2503,7 +2504,7 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (table.ElementType)
 			{
-				case QueryElementType.SqlTable :
+				case EQueryElementType.SqlTable :
 					{
 						var tbl = (SqlTable)table;
 
@@ -2560,7 +2561,7 @@ namespace LinqToDB.SqlProvider
 						return sb.ToString();
 					}
 
-				case QueryElementType.TableSource :
+				case EQueryElementType.TableSource :
 					return GetPhysicalTableName(((ITableSource)table).Source, alias);
 
 				default :

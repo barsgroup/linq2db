@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Linq;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -74,7 +75,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             list.AddRange(Items);
         }
 
-        public override QueryElementType ElementType => QueryElementType.GroupByClause;
+        public override EQueryElementType ElementType => EQueryElementType.GroupByClause;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {

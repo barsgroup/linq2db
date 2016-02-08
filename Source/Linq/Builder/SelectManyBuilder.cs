@@ -6,6 +6,7 @@ namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -44,9 +45,9 @@ namespace LinqToDB.Linq.Builder
 			var sequenceTables = new HashSet<ISqlTableSource>(sequence.Select.From.Tables[0].GetTables());
 			var newQuery       = null != new QueryVisitor().Find(sql, e => e == collectionInfo.SelectQuery);
 			var crossApply     = null != new QueryVisitor().Find(sql, e =>
-				e.ElementType == QueryElementType.TableSource && sequenceTables.Contains((ISqlTableSource)e)  ||
-				e.ElementType == QueryElementType.SqlField    && sequenceTables.Contains(((SqlField)e).Table) ||
-				e.ElementType == QueryElementType.Column      && sequenceTables.Contains(((Column)e).Parent));
+				e.ElementType == EQueryElementType.TableSource && sequenceTables.Contains((ISqlTableSource)e)  ||
+				e.ElementType == EQueryElementType.SqlField    && sequenceTables.Contains(((SqlField)e).Table) ||
+				e.ElementType == EQueryElementType.Column      && sequenceTables.Contains(((Column)e).Parent));
 
 			if (collection is JoinBuilder.GroupJoinSubQueryContext)
 			{
@@ -100,7 +101,7 @@ namespace LinqToDB.Linq.Builder
 				{
 					var ts = (ITableSource)new QueryVisitor().Find(sequence.Select.From, e =>
 					{
-						if (e.ElementType == QueryElementType.TableSource)
+						if (e.ElementType == EQueryElementType.TableSource)
 						{
 							var t = (ITableSource)e;
 							return t.Source == collectionParent.SqlTable;

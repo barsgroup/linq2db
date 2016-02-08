@@ -13,6 +13,7 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements
     using LinqToDB.Extensions;
     using LinqToDB.Properties;
     using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -537,7 +538,7 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements
         {
         }
 
-        public override QueryElementType ElementType { get { return QueryElementType.SqlDataType; } }
+        public override EQueryElementType ElementType { get { return EQueryElementType.SqlDataType; } }
 
 		public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

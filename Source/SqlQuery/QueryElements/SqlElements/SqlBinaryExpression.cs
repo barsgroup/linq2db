@@ -6,6 +6,7 @@
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -129,7 +130,7 @@
             list.Add(Expr2);
         }
 
-        public override QueryElementType ElementType { get { return QueryElementType.SqlBinaryExpression; } }
+        public override EQueryElementType ElementType { get { return EQueryElementType.SqlBinaryExpression; } }
 
 		public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

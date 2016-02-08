@@ -5,8 +5,8 @@
     using Extensions;
 
     using LinqToDB.SqlEntities;
-    using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -22,7 +22,7 @@
 		
 		private bool SearchSelectClause(IQueryElement element)
 		{
-			if (element.ElementType != QueryElementType.SelectClause) return true;
+			if (element.ElementType != EQueryElementType.SelectClause) return true;
 
 			new QueryVisitor().VisitParentFirst(element, SetNonQueryParameterInSelectClause);
 
@@ -31,13 +31,13 @@
 
 		private bool SetNonQueryParameterInSelectClause(IQueryElement element)
 		{
-			if (element.ElementType == QueryElementType.SqlParameter)
+			if (element.ElementType == EQueryElementType.SqlParameter)
 			{
 				((SqlParameter)element).IsQueryParameter = false;
 				return false;
 			}
 
-			if (element.ElementType == QueryElementType.SqlQuery)
+			if (element.ElementType == EQueryElementType.SqlQuery)
 			{
 				new QueryVisitor().VisitParentFirst(element, SearchSelectClause);
 				return false;
@@ -52,7 +52,7 @@
 
 			new QueryVisitor().VisitParentFirst(selectQuery, SearchSelectClause);
 
-			if (selectQuery.QueryType == QueryType.InsertOrUpdate)
+			if (selectQuery.EQueryType == EQueryType.InsertOrUpdate)
 			{
 			    var param = selectQuery.Insert.Items.Union(selectQuery.Update.Items).Union(selectQuery.Update.Keys).Select(i => i.Expression).ToArray();
 
@@ -64,10 +64,10 @@
 
 			selectQuery = base.Finalize(selectQuery);
 
-			switch (selectQuery.QueryType)
+			switch (selectQuery.EQueryType)
 			{
-				case QueryType.Delete : return GetAlternativeDelete(selectQuery);
-				case QueryType.Update : return GetAlternativeUpdate(selectQuery);
+				case EQueryType.Delete : return GetAlternativeDelete(selectQuery);
+				case EQueryType.Update : return GetAlternativeUpdate(selectQuery);
 				default               : return selectQuery;
 			}
 		}

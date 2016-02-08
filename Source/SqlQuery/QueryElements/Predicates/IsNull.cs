@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -41,6 +42,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             list.Add(Expr1);
         }
 
-        public override QueryElementType ElementType => QueryElementType.IsNullPredicate;
+        public override EQueryElementType ElementType => EQueryElementType.IsNullPredicate;
     }
 }

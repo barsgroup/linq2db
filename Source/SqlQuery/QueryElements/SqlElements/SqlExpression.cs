@@ -6,6 +6,7 @@
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -140,7 +141,7 @@
             list.AddRange(Parameters);
 		}
 
-        public override QueryElementType ElementType { get { return QueryElementType.SqlExpression; } }
+        public override EQueryElementType ElementType { get { return EQueryElementType.SqlExpression; } }
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
@@ -164,10 +165,10 @@
 		{
 			switch (ex.ElementType)
 			{
-				case QueryElementType.SqlParameter:
-				case QueryElementType.SqlField    :
-				case QueryElementType.Column      : return true;
-				case QueryElementType.SqlFunction :
+				case EQueryElementType.SqlParameter:
+				case EQueryElementType.SqlField    :
+				case EQueryElementType.Column      : return true;
+				case EQueryElementType.SqlFunction :
 
 					var f = (SqlFunction)ex;
 

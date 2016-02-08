@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -14,7 +15,7 @@ namespace LinqToDB.SqlQuery.QueryElements
         public bool           IsDrop          { get; set; }
         public string         StatementHeader { get; set; }
         public string         StatementFooter { get; set; }
-        public DefaulNullable DefaulNullable  { get; set; }
+        public EDefaulNullable EDefaulNullable  { get; set; }
 
         #region IQueryElement Members
 
@@ -23,7 +24,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             list.Add(Table);
         }
 
-        public override QueryElementType ElementType => QueryElementType.CreateTableStatement;
+        public override EQueryElementType ElementType => EQueryElementType.CreateTableStatement;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {

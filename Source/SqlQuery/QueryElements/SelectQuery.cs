@@ -13,6 +13,7 @@
     using LinqToDB.Reflection;
     using LinqToDB.SqlQuery.QueryElements.Clauses;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -110,19 +111,19 @@
 
 		public bool IsSimple => !Select.HasModifier && Where.IsEmpty && GroupBy.IsEmpty && Having.IsEmpty && OrderBy.IsEmpty;
 
-        public  QueryType  QueryType { get; set; } = QueryType.Select;
+        public  EQueryType  EQueryType { get; set; } = EQueryType.Select;
 
-        public bool IsCreateTable => QueryType == QueryType.CreateTable;
+        public bool IsCreateTable => EQueryType == EQueryType.CreateTable;
 
-	    public bool IsSelect => QueryType == QueryType.Select;
+	    public bool IsSelect => EQueryType == EQueryType.Select;
 
-	    public bool IsDelete => QueryType == QueryType.Delete;
+	    public bool IsDelete => EQueryType == EQueryType.Delete;
 
-	    public bool IsInsertOrUpdate => QueryType == QueryType.InsertOrUpdate;
+	    public bool IsInsertOrUpdate => EQueryType == EQueryType.InsertOrUpdate;
 
-	    public bool IsInsert => QueryType == QueryType.Insert || QueryType == QueryType.InsertOrUpdate;
+	    public bool IsInsert => EQueryType == EQueryType.Insert || EQueryType == EQueryType.InsertOrUpdate;
 
-	    public bool IsUpdate => QueryType == QueryType.Update || QueryType == QueryType.InsertOrUpdate;
+	    public bool IsUpdate => EQueryType == EQueryType.Update || EQueryType == EQueryType.InsertOrUpdate;
 
 	    #endregion
 
@@ -209,7 +210,7 @@
                 {
                     switch (e.ElementType)
                     {
-                        case QueryElementType.SqlParameter:
+                        case EQueryElementType.SqlParameter:
                         {
                             var p = (SqlParameter)e;
 
@@ -219,7 +220,7 @@
 
                             break;
 
-                        case QueryElementType.ExprExprPredicate:
+                        case EQueryElementType.ExprExprPredicate:
                         {
                             var ee = (ExprExpr)e;
 
@@ -253,7 +254,7 @@
 
                             break;
 
-                        case QueryElementType.InListPredicate:
+                        case EQueryElementType.InListPredicate:
                             return ConvertInListPredicate((InList)e);
                     }
 
@@ -417,8 +418,8 @@
 		{
 			switch (expr.ElementType)
 			{
-				case QueryElementType.SqlField: return (SqlField)expr;
-				case QueryElementType.Column  : return GetUnderlayingField(((Column)expr).Expression);
+				case EQueryElementType.SqlField: return (SqlField)expr;
+				case EQueryElementType.Column  : return GetUnderlayingField(((Column)expr).Expression);
 			}
 
 			throw new InvalidOperationException();
@@ -440,7 +441,7 @@
 			if (clone.ParentSelect != null)
 				ParentSelect = objectTree.TryGetValue(clone.ParentSelect, out parentClone) ? (ISelectQuery)parentClone : clone.ParentSelect;
 
-			QueryType = clone.QueryType;
+			EQueryType = clone.EQueryType;
 
 			if (IsInsert) Insert = (InsertClause)clone.Insert.Clone(objectTree, doClone);
 			if (IsUpdate) Update = (UpdateClause)clone.Update.Clone(objectTree, doClone);
@@ -542,7 +543,7 @@
             {
                 switch (element.ElementType)
                 {
-                    case QueryElementType.SqlParameter:
+                    case EQueryElementType.SqlParameter:
                     {
                         var p = (SqlParameter)element;
 
@@ -562,7 +563,7 @@
 
                         break;
 
-                    case QueryElementType.Column:
+                    case EQueryElementType.Column:
                     {
                         if (!objs.ContainsKey(element))
                         {
@@ -577,7 +578,7 @@
 
                         break;
 
-                    case QueryElementType.TableSource:
+                    case EQueryElementType.TableSource:
                     {
                         var table = (ITableSource)element;
 
@@ -590,7 +591,7 @@
 
                         break;
 
-                    case QueryElementType.SqlQuery:
+                    case EQueryElementType.SqlQuery:
                     {
                         var sql = (ISelectQuery)element;
 
@@ -794,9 +795,9 @@
 
         protected override void GetChildrenInternal(List<IQueryElement> list)
         {
-            switch (QueryType)
+            switch (EQueryType)
             {
-                case QueryType.InsertOrUpdate:
+                case EQueryType.InsertOrUpdate:
 
                     list.Add(Insert);
                     list.Add(Update);
@@ -807,17 +808,17 @@
                     }
                     break;
 
-                case QueryType.Update:
+                case EQueryType.Update:
                     list.Add(Update);
                     list.Add(Select);
                     break;
 
-                case QueryType.Delete:
+                case EQueryType.Delete:
                     list.Add(Delete);
                     list.Add(Select);
                     break;
 
-                case QueryType.Insert:
+                case EQueryType.Insert:
                     list.Add(Insert);
 
                     if (From.Tables.Count != 0)
@@ -851,7 +852,7 @@
             }
         }
 
-        public override QueryElementType ElementType => QueryElementType.SqlQuery;
+        public override EQueryElementType ElementType => EQueryElementType.SqlQuery;
 
 	    public sealed override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

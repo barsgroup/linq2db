@@ -10,7 +10,7 @@ namespace LinqToDB.DataProvider
 	using Data;
 	using Linq;
 
-	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
@@ -184,12 +184,12 @@ namespace LinqToDB.DataProvider
 
 						var whereClause = new QueryVisitor().Convert(sql.Where, e =>
 						{
-							if (e.ElementType == QueryElementType.SqlQuery)
+							if (e.ElementType == EQueryElementType.SqlQuery)
 							{
 								
 							}
 
-							if (e.ElementType == QueryElementType.SqlField)
+							if (e.ElementType == EQueryElementType.SqlField)
 							{
 								var fld = (SqlField)e;
 								var tbl = (SqlTable)fld.Table;

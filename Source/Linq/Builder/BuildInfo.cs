@@ -2,7 +2,6 @@
 
 namespace LinqToDB.Linq.Builder
 {
-    using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     public class BuildInfo

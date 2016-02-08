@@ -6,6 +6,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -108,7 +109,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         readonly List<ITableSource> _tables = new List<ITableSource>();
         public   List<ITableSource>  Tables => _tables;
 
-        static IEnumerable<ISqlTableSource> GetJoinTables(ITableSource source, QueryElementType elementType)
+        static IEnumerable<ISqlTableSource> GetJoinTables(ITableSource source, EQueryElementType elementType)
         {
             if (source.Source.ElementType == elementType)
                 yield return source.Source;
@@ -120,12 +121,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         internal IEnumerable<ISqlTableSource> GetFromTables()
         {
-            return Tables.SelectMany(_ => GetJoinTables(_, QueryElementType.SqlTable));
+            return Tables.SelectMany(_ => GetJoinTables(_, EQueryElementType.SqlTable));
         }
 
         internal IEnumerable<ISqlTableSource> GetFromQueries()
         {
-            return Tables.SelectMany(_ => GetJoinTables(_, QueryElementType.SqlQuery));
+            return Tables.SelectMany(_ => GetJoinTables(_, EQueryElementType.SqlQuery));
         }
 
         static ITableSource FindTableSource(ITableSource source, SqlTable table)
@@ -174,7 +175,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             list.AddRange(Tables);
         }
 
-        public override QueryElementType ElementType => QueryElementType.FromClause;
+        public override EQueryElementType ElementType => EQueryElementType.FromClause;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {

@@ -10,8 +10,8 @@ namespace LinqToDB.DataProvider.Firebird
 {
 	using Common;
 
-	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -213,7 +213,7 @@ namespace LinqToDB.DataProvider.Firebird
 			BuildInsertOrUpdateQueryAsMerge("FROM rdb$database");
 		}
 
-		protected override void BuildCreateTableNullAttribute(SqlField field, DefaulNullable defaulNullable)
+		protected override void BuildCreateTableNullAttribute(SqlField field, EDefaulNullable eDefaulNullable)
 		{
 			if (!field.Nullable)
 				StringBuilder.Append("NOT NULL");

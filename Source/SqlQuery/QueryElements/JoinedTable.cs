@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -82,7 +83,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             list.Add(Condition);
         }
 
-        public override QueryElementType ElementType => QueryElementType.JoinedTable;
+        public override EQueryElementType ElementType => EQueryElementType.JoinedTable;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {

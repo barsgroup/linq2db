@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
 
@@ -55,7 +56,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
             list.Add(Predicate);
         }
 
-        public override QueryElementType ElementType => QueryElementType.Condition;
+        public override EQueryElementType ElementType => EQueryElementType.Condition;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {

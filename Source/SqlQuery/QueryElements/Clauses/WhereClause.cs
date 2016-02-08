@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -76,7 +77,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             list.Add(SearchCondition);
         }
 
-        public override QueryElementType ElementType => QueryElementType.WhereClause;
+        public override EQueryElementType ElementType => EQueryElementType.WhereClause;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {

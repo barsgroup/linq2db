@@ -9,6 +9,7 @@ namespace LinqToDB.SqlProvider
 
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -66,7 +67,7 @@ namespace LinqToDB.SqlProvider
 
 				// The column is a subquery.
 				//
-				if (col.Expression.ElementType == QueryElementType.SqlQuery)
+				if (col.Expression.ElementType == EQueryElementType.SqlQuery)
 				{
 					var subQuery = (ISelectQuery)col.Expression;
 					var isCount  = false;
@@ -77,7 +78,7 @@ namespace LinqToDB.SqlProvider
 					{
 						var subCol = subQuery.Select.Columns[0];
 
-						if (subCol.Expression.ElementType == QueryElementType.SqlFunction)
+						if (subCol.Expression.ElementType == EQueryElementType.SqlFunction)
 							isCount = ((SqlFunction)subCol.Expression).Name == "Count";
 					}
 
@@ -119,8 +120,8 @@ namespace LinqToDB.SqlProvider
 					{
 						switch (e.ElementType)
 						{
-							case QueryElementType.SqlField : return !allTables.Contains(((SqlField)       e).Table);
-							case QueryElementType.Column   : return !allTables.Contains(((Column)e).Parent);
+							case EQueryElementType.SqlField : return !allTables.Contains(((SqlField)       e).Table);
+							case EQueryElementType.Column   : return !allTables.Contains(((Column)e).Parent);
 						}
 						return false;
 					};
@@ -144,7 +145,7 @@ namespace LinqToDB.SqlProvider
 
 							switch (e.ElementType)
 							{
-								case QueryElementType.SqlField :
+								case EQueryElementType.SqlField :
 									if (replaced.TryGetValue(e, out ne))
 										return ne;
 
@@ -156,7 +157,7 @@ namespace LinqToDB.SqlProvider
 
 									break;
 
-								case QueryElementType.Column   :
+								case EQueryElementType.Column   :
 									if (replaced.TryGetValue(e, out ne))
 										return ne;
 
@@ -216,7 +217,7 @@ namespace LinqToDB.SqlProvider
 				{
 					var col = query.Select.Columns[i];
 
-					if (col.Expression.ElementType == QueryElementType.SqlQuery)
+					if (col.Expression.ElementType == EQueryElementType.SqlQuery)
 					{
 						var subQuery    = (ISelectQuery)col.Expression;
 						var allTables   = new HashSet<ISqlTableSource>();
@@ -226,8 +227,8 @@ namespace LinqToDB.SqlProvider
 						{
 							switch (e.ElementType)
 							{
-								case QueryElementType.SqlField : return !allTables.Contains(((SqlField)e).Table);
-								case QueryElementType.Column   : return !allTables.Contains(((Column)e).Parent);
+								case EQueryElementType.SqlField : return !allTables.Contains(((SqlField)e).Table);
+								case EQueryElementType.Column   : return !allTables.Contains(((Column)e).Parent);
 							}
 							return false;
 						};
@@ -257,7 +258,7 @@ namespace LinqToDB.SqlProvider
 						{
 							var subCol = subQuery.Select.Columns[0];
 
-							if (subCol.Expression.ElementType == QueryElementType.SqlFunction)
+							if (subCol.Expression.ElementType == EQueryElementType.SqlFunction)
 							{
 								switch (((SqlFunction)subCol.Expression).Name)
 								{
@@ -303,7 +304,7 @@ namespace LinqToDB.SqlProvider
 
 								switch (e.ElementType)
 								{
-									case QueryElementType.SqlField :
+									case EQueryElementType.SqlField :
 										if (replaced.TryGetValue(e, out ne))
 											return ne;
 
@@ -316,7 +317,7 @@ namespace LinqToDB.SqlProvider
 
 										break;
 
-									case QueryElementType.Column   :
+									case EQueryElementType.Column   :
 										if (replaced.TryGetValue(e, out ne))
 											return ne;
 
@@ -394,7 +395,7 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (expression.ElementType)
 			{
-				case QueryElementType.SqlBinaryExpression:
+				case EQueryElementType.SqlBinaryExpression:
 
 					#region SqlBinaryExpression
 
@@ -655,7 +656,7 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.SqlFunction:
+				case EQueryElementType.SqlFunction:
 
 					#region SqlFunction
 
@@ -753,11 +754,11 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.SearchCondition :
+				case EQueryElementType.SearchCondition :
 					SelectQueryOptimizer.OptimizeSearchCondition((SearchCondition)expression);
 					break;
 
-				case QueryElementType.SqlExpression   :
+				case EQueryElementType.SqlExpression   :
 					{
 						var se = (SqlExpression)expression;
 
@@ -775,7 +776,7 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (predicate.ElementType)
 			{
-				case QueryElementType.ExprExprPredicate:
+				case EQueryElementType.ExprExprPredicate:
 					{
 						var expr = (ExprExpr)predicate;
 
@@ -836,7 +837,7 @@ namespace LinqToDB.SqlProvider
 
 					break;
 
-				case QueryElementType.NotExprPredicate:
+				case EQueryElementType.NotExprPredicate:
 					{
 						var expr = (NotExpr)predicate;
 
@@ -1136,8 +1137,8 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (expr.ElementType)
 			{
-				case QueryElementType.SqlDataType   : return ((SqlDataType)  expr).DataType == DataType.Date;
-				case QueryElementType.SqlExpression : return ((SqlExpression)expr).Expr     == dateName;
+				case EQueryElementType.SqlDataType   : return ((SqlDataType)  expr).DataType == DataType.Date;
+				case EQueryElementType.SqlExpression : return ((SqlExpression)expr).Expr     == dateName;
 			}
 
 			return false;
@@ -1147,8 +1148,8 @@ namespace LinqToDB.SqlProvider
 		{
 			switch (expr.ElementType)
 			{
-				case QueryElementType.SqlDataType   : return ((SqlDataType)expr).  DataType == DataType.Time;
-				case QueryElementType.SqlExpression : return ((SqlExpression)expr).Expr     == "Time";
+				case EQueryElementType.SqlDataType   : return ((SqlDataType)expr).  DataType == DataType.Time;
+				case EQueryElementType.SqlExpression : return ((SqlExpression)expr).Expr     == "Time";
 			}
 
 			return false;
@@ -1168,10 +1169,10 @@ namespace LinqToDB.SqlProvider
 				(selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables[0].Joins.Count > 0) && 
 				selectQuery.From.Tables[0].Source is SqlTable)
 			{
-				var sql = new SelectQuery { QueryType = QueryType.Delete, IsParameterDependent = selectQuery.IsParameterDependent };
+				var sql = new SelectQuery { EQueryType = EQueryType.Delete, IsParameterDependent = selectQuery.IsParameterDependent };
 
 				selectQuery.ParentSelect = sql;
-				selectQuery.QueryType = QueryType.Select;
+				selectQuery.EQueryType = EQueryType.Select;
 
 				var table = (SqlTable)selectQuery.From.Tables[0].Source;
 				var copy  = new SqlTable(table) { Alias = null };
@@ -1218,10 +1219,10 @@ namespace LinqToDB.SqlProvider
 			{
 				if (selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables[0].Joins.Count > 0)
 				{
-					var sql = new SelectQuery { QueryType = QueryType.Update, IsParameterDependent = selectQuery.IsParameterDependent  };
+					var sql = new SelectQuery { EQueryType = EQueryType.Update, IsParameterDependent = selectQuery.IsParameterDependent  };
 
 					selectQuery.ParentSelect = sql;
-					selectQuery.QueryType = QueryType.Select;
+					selectQuery.EQueryType = EQueryType.Select;
 
 					var table = selectQuery.Update.Table ?? (SqlTable)selectQuery.From.Tables[0].Source;
 
@@ -1309,11 +1310,11 @@ namespace LinqToDB.SqlProvider
 		    {
                 switch (elementType.ElementType)
                 {
-                    case QueryElementType.SqlField: ((SqlField)elementType).Alias = SetAlias(((SqlField)elementType).Alias, maxLen); break;
-                    case QueryElementType.SqlParameter: ((SqlParameter)elementType).Name = SetAlias(((SqlParameter)elementType).Name, maxLen); break;
-                    case QueryElementType.SqlTable: ((SqlTable)elementType).Alias = SetAlias(((SqlTable)elementType).Alias, maxLen); break;
-                    case QueryElementType.Column: ((Column)elementType).Alias = SetAlias(((Column)elementType).Alias, maxLen); break;
-                    case QueryElementType.TableSource: ((ITableSource)elementType).Alias = SetAlias(((ITableSource)elementType).Alias, maxLen); break;
+                    case EQueryElementType.SqlField: ((SqlField)elementType).Alias = SetAlias(((SqlField)elementType).Alias, maxLen); break;
+                    case EQueryElementType.SqlParameter: ((SqlParameter)elementType).Name = SetAlias(((SqlParameter)elementType).Name, maxLen); break;
+                    case EQueryElementType.SqlTable: ((SqlTable)elementType).Alias = SetAlias(((SqlTable)elementType).Alias, maxLen); break;
+                    case EQueryElementType.Column: ((Column)elementType).Alias = SetAlias(((Column)elementType).Alias, maxLen); break;
+                    case EQueryElementType.TableSource: ((ITableSource)elementType).Alias = SetAlias(((ITableSource)elementType).Alias, maxLen); break;
                 }
             }
 		}

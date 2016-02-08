@@ -4,6 +4,8 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
+
 	using SqlQuery;
 
 	class DeleteBuilder : MethodCallBuilder
@@ -20,7 +22,7 @@ namespace LinqToDB.Linq.Builder
 			if (methodCall.Arguments.Count == 2)
 				sequence = builder.BuildWhere(buildInfo.Parent, sequence, (LambdaExpression)methodCall.Arguments[1].Unwrap(), false);
 
-			sequence.Select.QueryType = QueryType.Delete;
+			sequence.Select.EQueryType = EQueryType.Delete;
 
 			// Check association.
 			//

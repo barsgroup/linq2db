@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -48,7 +49,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             list.Add(Expr2);
             list.Add(Escape);
         }
-        public override QueryElementType ElementType => QueryElementType.LikePredicate;
+        public override EQueryElementType ElementType => EQueryElementType.LikePredicate;
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {

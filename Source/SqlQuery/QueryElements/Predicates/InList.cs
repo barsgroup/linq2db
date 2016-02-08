@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Linq;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -58,7 +59,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             list.AddRange(Values);
         }
 
-        public override QueryElementType ElementType => QueryElementType.InListPredicate;
+        public override EQueryElementType ElementType => EQueryElementType.InListPredicate;
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
