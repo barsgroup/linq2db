@@ -5,12 +5,9 @@ namespace LinqToDB.SqlQuery.QueryElements
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
-    public class Union : BaseQueryElement, IQueryElement
+    public class Union : BaseQueryElement,
+                         IUnion
     {
-        public Union()
-        {
-        }
-
         public Union(ISelectQuery selectQuery, bool isAll)
         {
             SelectQuery = selectQuery;

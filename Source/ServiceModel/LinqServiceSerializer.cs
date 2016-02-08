@@ -1029,7 +1029,7 @@ namespace LinqToDB.ServiceModel
 
 					case QueryElementType.Union :
 						{
-							var elem = (Union)e;
+							var elem = (IUnion)e;
 
 							Append(elem.SelectQuery);
 							Append(elem.IsAll);
@@ -1402,7 +1402,7 @@ namespace LinqToDB.ServiceModel
 							var orderBy            = Read<OrderByClause>();
 							var parentSql          = ReadInt();
 							var parameterDependent = ReadBool();
-							var unions             = ReadArray<Union>();
+							var unions             = ReadArray<IUnion>();
 							var parameters         = ReadArray<SqlParameter>();
 
 							var query = _query = new SelectQuery(sid) { QueryType = queryType };

@@ -97,7 +97,7 @@ namespace LinqToDB.SqlQuery
 				case QueryElementType.GroupByClause     : return Find(((GroupByClause)     element).Items,           find);
 				case QueryElementType.OrderByClause     : return Find(((OrderByClause)     element).Items,           find);
 				case QueryElementType.OrderByItem       : return Find(((IOrderByItem)       element).Expression,      find);
-				case QueryElementType.Union             : return Find(((Union)             element).SelectQuery,        find);
+				case QueryElementType.Union             : return Find(((IUnion)             element).SelectQuery,        find);
 				case QueryElementType.FuncLikePredicate : return Find(((FuncLike)element).Function,        find);
 
 				case QueryElementType.SqlBinaryExpression:
@@ -687,7 +687,7 @@ namespace LinqToDB.SqlQuery
 
 				case QueryElementType.Union:
 					{
-						var u = (Union)element;
+						var u = (IUnion)element;
 						var q = (ISelectQuery)ConvertInternal(u.SelectQuery, action);
 
 						if (q != null && !ReferenceEquals(u.SelectQuery, q))

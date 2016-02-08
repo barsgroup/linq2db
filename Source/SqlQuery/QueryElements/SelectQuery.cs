@@ -68,7 +68,7 @@
 			GroupByClause        groupBy,
 			WhereClause          having,
 			OrderByClause        orderBy,
-			List<Union>          unions,
+			List<IUnion>          unions,
             ISelectQuery         parentSelect,
 			CreateTableStatement createTable,
 			bool                 parameterDependent,
@@ -185,7 +185,7 @@
 
         public  OrderByClause  OrderBy { get; private set; }
 
-        public List<Union> Unions { get; private set; } = new List<Union>();
+        public List<IUnion> Unions { get; private set; } = new List<IUnion>();
 
 	    public bool HasUnion => Unions != null && Unions.Count > 0;
 
