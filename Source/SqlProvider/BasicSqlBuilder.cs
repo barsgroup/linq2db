@@ -14,6 +14,7 @@ namespace LinqToDB.SqlProvider
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -1308,7 +1309,7 @@ namespace LinqToDB.SqlProvider
 			{
 				case EQueryElementType.ExprExprPredicate :
 					{
-						var expr = (ExprExpr)predicate;
+						var expr = (IExprExpr)predicate;
 
 						switch (expr.EOperator)
 						{
@@ -1353,7 +1354,7 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case EQueryElementType.LikePredicate :
-					BuildLikePredicate((Like)predicate);
+					BuildLikePredicate((ILike)predicate);
 					break;
 
 				case EQueryElementType.BetweenPredicate :
@@ -1371,7 +1372,7 @@ namespace LinqToDB.SqlProvider
 
 				case EQueryElementType.IsNullPredicate :
 					{
-						var p = (IsNull)predicate;
+						var p = (IIsNull)predicate;
 						BuildExpression(GetPrecedence(p), p.Expr1);
 						StringBuilder.Append(p.IsNot ? " IS NOT NULL" : " IS NULL");
 					}
@@ -1380,7 +1381,7 @@ namespace LinqToDB.SqlProvider
 
 				case EQueryElementType.InSubQueryPredicate :
 					{
-						var p = (InSubQuery)predicate;
+						var p = (IInSubQuery)predicate;
 						BuildExpression(GetPrecedence(p), p.Expr1);
 						StringBuilder.Append(p.IsNot ? " NOT IN " : " IN ");
 						BuildExpression(GetPrecedence(p), p.SubQuery);
@@ -1394,7 +1395,7 @@ namespace LinqToDB.SqlProvider
 
 				case EQueryElementType.FuncLikePredicate :
 					{
-						var f = (FuncLike)predicate;
+						var f = (IFuncLike)predicate;
 						BuildExpression(f.Function.Precedence, f.Function);
 					}
 
@@ -1406,7 +1407,7 @@ namespace LinqToDB.SqlProvider
 
 				case EQueryElementType.NotExprPredicate :
 					{
-						var p = (NotExpr)predicate;
+						var p = (INotExpr)predicate;
 
 						if (p.IsNot)
 							StringBuilder.Append("NOT ");
@@ -1418,7 +1419,7 @@ namespace LinqToDB.SqlProvider
 
 				case EQueryElementType.ExprPredicate :
 					{
-						var p = (Expr)predicate;
+						var p = (IExpr)predicate;
 
 						if (p.Expr1 is SqlValue)
 						{
@@ -1454,7 +1455,7 @@ namespace LinqToDB.SqlProvider
 
 		void BuildInListPredicate(ISqlPredicate predicate)
 		{
-			var p = (InList)predicate;
+			var p = (IInList)predicate;
 
 			if (p.Values == null || p.Values.Count == 0)
 			{
@@ -1591,7 +1592,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		void BuildInListValues(InList predicate, IEnumerable values)
+		void BuildInListValues(IInList predicate, IEnumerable values)
 		{
 			var firstValue = true;
 			var len        = StringBuilder.Length;
@@ -1705,7 +1706,7 @@ namespace LinqToDB.SqlProvider
 			if (wrap) StringBuilder.Append(')');
 		}
 
-		protected virtual void BuildLikePredicate(Like predicate)
+		protected virtual void BuildLikePredicate(ILike predicate)
 		{
 			var precedence = GetPrecedence(predicate);
 

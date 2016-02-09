@@ -13,6 +13,7 @@ namespace LinqToDB.SqlQuery
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -92,16 +93,16 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.Column            : return Find(((IColumn)            element).Expression,      find);
 				case EQueryElementType.SearchCondition   : return Find(((ISearchCondition)   element).Conditions,      find);
 				case EQueryElementType.Condition         : return Find(((ICondition)         element).Predicate,       find);
-				case EQueryElementType.ExprPredicate     : return Find(((Expr)    element).Expr1,           find);
-				case EQueryElementType.NotExprPredicate  : return Find(((NotExpr) element).Expr1,           find);
-				case EQueryElementType.IsNullPredicate   : return Find(((IsNull)  element).Expr1,           find);
+				case EQueryElementType.ExprPredicate     : return Find(((IExpr)    element).Expr1,           find);
+				case EQueryElementType.NotExprPredicate  : return Find(((INotExpr) element).Expr1,           find);
+				case EQueryElementType.IsNullPredicate   : return Find(((IIsNull)  element).Expr1,           find);
 				case EQueryElementType.FromClause        : return Find(((IFromClause)        element).Tables,          find);
 				case EQueryElementType.WhereClause       : return Find(((IWhereClause)       element).SearchCondition, find);
 				case EQueryElementType.GroupByClause     : return Find(((GroupByClause)     element).Items,           find);
 				case EQueryElementType.OrderByClause     : return Find(((IOrderByClause)     element).Items,           find);
 				case EQueryElementType.OrderByItem       : return Find(((IOrderByItem)       element).Expression,      find);
 				case EQueryElementType.Union             : return Find(((IUnion)             element).SelectQuery,        find);
-				case EQueryElementType.FuncLikePredicate : return Find(((FuncLike)element).Function,        find);
+				case EQueryElementType.FuncLikePredicate : return Find(((IFuncLike)element).Function,        find);
 
 				case EQueryElementType.SqlBinaryExpression:
 					{
@@ -138,7 +139,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.ExprExprPredicate:
 					{
-						var p = (ExprExpr)element;
+						var p = (IExprExpr)element;
 						return
 							Find(p.Expr1, find) ??
 							Find(p.Expr2, find);
@@ -146,7 +147,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.LikePredicate:
 					{
-						var p = (Like)element;
+						var p = (ILike)element;
 						return
 							Find(p.Expr1,  find) ??
 							Find(p.Expr2,  find) ??
@@ -164,7 +165,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.InSubQueryPredicate:
 					{
-						var p = (InSubQuery)element;
+						var p = (IInSubQuery)element;
 						return
 							Find(p.Expr1,    find) ??
 							Find(p.SubQuery, find);
@@ -172,7 +173,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.InListPredicate:
 					{
-						var p = (InList)element;
+						var p = (IInList)element;
 						return
 							Find(p.Expr1,  find) ??
 							Find(p.Values, find);
@@ -400,7 +401,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.ExprPredicate:
 					{
-						var p = (Expr)element;
+						var p = (IExpr)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e))
@@ -411,7 +412,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.NotExprPredicate:
 					{
-						var p = (NotExpr)element;
+						var p = (INotExpr)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e))
@@ -422,7 +423,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.ExprExprPredicate:
 					{
-						var p  = (ExprExpr)element;
+						var p  = (IExprExpr)element;
 						var e1 = (ISqlExpression)ConvertInternal(p.Expr1, action);
 						var e2 = (ISqlExpression)ConvertInternal(p.Expr2, action);
 
@@ -434,7 +435,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.LikePredicate:
 					{
-						var p  = (Like)element;
+						var p  = (ILike)element;
 						var e1 = (ISqlExpression)ConvertInternal(p.Expr1,  action);
 						var e2 = (ISqlExpression)ConvertInternal(p.Expr2,  action);
 						var es = (ISqlExpression)ConvertInternal(p.Escape, action);
@@ -464,7 +465,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.IsNullPredicate:
 					{
-						var p = (IsNull)element;
+						var p = (IIsNull)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e))
@@ -475,7 +476,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.InSubQueryPredicate:
 					{
-						var p = (InSubQuery)element;
+						var p = (IInSubQuery)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1,    action);
 						var q = (ISelectQuery)ConvertInternal(p.SubQuery, action);
 
@@ -487,7 +488,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.InListPredicate:
 					{
-						var p = (InList)element;
+						var p = (IInList)element;
 						var e = (ISqlExpression)ConvertInternal(p.Expr1,    action);
 						var v = Convert(p.Values, action);
 
@@ -499,7 +500,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.FuncLikePredicate:
 					{
-						var p = (FuncLike)element;
+						var p = (IFuncLike)element;
 						var f = (SqlFunction)ConvertInternal(p.Function, action);
 
 						if (f != null && !ReferenceEquals(p.Function, f))

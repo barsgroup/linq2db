@@ -7,6 +7,7 @@ namespace LinqToDB.DataProvider.Informix
 {
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
     using SqlProvider;
@@ -57,7 +58,7 @@ namespace LinqToDB.DataProvider.Informix
 		protected override string FirstFormat { get { return "FIRST {0}"; } }
 		protected override string SkipFormat  { get { return "SKIP {0}";  } }
 
-		protected override void BuildLikePredicate(Like predicate)
+		protected override void BuildLikePredicate(ILike predicate)
 		{
 			if (predicate.IsNot)
 				StringBuilder.Append("NOT ");

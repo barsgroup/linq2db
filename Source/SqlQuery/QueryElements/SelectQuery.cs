@@ -18,6 +18,7 @@
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -224,7 +225,7 @@
 
                         case EQueryElementType.ExprExprPredicate:
                         {
-                            var ee = (ExprExpr)e;
+                            var ee = (IExprExpr)e;
 
                             if (ee.EOperator == EOperator.Equal || ee.EOperator == EOperator.NotEqual)
                             {
@@ -257,7 +258,7 @@
                             break;
 
                         case EQueryElementType.InListPredicate:
-                            return ConvertInListPredicate((InList)e);
+                            return ConvertInListPredicate((IInList)e);
                     }
 
                     return null;
@@ -278,7 +279,7 @@
             return query;
         }
 
-        static Predicate ConvertInListPredicate(InList p)
+        static ISqlPredicate ConvertInListPredicate(IInList p)
 		{
 			if (p.Values == null || p.Values.Count == 0)
 				return new Expr(new SqlValue(p.IsNot));

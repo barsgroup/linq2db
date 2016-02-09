@@ -5,9 +5,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public abstract class Predicate : BaseQueryElement, ISqlPredicate
+    public abstract class Predicate : BaseQueryElement,
+                                      ISqlPredicate
     {
         // { expression { = | <> | != | > | >= | ! > | < | <= | !< } expression
         //

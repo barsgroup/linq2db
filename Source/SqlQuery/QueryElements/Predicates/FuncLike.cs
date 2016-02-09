@@ -6,10 +6,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class FuncLike : Predicate
+    public class FuncLike : Predicate,
+                            IFuncLike
     {
         public FuncLike(SqlFunction func)
             : base(func.Precedence)

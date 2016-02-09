@@ -6,9 +6,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class Like : NotExpr
+    public class Like : NotExpr,
+                        ILike
     {
         public Like(ISqlExpression exp1, bool isNot, ISqlExpression exp2, ISqlExpression escape)
             : base(exp1, isNot, SqlQuery.Precedence.Comparison)
@@ -17,16 +19,15 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             Escape = escape;
         }
 
-        public ISqlExpression Expr2  { get; internal set; }
-        public ISqlExpression Escape { get; internal set; }
+        public ISqlExpression Expr2  { get; set; }
+        public ISqlExpression Escape { get; set; }
 
         protected override void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
         {
             base.Walk(skipColumns, func);
             Expr2 = Expr2.Walk(skipColumns, func);
 
-            if (Escape != null)
-                Escape = Escape.Walk(skipColumns, func);
+            Escape = Escape?.Walk(skipColumns, func);
         }
 
         protected override ICloneableElement Clone(Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)

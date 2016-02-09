@@ -21,6 +21,7 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -2194,9 +2195,9 @@ namespace LinqToDB.Linq.Builder
 
 						BuildSearchCondition(context, e.Operand, notCondition.Conditions);
 
-						if (notCondition.Conditions.Count == 1 && notCondition.Conditions[0].Predicate is NotExpr)
+						if (notCondition.Conditions.Count == 1 && notCondition.Conditions[0].Predicate is INotExpr)
 						{
-							var p = notCondition.Conditions[0].Predicate as NotExpr;
+							var p = notCondition.Conditions[0].Predicate as INotExpr;
 							p.IsNot = !p.IsNot;
 							conditions.Add(notCondition.Conditions[0]);
 						}
@@ -2209,9 +2210,9 @@ namespace LinqToDB.Linq.Builder
 				default                    :
 					var predicate = ConvertPredicate(context, expression);
 
-					if (predicate is Expr)
+					if (predicate is IExpr)
 					{
-						var expr = ((Expr)predicate).Expr1;
+						var expr = ((IExpr)predicate).Expr1;
 
 						if (expr.ElementType == EQueryElementType.SearchCondition)
 						{

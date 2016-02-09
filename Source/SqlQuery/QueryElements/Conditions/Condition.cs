@@ -8,6 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
 
     public class Condition : BaseQueryElement,
                              ICondition

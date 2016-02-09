@@ -12,6 +12,7 @@ namespace LinqToDB.DataProvider.Access
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -59,9 +60,9 @@ namespace LinqToDB.DataProvider.Access
 					{
 						var sc = (ISearchCondition)func.Parameters[0];
 
-						if (sc.Conditions.Count == 1 && sc.Conditions[0].Predicate is FuncLike)
+						if (sc.Conditions.Count == 1 && sc.Conditions[0].Predicate is IFuncLike)
 						{
-							var p = (FuncLike)sc.Conditions[0].Predicate;
+							var p = (IFuncLike)sc.Conditions[0].Predicate;
 
 							if (p.Function.Name == "EXISTS")
 							{
@@ -75,9 +76,9 @@ namespace LinqToDB.DataProvider.Access
 				{
 					var sc = (ISearchCondition)SelectQuery.Select.Columns[0].Expression;
 
-					if (sc.Conditions.Count == 1 && sc.Conditions[0].Predicate is FuncLike)
+					if (sc.Conditions.Count == 1 && sc.Conditions[0].Predicate is IFuncLike)
 					{
-						var p = (FuncLike)sc.Conditions[0].Predicate;
+						var p = (IFuncLike)sc.Conditions[0].Predicate;
 
 						if (p.Function.Name == "EXISTS")
 						{
@@ -107,7 +108,7 @@ namespace LinqToDB.DataProvider.Access
 				cond  = (ISearchCondition)SelectQuery.Select.Columns[0].Expression;
 			}
 
-			var exist = ((FuncLike)cond.Conditions[0].Predicate).Function;
+			var exist = ((IFuncLike)cond.Conditions[0].Predicate).Function;
 			var query = (ISelectQuery)exist.Parameters[0];
 
 			_selectColumn = new Column(SelectQuery, new SqlExpression(cond.Conditions[0].IsNot ? "Count(*) = 0" : "Count(*) > 0"), SelectQuery.Select.Columns[0].Alias);
@@ -158,7 +159,7 @@ namespace LinqToDB.DataProvider.Access
 			return true;
 		}
 
-		protected override void BuildLikePredicate(Like predicate)
+		protected override void BuildLikePredicate(ILike predicate)
 		{
 			if (predicate.Expr2 is SqlValue)
 			{

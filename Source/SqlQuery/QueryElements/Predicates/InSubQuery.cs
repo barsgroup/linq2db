@@ -6,9 +6,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class InSubQuery : NotExpr
+    public class InSubQuery : NotExpr,
+                              IInSubQuery
     {
         public InSubQuery(ISqlExpression exp1, bool isNot, ISelectQuery subQuery)
             : base(exp1, isNot, SqlQuery.Precedence.Comparison)

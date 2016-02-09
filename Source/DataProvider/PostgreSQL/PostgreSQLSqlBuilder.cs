@@ -9,6 +9,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -183,7 +184,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 			base.BuildCreateTableFieldType(field);
 		}
 
-	    protected override void BuildLikePredicate(Like predicate)
+	    protected override void BuildLikePredicate(ILike predicate)
 	    {
 	        var expr1 = predicate.Expr1;
 	        var sqlField = expr1 as SqlField;

@@ -15,6 +15,7 @@ namespace LinqToDB.Linq.Builder
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -229,7 +230,7 @@ namespace LinqToDB.Linq.Builder
 				{
 					var predicate = Builder.MakeIsPredicate(this, OriginalType);
 
-					if (predicate.GetType() != typeof(Expr))
+					if (!(predicate is IExpr))
 						GetDescriminatorConditionsStorage().Add(new Condition(false, predicate));
 				}
 			}
@@ -864,18 +865,18 @@ namespace LinqToDB.Linq.Builder
 
 					foreach (var cond in (association).ParentAssociationJoin.Condition.Conditions)
 					{
-						ExprExpr p;
+                        IExprExpr p;
 
 						if (cond.Predicate is ISearchCondition)
 						{
 							p = ((ISearchCondition)cond.Predicate).Conditions
 								.Select(c => c.Predicate)
-								.OfType<ExprExpr>()
+								.OfType<IExprExpr>()
 								.First();
 						}
 						else
 						{
-							p = (ExprExpr)cond.Predicate;
+							p = (IExprExpr)cond.Predicate;
 						}
 
 						var e1 = Expression.MakeMemberAccess(parent, ((SqlField)p.Expr1).ColumnDescriptor.MemberInfo) as Expression;

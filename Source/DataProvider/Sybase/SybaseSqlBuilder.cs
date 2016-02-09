@@ -6,6 +6,7 @@ namespace LinqToDB.DataProvider.Sybase
 {
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -109,7 +110,7 @@ namespace LinqToDB.DataProvider.Sybase
 			StringBuilder.AppendLine();
 		}
 
-		protected override void BuildLikePredicate(Like predicate)
+		protected override void BuildLikePredicate(ILike predicate)
 		{
 			if (predicate.Expr2 is SqlValue)
 			{

@@ -12,6 +12,7 @@ namespace LinqToDB.SqlProvider
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -778,7 +779,7 @@ namespace LinqToDB.SqlProvider
 			{
 				case EQueryElementType.ExprExprPredicate:
 					{
-						var expr = (ExprExpr)predicate;
+						var expr = (IExprExpr)predicate;
 
 						if (expr.Expr1 is SqlField && expr.Expr2 is SqlParameter)
 						{
@@ -809,9 +810,9 @@ namespace LinqToDB.SqlProvider
 								break;
 						}
 
-						if (predicate is ExprExpr)
+						if (predicate is IExprExpr)
 						{
-							expr = (ExprExpr)predicate;
+							expr = (IExprExpr)predicate;
 
 							switch (expr.EOperator)
 							{
@@ -839,7 +840,7 @@ namespace LinqToDB.SqlProvider
 
 				case EQueryElementType.NotExprPredicate:
 					{
-						var expr = (NotExpr)predicate;
+						var expr = (INotExpr)predicate;
 
 						if (expr.IsNot && expr.Expr1 is ISearchCondition)
 						{
@@ -852,9 +853,9 @@ namespace LinqToDB.SqlProvider
 								if (cond.IsNot)
 									return cond.Predicate;
 
-								if (cond.Predicate is ExprExpr)
+								if (cond.Predicate is IExprExpr)
 								{
-									var ee = (ExprExpr)cond.Predicate;
+									var ee = (IExprExpr)cond.Predicate;
 
 									if (ee.EOperator == EOperator.Equal)
 										return new ExprExpr(ee.Expr1, EOperator.NotEqual, ee.Expr2);
@@ -872,7 +873,7 @@ namespace LinqToDB.SqlProvider
 			return predicate;
 		}
 
-		protected ISqlPredicate ConvertEqualPredicate(ExprExpr expr)
+		protected ISqlPredicate ConvertEqualPredicate(IExprExpr expr)
 		{
 			var expr1 = expr.Expr1;
 			var expr2 = expr.Expr2;
@@ -907,7 +908,7 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		ISqlPredicate OptimizeCase(ISelectQuery selectQuery, ExprExpr expr)
+		ISqlPredicate OptimizeCase(ISelectQuery selectQuery, IExprExpr expr)
 		{
 			var value = expr.Expr1 as SqlValue;
 			var func  = expr.Expr2 as SqlFunction;
@@ -936,8 +937,8 @@ namespace LinqToDB.SqlProvider
 					if (c1 != null && c1.Conditions.Count == 1 && v1 != null && v1.Value is int &&
 						c2 != null && c2.Conditions.Count == 1 && v2 != null && v2.Value is int && v3 != null && v3.Value is int)
 					{
-						var ee1 = c1.Conditions[0].Predicate as ExprExpr;
-						var ee2 = c2.Conditions[0].Predicate as ExprExpr;
+						var ee1 = c1.Conditions[0].Predicate as IExprExpr;
+						var ee2 = c2.Conditions[0].Predicate as IExprExpr;
 
 						if (ee1 != null && ee2 != null && ee1.Expr1.Equals(ee2.Expr1) && ee1.Expr2.Equals(ee2.Expr2))
 						{
@@ -1016,7 +1017,7 @@ namespace LinqToDB.SqlProvider
 						if (bv == bv2 && expr.EOperator == EOperator.NotEqual ||
 							bv != bv1 && expr.EOperator == EOperator.Equal)
 						{
-							var ee = c1.Conditions[0].Predicate as ExprExpr;
+							var ee = c1.Conditions[0].Predicate as IExprExpr;
 
 							if (ee != null)
 							{

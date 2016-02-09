@@ -18,6 +18,7 @@ namespace LinqToDB.ServiceModel
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -733,7 +734,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.ExprPredicate :
 						{
-							var elem = (Expr)e;
+							var elem = (IExpr)e;
 
 							Append(elem.Expr1);
 							Append(elem.Precedence);
@@ -743,7 +744,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.NotExprPredicate :
 						{
-							var elem = (NotExpr)e;
+							var elem = (INotExpr)e;
 
 							Append(elem.Expr1);
 							Append(elem.IsNot);
@@ -754,7 +755,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.ExprExprPredicate :
 						{
-							var elem = (ExprExpr)e;
+							var elem = (IExprExpr)e;
 
 							Append(elem.Expr1);
 							Append((int)elem.EOperator);
@@ -765,7 +766,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.LikePredicate :
 						{
-							var elem = (Like)e;
+							var elem = (ILike)e;
 
 							Append(elem.Expr1);
 							Append(elem.IsNot);
@@ -789,7 +790,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.IsNullPredicate :
 						{
-							var elem = (IsNull)e;
+							var elem = (IIsNull)e;
 
 							Append(elem.Expr1);
 							Append(elem.IsNot);
@@ -799,7 +800,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.InSubQueryPredicate :
 						{
-							var elem = (InSubQuery)e;
+							var elem = (IInSubQuery)e;
 
 							Append(elem.Expr1);
 							Append(elem.IsNot);
@@ -810,7 +811,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.InListPredicate :
 						{
-							var elem = (InList)e;
+							var elem = (IInList)e;
 
 							Append(elem.Expr1);
 							Append(elem.IsNot);
@@ -821,7 +822,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.FuncLikePredicate :
 						{
-							var elem = (FuncLike)e;
+							var elem = (IFuncLike)e;
 							Append(elem.Function);
 							break;
 						}

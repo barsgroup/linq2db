@@ -6,9 +6,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class ExprExpr : Expr
+    public class ExprExpr : Expr,
+                            IExprExpr
     {
         public ExprExpr(ISqlExpression exp1, EOperator op, ISqlExpression exp2)
             : base(exp1, SqlQuery.Precedence.Comparison)
@@ -17,8 +19,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             Expr2    = exp2;
         }
 
-        public new EOperator   EOperator { get; private  set; }
-        public ISqlExpression Expr2    { get; internal set; }
+        public EOperator   EOperator { get; private  set; }
+
+        public ISqlExpression Expr2    { get; set; }
 
         protected override void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
         {

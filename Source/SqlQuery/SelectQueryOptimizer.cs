@@ -11,6 +11,7 @@ namespace LinqToDB.SqlQuery
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -232,14 +233,14 @@ namespace LinqToDB.SqlQuery
 						case EQueryElementType.IsNullPredicate     :
 						case EQueryElementType.InSubQueryPredicate :
 							{
-								var expr = (Expr)e;
+								var expr = (IExpr)e;
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
 								break;
 							}
 
 						case EQueryElementType.ExprExprPredicate :
 							{
-								var expr = (ExprExpr)e;
+								var expr = (IExprExpr)e;
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
 								if (dic.TryGetValue(expr.Expr2, out ex)) expr.Expr2 = ex;
 								break;
@@ -247,7 +248,7 @@ namespace LinqToDB.SqlQuery
 
 						case EQueryElementType.LikePredicate :
 							{
-								var expr = (Like)e;
+								var expr = (ILike)e;
 								if (dic.TryGetValue(expr.Expr1,  out ex)) expr.Expr1  = ex;
 								if (dic.TryGetValue(expr.Expr2,  out ex)) expr.Expr2  = ex;
 								if (dic.TryGetValue(expr.Escape, out ex)) expr.Escape = ex;
@@ -265,7 +266,7 @@ namespace LinqToDB.SqlQuery
 
 						case EQueryElementType.InListPredicate :
 							{
-								var expr = (InList)e;
+								var expr = (IInList)e;
 
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
 
@@ -466,9 +467,9 @@ namespace LinqToDB.SqlQuery
 					{
 						var c1 = sc.Conditions[0];
 
-						if (!c1.IsNot && c1.Predicate is ExprExpr)
+						if (!c1.IsNot && c1.Predicate is IExprExpr)
 						{
-							var ee = (ExprExpr)c1.Predicate;
+							var ee = (IExprExpr)c1.Predicate;
 							EOperator op;
 
 							switch (ee.EOperator)
@@ -497,7 +498,7 @@ namespace LinqToDB.SqlQuery
 
 				if (cond.Predicate.ElementType == EQueryElementType.ExprPredicate)
 				{
-					var expr = (Expr)cond.Predicate;
+					var expr = (IExpr)cond.Predicate;
 
 					if (expr.Expr1 is SqlValue)
 					{
@@ -516,7 +517,7 @@ namespace LinqToDB.SqlQuery
 
 				if (cond.Predicate.ElementType == EQueryElementType.ExprPredicate)
 				{
-					var expr = (Expr)cond.Predicate;
+					var expr = (IExpr)cond.Predicate;
 
 					if (expr.Expr1 is SqlValue)
 					{
@@ -737,7 +738,7 @@ namespace LinqToDB.SqlQuery
 				return map.TryGetValue(expr, out fld) ? fld : expr;
 			});
 
-	        foreach (var expr in QueryVisitor.FindAll<InList>(top).Where(p => p.Expr1 == query))
+	        foreach (var expr in QueryVisitor.FindAll<IInList>(top).Where(p => p.Expr1 == query))
 	        {
                 expr.Expr1 = query.From.Tables[0];
             }
