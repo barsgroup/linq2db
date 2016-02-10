@@ -55,9 +55,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         public    abstract bool              CanBeNull();
         protected abstract ICloneableElement Clone    (Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone);
-        protected abstract void              Walk     (bool skipColumns, Func<ISqlExpression,ISqlExpression> action);
+        protected abstract void              Walk     (bool skipColumns, Func<IQueryExpression,IQueryExpression> action);
 
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             Walk(skipColumns, func);
             return null;

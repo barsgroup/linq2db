@@ -9,8 +9,14 @@
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class SqlValue : BaseQueryElement, ISqlExpression, IValueContainer
-	{
+    public interface ISqlValue : IQueryExpression,
+                                 IValueContainer
+    {
+    }
+
+    public class SqlValue : BaseQueryElement,
+                            ISqlValue
+    {
 		public SqlValue(Type systemType, object value)
 		{
 			SystemType = systemType;
@@ -25,7 +31,7 @@
 				SystemType = value.GetType();
 		}
 
-		public object Value      { get; private set; }
+		public object Value      { get;  set; }
 		public Type   SystemType { get; private set; }
 
 		#region Overrides
@@ -52,7 +58,7 @@
 
 		#region ISqlExpressionWalkable Members
 
-		ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
 		{
 			return func(this);
 		}
@@ -61,12 +67,12 @@
 
 		#region IEquatable<ISqlExpression> Members
 
-		bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+		bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
 		{
 			if (this == other)
 				return true;
 
-			var value = other as SqlValue;
+			var value = other as ISqlValue;
 			return
 				value       != null              &&
 				SystemType == value.SystemType &&
@@ -82,9 +88,9 @@
 			return Value == null;
 		}
 
-		public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+		public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
 		{
-			return ((ISqlExpression)this).Equals(other) && comparer(this, other);
+			return ((IQueryExpression)this).Equals(other) && comparer(this, other);
 		}
 
 		#endregion

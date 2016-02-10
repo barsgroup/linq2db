@@ -19,8 +19,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
         readonly IExpr<T1, T2> _expr;
         readonly EOperator _op;
 
-        public T2 Expr    (ISqlExpression expr)       { return _expr.Add(new ExprExpr(_expr.SqlExpression, _op, expr)); }
-        public T2 Field   (SqlField      field)       { return Expr(field);               }
+        public T2 Expr    (IQueryExpression expr)       { return _expr.Add(new ExprExpr(_expr.SqlExpression, _op, expr)); }
+        public T2 Field   (ISqlField field)       { return Expr(field);               }
         public T2 SubQuery(ISelectQuery selectQuery) { return Expr(selectQuery);         }
         public T2 Value   (object        value)       { return Expr(new SqlValue(value)); }
 

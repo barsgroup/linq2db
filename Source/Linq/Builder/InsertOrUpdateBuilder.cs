@@ -7,6 +7,7 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlQuery;
 
@@ -64,7 +65,7 @@ namespace LinqToDB.Linq.Builder
 				if (missedKey != null)
 					throw new LinqException("InsertOrUpdate method requires the '{0}.{1}' field to be included in the insert setter.",
 						table.Name,
-						((SqlField)missedKey).Name);
+						((ISqlField)missedKey).Name);
 
 				sequence.Select.Update.Keys.AddRange(q.Select(i => i.i));
 			}

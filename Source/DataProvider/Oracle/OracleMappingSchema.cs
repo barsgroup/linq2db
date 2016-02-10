@@ -8,6 +8,7 @@ namespace LinqToDB.DataProvider.Oracle
 	using Expressions;
 
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
 
@@ -91,7 +92,7 @@ namespace LinqToDB.DataProvider.Oracle
 				;
 		}
 
-		static void ConvertDateTimeToSql(StringBuilder stringBuilder, SqlDataType dataType, DateTime value)
+		static void ConvertDateTimeToSql(StringBuilder stringBuilder, ISqlDataType dataType, DateTime value)
 		{
 			var format =
 				dataType.DataType == DataType.DateTime ?

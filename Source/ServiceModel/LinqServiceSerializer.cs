@@ -20,6 +20,7 @@ namespace LinqToDB.ServiceModel
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
 	using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
@@ -29,7 +30,7 @@ namespace LinqToDB.ServiceModel
 	{
 		#region Public Members
 
-		public static string Serialize(ISelectQuery query, SqlParameter[] parameters, List<string> queryHints)
+		public static string Serialize(ISelectQuery query, ISqlParameter[] parameters, List<string> queryHints)
 		{
 			return new QuerySerializer().Serialize(query, parameters, queryHints);
 		}
@@ -487,7 +488,7 @@ namespace LinqToDB.ServiceModel
 
 		class QuerySerializer : SerializerBase
 		{
-			public string Serialize(ISelectQuery query, SqlParameter[] parameters, List<string> queryHints)
+			public string Serialize(ISelectQuery query, ISqlParameter[] parameters, List<string> queryHints)
 			{
 				var queryHintCount = queryHints == null ? 0 : queryHints.Count;
 
@@ -528,7 +529,7 @@ namespace LinqToDB.ServiceModel
 				{
 					case EQueryElementType.SqlField :
 						{
-							var fld = (SqlField)e;
+							var fld = (ISqlField)e;
 
 							if (fld != fld.Table.All)
 								GetType(fld.SystemType);
@@ -538,7 +539,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SqlParameter :
 						{
-							var p = (SqlParameter)e;
+							var p = (ISqlParameter)e;
 							var v = p.Value;
 							var t = v == null ? p.SystemType : v.GetType();
 
@@ -555,12 +556,12 @@ namespace LinqToDB.ServiceModel
 							break;
 						}
 
-					case EQueryElementType.SqlFunction         : GetType(((SqlFunction)        e).SystemType); break;
+					case EQueryElementType.SqlFunction         : GetType(((ISqlFunction)        e).SystemType); break;
 					case EQueryElementType.SqlExpression       : GetType(((SqlExpression)      e).SystemType); break;
-					case EQueryElementType.SqlBinaryExpression : GetType(((SqlBinaryExpression)e).SystemType); break;
-					case EQueryElementType.SqlDataType         : GetType(((SqlDataType)        e).Type);       break;
-					case EQueryElementType.SqlValue            : GetType(((SqlValue)           e).SystemType); break;
-					case EQueryElementType.SqlTable            : GetType(((SqlTable)           e).ObjectType); break;
+					case EQueryElementType.SqlBinaryExpression : GetType(((ISqlBinaryExpression)e).SystemType); break;
+					case EQueryElementType.SqlDataType         : GetType(((ISqlDataType)        e).Type);       break;
+					case EQueryElementType.SqlValue            : GetType(((ISqlValue)           e).SystemType); break;
+					case EQueryElementType.SqlTable            : GetType(((ISqlTable)           e).ObjectType); break;
 				}
 
 				Dic.Add(e, ++Index);
@@ -574,7 +575,7 @@ namespace LinqToDB.ServiceModel
 				{
 					case EQueryElementType.SqlField :
 						{
-							var elem = (SqlField)e;
+							var elem = (ISqlField)e;
 
 							Append(elem.SystemType);
 							Append(elem.Name);
@@ -597,7 +598,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SqlFunction :
 						{
-							var elem = (SqlFunction)e;
+							var elem = (ISqlFunction)e;
 
 							Append(elem.SystemType);
 							Append(elem.Name);
@@ -609,7 +610,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SqlParameter :
 						{
-							var elem = (SqlParameter)e;
+							var elem = (ISqlParameter)e;
 
 							Append(elem.Name);
 							Append(elem.IsQueryParameter);
@@ -640,7 +641,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SqlExpression :
 						{
-							var elem = (SqlExpression)e;
+							var elem = (ISqlExpression)e;
 
 							Append(elem.SystemType);
 							Append(elem.Expr);
@@ -652,7 +653,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SqlBinaryExpression :
 						{
-							var elem = (SqlBinaryExpression)e;
+							var elem = (ISqlBinaryExpression)e;
 
 							Append(elem.SystemType);
 							Append(elem.Expr1);
@@ -665,14 +666,14 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SqlValue :
 						{
-							var elem = (SqlValue)e;
+							var elem = (ISqlValue)e;
 							Append(elem.SystemType, elem.Value);
 							break;
 						}
 
 					case EQueryElementType.SqlDataType :
 						{
-							var elem = (SqlDataType)e;
+							var elem = (ISqlDataType)e;
 
 							Append((int)elem.DataType);
 							Append(elem.Type);
@@ -685,7 +686,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.SqlTable :
 						{
-							var elem = (SqlTable)e;
+							var elem = (ISqlTable)e;
 
 							Append(elem.SourceID);
 							Append(elem.Name);
@@ -716,7 +717,7 @@ namespace LinqToDB.ServiceModel
 
 							Append((int)elem.SqlTableType);
 
-							if (elem.SqlTableType != SqlTableType.Table)
+							if (elem.SqlTableType != ESqlTableType.Table)
 							{
 								if (elem.TableArguments == null)
 									Append(0);
@@ -1066,7 +1067,7 @@ namespace LinqToDB.ServiceModel
 		public class QueryDeserializer : DeserializerBase
 		{
             ISelectQuery _query;
-			SqlParameter[] _parameters;
+            ISqlParameter[] _parameters;
 
 			readonly Dictionary<int, ISelectQuery> _queries = new Dictionary<int, ISelectQuery>();
 			readonly List<Action>                _actions = new List<Action>();
@@ -1119,7 +1120,7 @@ namespace LinqToDB.ServiceModel
 
 				switch ((EQueryElementType)type)
 				{
-					case (EQueryElementType)ParamIndex     : obj = _parameters = ReadArray<SqlParameter>(); break;
+					case (EQueryElementType)ParamIndex     : obj = _parameters = ReadArray<ISqlParameter>(); break;
 					case (EQueryElementType)TypeIndex      : obj = ResolveType(ReadString());               break;
 					case (EQueryElementType)TypeArrayIndex : obj = GetArrayType(Read<Type>());              break;
 
@@ -1168,7 +1169,7 @@ namespace LinqToDB.ServiceModel
 							var systemType = Read<Type>();
 							var name       = ReadString();
 							var precedence = ReadInt();
-							var parameters = ReadArray<ISqlExpression>();
+							var parameters = ReadArray<IQueryExpression>();
 
 							obj = new SqlFunction(systemType, name, precedence, parameters);
 
@@ -1206,7 +1207,7 @@ namespace LinqToDB.ServiceModel
 							var systemType = Read<Type>();
 							var expr       = ReadString();
 							var precedence = ReadInt();
-							var parameters = ReadArray<ISqlExpression>();
+							var parameters = ReadArray<IQueryExpression>();
 
 							obj = new SqlExpression(systemType, expr, precedence, parameters);
 
@@ -1216,9 +1217,9 @@ namespace LinqToDB.ServiceModel
 					case EQueryElementType.SqlBinaryExpression :
 						{
 							var systemType = Read<Type>();
-							var expr1      = Read<ISqlExpression>();
+							var expr1      = Read<IQueryExpression>();
 							var operation  = ReadString();
-							var expr2      = Read<ISqlExpression>();
+							var expr2      = Read<IQueryExpression>();
 							var precedence = ReadInt();
 
 							obj = new SqlBinaryExpression(systemType, expr1, operation, expr2, precedence);
@@ -1270,15 +1271,15 @@ namespace LinqToDB.ServiceModel
 									sequenceAttributes[i] = new SequenceNameAttribute(ReadString(), ReadString());
 							}
 
-							var all    = Read<SqlField>();
-							var fields = ReadArray<SqlField>();
-							var flds   = new SqlField[fields.Length + 1];
+							var all    = Read<ISqlField>();
+							var fields = ReadArray<ISqlField>();
+							var flds   = new ISqlField[fields.Length + 1];
 
 							flds[0] = all;
 							Array.Copy(fields, 0, flds, 1, fields.Length);
 
-							var sqlTableType = (SqlTableType)ReadInt();
-							var tableArgs    = sqlTableType == SqlTableType.Table ? null : ReadArray<ISqlExpression>();
+							var sqlTableType = (ESqlTableType)ReadInt();
+							var tableArgs    = sqlTableType == ESqlTableType.Table ? null : ReadArray<IQueryExpression>();
 
 							obj = new SqlTable(
 								sourceID, name, alias, database, owner, physicalName, objectType, sequenceAttributes, flds,
@@ -1289,7 +1290,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.ExprPredicate :
 						{
-							var expr1      = Read<ISqlExpression>();
+							var expr1      = Read<IQueryExpression>();
 							var precedence = ReadInt();
 
 							obj = new Expr(expr1, precedence);
@@ -1299,7 +1300,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.NotExprPredicate :
 						{
-							var expr1      = Read<ISqlExpression>();
+							var expr1      = Read<IQueryExpression>();
 							var isNot      = ReadBool();
 							var precedence = ReadInt();
 
@@ -1310,9 +1311,9 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.ExprExprPredicate :
 						{
-							var expr1     = Read<ISqlExpression>();
+							var expr1     = Read<IQueryExpression>();
 							var @operator = (EOperator)ReadInt();
-							var expr2     = Read<ISqlExpression>();
+							var expr2     = Read<IQueryExpression>();
 
 							obj = new ExprExpr(expr1, @operator, expr2);
 
@@ -1321,10 +1322,10 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.LikePredicate :
 						{
-							var expr1  = Read<ISqlExpression>();
+							var expr1  = Read<IQueryExpression>();
 							var isNot  = ReadBool();
-							var expr2  = Read<ISqlExpression>();
-							var escape = Read<ISqlExpression>();
+							var expr2  = Read<IQueryExpression>();
+							var escape = Read<IQueryExpression>();
 
 							obj = new Like(expr1, isNot, expr2, escape);
 
@@ -1333,10 +1334,10 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.BetweenPredicate :
 						{
-							var expr1 = Read<ISqlExpression>();
+							var expr1 = Read<IQueryExpression>();
 							var isNot = ReadBool();
-							var expr2 = Read<ISqlExpression>();
-							var expr3 = Read<ISqlExpression>();
+							var expr2 = Read<IQueryExpression>();
+							var expr3 = Read<IQueryExpression>();
 
 							obj = new Between(expr1, isNot, expr2, expr3);
 
@@ -1345,7 +1346,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.IsNullPredicate :
 						{
-							var expr1 = Read<ISqlExpression>();
+							var expr1 = Read<IQueryExpression>();
 							var isNot = ReadBool();
 
 							obj = new IsNull(expr1, isNot);
@@ -1355,7 +1356,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.InSubQueryPredicate :
 						{
-							var expr1    = Read<ISqlExpression>();
+							var expr1    = Read<IQueryExpression>();
 							var isNot    = ReadBool();
 							var subQuery = Read<ISelectQuery>();
 
@@ -1366,9 +1367,9 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.InListPredicate :
 						{
-							var expr1  = Read<ISqlExpression>();
+							var expr1  = Read<IQueryExpression>();
 							var isNot  = ReadBool();
-							var values = ReadList<ISqlExpression>();
+							var values = ReadList<IQueryExpression>();
 
 							obj = new InList(expr1, isNot, values);
 
@@ -1377,7 +1378,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.FuncLikePredicate :
 						{
-							var func = Read<SqlFunction>();
+							var func = Read<ISqlFunction>();
 							obj = new FuncLike(func);
 							break;
 						}
@@ -1406,7 +1407,7 @@ namespace LinqToDB.ServiceModel
 							var parentSql          = ReadInt();
 							var parameterDependent = ReadBool();
 							var unions             = ReadArray<IUnion>();
-							var parameters         = ReadArray<SqlParameter>();
+							var parameters         = ReadArray<ISqlParameter>();
 
 							var query = _query = new SelectQuery(sid) { EQueryType = queryType };
 
@@ -1436,7 +1437,7 @@ namespace LinqToDB.ServiceModel
 										query.ParentSelect = selectQuery;
 								});
 
-							query.All = Read<SqlField>();
+							query.All = Read<ISqlField>();
 
 							obj = query;
 
@@ -1446,7 +1447,7 @@ namespace LinqToDB.ServiceModel
 					case EQueryElementType.Column :
 						{
 							var sid        = ReadInt();
-							var expression = Read<ISqlExpression>();
+							var expression = Read<IQueryExpression>();
 							var alias      = ReadString();
 
 							var col = new Column(null, expression, alias);
@@ -1492,8 +1493,8 @@ namespace LinqToDB.ServiceModel
 					case EQueryElementType.SelectClause :
 						{
 							var isDistinct = ReadBool();
-							var skipValue  = Read<ISqlExpression>();
-							var takeValue  = Read<ISqlExpression>();
+							var skipValue  = Read<IQueryExpression>();
+							var takeValue  = Read<IQueryExpression>();
 							var columns    = ReadArray<IColumn>();
 
 							obj = new SelectClause(isDistinct, takeValue, skipValue, columns);
@@ -1504,7 +1505,7 @@ namespace LinqToDB.ServiceModel
 					case EQueryElementType.InsertClause :
 						{
 							var items = ReadArray<ISetExpression>();
-							var into  = Read<SqlTable>();
+							var into  = Read<ISqlTable>();
 							var wid   = ReadBool();
 
 							var c = new InsertClause { Into = into, WithIdentity = wid };
@@ -1519,7 +1520,7 @@ namespace LinqToDB.ServiceModel
 						{
 							var items = ReadArray<ISetExpression>();
 							var keys  = ReadArray<ISetExpression>();
-							var table = Read<SqlTable>();
+							var table = Read<ISqlTable>();
 
 							var c = new UpdateClause { Table = table };
 
@@ -1532,14 +1533,14 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.DeleteClause :
 						{
-							var table = Read<SqlTable>();
+							var table = Read<ISqlTable>();
 							obj = new DeleteClause { Table = table };
 							break;
 						}
 
 					case EQueryElementType.CreateTableStatement :
 						{
-							var table           = Read<SqlTable>();
+							var table           = Read<ISqlTable>();
 							var isDrop          = ReadBool();
 							var statementHeader = ReadString();
 							var statementFooter = ReadString();
@@ -1557,15 +1558,15 @@ namespace LinqToDB.ServiceModel
 							break;
 						}
 
-					case EQueryElementType.SetExpression : obj = new SetExpression(Read     <ISqlExpression>(), Read<ISqlExpression>()); break;
+					case EQueryElementType.SetExpression : obj = new SetExpression(Read     <IQueryExpression>(), Read<IQueryExpression>()); break;
 					case EQueryElementType.FromClause    : obj = new FromClause   (ReadArray<ITableSource>());                break;
 					case EQueryElementType.WhereClause   : obj = new WhereClause  (Read     <ISearchCondition>());            break;
-					case EQueryElementType.GroupByClause : obj = new GroupByClause(ReadArray<ISqlExpression>());                         break;
+					case EQueryElementType.GroupByClause : obj = new GroupByClause(ReadArray<IQueryExpression>());                         break;
 					case EQueryElementType.OrderByClause : obj = new OrderByClause(ReadArray<IOrderByItem>());                break;
 
 					case EQueryElementType.OrderByItem :
 						{
-							var expression   = Read<ISqlExpression>();
+							var expression   = Read<IQueryExpression>();
 							var isDescending = ReadBool();
 
 							obj = new OrderByItem(expression, isDescending);

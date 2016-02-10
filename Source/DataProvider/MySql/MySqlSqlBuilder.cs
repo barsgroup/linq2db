@@ -62,7 +62,7 @@ namespace LinqToDB.DataProvider.MySql
 			}
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -212,7 +212,7 @@ namespace LinqToDB.DataProvider.MySql
 		}
 
 		protected override StringBuilder BuildExpression(
-			ISqlExpression expr,
+			IQueryExpression expr,
 			bool           buildTableName,
 			bool           checkParentheses,
 			string         alias,
@@ -259,7 +259,7 @@ namespace LinqToDB.DataProvider.MySql
 			StringBuilder.AppendLine("() VALUES ()");
 		}
 
-		protected override void BuildCreateTableIdentityAttribute1(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute1(ISqlField field)
 		{
 			StringBuilder.Append("AUTO_INCREMENT");
 		}

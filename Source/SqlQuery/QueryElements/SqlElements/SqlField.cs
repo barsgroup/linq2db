@@ -10,14 +10,15 @@
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class SqlField : BaseQueryElement, ISqlExpression
+    public class SqlField : BaseQueryElement,
+                            ISqlField
     {
 		public SqlField()
 		{
 			Nullable = true;
 		}
 
-		public SqlField(SqlField field)
+		public SqlField(ISqlField field)
 		{
 			SystemType       = field.SystemType;
 			Alias            = field.Alias;
@@ -84,7 +85,7 @@
 			return Nullable;
 		}
 
-		public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+		public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
 		{
 			return this == other;
 		}
@@ -98,7 +99,7 @@
 
 		#region ISqlExpressionWalkable Members
 
-		ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
 		{
 			return func(this);
 		}
@@ -107,7 +108,7 @@
 
 		#region IEquatable<ISqlExpression> Members
 
-		bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+		bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
 		{
 			return this == other;
 		}

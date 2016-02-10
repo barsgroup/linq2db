@@ -6,11 +6,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     public interface ISelectClause : IClauseWithConditionBase, ISqlExpressionWalkable
     {
-        ISelectClause Expr(ISqlExpression expr);
+        ISelectClause Expr(IQueryExpression expr);
 
-        int Add(ISqlExpression expr);
+        int Add(IQueryExpression expr);
 
-        int Add(ISqlExpression expr, string alias);
+        int Add(IQueryExpression expr, string alias);
 
         List<IColumn> Columns { get; }
 
@@ -20,17 +20,17 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         bool IsDistinct { get; set; }
 
-        ISqlExpression TakeValue { get; set; }
+        IQueryExpression TakeValue { get; set; }
 
-        ISqlExpression SkipValue { get; set; }
+        IQueryExpression SkipValue { get; set; }
 
         ISelectClause Take(int value);
 
-        ISelectClause Take(ISqlExpression value);
+        ISelectClause Take(IQueryExpression value);
 
         ISelectClause Skip(int value);
 
-        ISelectClause Skip(ISqlExpression value);
+        ISelectClause Skip(IQueryExpression value);
 
     }
 }

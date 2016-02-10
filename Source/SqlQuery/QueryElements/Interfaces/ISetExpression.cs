@@ -4,8 +4,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     public interface ISetExpression: ISqlExpressionWalkable, ICloneableElement, IQueryElement
     {
-        ISqlExpression Column { get; set; }
+        IQueryExpression Column { get; set; }
 
-        ISqlExpression Expression { get; set; }
+        IQueryExpression Expression { get; set; }
     }
 }

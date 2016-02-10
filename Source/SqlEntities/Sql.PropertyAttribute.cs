@@ -28,7 +28,7 @@
 			{
 			}
 
-			public override ISqlExpression GetExpression(MemberInfo member, params ISqlExpression[] args)
+			public override IQueryExpression GetExpression(MemberInfo member, params IQueryExpression[] args)
 			{
 				return new SqlExpression(member.GetMemberType(), Name ?? member.Name, Precedence.Primary);
 			}

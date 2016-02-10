@@ -23,26 +23,26 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
-            _items.AddRange(clone._items.Select(e => (ISqlExpression)e.Clone(objectTree, doClone)));
+            _items.AddRange(clone._items.Select(e => (IQueryExpression)e.Clone(objectTree, doClone)));
         }
 
-        internal GroupByClause(IEnumerable<ISqlExpression> items) : base(null)
+        internal GroupByClause(IEnumerable<IQueryExpression> items) : base(null)
         {
             _items.AddRange(items);
         }
 
-        public GroupByClause Expr(ISqlExpression expr)
+        public GroupByClause Expr(IQueryExpression expr)
         {
             Add(expr);
             return this;
         }
 
-        public GroupByClause Field(SqlField field)
+        public GroupByClause Field(ISqlField field)
         {
             return Expr(field);
         }
 
-        void Add(ISqlExpression expr)
+        void Add(IQueryExpression expr)
         {
             foreach (var e in Items)
                 if (e.Equals(expr))
@@ -51,14 +51,14 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             Items.Add(expr);
         }
 
-        readonly List<ISqlExpression> _items = new List<ISqlExpression>();
-        public   List<ISqlExpression>  Items => _items;
+        readonly List<IQueryExpression> _items = new List<IQueryExpression>();
+        public   List<IQueryExpression>  Items => _items;
 
         public bool IsEmpty => Items.Count == 0;
 
         #region ISqlExpressionWalkable Members
 
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             for (var i = 0; i < Items.Count; i++)
                 Items[i] = Items[i].Walk(skipColumns, func);

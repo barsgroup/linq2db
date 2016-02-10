@@ -12,7 +12,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     public class Column : BaseQueryElement,
                           IColumn
     {
-        public Column(ISelectQuery parent, ISqlExpression expression, string alias)
+        public Column(ISelectQuery parent, IQueryExpression expression, string alias)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
@@ -25,7 +25,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 #endif
         }
 
-        public Column(ISelectQuery builder, ISqlExpression expression)
+        public Column(ISelectQuery builder, IQueryExpression expression)
             : this(builder, expression, null)
         {
         }
@@ -35,7 +35,7 @@ namespace LinqToDB.SqlQuery.QueryElements
         static   int _columnCounter;
 #endif
 
-        public ISqlExpression Expression { get; set; }
+        public IQueryExpression Expression { get; set; }
         public ISelectQuery Parent     { get; set; }
 
         internal string _alias;
@@ -45,9 +45,9 @@ namespace LinqToDB.SqlQuery.QueryElements
             {
                 if (_alias == null)
                 {
-                    if (Expression is SqlField)
+                    if (Expression is ISqlField)
                     {
-                        var field = (SqlField)Expression;
+                        var field = (ISqlField)Expression;
                         return field.Alias ?? field.PhysicalName;
                     }
 
@@ -84,7 +84,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             return Expression.CanBeNull();
         }
 
-        public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+        public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
         {
             if (this == other)
                 return true;
@@ -111,7 +111,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             if (!objectTree.TryGetValue(this, out clone))
                 objectTree.Add(this, clone = new Column(
                                                  parent,
-                                                 (ISqlExpression)Expression.Clone(objectTree, doClone),
+                                                 (IQueryExpression)Expression.Clone(objectTree, doClone),
                                                  _alias));
 
             return clone;
@@ -121,7 +121,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region IEquatable<ISqlExpression> Members
 
-        bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+        bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
         {
             if (this == other)
                 return true;
@@ -133,7 +133,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region ISqlExpressionWalkable Members
 
-        public ISqlExpression Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             if (!(skipColumns && Expression is IColumn))
                 Expression = Expression.Walk(skipColumns, func);

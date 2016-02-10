@@ -4,7 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     public interface IOrderByItem: IQueryElement, ISqlExpressionWalkable, ICloneableElement
     {
-        ISqlExpression Expression { get; set; }
+        IQueryExpression Expression { get; set; }
 
         bool IsDescending { get; }
     }

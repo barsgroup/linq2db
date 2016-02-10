@@ -854,7 +854,7 @@ namespace LinqToDB.Linq.Builder
 
 		#region GetSubQuery
 
-		public ISqlExpression GetSubQuery(IBuildContext context)
+		public IQueryExpression GetSubQuery(IBuildContext context)
 		{
 			return null;
 		}

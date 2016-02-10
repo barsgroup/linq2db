@@ -13,6 +13,7 @@ namespace LinqToDB.DataProvider.Oracle
 
 	using LinqToDB.SqlEntities;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
@@ -26,7 +27,7 @@ namespace LinqToDB.DataProvider.Oracle
 			{
 			}
 
-			static string GetDataTypeText(SqlDataType type)
+			static string GetDataTypeText(ISqlDataType type)
 			{
 				switch (type.DataType)
 				{
@@ -80,7 +81,7 @@ namespace LinqToDB.DataProvider.Oracle
 				return sb.AppendLine("</t>").ToString();
 			}
 
-			internal static Func<object,string> GetXmlConverter(MappingSchema mappingSchema, SqlTable sqlTable)
+			internal static Func<object,string> GetXmlConverter(MappingSchema mappingSchema, ISqlTable sqlTable)
 			{
 				var ed  = mappingSchema.GetEntityDescriptor(sqlTable.ObjectType);
 
@@ -112,12 +113,12 @@ namespace LinqToDB.DataProvider.Oracle
 					o);
 			}
 
-			public override void SetTable(MappingSchema mappingSchema, SqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<ISqlExpression> sqlArgs)
+			public override void SetTable(MappingSchema mappingSchema, ISqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<IQueryExpression> sqlArgs)
 			{
 				var arg = sqlArgs.ElementAt(1);
 				var ed  = mappingSchema.GetEntityDescriptor(table.ObjectType);
 
-				if (arg is SqlParameter)
+				if (arg is ISqlParameter)
 				{
 					var exp = expArgs.ElementAt(1).Unwrap();
 
@@ -125,16 +126,16 @@ namespace LinqToDB.DataProvider.Oracle
 					{
 						if (((ConstantExpression)exp).Value is Func<string>)
 						{
-							((SqlParameter)arg).ValueConverter = l => ((Func<string>)l)();
+							((ISqlParameter)arg).ValueConverter = l => ((Func<string>)l)();
 						}
 						else
 						{
-							((SqlParameter)arg).ValueConverter = GetXmlConverter(mappingSchema, table);
+							((ISqlParameter)arg).ValueConverter = GetXmlConverter(mappingSchema, table);
 						}
 					}
 					else if (exp is LambdaExpression)
 					{
-						((SqlParameter)arg).ValueConverter = l => ((Func<string>)l)();
+						((ISqlParameter)arg).ValueConverter = l => ((Func<string>)l)();
 					}
 				}
 
@@ -153,7 +154,7 @@ namespace LinqToDB.DataProvider.Oracle
 						i))
 					.Aggregate((s1,s2) => s1 + ", " +  s2);
 
-				table.SqlTableType   = SqlTableType.Expression;
+				table.SqlTableType   = ESqlTableType.Expression;
 				table.Name           = "XmlTable('/t/r' PASSING XmlType({2}) COLUMNS " + columns + ") {1}";
 				table.TableArguments = new[] { arg };
 			}
@@ -165,7 +166,7 @@ namespace LinqToDB.DataProvider.Oracle
 			return GetXmlData(mappingSchema, sqlTable, data);
 		}
 
-		static string GetXmlData<T>(MappingSchema mappingSchema, SqlTable sqlTable, IEnumerable<T> data)
+		static string GetXmlData<T>(MappingSchema mappingSchema, ISqlTable sqlTable, IEnumerable<T> data)
 		{
 			var converter  = OracleXmlTableAttribute.GetXmlConverter(mappingSchema, sqlTable);
 			return converter(data);

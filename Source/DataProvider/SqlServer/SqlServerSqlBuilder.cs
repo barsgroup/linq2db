@@ -95,13 +95,13 @@ namespace LinqToDB.DataProvider.SqlServer
 				(SelectQuery.From.FindTableSource(SelectQuery.Update.Table) ?? SelectQuery.Update.Table) :
 				SelectQuery.From.Tables[0];
 
-			if (table is SqlTable)
+			if (table is ISqlTable)
 				BuildPhysicalTable(table, null);
 			else
 				StringBuilder.Append(Convert(GetTableAlias(table), ConvertType.NameToQueryTableAlias));
 		}
 
-		protected override void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = false;
 
@@ -111,7 +111,7 @@ namespace LinqToDB.DataProvider.SqlServer
 					wrap = true;
 				else
 				{
-					var ex = expr as SqlExpression;
+					var ex = expr as ISqlExpression;
 					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
@@ -123,22 +123,22 @@ namespace LinqToDB.DataProvider.SqlServer
 
 		protected override void BuildLikePredicate(ILike predicate)
 		{
-			if (predicate.Expr2 is SqlValue)
+			if (predicate.Expr2 is ISqlValue)
 			{
-				var value = ((SqlValue)predicate.Expr2).Value;
+				var value = ((ISqlValue)predicate.Expr2).Value;
 
 				if (value != null)
 				{
-					var text  = ((SqlValue)predicate.Expr2).Value.ToString();
+					var text  = ((ISqlValue)predicate.Expr2).Value.ToString();
 					var ntext = text.Replace("[", "[[]");
 
 					if (text != ntext)
 						predicate = new Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
 				}
 			}
-			else if (predicate.Expr2 is SqlParameter)
+			else if (predicate.Expr2 is ISqlParameter)
 			{
-				var p = ((SqlParameter)predicate.Expr2);
+				var p = ((ISqlParameter)predicate.Expr2);
 				p.ReplaceLike = true;
 			}
 
@@ -201,7 +201,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			BuildInsertOrUpdateQueryAsUpdateInsert();
 		}
 
-		protected override void BuildCreateTableIdentityAttribute2(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute2(ISqlField field)
 		{
 			StringBuilder.Append("IDENTITY");
 		}
@@ -240,7 +240,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			}
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{

@@ -18,7 +18,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         }
 
         public List<ISetExpression> Items        { get; private set; }
-        public SqlTable            Into         { get; set; }
+        public ISqlTable             Into         { get; set; }
         public bool                WithIdentity { get; set; }
 
         #region ICloneableElement Members
@@ -31,7 +31,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             var clone = new InsertClause { WithIdentity = WithIdentity };
 
             if (Into != null)
-                clone.Into = (SqlTable)Into.Clone(objectTree, doClone);
+                clone.Into = (ISqlTable)Into.Clone(objectTree, doClone);
 
             foreach (var item in Items)
                 clone.Items.Add((ISetExpression)item.Clone(objectTree, doClone));
@@ -45,7 +45,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region ISqlExpressionWalkable Members
 
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             if (Into != null)
                 ((ISqlExpressionWalkable)Into).Walk(skipColumns, func);

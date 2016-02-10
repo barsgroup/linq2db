@@ -147,7 +147,7 @@ namespace LinqToDB.Linq.Builder
 			public Type             OriginalType;
 			public Type             ObjectType;
 			public EntityDescriptor EntityDescriptor;
-			public SqlTable         SqlTable;
+			public ISqlTable SqlTable;
 
 			#endregion
 
@@ -511,7 +511,7 @@ namespace LinqToDB.Linq.Builder
 					var table = new SqlTable(Builder.MappingSchema, tableType);
 					var q     =
 						from fld1 in table.Fields.Values.Select((f,i) => new { f, i })
-						join fld2 in info on fld1.f.Name equals ((SqlField)fld2.Sql).Name
+						join fld2 in info on fld1.f.Name equals ((ISqlField)fld2.Sql).Name
 						orderby fld1.i
 						select GetIndex(fld2);
 
@@ -707,7 +707,7 @@ namespace LinqToDB.Linq.Builder
 
 			#region ConvertToIndex
 
-			readonly Dictionary<ISqlExpression,SqlInfo> _indexes = new Dictionary<ISqlExpression,SqlInfo>();
+			readonly Dictionary<IQueryExpression,SqlInfo> _indexes = new Dictionary<IQueryExpression,SqlInfo>();
 
 			protected SqlInfo GetIndex(SqlInfo expr)
 			{
@@ -716,9 +716,9 @@ namespace LinqToDB.Linq.Builder
 				if (_indexes.TryGetValue(expr.Sql, out n))
 					return n;
 
-				if (expr.Sql is SqlField)
+				if (expr.Sql is ISqlField)
 				{
-					var field = (SqlField)expr.Sql;
+					var field = (ISqlField)expr.Sql;
 					expr.Index = Select.Select.Add(field, field.Alias);
 				}
 				else
@@ -879,9 +879,9 @@ namespace LinqToDB.Linq.Builder
 							p = (IExprExpr)cond.Predicate;
 						}
 
-						var e1 = Expression.MakeMemberAccess(parent, ((SqlField)p.Expr1).ColumnDescriptor.MemberInfo) as Expression;
+						var e1 = Expression.MakeMemberAccess(parent, ((ISqlField)p.Expr1).ColumnDescriptor.MemberInfo) as Expression;
 
-						Expression e2 = Expression.MakeMemberAccess(param, ((SqlField)p.Expr2).ColumnDescriptor.MemberInfo);
+						Expression e2 = Expression.MakeMemberAccess(param, ((ISqlField)p.Expr2).ColumnDescriptor.MemberInfo);
 
 						if (e1.Type != e2.Type)
 						{
@@ -1011,7 +1011,7 @@ namespace LinqToDB.Linq.Builder
 
 			#region GetSubQuery
 
-			public ISqlExpression GetSubQuery(IBuildContext context)
+			public IQueryExpression GetSubQuery(IBuildContext context)
 			{
 				return null;
 			}
@@ -1051,7 +1051,7 @@ namespace LinqToDB.Linq.Builder
 				return LoadWith;
 			}
 
-			SqlField GetField(Expression expression, int level, bool throwException)
+            ISqlField GetField(Expression expression, int level, bool throwException)
 			{
 				if (expression.NodeType == ExpressionType.MemberAccess)
 				{
@@ -1187,7 +1187,7 @@ namespace LinqToDB.Linq.Builder
 			class TableLevel
 			{
 				public TableContext Table;
-				public SqlField     Field;
+				public ISqlField Field;
 				public int          Level;
 				public bool         IsNew;
 			}
@@ -1320,8 +1320,8 @@ namespace LinqToDB.Linq.Builder
 
 				for (var i = 0; i < association.ThisKey.Length; i++)
 				{
-					SqlField field1;
-					SqlField field2;
+                    ISqlField field1;
+                    ISqlField field2;
 
 					if (!parent.SqlTable.Fields.TryGetValue(association.ThisKey[i], out field1))
 						throw new LinqException("Association key '{0}' not found for type '{1}.", association.ThisKey[i], parent.ObjectType);

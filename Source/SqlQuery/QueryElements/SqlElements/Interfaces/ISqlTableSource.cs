@@ -2,11 +2,14 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 {
     using System.Collections.Generic;
 
-    public interface ISqlTableSource : ISqlExpression
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
+
+    public interface ISqlTableSource : IQueryExpression
 	{
-		SqlField              All          { get; set; }
+        ISqlField                All          { get; set; }
 		int                   SourceID     { get; }
-		SqlTableType          SqlTableType { get; }
-		IList<ISqlExpression> GetKeys(bool allIfEmpty);
+		ESqlTableType          SqlTableType { get; set; }
+
+        IList<IQueryExpression> GetKeys(bool allIfEmpty);
 	}
 }

@@ -20,9 +20,9 @@
     using LinqToDB.SqlQuery.QueryElements.Predicates;
     using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    [DebuggerDisplay("SQL = {SqlText}")]
 	public class SelectQuery : BaseQueryElement,
 	                           ISelectQuery
     {
@@ -76,7 +76,7 @@
             ISelectQuery         parentSelect,
             ICreateTableStatement createTable,
 			bool                 parameterDependent,
-			List<SqlParameter>   parameters)
+			List<ISqlParameter>   parameters)
 		{
 			Insert              = insert;
 			Update              = update;
@@ -105,7 +105,7 @@
 			OrderBy.SetSqlQuery(this);
 		}
 
-        public   List<SqlParameter>  Parameters { get; } = new List<SqlParameter>();
+        public   List<ISqlParameter>  Parameters { get; } = new List<ISqlParameter>();
 
 		public  List<object>  Properties { get; } = new List<object>();
 
@@ -215,7 +215,7 @@
                     {
                         case EQueryElementType.SqlParameter:
                         {
-                            var p = (SqlParameter)e;
+                            var p = (ISqlParameter)e;
 
                             if (p.Value == null)
                                 return new SqlValue(null);
@@ -232,17 +232,17 @@
                                 object value1;
                                 object value2;
 
-                                if (ee.Expr1 is SqlValue)
-                                    value1 = ((SqlValue)ee.Expr1).Value;
-                                else if (ee.Expr1 is SqlParameter)
-                                    value1 = ((SqlParameter)ee.Expr1).Value;
+                                if (ee.Expr1 is ISqlValue)
+                                    value1 = ((ISqlValue)ee.Expr1).Value;
+                                else if (ee.Expr1 is ISqlParameter)
+                                    value1 = ((ISqlParameter)ee.Expr1).Value;
                                 else
                                     break;
 
-                                if (ee.Expr2 is SqlValue)
-                                    value2 = ((SqlValue)ee.Expr2).Value;
-                                else if (ee.Expr2 is SqlParameter)
-                                    value2 = ((SqlParameter)ee.Expr2).Value;
+                                if (ee.Expr2 is ISqlValue)
+                                    value2 = ((ISqlValue)ee.Expr2).Value;
+                                else if (ee.Expr2 is ISqlParameter)
+                                    value2 = ((ISqlParameter)ee.Expr2).Value;
                                 else
                                     break;
 
@@ -271,7 +271,7 @@
 
             query.Parameters.Clear();
 
-            foreach (var parameter in QueryVisitor.FindAll<SqlParameter>(query).Where(p => p.IsQueryParameter))
+            foreach (var parameter in QueryVisitor.FindAll<ISqlParameter>(query).Where(p => p.IsQueryParameter))
             {
                 query.Parameters.Add(parameter);
             }
@@ -284,9 +284,9 @@
 			if (p.Values == null || p.Values.Count == 0)
 				return new Expr(new SqlValue(p.IsNot));
 
-			if (p.Values.Count == 1 && p.Values[0] is SqlParameter)
+			if (p.Values.Count == 1 && p.Values[0] is ISqlParameter)
 			{
-				var pr = (SqlParameter)p.Values[0];
+				var pr = (ISqlParameter)p.Values[0];
 
 				if (pr.Value == null)
 					return new Expr(new SqlValue(p.IsNot));
@@ -305,7 +305,7 @@
 
 						if (keys.Count == 1)
 						{
-							var values = new List<ISqlExpression>();
+							var values = new List<IQueryExpression>();
 							var field  = GetUnderlayingField(keys[0]);
 							var cd     = field.ColumnDescriptor;
 
@@ -353,75 +353,71 @@
 						}
 					}
 
-					if (p.Expr1 is SqlExpression)
-					{
-						var expr = (SqlExpression)p.Expr1;
+				    var expr = p.Expr1 as ISqlExpression;
+				    if (expr?.Expr.Length > 1 && expr.Expr[0] == '\x1')
+				    {
+				        var type  = items.GetListItemType();
+				        var ta    = TypeAccessor.GetAccessor(type);
+				        var names = expr.Expr.Substring(1).Split(',');
 
-						if (expr.Expr.Length > 1 && expr.Expr[0] == '\x1')
-						{
-							var type  = items.GetListItemType();
-							var ta    = TypeAccessor.GetAccessor(type);
-							var names = expr.Expr.Substring(1).Split(',');
+				        if (expr.Parameters.Length == 1)
+				        {
+				            var values = new List<IQueryExpression>();
 
-							if (expr.Parameters.Length == 1)
-							{
-								var values = new List<ISqlExpression>();
+				            foreach (var item in items)
+				            {
+				                var ma    = ta[names[0]];
+				                var value = ma.GetValue(item);
+				                values.Add(new SqlValue(value));
+				            }
 
-								foreach (var item in items)
-								{
-									var ma    = ta[names[0]];
-									var value = ma.GetValue(item);
-									values.Add(new SqlValue(value));
-								}
+				            if (values.Count == 0)
+				                return new Expr(new SqlValue(p.IsNot));
 
-								if (values.Count == 0)
-									return new Expr(new SqlValue(p.IsNot));
+				            return new InList(expr.Parameters[0], p.IsNot, values);
+				        }
 
-								return new InList(expr.Parameters[0], p.IsNot, values);
-							}
+				        {
+				            var sc = new SearchCondition();
 
-							{
-								var sc = new SearchCondition();
+				            foreach (var item in items)
+				            {
+				                var itemCond = new SearchCondition();
 
-								foreach (var item in items)
-								{
-									var itemCond = new SearchCondition();
+				                for (var i = 0; i < expr.Parameters.Length; i++)
+				                {
+				                    var sql   = expr.Parameters[i];
+				                    var value = ta[names[i]].GetValue(item);
+				                    var cond  = value == null ?
+				                                    new Condition(false, new IsNull  (sql, false)) :
+				                                    new Condition(false, new ExprExpr(sql, EOperator.Equal, new SqlValue(value)));
 
-									for (var i = 0; i < expr.Parameters.Length; i++)
-									{
-										var sql   = expr.Parameters[i];
-										var value = ta[names[i]].GetValue(item);
-										var cond  = value == null ?
-											new Condition(false, new IsNull  (sql, false)) :
-											new Condition(false, new ExprExpr(sql, EOperator.Equal, new SqlValue(value)));
+				                    itemCond.Conditions.Add(cond);
+				                }
 
-										itemCond.Conditions.Add(cond);
-									}
+				                sc.Conditions.Add(new Condition(false, new Expr(itemCond), true));
+				            }
 
-									sc.Conditions.Add(new Condition(false, new Expr(itemCond), true));
-								}
+				            if (sc.Conditions.Count == 0)
+				                return new Expr(new SqlValue(p.IsNot));
 
-								if (sc.Conditions.Count == 0)
-									return new Expr(new SqlValue(p.IsNot));
+				            if (p.IsNot)
+				                return new NotExpr(sc, true, SqlQuery.Precedence.LogicalNegation);
 
-								if (p.IsNot)
-									return new NotExpr(sc, true, SqlQuery.Precedence.LogicalNegation);
-
-								return new Expr(sc, SqlQuery.Precedence.LogicalDisjunction);
-							}
-						}
-					}
+				            return new Expr(sc, SqlQuery.Precedence.LogicalDisjunction);
+				        }
+				    }
 				}
 			}
 
 			return null;
 		}
 
-		static SqlField GetUnderlayingField(ISqlExpression expr)
+		static ISqlField GetUnderlayingField(IQueryExpression expr)
 		{
 			switch (expr.ElementType)
 			{
-				case EQueryElementType.SqlField: return (SqlField)expr;
+				case EQueryElementType.SqlField: return (ISqlField)expr;
 				case EQueryElementType.Column  : return GetUnderlayingField(((IColumn)expr).Expression);
 			}
 
@@ -457,7 +453,7 @@
 			Having  = new WhereClause  (this, clone.Having,  objectTree, doClone);
 			OrderBy = new OrderByClause(this, clone.OrderBy, objectTree, doClone);
 
-			Parameters.AddRange(clone.Parameters.Select(p => (SqlParameter)p.Clone(objectTree, doClone)));
+			Parameters.AddRange(clone.Parameters.Select(p => (ISqlParameter)p.Clone(objectTree, doClone)));
 			IsParameterDependent = clone.IsParameterDependent;
 
 		    foreach (var query in QueryVisitor.FindOnce<ISelectQuery>(this).Where(sq => sq.ParentSelect == clone))
@@ -548,7 +544,7 @@
                 {
                     case EQueryElementType.SqlParameter:
                     {
-                        var p = (SqlParameter)element;
+                        var p = (ISqlParameter)element;
 
                         if (p.IsQueryParameter)
                         {
@@ -656,20 +652,13 @@
 			if (jt != null)
 				return jt;
 
-			if (ts.Source is ISelectQuery)
-			{
-				var s = ((ISelectQuery)ts.Source).From[table, alias];
+		    var query = ts.Source as ISelectQuery;
+		    var s = query?.From[table, alias];
 
-				if (s != null)
-					return s;
-			}
-
-			return null;
+		    return s;
 		}
 
 		#endregion
-
-		public string SqlText => ToString();
 
 		#region ISqlExpression Members
 
@@ -678,7 +667,7 @@
 			return true;
 		}
 
-		public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+		public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
 		{
 			return this == other;
 		}
@@ -720,7 +709,7 @@
 
 		#region ISqlExpressionWalkable Members
 
-		ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
 		{
 		    ((ISqlExpressionWalkable)Insert)?.Walk(skipColumns, func);
 		    ((ISqlExpressionWalkable)Update)?.Walk(skipColumns, func);
@@ -744,7 +733,7 @@
 
 		#region IEquatable<ISqlExpression> Members
 
-		bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+		bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
 		{
 			return this == other;
 		}
@@ -756,10 +745,14 @@
 		public static int SourceIDCounter;
 
 		public int           SourceID     { get; private set; }
-		public SqlTableType  SqlTableType => SqlTableType.Table;
+		public ESqlTableType  SqlTableType
+		{
+		    get { return ESqlTableType.Table; }
+		    set { throw new NotSupportedException(); }
+		}
 
-	    private SqlField _all;
-		public  SqlField  All
+	    private ISqlField _all;
+		public ISqlField All
 		{
 			get { return _all ?? (_all = new SqlField { Name = "*", PhysicalName = "*", Table = this }); }
 
@@ -772,19 +765,19 @@
 			}
 		}
 
-		List<ISqlExpression> _keys;
+		List<IQueryExpression> _keys;
 
-		public IList<ISqlExpression> GetKeys(bool allIfEmpty)
+		public IList<IQueryExpression> GetKeys(bool allIfEmpty)
 		{
 			if (_keys == null && From.Tables.Count == 1 && From.Tables[0].Joins.Count == 0)
 			{
-				_keys = new List<ISqlExpression>();
+				_keys = new List<IQueryExpression>();
 
 				var q =
 					from key in From.Tables[0].GetKeys(allIfEmpty)
 					from col in Select.Columns
 					where col.Expression == key
-					select col as ISqlExpression;
+					select col as IQueryExpression;
 
 				_keys = q.ToList();
 			}
@@ -877,7 +870,7 @@
 			((IQueryElement)OrderBy).ToString(sb, dic);
 
 			if (HasUnion)
-				foreach (IQueryElement u in Unions)
+				foreach (IUnion u in Unions)
 					u.ToString(sb, dic);
 
 			dic.Remove(this);

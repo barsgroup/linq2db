@@ -12,7 +12,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     public class IsNull : NotExpr,
                           IIsNull
     {
-        public IsNull(ISqlExpression exp1, bool isNot)
+        public IsNull(IQueryExpression exp1, bool isNot)
             : base(exp1, isNot, SqlQuery.Precedence.Comparison)
         {
         }
@@ -25,7 +25,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             ICloneableElement clone;
 
             if (!objectTree.TryGetValue(this, out clone))
-                objectTree.Add(this, clone = new IsNull((ISqlExpression)Expr1.Clone(objectTree, doClone), IsNot));
+                objectTree.Add(this, clone = new IsNull((IQueryExpression)Expr1.Clone(objectTree, doClone), IsNot));
 
             return clone;
         }

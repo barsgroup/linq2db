@@ -4,6 +4,6 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 
     public interface ISqlExpressionWalkable
 	{
-		ISqlExpression Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func);
+		IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func);
 	}
 }

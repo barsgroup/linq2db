@@ -48,7 +48,7 @@ namespace LinqToDB.DataProvider.Oracle
 			StringBuilder.AppendLine(" INTO :IDENTITY_PARAMETER");
 		}
 
-		public override ISqlExpression GetIdentityExpression(SqlTable table)
+		public override IQueryExpression GetIdentityExpression(ISqlTable table)
 		{
 			if (!table.SequenceAttributes.IsNullOrEmpty())
 			{
@@ -167,13 +167,13 @@ namespace LinqToDB.DataProvider.Oracle
 				BuildSearchCondition(Precedence.Unknown, condition);
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -200,7 +200,7 @@ namespace LinqToDB.DataProvider.Oracle
 				base.BuildFromClause();
 		}
 
-		protected override void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = false;
 
@@ -210,7 +210,7 @@ namespace LinqToDB.DataProvider.Oracle
 					wrap = true;
 				else
 				{
-					var ex = expr as SqlExpression;
+					var ex = expr as ISqlExpression;
 					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
@@ -246,7 +246,7 @@ namespace LinqToDB.DataProvider.Oracle
 			StringBuilder.AppendLine();
 		}
 
-		SqlField _identityField;
+        ISqlField _identityField;
 
 		public override int CommandCount(ISelectQuery selectQuery)
 		{

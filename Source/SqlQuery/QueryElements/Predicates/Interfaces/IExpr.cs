@@ -4,6 +4,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces
 
     public interface IExpr: ISqlPredicate
     {
-        ISqlExpression Expr1 { get; set; }
+        IQueryExpression Expr1 { get; set; }
     }
 }

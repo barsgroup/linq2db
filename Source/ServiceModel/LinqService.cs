@@ -60,10 +60,10 @@ namespace LinqToDB.ServiceModel
 		{
 			public ISelectQuery SelectQuery { get; set; }
 			public object         Context     { get; set; }
-			public SqlParameter[] Parameters  { get; set; }
+			public ISqlParameter[] Parameters  { get; set; }
 			public List<string>   QueryHints  { get; set; }
 
-			public SqlParameter[] GetParameters()
+			public ISqlParameter[] GetParameters()
 			{
 				return Parameters;
 			}

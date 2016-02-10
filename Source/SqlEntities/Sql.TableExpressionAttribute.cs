@@ -8,6 +8,7 @@
 
     using LinqToDB.Mapping;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     partial class Sql
@@ -47,9 +48,9 @@
 				set { base.Name = value; }
 			}
 
-			public override void SetTable(MappingSchema mappingSchema, SqlTable table, MemberInfo member, IEnumerable<Expression> arguments, IEnumerable<ISqlExpression> sqlArgs)
+			public override void SetTable(MappingSchema mappingSchema, ISqlTable table, MemberInfo member, IEnumerable<Expression> arguments, IEnumerable<IQueryExpression> sqlArgs)
 			{
-				table.SqlTableType   = SqlTableType.Expression;
+				table.SqlTableType   = ESqlTableType.Expression;
 				table.Name           = Expression ?? member.Name;
 				table.TableArguments = ConvertArgs(member, sqlArgs.ToArray());
 

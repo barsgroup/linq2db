@@ -11,7 +11,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
     {
         List<ISetExpression> Items { get; }
 
-        SqlTable Into { get; set; }
+        ISqlTable Into { get; set; }
 
         bool WithIdentity { get; set; }
     }

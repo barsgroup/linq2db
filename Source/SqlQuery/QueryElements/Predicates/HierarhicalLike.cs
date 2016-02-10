@@ -25,14 +25,14 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
             if (!objectTree.TryGetValue(this, out clone))
                 objectTree.Add(this, clone = new HierarhicalLike(
-                                                 (ISqlExpression)Expr1.Clone(objectTree, doClone), (ISqlExpression)Expr2.Clone(objectTree, doClone), _start, _end));
+                                                 (IQueryExpression)Expr1.Clone(objectTree, doClone), (IQueryExpression)Expr2.Clone(objectTree, doClone), _start, _end));
 
             return clone;
         }
 
         public override EQueryElementType ElementType => EQueryElementType.LikePredicate;
 
-        public HierarhicalLike(ISqlExpression exp1, ISqlExpression exp2, string start, string end)
+        public HierarhicalLike(IQueryExpression exp1, IQueryExpression exp2, string start, string end)
             : base(exp1, false, exp2, null)
         {
             _start = start;

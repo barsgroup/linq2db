@@ -23,7 +23,7 @@ namespace LinqToDB.DataProvider.Informix
 			CheckAliases(selectQuery, int.MaxValue);
 
 
-		    foreach (var parameter in QueryVisitor.FindOnce<SqlParameter>(selectQuery.Select))
+		    foreach (var parameter in QueryVisitor.FindOnce<ISqlParameter>(selectQuery.Select))
 		    {
                 parameter.IsQueryParameter = false;
 		    }
@@ -45,13 +45,13 @@ namespace LinqToDB.DataProvider.Informix
 			return selectQuery;
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+			if (expr is ISqlBinaryExpression)
 			{
-				var be = (SqlBinaryExpression)expr;
+				var be = (ISqlBinaryExpression)expr;
 
 				switch (be.Operation)
 				{
@@ -62,9 +62,9 @@ namespace LinqToDB.DataProvider.Informix
 					case "+": return be.SystemType == typeof(string)? new SqlBinaryExpression(be.SystemType, be.Expr1, "||", be.Expr2, be.Precedence): expr;
 				}
 			}
-			else if (expr is SqlFunction)
+			else if (expr is ISqlFunction)
 			{
-				var func = (SqlFunction)expr;
+				var func = (ISqlFunction)expr;
 
 				switch (func.Name)
 				{

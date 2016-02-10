@@ -11,16 +11,16 @@ namespace LinqToDB.SqlQuery.QueryElements
     public class OrderByItem : BaseQueryElement,
                                IOrderByItem
     {
-        public OrderByItem(ISqlExpression expression, bool isDescending)
+        public OrderByItem(IQueryExpression expression, bool isDescending)
         {
             Expression   = expression;
             IsDescending = isDescending;
         }
 
-        public ISqlExpression Expression   { get;  set; }
+        public IQueryExpression Expression   { get;  set; }
         public bool           IsDescending { get; private set; }
 
-        public ISqlExpression Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             Expression = Expression.Walk(skipColumns, func);
 
@@ -35,7 +35,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             ICloneableElement clone;
 
             if (!objectTree.TryGetValue(this, out clone))
-                objectTree.Add(this, clone = new OrderByItem((ISqlExpression)Expression.Clone(objectTree, doClone), IsDescending));
+                objectTree.Add(this, clone = new OrderByItem((IQueryExpression)Expression.Clone(objectTree, doClone), IsDescending));
 
             return clone;
         }

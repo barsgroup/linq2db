@@ -11,7 +11,7 @@ namespace LinqToDB.Linq.Builder
 
     public class SqlInfo
 	{
-		public ISqlExpression   Sql;
+		public IQueryExpression   Sql;
 		public ISelectQuery      Query;
 		public int              Index = -1;
 		public readonly List<MemberInfo> Members = new List<MemberInfo>();

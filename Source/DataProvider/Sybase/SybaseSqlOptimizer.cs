@@ -11,13 +11,13 @@
 		{
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlFunction)
+			if (expr is ISqlFunction)
 			{
-				var func = (SqlFunction) expr;
+				var func = (ISqlFunction) expr;
 
 				switch (func.Name)
 				{
@@ -33,9 +33,9 @@
 						break;
 
 					case "Stuff"     :
-						if (func.Parameters[3] is SqlValue)
+						if (func.Parameters[3] is ISqlValue)
 						{
-							var value = (SqlValue)func.Parameters[3];
+							var value = (ISqlValue)func.Parameters[3];
 
 							if (value.Value is string && string.IsNullOrEmpty((string)value.Value))
 								return new SqlFunction(

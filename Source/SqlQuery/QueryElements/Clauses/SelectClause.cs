@@ -28,11 +28,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         {
             _columns.AddRange(clone.Columns.Select(c => (IColumn)c.Clone(objectTree, doClone)));
             IsDistinct = clone.IsDistinct;
-            TakeValue  = (ISqlExpression)clone.TakeValue?.Clone(objectTree, doClone);
-            SkipValue  = (ISqlExpression)clone.SkipValue?.Clone(objectTree, doClone);
+            TakeValue  = (IQueryExpression)clone.TakeValue?.Clone(objectTree, doClone);
+            SkipValue  = (IQueryExpression)clone.SkipValue?.Clone(objectTree, doClone);
         }
 
-        internal SelectClause(bool isDistinct, ISqlExpression takeValue, ISqlExpression skipValue, IEnumerable<IColumn> columns)
+        internal SelectClause(bool isDistinct, IQueryExpression takeValue, IQueryExpression skipValue, IEnumerable<IColumn> columns)
             : base(null)
         {
             IsDistinct = isDistinct;
@@ -79,7 +79,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         //    return this;
         //}
 
-        public ISelectClause Expr(ISqlExpression expr)
+        public ISelectClause Expr(IQueryExpression expr)
         {
             AddOrGetColumn(new Column(SelectQuery, expr));
             return this;
@@ -145,7 +145,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         //    return this;
         //}
 
-        public int Add(ISqlExpression expr)
+        public int Add(IQueryExpression expr)
         {
             var column = expr as Column;
             if (column != null && column.Parent == SelectQuery)
@@ -154,7 +154,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return _columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr)));
         }
 
-        public int Add(ISqlExpression expr, string alias)
+        public int Add(IQueryExpression expr, string alias)
         {
             return _columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr, alias)));
         }
@@ -200,13 +200,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return this;
         }
 
-        public ISelectClause Take(ISqlExpression value)
+        public ISelectClause Take(IQueryExpression value)
         {
             TakeValue = value;
             return this;
         }
 
-        public ISqlExpression TakeValue { get; set; }
+        public IQueryExpression TakeValue { get; set; }
 
         #endregion
 
@@ -218,19 +218,19 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return this;
         }
 
-        public ISelectClause Skip(ISqlExpression value)
+        public ISelectClause Skip(IQueryExpression value)
         {
             SkipValue = value;
             return this;
         }
 
-        public ISqlExpression SkipValue { get; set; }
+        public IQueryExpression SkipValue { get; set; }
 
         #endregion
 
         #region ISqlExpressionWalkable Members
 
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             for (var i = 0; i < _columns.Count; i++)
             {

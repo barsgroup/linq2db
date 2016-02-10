@@ -7,6 +7,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces
     {
         EOperator EOperator { get; }
 
-        ISqlExpression Expr2 { get; set; }
+        IQueryExpression Expr2 { get; set; }
     }
 }

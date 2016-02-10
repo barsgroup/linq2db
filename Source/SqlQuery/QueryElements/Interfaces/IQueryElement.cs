@@ -11,6 +11,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic);
 
-
+        string SqlText { get; }
     }
 }

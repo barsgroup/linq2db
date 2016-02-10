@@ -13,6 +13,7 @@ namespace LinqToDB.DataProvider
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
 	using SqlQuery;
@@ -171,15 +172,15 @@ namespace LinqToDB.DataProvider
 						var ctx = q.GetContext();
 						var sql = ctx.Select;
 
-						var tableSet  = new HashSet<SqlTable>();
-						var tables    = new List<SqlTable>();
+						var tableSet  = new HashSet<ISqlTable>();
+						var tables    = new List<ISqlTable>();
 
-						var fromTable = (SqlTable)sql.From.Tables[0].Source;
+						var fromTable = (ISqlTable)sql.From.Tables[0].Source;
 
 					    foreach (var tableSource in QueryVisitor.FindOnce<ITableSource>(sql.From))
 					    {
-                            tableSet.Add((SqlTable)tableSource.Source);
-                            tables.Add((SqlTable)tableSource.Source);
+                            tableSet.Add((ISqlTable)tableSource.Source);
+                            tables.Add((ISqlTable)tableSource.Source);
                         }
 
 						var whereClause = new QueryVisitor().Convert(sql.Where, e =>
@@ -191,8 +192,8 @@ namespace LinqToDB.DataProvider
 
 							if (e.ElementType == EQueryElementType.SqlField)
 							{
-								var fld = (SqlField)e;
-								var tbl = (SqlTable)fld.Table;
+								var fld = (ISqlField)e;
+								var tbl = (ISqlTable)fld.Table;
 
 								if (tbl != fromTable && tableSet.Contains(tbl))
 								{
@@ -210,7 +211,7 @@ namespace LinqToDB.DataProvider
 
 									var keys = tempCopy.From.Tables[0].Source.GetKeys(true);
 
-									foreach (SqlField key in keys)
+									foreach (ISqlField key in keys)
 										tempCopy.Where.Field(key).Equal.Field(fromTable.Fields[key.Name]);
 
 									tempCopy.ParentSelect = sql;
@@ -259,10 +260,10 @@ namespace LinqToDB.DataProvider
 		{
 			public ISelectQuery SelectQuery { get; set; }
 			public object         Context     { get; set; }
-			public SqlParameter[] SqlParameters;
+			public ISqlParameter[] SqlParameters;
 			public List<string>   QueryHints  { get; set; }
 
-			public SqlParameter[] GetParameters()
+			public ISqlParameter[] GetParameters()
 			{
 				return SqlParameters;
 			}

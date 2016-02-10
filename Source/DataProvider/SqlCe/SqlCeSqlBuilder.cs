@@ -36,13 +36,13 @@ namespace LinqToDB.DataProvider.SqlCe
 			return new SqlCeSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -84,7 +84,7 @@ namespace LinqToDB.DataProvider.SqlCe
 				base.BuildOrderByClause();
 		}
 
-		protected override void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = false;
 
@@ -94,7 +94,7 @@ namespace LinqToDB.DataProvider.SqlCe
 					wrap = true;
 				else
 				{
-					var ex = expr as SqlExpression;
+					var ex = expr as ISqlExpression;
 					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
@@ -155,7 +155,7 @@ namespace LinqToDB.DataProvider.SqlCe
 			return value;
 		}
 
-		protected override void BuildCreateTableIdentityAttribute2(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute2(ISqlField field)
 		{
 			StringBuilder.Append("IDENTITY");
 		}

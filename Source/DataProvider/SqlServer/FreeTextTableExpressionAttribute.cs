@@ -7,6 +7,7 @@ namespace LinqToDB.DataProvider.SqlServer
 {
     using LinqToDB.SqlEntities;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using Mapping;
@@ -26,7 +27,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			return value;
 		}
 
-		public override void SetTable(MappingSchema mappingSchema, SqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<ISqlExpression> sqlArgs)
+		public override void SetTable(MappingSchema mappingSchema, ISqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<IQueryExpression> sqlArgs)
 		{
 			var aargs  = sqlArgs.ToArray();
 			var arr    = ConvertArgs(member, aargs).ToList();
@@ -75,7 +76,7 @@ namespace LinqToDB.DataProvider.SqlServer
 				}
 			}
 
-			table.SqlTableType   = SqlTableType.Expression;
+			table.SqlTableType   = ESqlTableType.Expression;
 			table.Name           = "FREETEXTTABLE({6}, {2}, {3}) {1}";
 			table.TableArguments = arr.ToArray();
 		}

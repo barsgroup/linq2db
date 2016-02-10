@@ -1,6 +1,7 @@
 ﻿namespace LinqToDB.DataProvider.SqlServer
 {
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using SqlProvider;
 
@@ -22,7 +23,7 @@
 			StringBuilder.AppendLine(";");
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);

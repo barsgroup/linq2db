@@ -33,7 +33,7 @@
 		{
 			if (element.ElementType == EQueryElementType.SqlParameter)
 			{
-				((SqlParameter)element).IsQueryParameter = false;
+				((ISqlParameter)element).IsQueryParameter = false;
 				return false;
 			}
 
@@ -56,7 +56,7 @@
 			{
 			    var param = selectQuery.Insert.Items.Union(selectQuery.Update.Items).Union(selectQuery.Update.Keys).Select(i => i.Expression).ToArray();
 
-			    foreach (var parameter in QueryVisitor.FindAll<SqlParameter>(param))
+			    foreach (var parameter in QueryVisitor.FindAll<ISqlParameter>(param))
 			    {
                     parameter.IsQueryParameter = false;
                 }
@@ -72,13 +72,13 @@
 			}
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+			if (expr is ISqlBinaryExpression)
 			{
-				SqlBinaryExpression be = (SqlBinaryExpression)expr;
+				var be = (ISqlBinaryExpression)expr;
 
 				switch (be.Operation)
 				{
@@ -89,16 +89,16 @@
 					case "+": return be.SystemType == typeof(string)? new SqlBinaryExpression(be.SystemType, be.Expr1, "||", be.Expr2, be.Precedence): expr;
 				}
 			}
-			else if (expr is SqlFunction)
+			else if (expr is ISqlFunction)
 			{
-				SqlFunction func = (SqlFunction)expr;
+                ISqlFunction func = (ISqlFunction)expr;
 
 				switch (func.Name)
 				{
 					case "Convert" :
 						if (func.SystemType.ToUnderlying() == typeof(bool))
 						{
-							ISqlExpression ex = AlternativeConvertToBoolean(func, 1);
+							IQueryExpression ex = AlternativeConvertToBoolean(func, 1);
 							if (ex != null)
 								return ex;
 						}
@@ -106,7 +106,7 @@
 						return new SqlExpression(func.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(func), func.Parameters[0]);
 
 					case "DateAdd" :
-						switch ((Sql.DateParts)((SqlValue)func.Parameters[0]).Value)
+						switch ((Sql.DateParts)((ISqlValue)func.Parameters[0]).Value)
 						{
 							case Sql.DateParts.Quarter  :
 								return new SqlFunction(func.SystemType, func.Name, new SqlValue(Sql.DateParts.Month), Mul(func.Parameters[1], 3), func.Parameters[2]);
@@ -120,9 +120,9 @@
 						break;
 				}
 			}
-			else if (expr is SqlExpression)
+			else if (expr is ISqlExpression)
 			{
-				SqlExpression e = (SqlExpression)expr;
+				var e = (ISqlExpression)expr;
 
 				if (e.Expr.StartsWith("Extract(Quarter"))
 					return Inc(Div(Dec(new SqlExpression(e.SystemType, "Extract(Month from {0})", e.Parameters)), 3));

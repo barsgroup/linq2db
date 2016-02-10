@@ -6,6 +6,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces
 
     public interface IInList: INotExpr
     {
-        List<ISqlExpression> Values { get; }
+        List<IQueryExpression> Values { get; }
     }
 }

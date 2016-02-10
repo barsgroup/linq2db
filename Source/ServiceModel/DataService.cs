@@ -73,7 +73,7 @@ namespace LinqToDB.ServiceModel
 		class TypeInfo
 		{
 			public ResourceType     Type;
-			public SqlTable         Table;
+			public ISqlTable         Table;
 			public EntityDescriptor Mapper;
 		}
 

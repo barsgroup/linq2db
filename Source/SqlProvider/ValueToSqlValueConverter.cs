@@ -8,8 +8,9 @@ namespace LinqToDB.SqlProvider
 	using Extensions;
 
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	using ConverterType = Func<SqlQuery.QueryElements.SqlElements.SqlDataType,object, string>;
+	using ConverterType = Func<SqlQuery.QueryElements.SqlElements.Interfaces.ISqlDataType,object, string>;
 
 	public class ValueToSqlValueConverter
 	{
@@ -121,7 +122,7 @@ namespace LinqToDB.SqlProvider
             return TryConvert(new SqlDataType(value.GetType()), value, out convertedValue);
 		}
 
-		public bool TryConvert(SqlDataType dataType, object value, out string convertedValue)
+		public bool TryConvert(ISqlDataType dataType, object value, out string convertedValue)
 		{
 			if (value == null)
 			{
@@ -180,7 +181,7 @@ namespace LinqToDB.SqlProvider
             return convertedValue;
 		}
 
-		public string Convert(SqlDataType dataType, object value)
+		public string Convert(ISqlDataType dataType, object value)
 		{
             string convertedValue;
             if (!TryConvert(dataType, value, out convertedValue))

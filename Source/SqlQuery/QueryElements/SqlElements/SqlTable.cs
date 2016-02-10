@@ -10,24 +10,68 @@
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class SqlTable : BaseQueryElement, ISqlTableSource
+    public interface ISqlTable : ISqlTableSource
+    {
+        ISqlField this[string fieldName] { get; }
+
+        string Name { get; set; }
+
+        string Alias { get; set; }
+
+        string Database { get; set; }
+
+        string Owner { get; set; }
+
+        Type ObjectType { get; set; }
+
+        string PhysicalName { get; set; }
+
+        IQueryExpression[] TableArguments { get; set; }
+
+        Dictionary<string, ISqlField> Fields { get; }
+
+        SequenceNameAttribute[] SequenceAttributes { get; }
+
+        ISqlField GetIdentityField();
+
+        void Add(ISqlField field);
+
+        void AddRange(IEnumerable<ISqlField> collection);
+    }
+
+    public class SqlTable<TEntity> : SqlTable
+    {
+        public SqlTable()
+            : base(typeof(TEntity))
+        {
+        }
+
+        public SqlTable(MappingSchema mappingSchema)
+            : base(mappingSchema, typeof(TEntity))
+        {
+        }
+    }
+
+    public class SqlTable : BaseQueryElement,
+                            ISqlTable
     {
 		#region Init
 
 		public SqlTable()
 		{
 			_sourceID = Interlocked.Increment(ref SelectQuery.SourceIDCounter);
-			Fields    = new Dictionary<string,SqlField>();
+			Fields    = new Dictionary<string, ISqlField>();
 		}
 
 		internal SqlTable(
 			int id, string name, string alias, string database, string owner, string physicalName, Type objectType,
 			SequenceNameAttribute[] sequenceAttributes,
-			SqlField[]              fields,
-			SqlTableType            sqlTableType,
-			ISqlExpression[]        tableArguments)
+            ISqlField[]              fields,
+			ESqlTableType            sqlTableType,
+			IQueryExpression[]        tableArguments)
 		{
 			_sourceID          = id;
 			Name               = name;
@@ -38,7 +82,7 @@
 			ObjectType         = objectType;
 			SequenceAttributes = sequenceAttributes;
 
-			Fields = new Dictionary<string, SqlField>();
+			Fields = new Dictionary<string, ISqlField>();
 
 			AddRange(fields);
 
@@ -137,7 +181,7 @@
 
 		#region Init from Table
 
-		public SqlTable(SqlTable table) : this()
+		public SqlTable(ISqlTable table) : this()
 		{
 			Alias              = table.Alias;
 			Database           = table.Database;
@@ -154,7 +198,7 @@
 			TableArguments = table.TableArguments;
 		}
 
-		public SqlTable(SqlTable table, IEnumerable<SqlField> fields, ISqlExpression[] tableArguments) : this()
+		public SqlTable(ISqlTable table, IEnumerable<ISqlField> fields, IQueryExpression[] tableArguments) : this()
 		{
 			Alias              = table.Alias;
 			Database           = table.Database;
@@ -187,11 +231,11 @@
 
 		#region Public Members
 
-		public SqlField this[string fieldName]
+		public ISqlField this[string fieldName]
 		{
 			get
 			{
-				SqlField field;
+                ISqlField field;
 				Fields.TryGetValue(fieldName, out field);
 				return field;
 			}
@@ -203,15 +247,15 @@
 		public string           Owner          { get; set; }
 		public Type             ObjectType     { get; set; }
 		public string           PhysicalName   { get; set; }
-		public SqlTableType     SqlTableType   { get; set; }
-		public ISqlExpression[] TableArguments { get; set; }
+		public ESqlTableType     SqlTableType   { get; set; }
+		public IQueryExpression[] TableArguments { get; set; }
 
-		public Dictionary<string,SqlField> Fields { get; private set; }
+		public Dictionary<string, ISqlField> Fields { get; private set; }
 
 		public SequenceNameAttribute[] SequenceAttributes { get; private set; }
 
-		private SqlField _all;
-		public  SqlField  All
+		private ISqlField _all;
+		public ISqlField All
 		{
 		    get
 		    {
@@ -225,7 +269,7 @@
 		    set { }
 		}
 
-        public SqlField GetIdentityField()
+        public ISqlField GetIdentityField()
 		{
 			foreach (var field in Fields)
 				if (field.Value.IsIdentity)
@@ -234,12 +278,12 @@
 			var keys = GetKeys(true);
 
 			if (keys != null && keys.Count == 1)
-				return (SqlField)keys[0];
+				return (ISqlField)keys[0];
 
 			return null;
 		}
 
-		public void Add(SqlField field)
+		public void Add(ISqlField field)
 		{
 			if (field.Table != null) throw new InvalidOperationException("Invalid parent table.");
 
@@ -248,7 +292,7 @@
 			Fields.Add(field.Name, field);
 		}
 
-		public void AddRange(IEnumerable<SqlField> collection)
+		public void AddRange(IEnumerable<ISqlField> collection)
 		{
 			foreach (var item in collection)
 				Add(item);
@@ -261,9 +305,9 @@
 		readonly int _sourceID;
 		public   int  SourceID { get { return _sourceID; } }
 
-		List<ISqlExpression> _keyFields;
+		List<IQueryExpression> _keyFields;
 
-		public IList<ISqlExpression> GetKeys(bool allIfEmpty)
+		public IList<IQueryExpression> GetKeys(bool allIfEmpty)
 		{
 			if (_keyFields == null)
 			{
@@ -271,12 +315,12 @@
 					from f in Fields.Values
 					where   f.IsPrimaryKey
 					orderby f.PrimaryKeyOrder
-					select f as ISqlExpression
+					select f as IQueryExpression
 				).ToList();
 			}
 
 			if (_keyFields.Count == 0 && allIfEmpty)
-				return Fields.Values.Select(f => f as ISqlExpression).ToList();
+				return Fields.Values.Select(f => f as IQueryExpression).ToList();
 
 			return _keyFields;
 		}
@@ -317,7 +361,7 @@
 				}
 
 				if (TableArguments != null)
-					TableArguments = TableArguments.Select(e => (ISqlExpression)e.Clone(objectTree, doClone)).ToArray();
+					TableArguments = TableArguments.Select(e => (IQueryExpression)e.Clone(objectTree, doClone)).ToArray();
 
 				objectTree.Add(this, table);
 				objectTree.Add(All,  table.All);
@@ -359,7 +403,7 @@
 			return true;
 		}
 
-		public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+		public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
 		{
 			return this == other;
 		}
@@ -369,7 +413,7 @@
 			get { return SqlQuery.Precedence.Unknown; }
 		}
 
-		Type ISqlExpression.SystemType
+		Type IQueryExpression.SystemType
 		{
 			get { return ObjectType; }
 		}
@@ -378,7 +422,7 @@
 
 		#region IEquatable<ISqlExpression> Members
 
-		bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+		bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
 		{
 			return this == other;
 		}
@@ -387,7 +431,7 @@
 
 		#region ISqlExpressionWalkable Members
 
-		ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
 		{
 			if (TableArguments != null)
 				for (var i = 0; i < TableArguments.Length; i++)

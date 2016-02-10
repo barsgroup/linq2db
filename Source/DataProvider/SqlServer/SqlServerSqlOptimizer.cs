@@ -18,7 +18,7 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
@@ -26,7 +26,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			{
 				case EQueryElementType.SqlBinaryExpression:
 					{
-						var be = (SqlBinaryExpression)expr;
+						var be = (ISqlBinaryExpression)expr;
 
 						switch (be.Operation)
 						{
@@ -52,7 +52,7 @@ namespace LinqToDB.DataProvider.SqlServer
 
 				case EQueryElementType.SqlFunction:
 					{
-						var func = (SqlFunction)expr;
+						var func = (ISqlFunction)expr;
 
 						switch (func.Name)
 						{
@@ -78,7 +78,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			return expr;
 		}
 
-		public ISqlExpression ConvertConvertFunction(SqlFunction func)
+		public IQueryExpression ConvertConvertFunction(ISqlFunction func)
 		{
 			switch (Type.GetTypeCode(func.SystemType.ToUnderlying()))
 			{
@@ -108,7 +108,7 @@ namespace LinqToDB.DataProvider.SqlServer
 									func.SystemType, "Cast(Floor(Cast({0} as Float)) as DateTime)", Precedence.Primary, func.Parameters[1]);
 						}
 
-						if (func.Parameters.Length == 2 && func.Parameters[0] is SqlDataType && func.Parameters[0] == SqlDataType.DateTime)
+						if (func.Parameters.Length == 2 && func.Parameters[0] is ISqlDataType && func.Parameters[0] == SqlDataType.DateTime)
 							return new SqlFunction(func.SystemType, func.Name, func.Precedence, func.Parameters[0], func.Parameters[1], new SqlValue(120));
 					}
 

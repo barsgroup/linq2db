@@ -30,13 +30,13 @@
 			}
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+			if (expr is ISqlBinaryExpression)
 			{
-				var be = (SqlBinaryExpression)expr;
+				var be = (ISqlBinaryExpression)expr;
 
 				switch (be.Operation)
 				{
@@ -44,9 +44,9 @@
 					case "+": return be.SystemType == typeof(string)? new SqlBinaryExpression(be.SystemType, be.Expr1, "||", be.Expr2, be.Precedence): expr;
 				}
 			}
-			else if (expr is SqlFunction)
+			else if (expr is ISqlFunction)
 			{
-				var func = (SqlFunction) expr;
+				var func = (ISqlFunction) expr;
 
 				switch (func.Name)
 				{
@@ -72,9 +72,9 @@
 								Sub(func.Parameters[2], 1));
 				}
 			}
-			else if (expr is SqlExpression)
+			else if (expr is ISqlExpression)
 			{
-				var e = (SqlExpression)expr;
+				var e = (ISqlExpression)expr;
 
 				if (e.Expr.StartsWith("Extract(DOW"))
 					return Inc(new SqlExpression(expr.SystemType, e.Expr.Replace("Extract(DOW", "Extract(Dow"), e.Parameters));

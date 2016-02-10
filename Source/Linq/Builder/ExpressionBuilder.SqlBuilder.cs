@@ -190,7 +190,7 @@ namespace LinqToDB.Linq.Builder
 
 		#region BuildTake
 
-		public void BuildTake(IBuildContext context, ISqlExpression expr)
+		public void BuildTake(IBuildContext context, IQueryExpression expr)
 		{
 			var sql = context.Select;
 
@@ -200,12 +200,12 @@ namespace LinqToDB.Linq.Builder
 				 DataContextInfo.SqlProviderFlags.IsTakeSupported &&
 				!DataContextInfo.SqlProviderFlags.GetIsSkipSupportedFlag(sql))
 			{
-				if (context.Select.Select.SkipValue is SqlParameter && sql.Select.TakeValue is SqlValue)
+				if (context.Select.Select.SkipValue is ISqlParameter && sql.Select.TakeValue is ISqlValue)
 				{
-					var skip = (SqlParameter)sql.Select.SkipValue;
-					var parm = (SqlParameter)sql.Select.SkipValue.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
+					var skip = (ISqlParameter)sql.Select.SkipValue;
+					var parm = (ISqlParameter)sql.Select.SkipValue.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
 
-					parm.SetTakeConverter((int)((SqlValue)sql.Select.TakeValue).Value);
+					parm.SetTakeConverter((int)((ISqlValue)sql.Select.TakeValue).Value);
 
 					sql.Select.Take(parm);
 
@@ -228,7 +228,7 @@ namespace LinqToDB.Linq.Builder
 
 			if (!DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))
 			{
-				var p = sql.Select.TakeValue as SqlParameter;
+				var p = sql.Select.TakeValue as ISqlParameter;
 
 				if (p != null)
 					p.IsQueryParameter = false;
@@ -254,7 +254,7 @@ namespace LinqToDB.Linq.Builder
 			return ctx;
 		}
 
-		internal ISqlExpression SubQueryToSql(IBuildContext context, MethodCallExpression expression)
+		internal IQueryExpression SubQueryToSql(IBuildContext context, MethodCallExpression expression)
 		{
 			var sequence = GetSubQuery(context, expression);
 			var subSql   = sequence.GetSubQuery(context);
@@ -286,7 +286,7 @@ namespace LinqToDB.Linq.Builder
 						    cond.Predicate.ElementType == EQueryElementType.SearchCondition &&
 						    query.GroupBy.Items.Count == ((ISearchCondition)cond.Predicate).Conditions.Count)
 						{
-							var func = (SqlFunction)subQuery.Select.Columns[0].Expression;
+							var func = (ISqlFunction)subQuery.Select.Columns[0].Expression;
 
 							if (CountBuilder.MethodNames.Contains(func.Name))
 								return SqlFunction.CreateCount(func.SystemType, query);
@@ -625,13 +625,13 @@ namespace LinqToDB.Linq.Builder
 			return new[] { new SqlInfo { Sql = ConvertToSql(context, expression) } };
 		}
 
-		public ISqlExpression ConvertToSqlExpression(IBuildContext context, Expression expression)
+		public IQueryExpression ConvertToSqlExpression(IBuildContext context, Expression expression)
 		{
 			var expr = ConvertExpression(expression);
 			return ConvertToSql(context, expr);
 		}
 
-		public ISqlExpression ConvertToSql(IBuildContext context, Expression expression, bool unwrap = false)
+		public IQueryExpression ConvertToSql(IBuildContext context, Expression expression, bool unwrap = false)
 		{
 			if (CanBeConstant(expression))
 				return BuildConstant(expression);
@@ -700,13 +700,13 @@ namespace LinqToDB.Linq.Builder
 							case ExpressionType.SubtractChecked : return Convert(context, new SqlBinaryExpression(t, l, "-", r, Precedence.Subtraction));
 							case ExpressionType.Coalesce        :
 								{
-									if (r is SqlFunction)
+									if (r is ISqlFunction)
 									{
-										var c = (SqlFunction)r;
+										var c = (ISqlFunction)r;
 
 										if (c.Name == "Coalesce")
 										{
-											var parms = new ISqlExpression[c.Parameters.Length + 1];
+											var parms = new IQueryExpression[c.Parameters.Length + 1];
 
 											parms[0] = l;
 											c.Parameters.CopyTo(parms, 1);
@@ -776,13 +776,13 @@ namespace LinqToDB.Linq.Builder
 						var t = ConvertToSql(context, e.IfTrue);
 						var f = ConvertToSql(context, e.IfFalse);
 
-						if (f is SqlFunction)
+						if (f is ISqlFunction)
 						{
-							var c = (SqlFunction)f;
+							var c = (ISqlFunction)f;
 
 							if (c.Name == "CASE")
 							{
-								var parms = new ISqlExpression[c.Parameters.Length + 2];
+								var parms = new IQueryExpression[c.Parameters.Length + 2];
 
 								parms[0] = s;
 								parms[1] = t;
@@ -882,7 +882,7 @@ namespace LinqToDB.Linq.Builder
 							if (attr.InlineParameters)
 								DataContextInfo.DataContext.InlineParameters = true;
 
-							var parms = new List<ISqlExpression>();
+							var parms = new List<IQueryExpression>();
 
 							if (e.Object != null)
 								parms.Add(ConvertToSql(context, e.Object));
@@ -1146,11 +1146,11 @@ namespace LinqToDB.Linq.Builder
 
 		#region Build Constant
 
-		readonly Dictionary<Expression,SqlValue> _constants = new Dictionary<Expression,SqlValue>();
+		readonly Dictionary<Expression, ISqlValue> _constants = new Dictionary<Expression, ISqlValue>();
 
-		SqlValue BuildConstant(Expression expr)
+        ISqlValue BuildConstant(Expression expr)
 		{
-			SqlValue value;
+            ISqlValue value;
 
 			if (_constants.TryGetValue(expr, out value))
 				return value;
@@ -1441,7 +1441,7 @@ namespace LinqToDB.Linq.Builder
 				case ExpressionType.NotEqual:
 
 					if (!context.Select.IsParameterDependent &&
-						(l is SqlParameter && l.CanBeNull() || r is SqlParameter && r.CanBeNull()))
+						(l is ISqlParameter && l.CanBeNull() || r is ISqlParameter && r.CanBeNull()))
 						context.Select.IsParameterDependent = true;
 
 					// | (SqlQuery(Select([]) as q), SqlValue(null))
@@ -1450,12 +1450,12 @@ namespace LinqToDB.Linq.Builder
 					var q =
 						l.ElementType == EQueryElementType.SqlQuery &&
 						r.ElementType == EQueryElementType.SqlValue &&
-						((SqlValue)r).Value == null &&
+						((ISqlValue)r).Value == null &&
 						((ISelectQuery)l).Select.Columns.Count == 0 ?
 							(ISelectQuery)l :
 						r.ElementType == EQueryElementType.SqlQuery &&
 						l.ElementType == EQueryElementType.SqlValue &&
-						((SqlValue)l).Value == null &&
+						((ISqlValue)l).Value == null &&
 						((ISelectQuery)r).Select.Columns.Count == 0 ?
 							(ISelectQuery)r :
 							null;
@@ -1547,7 +1547,7 @@ namespace LinqToDB.Linq.Builder
 						if (!dic.TryGetValue(origValue, out mapValue))
 							return null;
 
-						ISqlExpression l, r;
+						IQueryExpression l, r;
 
 						if (left.NodeType == ExpressionType.Convert)
 						{
@@ -1691,7 +1691,7 @@ namespace LinqToDB.Linq.Builder
 				if (lcol.Members.Count == 0)
 					throw new InvalidOperationException();
 
-				ISqlExpression rcol = null;
+				IQueryExpression rcol = null;
 
 				var lmember = lcol.Members[lcol.Members.Count - 1];
 
@@ -1768,7 +1768,7 @@ namespace LinqToDB.Linq.Builder
 			return condition;
 		}
 
-		ISqlExpression GetParameter(Expression ex, MemberInfo member)
+		IQueryExpression GetParameter(Expression ex, MemberInfo member)
 		{
 			if (member is MethodInfo)
 				member = ((MethodInfo)member).GetPropertyInfo();
@@ -1857,7 +1857,7 @@ namespace LinqToDB.Linq.Builder
 			var arr      = e.Object ?? e.Arguments[0];
 			var arg      = e.Arguments[argIndex];
 
-			ISqlExpression expr = null;
+			IQueryExpression expr = null;
 
 			var ctx = GetContext(context, arg);
 
@@ -1889,7 +1889,7 @@ namespace LinqToDB.Linq.Builder
 						if (newArr.Expressions.Count == 0)
 							return new Expr(new SqlValue(false));
 
-						var exprs  = new ISqlExpression[newArr.Expressions.Count];
+						var exprs  = new IQueryExpression[newArr.Expressions.Count];
 
 						for (var i = 0; i < newArr.Expressions.Count; i++)
 							exprs[i] = ConvertToSql(context, newArr.Expressions[i]);
@@ -1922,9 +1922,9 @@ namespace LinqToDB.Linq.Builder
 			var o = ConvertToSql(context, e.Object);
 			var a = ConvertToSql(context, e.Arguments[0]);
 
-			if (a is SqlValue)
+			if (a is ISqlValue)
 			{
-				var value = ((SqlValue)a).Value;
+				var value = ((ISqlValue)a).Value;
 
 				if (value == null)
 					throw new LinqException("NULL cannot be used as a LIKE predicate parameter.");
@@ -1934,9 +1934,9 @@ namespace LinqToDB.Linq.Builder
 					new Like(o, false, new SqlValue(start + EscapeLikeText(value.ToString()) + end), new SqlValue('~'));
 			}
 
-			if (a is SqlParameter)
+			if (a is ISqlParameter)
 			{
-				var p  = (SqlParameter)a;
+				var p  = (ISqlParameter)a;
 				var ep = (from pm in CurrentSqlParameters where pm.SqlParameter == p select pm).First();
 
 				ep = new ParameterAccessor
@@ -1984,7 +1984,7 @@ namespace LinqToDB.Linq.Builder
 			var a1 = ConvertToSql(context, e.Arguments[0]);
 			var a2 = ConvertToSql(context, e.Arguments[1]);
 
-			ISqlExpression a3 = null;
+			IQueryExpression a3 = null;
 
 			if (e.Arguments.Count == 3)
 				a3 = ConvertToSql(context, e.Arguments[2]);
@@ -2032,7 +2032,7 @@ namespace LinqToDB.Linq.Builder
 			IBuildContext               context,
 			List<InheritanceMapping>    inheritanceMapping,
 			Type                        toType,
-			Func<string,ISqlExpression> getSql)
+			Func<string,IQueryExpression> getSql)
 		{
 			var mapping = inheritanceMapping
 				.Where (m => m.Type == toType && !m.IsDefault)
@@ -2370,7 +2370,7 @@ namespace LinqToDB.Linq.Builder
 			return MappingSchema.GetAttribute<Sql.TableFunctionAttribute>(member, a => a.Configuration);
 		}
 
-		public ISqlExpression Convert(IBuildContext context, ISqlExpression expr)
+		public IQueryExpression Convert(IBuildContext context, IQueryExpression expr)
 		{
 			return DataContextInfo.GetSqlOptimizer().ConvertExpression(expr);
 		}
@@ -2380,7 +2380,7 @@ namespace LinqToDB.Linq.Builder
 			return DataContextInfo.GetSqlOptimizer().ConvertPredicate(context.Select, predicate);
 		}
 
-		internal ISqlExpression ConvertSearchCondition(IBuildContext context, ISqlExpression sqlExpression)
+		internal IQueryExpression ConvertSearchCondition(IBuildContext context, IQueryExpression sqlExpression)
 		{
 			if (sqlExpression is ISearchCondition)
 			{

@@ -52,9 +52,9 @@ namespace LinqToDB.DataProvider.Access
 
 			if (SelectQuery.From.Tables.Count == 0 && SelectQuery.Select.Columns.Count == 1)
 			{
-				if (SelectQuery.Select.Columns[0].Expression is SqlFunction)
+				if (SelectQuery.Select.Columns[0].Expression is ISqlFunction)
 				{
-					var func = (SqlFunction)SelectQuery.Select.Columns[0].Expression;
+					var func = (ISqlFunction)SelectQuery.Select.Columns[0].Expression;
 
 					if (func.Name == "Iif" && func.Parameters.Length == 3 && func.Parameters[0] is ISearchCondition)
 					{
@@ -98,9 +98,9 @@ namespace LinqToDB.DataProvider.Access
 		{
             ISearchCondition cond;
 
-			if (SelectQuery.Select.Columns[0].Expression is SqlFunction)
+			if (SelectQuery.Select.Columns[0].Expression is ISqlFunction)
 			{
-				var func  = (SqlFunction)SelectQuery.Select.Columns[0].Expression;
+				var func  = (ISqlFunction)SelectQuery.Select.Columns[0].Expression;
 				cond  = (ISearchCondition)func.Parameters[0];
 			}
 			else
@@ -161,42 +161,42 @@ namespace LinqToDB.DataProvider.Access
 
 		protected override void BuildLikePredicate(ILike predicate)
 		{
-			if (predicate.Expr2 is SqlValue)
+			if (predicate.Expr2 is ISqlValue)
 			{
-				var value = ((SqlValue)predicate.Expr2).Value;
+				var value = ((ISqlValue)predicate.Expr2).Value;
 
 				if (value != null)
 				{
-					var text  = ((SqlValue)predicate.Expr2).Value.ToString();
+					var text  = ((ISqlValue)predicate.Expr2).Value.ToString();
 					var ntext = text.Replace("[", "[[]");
 
 					if (text != ntext)
 						predicate = new Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
 				}
 			}
-			else if (predicate.Expr2 is SqlParameter)
+			else if (predicate.Expr2 is ISqlParameter)
 			{
-				var p = ((SqlParameter)predicate.Expr2);
+				var p = ((ISqlParameter)predicate.Expr2);
 				p.ReplaceLike = true;
 			}
 
 			if (predicate.Escape != null)
 			{
-				if (predicate.Expr2 is SqlValue && predicate.Escape is SqlValue)
+				if (predicate.Expr2 is ISqlValue && predicate.Escape is ISqlValue)
 				{
-					var value = ((SqlValue)predicate.Expr2).Value;
+					var value = ((ISqlValue)predicate.Expr2).Value;
 
 					if (value != null)
 					{
-						var text = ((SqlValue)predicate.Expr2).Value.ToString();
-						var val  = new SqlValue(ReescapeLikeText(text, (char)((SqlValue)predicate.Escape).Value));
+						var text = ((ISqlValue)predicate.Expr2).Value.ToString();
+						var val  = new SqlValue(ReescapeLikeText(text, (char)((ISqlValue)predicate.Escape).Value));
 
 						predicate = new Like(predicate.Expr1, predicate.IsNot, val, null);
 					}
 				}
-				else if (predicate.Expr2 is SqlParameter)
+				else if (predicate.Expr2 is ISqlParameter)
 				{
-					var p = (SqlParameter)predicate.Expr2;
+					var p = (ISqlParameter)predicate.Expr2;
 
 					if (p.LikeStart != null)
 					{
@@ -238,7 +238,7 @@ namespace LinqToDB.DataProvider.Access
 			return sb.ToString();
 		}
 
-		protected override void BuildBinaryExpression(SqlBinaryExpression expr)
+		protected override void BuildBinaryExpression(ISqlBinaryExpression expr)
 		{
 			switch (expr.Operation[0])
 			{
@@ -251,7 +251,7 @@ namespace LinqToDB.DataProvider.Access
 			base.BuildBinaryExpression(expr);
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			switch (func.Name)
 			{
@@ -259,7 +259,7 @@ namespace LinqToDB.DataProvider.Access
 
 					if (func.Parameters.Length > 2)
 					{
-						var parms = new ISqlExpression[func.Parameters.Length - 1];
+						var parms = new IQueryExpression[func.Parameters.Length - 1];
 
 						Array.Copy(func.Parameters, 1, parms, 0, parms.Length);
 						BuildFunction(new SqlFunction(func.SystemType, func.Name, func.Parameters[0],
@@ -310,7 +310,7 @@ namespace LinqToDB.DataProvider.Access
 			base.BuildFunction(func);
 		}
 
-		SqlFunction ConvertCase(Type systemType, ISqlExpression[] parameters, int start)
+		ISqlFunction ConvertCase(Type systemType, IQueryExpression[] parameters, int start)
 		{
 			var len = parameters.Length - start;
 
@@ -336,7 +336,7 @@ namespace LinqToDB.DataProvider.Access
 				base.BuildFromClause();
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -397,7 +397,7 @@ namespace LinqToDB.DataProvider.Access
 			return value;
 		}
 
-		protected override void BuildCreateTableIdentityAttribute2(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute2(ISqlField field)
 		{
 			StringBuilder.Append("IDENTITY");
 		}

@@ -11,7 +11,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     public class Expr<T1, T2> : IExpr<T1, T2>
         where T1 : IConditionBase<T1,T2>
     {
-        internal Expr(IConditionBase<T1,T2> condition, bool isNot, ISqlExpression sqlExpression)
+        internal Expr(IConditionBase<T1,T2> condition, bool isNot, IQueryExpression sqlExpression)
         {
             _condition = condition;
             _isNot     = isNot;
@@ -21,7 +21,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
         readonly IConditionBase<T1,T2> _condition;
         readonly bool                 _isNot;
 
-        public ISqlExpression SqlExpression
+        public IQueryExpression SqlExpression
         {
             get;
         }
@@ -54,17 +54,17 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         #region Predicate.Like
 
-        public T2 Like(ISqlExpression expression, SqlValue escape) { return Add(new Like(SqlExpression, false, expression, escape)); }
-        public T2 Like(ISqlExpression expression)                  { return Like(expression, null); }
-        public T2 Like(string expression,         SqlValue escape) { return Like(new SqlValue(expression), escape); }
+        public T2 Like(IQueryExpression expression, ISqlValue escape) { return Add(new Like(SqlExpression, false, expression, escape)); }
+        public T2 Like(IQueryExpression expression)                  { return Like(expression, null); }
+        public T2 Like(string expression, ISqlValue escape) { return Like(new SqlValue(expression), escape); }
         public T2 Like(string expression)                          { return Like(new SqlValue(expression), null);   }
 
         #endregion
 
         #region Predicate.Between
 
-        public T2 Between   (ISqlExpression expr1, ISqlExpression expr2) { return Add(new Between(SqlExpression, false, expr1, expr2)); }
-        public T2 NotBetween(ISqlExpression expr1, ISqlExpression expr2) { return Add(new Between(SqlExpression, true,  expr1, expr2)); }
+        public T2 Between   (IQueryExpression expr1, IQueryExpression expr2) { return Add(new Between(SqlExpression, false, expr1, expr2)); }
+        public T2 NotBetween(IQueryExpression expr1, IQueryExpression expr2) { return Add(new Between(SqlExpression, true,  expr1, expr2)); }
 
         #endregion
 
@@ -89,11 +89,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
             {
                 foreach (var item in exprs)
                 {
-                    if (item == null || item is SqlValue && ((SqlValue)item).Value == null)
+                    if (item == null || item is ISqlValue && ((ISqlValue)item).Value == null)
                         continue;
 
-                    if (item is ISqlExpression)
-                        list.Values.Add((ISqlExpression)item);
+                    if (item is IQueryExpression)
+                        list.Values.Add((IQueryExpression)item);
                     else
                         list.Values.Add(new SqlValue(item));
                 }

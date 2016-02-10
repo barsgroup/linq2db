@@ -5,6 +5,7 @@ namespace LinqToDB.Linq.Builder
 {
 	using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     class WithTableExpressionBuilder : MethodCallBuilder
@@ -20,8 +21,8 @@ namespace LinqToDB.Linq.Builder
 			var table    = (TableBuilder.TableContext)sequence;
 			var value    = (string)((ConstantExpression)methodCall.Arguments[1]).Value;
 
-			table.SqlTable.SqlTableType   = SqlTableType.Expression;
-			table.SqlTable.TableArguments = new ISqlExpression[0];
+			table.SqlTable.SqlTableType   = ESqlTableType.Expression;
+			table.SqlTable.TableArguments = new IQueryExpression[0];
 
 			switch (methodCall.Method.Name)
 			{

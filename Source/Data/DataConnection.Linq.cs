@@ -41,7 +41,7 @@ namespace LinqToDB.Data
 		internal class PreparedQuery
 		{
 			public string[]           Commands;
-			public List<SqlParameter> SqlParameters;
+			public List<ISqlParameter> SqlParameters;
 			public IDbDataParameter[] Parameters;
 			public ISelectQuery SelectQuery;
 			public ISqlBuilder        SqlProvider;
@@ -141,7 +141,7 @@ namespace LinqToDB.Data
 			pq.Parameters = parms.ToArray();
 		}
 
-		void AddParameter(ICollection<IDbDataParameter> parms, string name, SqlParameter parm)
+		void AddParameter(ICollection<IDbDataParameter> parms, string name, ISqlParameter parm)
 		{
 			var p = Command.CreateParameter();
 

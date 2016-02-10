@@ -13,24 +13,24 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     public class InList : NotExpr,
                           IInList
     {
-        public InList(ISqlExpression exp1, bool isNot, params ISqlExpression[] values)
+        public InList(IQueryExpression exp1, bool isNot, params IQueryExpression[] values)
             : base(exp1, isNot, SqlQuery.Precedence.Comparison)
         {
             if (values != null && values.Length > 0)
                 _values.AddRange(values);
         }
 
-        public InList(ISqlExpression exp1, bool isNot, IEnumerable<ISqlExpression> values)
+        public InList(IQueryExpression exp1, bool isNot, IEnumerable<IQueryExpression> values)
             : base(exp1, isNot, SqlQuery.Precedence.Comparison)
         {
             if (values != null)
                 _values.AddRange(values);
         }
 
-        readonly List<ISqlExpression> _values = new List<ISqlExpression>();
-        public   List<ISqlExpression>  Values => _values;
+        readonly List<IQueryExpression> _values = new List<IQueryExpression>();
+        public   List<IQueryExpression>  Values => _values;
 
-        protected override void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> action)
+        protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> action)
         {
             base.Walk(skipColumns, action);
             for (var i = 0; i < _values.Count; i++)
@@ -47,9 +47,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             if (!objectTree.TryGetValue(this, out clone))
             {
                 objectTree.Add(this, clone = new InList(
-                                                 (ISqlExpression)Expr1.Clone(objectTree, doClone),
+                                                 (IQueryExpression)Expr1.Clone(objectTree, doClone),
                                                  IsNot,
-                                                 _values.Select(e => (ISqlExpression)e.Clone(objectTree, doClone)).ToArray()));
+                                                 _values.Select(e => (IQueryExpression)e.Clone(objectTree, doClone)).ToArray()));
             }
 
             return clone;

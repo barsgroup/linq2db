@@ -10,8 +10,33 @@
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class SqlParameter : BaseQueryElement, ISqlExpression, IValueContainer
-	{
+    public interface ISqlParameter : IQueryExpression,
+                                     IValueContainer
+    {
+        string Name { get; set; }
+
+        bool IsQueryParameter { get; set; }
+
+        DataType DataType { get; set; }
+
+        int DbSize { get; set; }
+
+        string LikeStart { get; set; }
+
+        string LikeEnd { get; set; }
+
+        bool ReplaceLike { get; set; }
+
+        void SetTakeConverter(int take);
+
+        Func<object, object> ValueConverter { get; set; }
+
+        object RawValue { get; }
+    }
+
+    public class SqlParameter : BaseQueryElement,
+                                ISqlParameter
+    {
 		public SqlParameter(Type systemType, string name, object value)
 		{
 			if (systemType.ToNullableUnderlying().IsEnumEx())
@@ -68,7 +93,7 @@
 			set { _value = value; }
 		}
 
-		internal object RawValue
+		public object RawValue
 		{
 			get { return _value; }
 		}
@@ -92,7 +117,7 @@
 			set { _valueConverter = value; }
 		}
 
-		internal void SetTakeConverter(int take)
+		public void SetTakeConverter(int take)
 		{
 			if (TakeValues == null)
 				TakeValues = new List<int>();
@@ -162,7 +187,7 @@
 
 		#region ISqlExpressionWalkable Members
 
-		ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
 		{
 			return func(this);
 		}
@@ -171,12 +196,12 @@
 
 		#region IEquatable<ISqlExpression> Members
 
-		bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+		bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
 		{
 			if (this == other)
 				return true;
 
-			var p = other as SqlParameter;
+			var p = other as ISqlParameter;
 			return p != null && Name != null && p.Name != null && Name == p.Name && SystemType == p.SystemType;
 		}
 
@@ -192,9 +217,9 @@
 			return SqlDataType.CanBeNull(SystemType ?? _value.GetType());
 		}
 
-		public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+		public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
 		{
-			return ((ISqlExpression)this).Equals(other) && comparer(this, other);
+			return ((IQueryExpression)this).Equals(other) && comparer(this, other);
 		}
 
 		#endregion

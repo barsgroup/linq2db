@@ -65,7 +65,7 @@ namespace LinqToDB.Linq.Builder
 			Context.SetAlias(alias);
 		}
 
-		public virtual ISqlExpression GetSubQuery(IBuildContext context)
+		public virtual IQueryExpression GetSubQuery(IBuildContext context)
 		{
 			return Context.GetSubQuery(context);
 		}

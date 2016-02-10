@@ -12,7 +12,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     public class CreateTableStatement : BaseQueryElement,
                                         ICreateTableStatement
     {
-        public SqlTable       Table           { get; set; }
+        public ISqlTable       Table           { get; set; }
         public bool           IsDrop          { get; set; }
         public string         StatementHeader { get; set; }
         public string         StatementFooter { get; set; }
@@ -42,7 +42,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region ISqlExpressionWalkable Members
 
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             ((ISqlExpressionWalkable)Table)?.Walk(skipColumns, func);
 
@@ -61,7 +61,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             var clone = new CreateTableStatement { };
 
             if (Table != null)
-                clone.Table = (SqlTable)Table.Clone(objectTree, doClone);
+                clone.Table = (ISqlTable)Table.Clone(objectTree, doClone);
 
             objectTree.Add(this, clone);
 

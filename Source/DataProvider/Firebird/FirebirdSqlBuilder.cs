@@ -61,7 +61,7 @@ namespace LinqToDB.DataProvider.Firebird
 			BuildExpression(identityField, false, true);
 		}
 
-		public override ISqlExpression GetIdentityExpression(SqlTable table)
+		public override IQueryExpression GetIdentityExpression(ISqlTable table)
 		{
 			if (!table.SequenceAttributes.IsNullOrEmpty())
 				return new SqlExpression("GEN_ID(" + table.SequenceAttributes[0].SequenceName + ", 1)", Precedence.Primary);
@@ -69,13 +69,13 @@ namespace LinqToDB.DataProvider.Firebird
 			return base.GetIdentityExpression(table);
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -99,7 +99,7 @@ namespace LinqToDB.DataProvider.Firebird
 			}
 		}
 
-//		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+//		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 //		{
 //			switch (type.DataType)
 //			{
@@ -143,7 +143,7 @@ namespace LinqToDB.DataProvider.Firebird
 				base.BuildFromClause();
 		}
 
-		protected override void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = false;
 
@@ -153,7 +153,7 @@ namespace LinqToDB.DataProvider.Firebird
 					wrap = true;
 				else
 				{
-					var ex = expr as SqlExpression;
+					var ex = expr as ISqlExpression;
 					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
@@ -213,13 +213,13 @@ namespace LinqToDB.DataProvider.Firebird
 			BuildInsertOrUpdateQueryAsMerge("FROM rdb$database");
 		}
 
-		protected override void BuildCreateTableNullAttribute(SqlField field, EDefaulNullable eDefaulNullable)
+		protected override void BuildCreateTableNullAttribute(ISqlField field, EDefaulNullable eDefaulNullable)
 		{
 			if (!field.Nullable)
 				StringBuilder.Append("NOT NULL");
 		}
 
-		SqlField _identityField;
+        ISqlField _identityField;
 
 		public override int CommandCount(ISelectQuery selectQuery)
 		{

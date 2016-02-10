@@ -9,8 +9,9 @@ namespace LinqToDB.SqlProvider
 	using Extensions;
 
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	using ConverterType = Action<StringBuilder,SqlQuery.QueryElements.SqlElements.SqlDataType,object>;
+	using ConverterType = Action<StringBuilder,SqlQuery.QueryElements.SqlElements.Interfaces.ISqlDataType,object>;
 
 	public class ValueToSqlConverter
 	{
@@ -130,7 +131,7 @@ namespace LinqToDB.SqlProvider
 			return TryConvert(stringBuilder, new SqlDataType(value.GetType()), value);
 		}
 
-		public bool TryConvert(StringBuilder stringBuilder, SqlDataType dataType, object value)
+		public bool TryConvert(StringBuilder stringBuilder, ISqlDataType dataType, object value)
 		{
 			if (value == null)
 			{
@@ -187,7 +188,7 @@ namespace LinqToDB.SqlProvider
 			return stringBuilder;
 		}
 
-		public StringBuilder Convert(StringBuilder stringBuilder, SqlDataType dataType, object value)
+		public StringBuilder Convert(StringBuilder stringBuilder, ISqlDataType dataType, object value)
 		{
 			if (!TryConvert(stringBuilder, dataType, value))
 				stringBuilder.Append(value);

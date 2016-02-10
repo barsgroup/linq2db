@@ -28,7 +28,7 @@ namespace LinqToDB.DataProvider.Sybase
 
 		protected override string FirstFormat { get { return "TOP {0}"; } }
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
@@ -50,7 +50,7 @@ namespace LinqToDB.DataProvider.Sybase
 			_isSelect = false;
 		}
 
-		protected override void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = false;
 
@@ -77,7 +77,7 @@ namespace LinqToDB.DataProvider.Sybase
 			return new SybaseSqlBuilder(_isSelect, SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -112,22 +112,22 @@ namespace LinqToDB.DataProvider.Sybase
 
 		protected override void BuildLikePredicate(ILike predicate)
 		{
-			if (predicate.Expr2 is SqlValue)
+			if (predicate.Expr2 is ISqlValue)
 			{
-				var value = ((SqlValue)predicate.Expr2).Value;
+				var value = ((ISqlValue)predicate.Expr2).Value;
 
 				if (value != null)
 				{
-					var text  = ((SqlValue)predicate.Expr2).Value.ToString();
+					var text  = ((ISqlValue)predicate.Expr2).Value.ToString();
 					var ntext = text.Replace("[", "[[]");
 
 					if (text != ntext)
 						predicate = new Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
 				}
 			}
-			else if (predicate.Expr2 is SqlParameter)
+			else if (predicate.Expr2 is ISqlParameter)
 			{
-				var p = ((SqlParameter)predicate.Expr2);
+				var p = ((ISqlParameter)predicate.Expr2);
 				p.ReplaceLike = true;
 			}
 
@@ -211,7 +211,7 @@ namespace LinqToDB.DataProvider.Sybase
 			StringBuilder.AppendLine("VALUES ()");
 		}
 
-		protected override void BuildCreateTableIdentityAttribute1(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute1(ISqlField field)
 		{
 			StringBuilder.Append("IDENTITY");
 		}

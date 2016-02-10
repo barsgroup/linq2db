@@ -60,7 +60,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 		protected override string LimitFormat  { get { return "LIMIT {0}";   } }
 		protected override string OffsetFormat { get { return "OFFSET {0} "; } }
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -143,7 +143,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 			return value;
 		}
 
-		public override ISqlExpression GetIdentityExpression(SqlTable table)
+		public override IQueryExpression GetIdentityExpression(ISqlTable table)
 		{
 			if (!table.SequenceAttributes.IsNullOrEmpty())
 			{
@@ -164,7 +164,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 			return base.GetIdentityExpression(table);
 		}
 
-		protected override void BuildCreateTableFieldType(SqlField field)
+		protected override void BuildCreateTableFieldType(ISqlField field)
 		{
 			if (field.IsIdentity)
 			{
@@ -187,13 +187,13 @@ namespace LinqToDB.DataProvider.PostgreSQL
 	    protected override void BuildLikePredicate(ILike predicate)
 	    {
 	        var expr1 = predicate.Expr1;
-	        var sqlField = expr1 as SqlField;
+	        var sqlField = expr1 as ISqlField;
 	        if (sqlField == null)
 	        {
 	            var column = expr1 as IColumn;
 	            if (column != null)
 	            {
-	                sqlField = column.Expression as SqlField;
+	                sqlField = column.Expression as ISqlField;
 	            }
 	        }
 
@@ -201,7 +201,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
             {
                 var expr2 = predicate.Expr2;
 
-                var sqlValue = expr2 as SqlValue;
+                var sqlValue = expr2 as ISqlValue;
                 if (sqlValue != null)
                 {
                     var str = (string) sqlValue.Value;
@@ -216,7 +216,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
                     return;
                 }
 
-                var sqlParameter = expr2 as SqlParameter;
+                var sqlParameter = expr2 as ISqlParameter;
                 if (sqlParameter != null)
                 {
                     var pStart = sqlParameter.LikeStart;
@@ -229,17 +229,17 @@ namespace LinqToDB.DataProvider.PostgreSQL
                     return;
                 }
 
-                ISqlExpression value = null;
+                IQueryExpression value = null;
                 var hasLikeStart = false;
                 var hasLikeEnd = false;
-                var fun = predicate.Expr2 as SqlFunction;
+                var fun = predicate.Expr2 as ISqlFunction;
                 if (fun != null)
                 {
                     value = GetSqlExpressionFromFunction(fun);
                 }
                 else
                 {
-                    var sqlBinary = predicate.Expr2 as SqlBinaryExpression;
+                    var sqlBinary = predicate.Expr2 as ISqlBinaryExpression;
                     if (sqlBinary != null)
                     {
                         var function = GetFunctionFromBinary(sqlBinary, out hasLikeStart, out hasLikeEnd);
@@ -261,27 +261,27 @@ namespace LinqToDB.DataProvider.PostgreSQL
             base.BuildLikePredicate(predicate);                
 	    }
 
-	    private SqlFunction GetFunctionFromBinary(SqlBinaryExpression sqlBinary, out bool hasLikeStart, out bool hasLikeEnd)
+	    private ISqlFunction GetFunctionFromBinary(ISqlBinaryExpression sqlBinary, out bool hasLikeStart, out bool hasLikeEnd)
 	    {
 	        hasLikeStart = false;
 	        hasLikeEnd = false;
-	        SqlFunction function = null;
+	        ISqlFunction function = null;
 	        var list = new [] { sqlBinary.Expr1, sqlBinary.Expr2};
 	        foreach (var expression in list)
 	        {
-	            var fun = expression as SqlFunction;
+	            var fun = expression as ISqlFunction;
 	            if (fun != null)
 	            {
                     function = fun;
 	            }
 
-	            var binary = expression as SqlBinaryExpression;
+	            var binary = expression as ISqlBinaryExpression;
 	            if (binary != null)
 	            {
                     function = GetFunctionFromBinary(binary, out hasLikeStart, out hasLikeEnd);
 	            }
 
-	            var sqlValue = expression as SqlValue;
+	            var sqlValue = expression as ISqlValue;
                 if (sqlValue != null)
 	            {
 	                if (sqlBinary.Expr1 == expression)
@@ -298,17 +298,17 @@ namespace LinqToDB.DataProvider.PostgreSQL
 	        return function;
 	    }
 
-	    private ISqlExpression GetSqlExpressionFromFunction(SqlFunction sqlFunction)
+	    private IQueryExpression GetSqlExpressionFromFunction(ISqlFunction sqlFunction)
 	    {
 	        foreach (var parameter in sqlFunction.Parameters)
 	        {
-	            var fun = parameter as SqlFunction;
+	            var fun = parameter as ISqlFunction;
 	            if (fun != null)
 	            {
                     return GetSqlExpressionFromFunction(fun);
 	            }
 
-	            var field = parameter as SqlField;
+	            var field = parameter as ISqlField;
                 if (field != null)
                 {
                     return field;

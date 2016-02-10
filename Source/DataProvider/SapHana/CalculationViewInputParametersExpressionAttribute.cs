@@ -11,6 +11,7 @@ namespace LinqToDB.DataProvider.SapHana
 
 	using LinqToDB.SqlEntities;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class CalculationViewInputParametersExpressionAttribute : Sql.TableExpressionAttribute
@@ -36,7 +37,7 @@ namespace LinqToDB.DataProvider.SapHana
 			return value.ToString();
 		}
 
-		public override void SetTable(MappingSchema mappingSchema, SqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<ISqlExpression> sqlArgs)
+		public override void SetTable(MappingSchema mappingSchema, ISqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<IQueryExpression> sqlArgs)
 		{
 			var method = member as MethodInfo;
 
@@ -49,7 +50,7 @@ namespace LinqToDB.DataProvider.SapHana
 			if (paramsList.Count != valuesList.Count)
 				throw new TargetParameterCountException("Invalid number of parameters");
 
-			var sqlValues = new List<ISqlExpression>();
+			var sqlValues = new List<IQueryExpression>();
 
 			for(var i = 0; i < paramsList.Count; i++)
 			{
@@ -61,7 +62,7 @@ namespace LinqToDB.DataProvider.SapHana
 				sqlValues.Add(new SqlValue(ValueToString(val)));
 			}
 
-			var arg = new ISqlExpression[1];
+			var arg = new IQueryExpression[1];
 
 			arg[0] = new SqlExpression(
 				string.Join(", ",
@@ -69,7 +70,7 @@ namespace LinqToDB.DataProvider.SapHana
 						.Select(x => "{" + x + "}")),
 				sqlValues.ToArray());
 
-			table.SqlTableType = SqlTableType.Expression;
+			table.SqlTableType = ESqlTableType.Expression;
 			table.Name = "{0}('PLACEHOLDER' = {2}) {1}";
 			table.TableArguments = arg.ToArray();
 		}

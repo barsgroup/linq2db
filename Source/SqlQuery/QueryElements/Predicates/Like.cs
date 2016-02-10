@@ -12,17 +12,17 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     public class Like : NotExpr,
                         ILike
     {
-        public Like(ISqlExpression exp1, bool isNot, ISqlExpression exp2, ISqlExpression escape)
+        public Like(IQueryExpression exp1, bool isNot, IQueryExpression exp2, IQueryExpression escape)
             : base(exp1, isNot, SqlQuery.Precedence.Comparison)
         {
             Expr2  = exp2;
             Escape = escape;
         }
 
-        public ISqlExpression Expr2  { get; set; }
-        public ISqlExpression Escape { get; set; }
+        public IQueryExpression Expr2  { get; set; }
+        public IQueryExpression Escape { get; set; }
 
-        protected override void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             base.Walk(skipColumns, func);
             Expr2 = Expr2.Walk(skipColumns, func);
@@ -39,7 +39,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
             if (!objectTree.TryGetValue(this, out clone))
                 objectTree.Add(this, clone = new Like(
-                                                 (ISqlExpression)Expr1.Clone(objectTree, doClone), IsNot, (ISqlExpression)Expr2.Clone(objectTree, doClone), Escape));
+                                                 (IQueryExpression)Expr1.Clone(objectTree, doClone), IsNot, (IQueryExpression)Expr2.Clone(objectTree, doClone), Escape));
 
             return clone;
         }

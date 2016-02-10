@@ -4,9 +4,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces
 
     public interface ILike: INotExpr
     {
-        ISqlExpression Expr2 { get; set; }
+        IQueryExpression Expr2 { get; set; }
 
-        ISqlExpression Escape { get; set; }
+        IQueryExpression Escape { get; set; }
 
         string GetOperator();
     }

@@ -12,6 +12,7 @@ namespace LinqToDB.DataProvider.SqlServer
 	using Expressions;
 
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
 
@@ -114,7 +115,7 @@ namespace LinqToDB.DataProvider.SqlServer
 				;
 		}
 
-		static void ConvertStringToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, string value)
+		static void ConvertStringToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, string value)
 		{
 			string start;
 
@@ -133,7 +134,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			DataTools.ConvertStringToSql(stringBuilder, "+", start, AppendConversion, value);
 		}
 
-		static void ConvertCharToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, char value)
+		static void ConvertCharToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, char value)
 		{
 			string start;
 
@@ -168,7 +169,7 @@ namespace LinqToDB.DataProvider.SqlServer
 				;
 		}
 
-		static void ConvertTimeSpanToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, TimeSpan value)
+		static void ConvertTimeSpanToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, TimeSpan value)
 		{
 			if (sqlDataType.DataType == DataType.Int64)
 			{
@@ -192,7 +193,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			}
 		}
 
-		static void ConvertDateTimeOffsetToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, DateTimeOffset value)
+		static void ConvertDateTimeOffsetToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, DateTimeOffset value)
 		{
 			var format = "'{0:yyyy-MM-dd HH:mm:ss.fffffff zzz}'";
 

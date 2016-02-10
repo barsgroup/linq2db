@@ -8,7 +8,7 @@
     public interface ISqlOptimizer
 	{
         ISelectQuery Finalize         (ISelectQuery selectQuery);
-		ISqlExpression ConvertExpression(ISqlExpression expression);
+		IQueryExpression ConvertExpression(IQueryExpression expression);
 		ISqlPredicate  ConvertPredicate (ISelectQuery selectQuery, ISqlPredicate  predicate);
 	}
 }

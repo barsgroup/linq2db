@@ -16,37 +16,37 @@ namespace LinqToDB.DataProvider.MySql
 		{
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+			if (expr is ISqlBinaryExpression)
 			{
-				var be = (SqlBinaryExpression)expr;
+				var be = (ISqlBinaryExpression)expr;
 
 				switch (be.Operation)
 				{
 					case "+":
 						if (be.SystemType == typeof(string))
 						{
-							if (be.Expr1 is SqlFunction)
+							if (be.Expr1 is ISqlFunction)
 							{
-								var func = (SqlFunction)be.Expr1;
+								var func = (ISqlFunction)be.Expr1;
 
 								if (func.Name == "Concat")
 								{
-									var list = new List<ISqlExpression>(func.Parameters) { be.Expr2 };
+									var list = new List<IQueryExpression>(func.Parameters) { be.Expr2 };
 									return new SqlFunction(be.SystemType, "Concat", list.ToArray());
 								}
 							}
-							else if (be.Expr1 is SqlBinaryExpression && be.Expr1.SystemType == typeof(string) && ((SqlBinaryExpression)be.Expr1).Operation == "+")
+							else if (be.Expr1 is ISqlBinaryExpression && be.Expr1.SystemType == typeof(string) && ((ISqlBinaryExpression)be.Expr1).Operation == "+")
 							{
-								var list = new List<ISqlExpression> { be.Expr2 };
+								var list = new List<IQueryExpression> { be.Expr2 };
 								var ex   = be.Expr1;
 
-								while (ex is SqlBinaryExpression && ex.SystemType == typeof(string) && ((SqlBinaryExpression)be.Expr1).Operation == "+")
+								while (ex is ISqlBinaryExpression && ex.SystemType == typeof(string) && ((ISqlBinaryExpression)be.Expr1).Operation == "+")
 								{
-									var bex = (SqlBinaryExpression)ex;
+									var bex = (ISqlBinaryExpression)ex;
 
 									list.Insert(0, bex.Expr2);
 									ex = bex.Expr1;
@@ -63,9 +63,9 @@ namespace LinqToDB.DataProvider.MySql
 						break;
 				}
 			}
-			else if (expr is SqlFunction)
+			else if (expr is ISqlFunction)
 			{
-				var func = (SqlFunction) expr;
+				var func = (ISqlFunction) expr;
 
 				switch (func.Name)
 				{
@@ -85,9 +85,9 @@ namespace LinqToDB.DataProvider.MySql
 						return new SqlExpression(func.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(func), func.Parameters[0]);
 				}
 			}
-			else if (expr is SqlExpression)
+			else if (expr is ISqlExpression)
 			{
-				var e = (SqlExpression)expr;
+				var e = (ISqlExpression)expr;
 
 				if (e.Expr.StartsWith("Extract(DayOfYear"))
 					return new SqlFunction(e.SystemType, "DayOfYear", e.Parameters);

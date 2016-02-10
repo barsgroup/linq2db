@@ -20,7 +20,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public List<ISetExpression> Items { get; private set; }
         public List<ISetExpression> Keys  { get; private set; }
-        public SqlTable            Table { get; set; }
+        public ISqlTable Table { get; set; }
 
         #region ICloneableElement Members
 
@@ -32,7 +32,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             var clone = new UpdateClause();
 
             if (Table != null)
-                clone.Table = (SqlTable)Table.Clone(objectTree, doClone);
+                clone.Table = (ISqlTable)Table.Clone(objectTree, doClone);
 
             foreach (var item in Items)
                 clone.Items.Add((ISetExpression)item.Clone(objectTree, doClone));
@@ -49,7 +49,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region ISqlExpressionWalkable Members
 
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             if (Table != null)
                 ((ISqlExpressionWalkable)Table).Walk(skipColumns, func);

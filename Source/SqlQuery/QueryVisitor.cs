@@ -88,8 +88,8 @@ namespace LinqToDB.SqlQuery
 
 			switch (element.ElementType)
 			{
-				case EQueryElementType.SqlFunction       : return Find(((SqlFunction)                element).Parameters,      find);
-				case EQueryElementType.SqlExpression     : return Find(((SqlExpression)              element).Parameters,      find);
+				case EQueryElementType.SqlFunction       : return Find(((ISqlFunction)                element).Parameters,      find);
+				case EQueryElementType.SqlExpression     : return Find(((ISqlExpression)              element).Parameters,      find);
 				case EQueryElementType.Column            : return Find(((IColumn)            element).Expression,      find);
 				case EQueryElementType.SearchCondition   : return Find(((ISearchCondition)   element).Conditions,      find);
 				case EQueryElementType.Condition         : return Find(((ICondition)         element).Predicate,       find);
@@ -106,7 +106,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.SqlBinaryExpression:
 					{
-						var bexpr = (SqlBinaryExpression)element;
+						var bexpr = (ISqlBinaryExpression)element;
 						return
 							Find(bexpr.Expr1, find) ??
 							Find(bexpr.Expr2, find);
@@ -114,7 +114,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.SqlTable:
 					{
-						var table = (SqlTable)element;
+						var table = (ISqlTable)element;
 						return
 							Find(table.All,            find) ??
 							Find(table.Fields.Values,  find) ??
@@ -270,7 +270,7 @@ namespace LinqToDB.SqlQuery
 			{
 				case EQueryElementType.SqlFunction:
 					{
-						var func  = (SqlFunction)element;
+						var func  = (ISqlFunction)element;
 						var parms = Convert(func.Parameters, action);
 
 						if (parms != null && !ReferenceEquals(parms, func.Parameters))
@@ -281,7 +281,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.SqlExpression:
 					{
-						var expr      = (SqlExpression)element;
+						var expr      = (ISqlExpression)element;
 						var parameter = Convert(expr.Parameters, action);
 
 						if (parameter != null && !ReferenceEquals(parameter, expr.Parameters))
@@ -292,9 +292,9 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.SqlBinaryExpression:
 					{
-						var bexpr = (SqlBinaryExpression)element;
-						var expr1 = (ISqlExpression)ConvertInternal(bexpr.Expr1, action);
-						var expr2 = (ISqlExpression)ConvertInternal(bexpr.Expr2, action);
+						var bexpr = (ISqlBinaryExpression)element;
+						var expr1 = (IQueryExpression)ConvertInternal(bexpr.Expr1, action);
+						var expr2 = (IQueryExpression)ConvertInternal(bexpr.Expr2, action);
 
 						if (expr1 != null && !ReferenceEquals(expr1, bexpr.Expr1) ||
 							expr2 != null && !ReferenceEquals(expr2, bexpr.Expr2))
@@ -305,7 +305,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.SqlTable:
 					{
-						var table   = (SqlTable)element;
+						var table   = (ISqlTable)element;
 						var fields1 = ToArray(table.Fields);
 						var fields2 = Convert(fields1,     action, f => new SqlField(f));
 						var targs   = table.TableArguments == null ? null : Convert(table.TableArguments, action);
@@ -331,7 +331,7 @@ namespace LinqToDB.SqlQuery
 
 							newElement = new SqlTable(table, fields2, targs ?? table.TableArguments);
 
-							_visitedElements[((SqlTable)newElement).All] = table.All;
+							_visitedElements[((ISqlTable)newElement).All] = table.All;
 						}
 
 						break;
@@ -340,7 +340,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.Column:
 					{
 						var col  = (IColumn)element;
-						var expr = (ISqlExpression)ConvertInternal(col.Expression, action);
+						var expr = (IQueryExpression)ConvertInternal(col.Expression, action);
 
 						IQueryElement parent;
 						_visitedElements.TryGetValue(col.Parent, out parent);
@@ -402,7 +402,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.ExprPredicate:
 					{
 						var p = (IExpr)element;
-						var e = (ISqlExpression)ConvertInternal(p.Expr1, action);
+						var e = (IQueryExpression)ConvertInternal(p.Expr1, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e))
 							newElement = new Expr(e, p.Precedence);
@@ -413,7 +413,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.NotExprPredicate:
 					{
 						var p = (INotExpr)element;
-						var e = (ISqlExpression)ConvertInternal(p.Expr1, action);
+						var e = (IQueryExpression)ConvertInternal(p.Expr1, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e))
 							newElement = new NotExpr(e, p.IsNot, p.Precedence);
@@ -424,8 +424,8 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.ExprExprPredicate:
 					{
 						var p  = (IExprExpr)element;
-						var e1 = (ISqlExpression)ConvertInternal(p.Expr1, action);
-						var e2 = (ISqlExpression)ConvertInternal(p.Expr2, action);
+						var e1 = (IQueryExpression)ConvertInternal(p.Expr1, action);
+						var e2 = (IQueryExpression)ConvertInternal(p.Expr2, action);
 
 						if (e1 != null && !ReferenceEquals(p.Expr1, e1) || e2 != null && !ReferenceEquals(p.Expr2, e2))
 							newElement = new ExprExpr(e1 ?? p.Expr1, p.EOperator, e2 ?? p.Expr2);
@@ -436,9 +436,9 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.LikePredicate:
 					{
 						var p  = (ILike)element;
-						var e1 = (ISqlExpression)ConvertInternal(p.Expr1,  action);
-						var e2 = (ISqlExpression)ConvertInternal(p.Expr2,  action);
-						var es = (ISqlExpression)ConvertInternal(p.Escape, action);
+						var e1 = (IQueryExpression)ConvertInternal(p.Expr1,  action);
+						var e2 = (IQueryExpression)ConvertInternal(p.Expr2,  action);
+						var es = (IQueryExpression)ConvertInternal(p.Escape, action);
 
 						if (e1 != null && !ReferenceEquals(p.Expr1, e1) ||
 							e2 != null && !ReferenceEquals(p.Expr2, e2) ||
@@ -451,9 +451,9 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.BetweenPredicate:
 					{
 						var p = (Between)element;
-						var e1 = (ISqlExpression)ConvertInternal(p.Expr1, action);
-						var e2 = (ISqlExpression)ConvertInternal(p.Expr2, action);
-						var e3 = (ISqlExpression)ConvertInternal(p.Expr3, action);
+						var e1 = (IQueryExpression)ConvertInternal(p.Expr1, action);
+						var e2 = (IQueryExpression)ConvertInternal(p.Expr2, action);
+						var e3 = (IQueryExpression)ConvertInternal(p.Expr3, action);
 
 						if (e1 != null && !ReferenceEquals(p.Expr1, e1) ||
 							e2 != null && !ReferenceEquals(p.Expr2, e2) ||
@@ -466,7 +466,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.IsNullPredicate:
 					{
 						var p = (IIsNull)element;
-						var e = (ISqlExpression)ConvertInternal(p.Expr1, action);
+						var e = (IQueryExpression)ConvertInternal(p.Expr1, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e))
 							newElement = new IsNull(e, p.IsNot);
@@ -477,7 +477,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.InSubQueryPredicate:
 					{
 						var p = (IInSubQuery)element;
-						var e = (ISqlExpression)ConvertInternal(p.Expr1,    action);
+						var e = (IQueryExpression)ConvertInternal(p.Expr1,    action);
 						var q = (ISelectQuery)ConvertInternal(p.SubQuery, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e) || q != null && !ReferenceEquals(p.SubQuery, q))
@@ -489,7 +489,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.InListPredicate:
 					{
 						var p = (IInList)element;
-						var e = (ISqlExpression)ConvertInternal(p.Expr1,    action);
+						var e = (IQueryExpression)ConvertInternal(p.Expr1,    action);
 						var v = Convert(p.Values, action);
 
 						if (e != null && !ReferenceEquals(p.Expr1, e) || v != null && !ReferenceEquals(p.Values, v))
@@ -501,7 +501,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.FuncLikePredicate:
 					{
 						var p = (IFuncLike)element;
-						var f = (SqlFunction)ConvertInternal(p.Function, action);
+						var f = (ISqlFunction)ConvertInternal(p.Function, action);
 
 						if (f != null && !ReferenceEquals(p.Function, f))
 							newElement = new FuncLike(f);
@@ -512,8 +512,8 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.SetExpression:
 					{
 						var s = (ISetExpression)element;
-						var c = (ISqlExpression)ConvertInternal(s.Column,     action);
-						var e = (ISqlExpression)ConvertInternal(s.Expression, action);
+						var c = (IQueryExpression)ConvertInternal(s.Column,     action);
+						var e = (IQueryExpression)ConvertInternal(s.Expression, action);
 
 						if (c != null && !ReferenceEquals(s.Column, c) || e != null && !ReferenceEquals(s.Expression, e))
 							newElement = new SetExpression(c ?? s.Column, e ?? s.Expression);
@@ -524,7 +524,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.InsertClause:
 					{
 						var s = (IInsertClause)element;
-						var t = s.Into != null ? (SqlTable)ConvertInternal(s.Into, action) : null;
+						var t = s.Into != null ? (ISqlTable)ConvertInternal(s.Into, action) : null;
 						var i = Convert(s.Items, action);
 
 						if (t != null && !ReferenceEquals(s.Into, t) || i != null && !ReferenceEquals(s.Items, i))
@@ -543,7 +543,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.UpdateClause:
 					{
 						var s = (IUpdateClause)element;
-						var t = s.Table != null ? (SqlTable)ConvertInternal(s.Table, action) : null;
+						var t = s.Table != null ? (ISqlTable)ConvertInternal(s.Table, action) : null;
 						var i = Convert(s.Items, action);
 						var k = Convert(s.Keys,  action);
 
@@ -565,7 +565,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.DeleteClause:
 					{
 						var s = (DeleteClause)element;
-						var t = s.Table != null ? (SqlTable)ConvertInternal(s.Table, action) : null;
+						var t = s.Table != null ? (ISqlTable)ConvertInternal(s.Table, action) : null;
 
 						if (t != null && !ReferenceEquals(s.Table, t))
 						{
@@ -578,7 +578,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.CreateTableStatement:
 					{
 						var s = (ICreateTableStatement)element;
-						var t = s.Table != null ? (SqlTable)ConvertInternal(s.Table, action) : null;
+						var t = s.Table != null ? (ISqlTable)ConvertInternal(s.Table, action) : null;
 
 						if (t != null && !ReferenceEquals(s.Table, t))
 						{
@@ -592,8 +592,8 @@ namespace LinqToDB.SqlQuery
 					{
 						var sc   = (ISelectClause)element;
 						var cols = Convert(sc.Columns, action);
-						var take = (ISqlExpression)ConvertInternal(sc.TakeValue, action);
-						var skip = (ISqlExpression)ConvertInternal(sc.SkipValue, action);
+						var take = (IQueryExpression)ConvertInternal(sc.TakeValue, action);
+						var skip = (IQueryExpression)ConvertInternal(sc.SkipValue, action);
 
 						IQueryElement parent;
 						_visitedElements.TryGetValue(sc.SelectQuery, out parent);
@@ -681,7 +681,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.OrderByItem:
 					{
 						var i = (IOrderByItem)element;
-						var e = (ISqlExpression)ConvertInternal(i.Expression, action);
+						var e = (IQueryExpression)ConvertInternal(i.Expression, action);
 
 						if (e != null && !ReferenceEquals(i.Expression, e))
 							newElement = new OrderByItem(e, i.IsDescending);
@@ -754,7 +754,7 @@ namespace LinqToDB.SqlQuery
 						var oc = (IOrderByClause)ConvertInternal(q.OrderBy, action) ?? q.OrderBy;
 						var us = q.HasUnion ? Convert(q.Unions, action) : q.Unions;
 
-						var ps = new List<SqlParameter>(q.Parameters.Count);
+						var ps = new List<ISqlParameter>(q.Parameters.Count);
 
 						foreach (var p in q.Parameters)
 						{
@@ -764,8 +764,8 @@ namespace LinqToDB.SqlQuery
 							{
 								if (e == null)
 									ps.Add(p);
-								else if (e is SqlParameter)
-									ps.Add((SqlParameter)e);
+								else if (e is ISqlParameter)
+									ps.Add((ISqlParameter)e);
 							}
 						}
 

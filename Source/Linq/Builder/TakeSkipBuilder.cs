@@ -64,7 +64,7 @@ namespace LinqToDB.Linq.Builder
 			return null;
 		}
 
-		static void BuildTake(ExpressionBuilder builder, IBuildContext sequence, ISqlExpression expr)
+		static void BuildTake(ExpressionBuilder builder, IBuildContext sequence, IQueryExpression expr)
 		{
 			var sql = sequence.Select;
 
@@ -74,12 +74,12 @@ namespace LinqToDB.Linq.Builder
 				builder.DataContextInfo.SqlProviderFlags.IsTakeSupported &&
 				!builder.DataContextInfo.SqlProviderFlags.GetIsSkipSupportedFlag(sql))
 			{
-				if (sql.Select.SkipValue is SqlParameter && sql.Select.TakeValue is SqlValue)
+				if (sql.Select.SkipValue is ISqlParameter && sql.Select.TakeValue is ISqlValue)
 				{
-					var skip = (SqlParameter)sql.Select.SkipValue;
-					var parm = (SqlParameter)sql.Select.SkipValue.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
+					var skip = (ISqlParameter)sql.Select.SkipValue;
+					var parm = (ISqlParameter)sql.Select.SkipValue.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
 
-					parm.SetTakeConverter((int)((SqlValue)sql.Select.TakeValue).Value);
+					parm.SetTakeConverter((int)((ISqlValue)sql.Select.TakeValue).Value);
 
 					sql.Select.Take(parm);
 
@@ -102,14 +102,14 @@ namespace LinqToDB.Linq.Builder
 
 			if (!builder.DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))
 			{
-				var p = sql.Select.TakeValue as SqlParameter;
+				var p = sql.Select.TakeValue as ISqlParameter;
 
 				if (p != null)
 					p.IsQueryParameter = false;
 			}
 		}
 
-		static void BuildSkip(ExpressionBuilder builder, IBuildContext sequence, ISqlExpression prevSkipValue, ISqlExpression expr)
+		static void BuildSkip(ExpressionBuilder builder, IBuildContext sequence, IQueryExpression prevSkipValue, IQueryExpression expr)
 		{
 			var sql = sequence.Select;
 
@@ -131,7 +131,7 @@ namespace LinqToDB.Linq.Builder
 
 			if (!builder.DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))
 			{
-				var p = sql.Select.SkipValue as SqlParameter;
+				var p = sql.Select.SkipValue as ISqlParameter;
 
 				if (p != null)
 					p.IsQueryParameter = false;

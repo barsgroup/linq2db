@@ -491,9 +491,9 @@ namespace LinqToDB.SqlEntities
 			{
 			}
 
-			public override ISqlExpression GetExpression(MemberInfo member, params ISqlExpression[] args)
+			public override IQueryExpression GetExpression(MemberInfo member, params IQueryExpression[] args)
 			{
-				var arr = new ISqlExpression[args.Length];
+				var arr = new IQueryExpression[args.Length];
 
 				for (var i = 0; i < args.Length; i++)
 				{
@@ -654,16 +654,16 @@ namespace LinqToDB.SqlEntities
 			readonly string[] _partMapping;
 			readonly int      _datePartIndex;
 
-			public override ISqlExpression GetExpression(MemberInfo member, params ISqlExpression[] args)
+			public override IQueryExpression GetExpression(MemberInfo member, params IQueryExpression[] args)
 			{
-				var part = (DateParts)((SqlValue)args[_datePartIndex]).Value;
+				var part = (DateParts)((ISqlValue)args[_datePartIndex]).Value;
 				var pstr = _partMapping != null ? _partMapping[(int)part] : part.ToString();
 				var str  = Tools.Args(Expression, pstr ?? part.ToString());
 				var type = member.GetMemberType();
 
 				return _isExpression ?
 					                new SqlExpression(type, str, Precedence, ConvertArgs(member, args)) :
-					(ISqlExpression)new SqlFunction  (type, str, ConvertArgs(member, args));
+					(IQueryExpression)new SqlFunction  (type, str, ConvertArgs(member, args));
 			}
 		}
 

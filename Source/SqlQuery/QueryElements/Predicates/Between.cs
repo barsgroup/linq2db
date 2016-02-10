@@ -10,17 +10,17 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
     public class Between : NotExpr
     {
-        public Between(ISqlExpression exp1, bool isNot, ISqlExpression exp2, ISqlExpression exp3)
+        public Between(IQueryExpression exp1, bool isNot, IQueryExpression exp2, IQueryExpression exp3)
             : base(exp1, isNot, SqlQuery.Precedence.Comparison)
         {
             Expr2 = exp2;
             Expr3 = exp3;
         }
 
-        public ISqlExpression Expr2 { get; internal set; }
-        public ISqlExpression Expr3 { get; internal set; }
+        public IQueryExpression Expr2 { get; internal set; }
+        public IQueryExpression Expr3 { get; internal set; }
 
-        protected override void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             base.Walk(skipColumns, func);
             Expr2 = Expr2.Walk(skipColumns, func);
@@ -36,10 +36,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
             if (!objectTree.TryGetValue(this, out clone))
                 objectTree.Add(this, clone = new Between(
-                                                 (ISqlExpression)Expr1.Clone(objectTree, doClone),
+                                                 (IQueryExpression)Expr1.Clone(objectTree, doClone),
                                                  IsNot,
-                                                 (ISqlExpression)Expr2.Clone(objectTree, doClone),
-                                                 (ISqlExpression)Expr3.Clone(objectTree, doClone)));
+                                                 (IQueryExpression)Expr2.Clone(objectTree, doClone),
+                                                 (IQueryExpression)Expr3.Clone(objectTree, doClone)));
 
             return clone;
         }

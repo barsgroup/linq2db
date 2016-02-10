@@ -11,7 +11,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
     public class DeleteClause : BaseQueryElement, ISqlExpressionWalkable, ICloneableElement
     {
-        public SqlTable Table { get; set; }
+        public ISqlTable Table { get; set; }
 
         #region ICloneableElement Members
 
@@ -23,7 +23,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             var clone = new DeleteClause();
 
             if (Table != null)
-                clone.Table = (SqlTable)Table.Clone(objectTree, doClone);
+                clone.Table = (ISqlTable)Table.Clone(objectTree, doClone);
 
             objectTree.Add(this, clone);
 
@@ -35,7 +35,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #region ISqlExpressionWalkable Members
 
         [Obsolete]
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             if (Table != null)
                 ((ISqlExpressionWalkable)Table).Walk(skipColumns, func);

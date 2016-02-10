@@ -8,6 +8,7 @@ namespace LinqToDB.DataProvider
 	using Data;
 
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
 	using SqlProvider;
@@ -36,7 +37,7 @@ namespace LinqToDB.DataProvider
 		public readonly ValueToSqlConverter ValueConverter;
 		public readonly EntityDescriptor    Descriptor;
 		public readonly ColumnDescriptor[]  Columns;
-		public readonly SqlDataType[]       ColumnTypes;
+		public readonly ISqlDataType[]       ColumnTypes;
 		public readonly string              TableName;
 		public readonly string              ParameterName;
 

@@ -50,7 +50,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			get { return ProviderName.SqlServer2012; }
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 
@@ -67,7 +67,7 @@ namespace LinqToDB.DataProvider.SqlServer
 
 					if (func.Parameters.Length > 2)
 					{
-						var parms = new ISqlExpression[func.Parameters.Length - 1];
+						var parms = new IQueryExpression[func.Parameters.Length - 1];
 
 						Array.Copy(func.Parameters, 1, parms, 0, parms.Length);
 						BuildFunction(new SqlFunction(func.SystemType, func.Name, func.Parameters[0],
@@ -87,7 +87,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			base.BuildFunction(func);
 		}
 
-		static SqlFunction ConvertCase(Type systemType, ISqlExpression[] parameters, int start)
+		static ISqlFunction ConvertCase(Type systemType, IQueryExpression[] parameters, int start)
 		{
 			var len  = parameters.Length - start;
 			var name = start == 0 ? "IIF" : "CASE";

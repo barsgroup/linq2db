@@ -128,7 +128,7 @@ namespace LinqToDB.Linq.Builder
 			return base.IsExpression(expression, level, testFlag);
 		}
 
-		internal protected readonly Dictionary<ISqlExpression,int> ColumnIndexes = new Dictionary<ISqlExpression,int>();
+		internal protected readonly Dictionary<IQueryExpression,int> ColumnIndexes = new Dictionary<IQueryExpression,int>();
 
 		protected virtual int GetIndex(IColumn column)
 		{
@@ -162,7 +162,7 @@ namespace LinqToDB.Linq.Builder
 				Select.From.Tables[0].Alias = alias;
 		}
 
-		public override ISqlExpression GetSubQuery(IBuildContext context)
+		public override IQueryExpression GetSubQuery(IBuildContext context)
 		{
 			return null;
 		}

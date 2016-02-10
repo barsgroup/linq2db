@@ -55,7 +55,7 @@ namespace LinqToDB.Linq.Builder
 		{
 		}
 
-		public virtual ISqlExpression GetSubQuery(IBuildContext context)
+		public virtual IQueryExpression GetSubQuery(IBuildContext context)
 		{
 			return null;
 		}

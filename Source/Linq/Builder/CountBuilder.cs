@@ -100,7 +100,7 @@ namespace LinqToDB.Linq.Builder
 			private  SqlInfo[] _index;
 
 			public int            FieldIndex;
-			public ISqlExpression Sql;
+			public IQueryExpression Sql;
 
 			public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
 			{
@@ -154,7 +154,7 @@ namespace LinqToDB.Linq.Builder
 				return Sequence.GetContext(expression, level, buildInfo);
 			}
 
-			public override ISqlExpression GetSubQuery(IBuildContext context)
+			public override IQueryExpression GetSubQuery(IBuildContext context)
 			{
 				var query = context.Select;
 

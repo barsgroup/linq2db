@@ -15,7 +15,7 @@ namespace LinqToDB.SqlProvider
 
 		StringBuilder    BuildTableName       (StringBuilder sb, string database, string owner, string table);
 		object           Convert              (object value, ConvertType convertType);
-		ISqlExpression   GetIdentityExpression(SqlTable table);
+		IQueryExpression   GetIdentityExpression(ISqlTable table);
 
 		StringBuilder    PrintParameters      (StringBuilder sb, IDbDataParameter[] parameters);
 

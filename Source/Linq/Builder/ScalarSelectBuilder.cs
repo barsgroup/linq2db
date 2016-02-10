@@ -127,7 +127,7 @@ namespace LinqToDB.Linq.Builder
 			{
 			}
 
-			public ISqlExpression GetSubQuery(IBuildContext context)
+			public IQueryExpression GetSubQuery(IBuildContext context)
 			{
 				return null;
 			}

@@ -12,7 +12,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     public class InSubQuery : NotExpr,
                               IInSubQuery
     {
-        public InSubQuery(ISqlExpression exp1, bool isNot, ISelectQuery subQuery)
+        public InSubQuery(IQueryExpression exp1, bool isNot, ISelectQuery subQuery)
             : base(exp1, isNot, SqlQuery.Precedence.Comparison)
         {
             SubQuery = subQuery;
@@ -20,7 +20,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         public ISelectQuery SubQuery { get; private set; }
 
-        protected override void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             base.Walk(skipColumns, func);
             SubQuery = (ISelectQuery)SubQuery.Walk(skipColumns, func);
@@ -35,7 +35,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
             if (!objectTree.TryGetValue(this, out clone))
                 objectTree.Add(this, clone = new InSubQuery(
-                                                 (ISqlExpression)Expr1.Clone(objectTree, doClone),
+                                                 (IQueryExpression)Expr1.Clone(objectTree, doClone),
                                                  IsNot,
                                                  (ISelectQuery)SubQuery.Clone(objectTree, doClone)));
 

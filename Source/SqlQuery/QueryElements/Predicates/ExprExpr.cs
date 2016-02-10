@@ -12,7 +12,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     public class ExprExpr : Expr,
                             IExprExpr
     {
-        public ExprExpr(ISqlExpression exp1, EOperator op, ISqlExpression exp2)
+        public ExprExpr(IQueryExpression exp1, EOperator op, IQueryExpression exp2)
             : base(exp1, SqlQuery.Precedence.Comparison)
         {
             EOperator = op;
@@ -21,9 +21,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         public EOperator   EOperator { get; private  set; }
 
-        public ISqlExpression Expr2    { get; set; }
+        public IQueryExpression Expr2    { get; set; }
 
-        protected override void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             base.Walk(skipColumns, func);
             Expr2 = Expr2.Walk(skipColumns, func);
@@ -43,7 +43,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
             if (!objectTree.TryGetValue(this, out clone))
                 objectTree.Add(this, clone = new ExprExpr(
-                                                 (ISqlExpression)Expr1.Clone(objectTree, doClone), EOperator, (ISqlExpression)Expr2.Clone(objectTree, doClone)));
+                                                 (IQueryExpression)Expr1.Clone(objectTree, doClone), EOperator, (IQueryExpression)Expr2.Clone(objectTree, doClone)));
 
             return clone;
         }

@@ -8,7 +8,7 @@ namespace LinqToDB.ServiceModel
     public class LinqServiceQuery
 	{
 		public ISelectQuery  Query      { get; set; }
-		public SqlParameter[] Parameters { get; set; }
+		public ISqlParameter[] Parameters { get; set; }
 		public List<string>   QueryHints { get; set; }
 	}
 }

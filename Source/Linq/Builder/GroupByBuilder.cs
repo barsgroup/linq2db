@@ -75,7 +75,7 @@ namespace LinqToDB.Linq.Builder
 
 			if (sequence.Select.Select.IsDistinct       ||
 			    sequence.Select.GroupBy.Items.Count > 0 ||
-			    groupSql.Any(_ => !(_.Sql is SqlField || _.Sql is IColumn)))
+			    groupSql.Any(_ => !(_.Sql is ISqlField || _.Sql is IColumn)))
 			{
 				sequence = new SubQueryContext(sequence);
 				key      = new KeyContext(buildInfo.Parent, keySelector, sequence);
@@ -358,7 +358,7 @@ namespace LinqToDB.Linq.Builder
 				throw new NotImplementedException();
 			}
 
-			ISqlExpression ConvertEnumerable(MethodCallExpression call)
+			IQueryExpression ConvertEnumerable(MethodCallExpression call)
 			{
 				if (AggregationBuilder.MethodNames.Contains(call.Method.Name))
 				{
@@ -402,7 +402,7 @@ namespace LinqToDB.Linq.Builder
 					return ctx.Select.Select.Columns[0];
 				}
 
-				var args = new ISqlExpression[call.Arguments.Count - 1];
+				var args = new IQueryExpression[call.Arguments.Count - 1];
 
 				if (CountBuilder.MethodNames.Contains(call.Method.Name))
 				{

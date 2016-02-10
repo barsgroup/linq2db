@@ -10,6 +10,7 @@ namespace LinqToDB.Mapping
 	using Extensions;
 
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Metadata;
 
@@ -179,18 +180,19 @@ namespace LinqToDB.Mapping
 
 		#region DataTypes
 
-		volatile ConcurrentDictionary<Type,SqlDataType> _dataTypes;
+		volatile ConcurrentDictionary<Type,ISqlDataType> _dataTypes;
 
-		public Option<SqlDataType> GetDataType(Type type)
+		public Option<ISqlDataType> GetDataType(Type type)
 		{
-			if (_dataTypes != null)
-			{
-				SqlDataType dataType;
-				if (_dataTypes.TryGetValue(type, out dataType))
-					return Option<SqlDataType>.Some(dataType);
-			}
+		    if (_dataTypes == null)
+		    {
+		        return Option<ISqlDataType>.None;
+		    }
 
-			return Option<SqlDataType>.None;
+		    ISqlDataType dataType;
+		    return _dataTypes.TryGetValue(type, out dataType)
+		               ? Option<ISqlDataType>.Some(dataType)
+		               : Option<ISqlDataType>.None;
 		}
 
 		public void SetDataType(Type type, DataType dataType)
@@ -198,12 +200,12 @@ namespace LinqToDB.Mapping
 			SetDataType(type, new SqlDataType(dataType, type, null, null, null));
 		}
 
-		public void SetDataType(Type type, SqlDataType dataType)
+		public void SetDataType(Type type, ISqlDataType dataType)
 		{
 			if (_dataTypes == null)
 				lock (this)
 					if (_dataTypes == null)
-						_dataTypes = new ConcurrentDictionary<Type,SqlDataType>();
+						_dataTypes = new ConcurrentDictionary<Type,ISqlDataType>();
 
 			_dataTypes[type] = dataType;
 		}

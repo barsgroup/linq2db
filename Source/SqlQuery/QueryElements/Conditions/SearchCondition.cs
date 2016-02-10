@@ -12,7 +12,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public interface ISearchCondition : ISqlExpression,
+    public interface ISearchCondition : IQueryExpression,
         IConditionBase<ISearchCondition, SearchCondition.NextCondition>, ISqlPredicate
     {
         List<ICondition> Conditions { get; }
@@ -76,7 +76,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         public Type SystemType => typeof(bool);
 
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             foreach (var condition in Conditions)
                 condition.Predicate.Walk(skipColumns, func);
@@ -88,7 +88,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         #region IEquatable<ISqlExpression> Members
 
-        bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+        bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
         {
             return this == other;
         }
@@ -106,7 +106,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
             return false;
         }
 
-        public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+        public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
         {
             return this == other;
         }
@@ -178,7 +178,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
             public ISearchCondition And => _parent.SetOr(false);
 
-            public ISqlExpression ToExpr() { return _parent; }
+            public IQueryExpression ToExpr() { return _parent; }
         }
     }
 }

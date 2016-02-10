@@ -18,7 +18,7 @@ namespace LinqToDB.DataProvider.DB2
 		{
 		}
 
-		SqlField _identityField;
+        ISqlField _identityField;
 
 		protected abstract DB2Version Version { get; }
 
@@ -98,7 +98,7 @@ namespace LinqToDB.DataProvider.DB2
 			get { return SelectQuery.Select.SkipValue == null ? "FETCH FIRST {0} ROWS ONLY" : null; }
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
@@ -110,7 +110,7 @@ namespace LinqToDB.DataProvider.DB2
 				base.BuildFromClause();
 		}
 
-		protected override void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = false;
 
@@ -120,7 +120,7 @@ namespace LinqToDB.DataProvider.DB2
 					wrap = true;
 				else
 				{
-					var ex = expr as SqlExpression;
+					var ex = expr as ISqlExpression;
 					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
@@ -130,7 +130,7 @@ namespace LinqToDB.DataProvider.DB2
 			if (wrap) StringBuilder.Append(" THEN 1 ELSE 0 END");
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -204,7 +204,7 @@ namespace LinqToDB.DataProvider.DB2
 			StringBuilder.AppendLine();
 		}
 
-		protected override void BuildCreateTableIdentityAttribute1(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute1(ISqlField field)
 		{
 			StringBuilder.Append("GENERATED ALWAYS AS IDENTITY");
 		}

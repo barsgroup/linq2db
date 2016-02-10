@@ -11,7 +11,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     public interface ISelectQuery : ISqlTableSource
     {
-        List<SqlParameter> Parameters { get; }
+        List<ISqlParameter> Parameters { get; }
 
         List<object> Properties { get; }
 
@@ -100,6 +100,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
                   ISelectQuery parentSelect,
                   ICreateTableStatement createTable,
                   bool parameterDependent,
-                  List<SqlParameter> parameters);
+                  List<ISqlParameter> parameters);
     }
 }

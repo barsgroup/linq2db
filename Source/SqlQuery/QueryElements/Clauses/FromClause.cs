@@ -132,7 +132,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 			return Tables.SelectMany(_ => GetJoinTables(_, EQueryElementType.SqlQuery));
 		}
 
-		static ITableSource FindTableSource(ITableSource source, SqlTable table)
+		static ITableSource FindTableSource(ITableSource source, ISqlTable table)
 		{
 			if (source.Source == table)
 				return source;
@@ -147,7 +147,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 			return null;
 		}
 
-		public ISqlTableSource FindTableSource(SqlTable table)
+		public ISqlTableSource FindTableSource(ISqlTable table)
 		{
 			foreach (var source in Tables)
 			{
@@ -161,7 +161,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
 		#region ISqlExpressionWalkable Members
 
-		ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
 		{
 			for (var i = 0; i <	Tables.Count; i++)
 				Tables[i].Walk(skipColumns, func);

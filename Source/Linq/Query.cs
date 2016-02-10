@@ -58,10 +58,10 @@ namespace LinqToDB.Linq
                         var expression = c.Expression as IColumn;
                         if (expression != null)
                         {
-                            return ((SqlField)expression.Expression).Name == fieldName;
+                            return ((ISqlField)expression.Expression).Name == fieldName;
                         }
 
-                        var sqlField = c.Expression as SqlField;
+                        var sqlField = c.Expression as ISqlField;
                         if (sqlField != null)
                         {
                             return sqlField.Alias == null && sqlField.Name == fieldName;
@@ -77,9 +77,9 @@ namespace LinqToDB.Linq
 
             public List<string> QueryHints { get; set; }
 
-            public SqlParameter[] GetParameters()
+            public ISqlParameter[] GetParameters()
             {
-                var ps = new SqlParameter[Parameters.Count];
+                var ps = new ISqlParameter[Parameters.Count];
 
                 for (var i = 0; i < ps.Length; i++)
                     ps[i] = Parameters[i].SqlParameter;
@@ -413,7 +413,7 @@ namespace LinqToDB.Linq
 
 		#region RunQuery
 
-		int GetParameterIndex(ISqlExpression parameter)
+		int GetParameterIndex(IQueryExpression parameter)
 		{
 			for (var i = 0; i < Queries[0].Parameters.Count; i++)
 			{
@@ -568,7 +568,7 @@ namespace LinqToDB.Linq
 			public static readonly Dictionary<object,Query<int>>    Delete             = new Dictionary<object,Query<int>>();
 		}
 
-		static ParameterAccessor GetParameter(IDataContext dataContext, SqlField field)
+		static ParameterAccessor GetParameter(IDataContext dataContext, ISqlField field)
 		{
 			var exprParam = Expression.Parameter(typeof(Expression), "expr");
 
@@ -740,7 +740,7 @@ namespace LinqToDB.Linq
 				{
 					if (!ObjectOperation<T>.InsertOrUpdate.TryGetValue(key, out ei))
 					{
-						var fieldDic = new Dictionary<SqlField, ParameterAccessor>();
+						var fieldDic = new Dictionary<ISqlField, ParameterAccessor>();
 						var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
 						var sqlQuery = new SelectQuery { EQueryType = EQueryType.InsertOrUpdate };
 
@@ -787,7 +787,7 @@ namespace LinqToDB.Linq
 
 						// Update.
 						//
-						var keys   = sqlTable.GetKeys(true).Cast<SqlField>().ToList();
+						var keys   = sqlTable.GetKeys(true).Cast<ISqlField>().ToList();
 						var fields = sqlTable.Fields.Values.Where(f => f.IsUpdatable).Except(keys).ToList();
 
 						if (keys.Count == 0)
@@ -859,7 +859,7 @@ namespace LinqToDB.Linq
 						{
 							Expression   = p.Expression,
 							Accessor     = p.Accessor,
-							SqlParameter = dic.ContainsKey(p.SqlParameter) ? (SqlParameter)dic[p.SqlParameter] : null
+							SqlParameter = dic.ContainsKey(p.SqlParameter) ? (ISqlParameter)dic[p.SqlParameter] : null
 						})
 					.Where(p => p.SqlParameter != null)
 					.ToList(),
@@ -912,7 +912,7 @@ namespace LinqToDB.Linq
 							Queries       = { new Query<int>.QueryInfo { SelectQuery = sqlQuery, } }
 						};
 
-						var keys   = sqlTable.GetKeys(true).Cast<SqlField>().ToList();
+						var keys   = sqlTable.GetKeys(true).Cast<ISqlField>().ToList();
 						var fields = sqlTable.Fields.Values.Where(f => f.IsUpdatable).Except(keys).ToList();
 
 						if (fields.Count == 0)
@@ -986,7 +986,7 @@ namespace LinqToDB.Linq
 							Queries       = { new Query<int>.QueryInfo { SelectQuery = sqlQuery, } }
 						};
 
-						var keys = sqlTable.GetKeys(true).Cast<SqlField>().ToList();
+						var keys = sqlTable.GetKeys(true).Cast<ISqlField>().ToList();
 
 						if (keys.Count == 0)
 							throw new LinqException("Table '{0}' does not have primary key.".Args(sqlTable.Name));
@@ -1148,14 +1148,14 @@ namespace LinqToDB.Linq
 			{
 				var q = query;
 
-				if (select.SkipValue is SqlValue)
+				if (select.SkipValue is ISqlValue)
 				{
 					var n = (int)((IValueContainer)select.SkipValue).Value;
 
 					if (n > 0)
 						query = (db, expr, ps, qn) => q(db, expr, ps, qn).Skip(n);
 				}
-				else if (select.SkipValue is SqlParameter)
+				else if (select.SkipValue is ISqlParameter)
 				{
 					var i = GetParameterIndex(select.SkipValue);
 					query = (db, expr, ps, qn) => q(db, expr, ps, qn).Skip((int)Queries[0].Parameters[i].Accessor(expr, ps));
@@ -1166,14 +1166,14 @@ namespace LinqToDB.Linq
 			{
 				var q = query;
 
-				if (select.TakeValue is SqlValue)
+				if (select.TakeValue is ISqlValue)
 				{
 					var n = (int)((IValueContainer)select.TakeValue).Value;
 
 					if (n > 0)
 						query = (db, expr, ps, qn) => q(db, expr, ps, qn).Take(n);
 				}
-				else if (select.TakeValue is SqlParameter)
+				else if (select.TakeValue is ISqlParameter)
 				{
 					var i = GetParameterIndex(select.TakeValue);
 					query = (db, expr, ps, qn) => q(db, expr, ps, qn).Take((int)Queries[0].Parameters[i].Accessor(expr, ps));
@@ -1403,6 +1403,6 @@ namespace LinqToDB.Linq
 	{
 		public Expression                       Expression;
 		public Func<Expression,object[],object> Accessor;
-		public SqlParameter                     SqlParameter;
+		public ISqlParameter SqlParameter;
 	}
 }

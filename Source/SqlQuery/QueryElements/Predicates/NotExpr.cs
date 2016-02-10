@@ -12,7 +12,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     public class NotExpr : Expr,
                            INotExpr
     {
-        public NotExpr(ISqlExpression exp1, bool isNot, int precedence)
+        public NotExpr(IQueryExpression exp1, bool isNot, int precedence)
             : base(exp1, precedence)
         {
             IsNot = isNot;
@@ -28,7 +28,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             ICloneableElement clone;
 
             if (!objectTree.TryGetValue(this, out clone))
-                objectTree.Add(this, clone = new NotExpr((ISqlExpression)Expr1.Clone(objectTree, doClone), IsNot, Precedence));
+                objectTree.Add(this, clone = new NotExpr((IQueryExpression)Expr1.Clone(objectTree, doClone), IsNot, Precedence));
 
             return clone;
         }

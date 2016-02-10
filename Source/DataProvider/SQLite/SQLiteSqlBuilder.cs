@@ -5,6 +5,7 @@ namespace LinqToDB.DataProvider.SQLite
 {
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using SqlProvider;
 
@@ -90,7 +91,7 @@ namespace LinqToDB.DataProvider.SQLite
 			return value;
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -99,7 +100,7 @@ namespace LinqToDB.DataProvider.SQLite
 			}
 		}
 
-		protected override void BuildCreateTableIdentityAttribute2(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute2(ISqlField field)
 		{
 			StringBuilder.Append("PRIMARY KEY AUTOINCREMENT");
 		}

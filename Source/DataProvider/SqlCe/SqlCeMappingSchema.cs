@@ -8,6 +8,7 @@ namespace LinqToDB.DataProvider.SqlCe
 	using Common;
 
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
 
@@ -55,7 +56,7 @@ namespace LinqToDB.DataProvider.SqlCe
 				;
 		}
 
-		static void ConvertStringToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, string value)
+		static void ConvertStringToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, string value)
 		{
 			string start;
 
@@ -74,7 +75,7 @@ namespace LinqToDB.DataProvider.SqlCe
 			DataTools.ConvertStringToSql(stringBuilder, "+", start, AppendConversion, value);
 		}
 
-		static void ConvertCharToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, char value)
+		static void ConvertCharToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, char value)
 		{
 			string start;
 

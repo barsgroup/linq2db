@@ -8,6 +8,7 @@ namespace LinqToDB.Linq.Builder
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using SqlQuery;
 
@@ -86,7 +87,7 @@ namespace LinqToDB.Linq.Builder
 				.Cast<ISqlExpression>()
 #endif
 				.Except(insert.Items.Select(e => e.Column))
-				.OfType<SqlField>()
+				.OfType<ISqlField>()
 				.Where(f => f.IsIdentity);
 
 			foreach (var field in q)
@@ -236,7 +237,7 @@ namespace LinqToDB.Linq.Builder
 
 				if (sequence.Select.Insert.Into == null)
 				{
-					sequence.Select.Insert.Into = (SqlTable)sequence.Select.From.Tables[0].Source;
+					sequence.Select.Insert.Into = (ISqlTable)sequence.Select.From.Tables[0].Source;
 					sequence.Select.From.Tables.Clear();
 				}
 

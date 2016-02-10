@@ -34,13 +34,13 @@
 			return selectQuery;
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlFunction)
+			if (expr is ISqlFunction)
 			{
-				var func = expr as SqlFunction;
+				var func = expr as ISqlFunction;
 				if (func.Name == "Convert")
 				{
 					var ftype = func.SystemType.ToUnderlying();
@@ -54,9 +54,9 @@
 					return new SqlExpression(func.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(func), func.Parameters[0]);
 				}
 			}
-			else if (expr is SqlBinaryExpression)
+			else if (expr is ISqlBinaryExpression)
 			{
-				var be = expr as SqlBinaryExpression;
+				var be = expr as ISqlBinaryExpression;
 
 				switch (be.Operation)
 				{

@@ -9,6 +9,7 @@
     using LinqToDB.Extensions;
     using LinqToDB.Mapping;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     partial class Sql
@@ -51,22 +52,22 @@
 			public string Database      { get; set; }
 			public int[]  ArgIndices    { get; set; }
 
-			protected ISqlExpression[] ConvertArgs(MemberInfo member, ISqlExpression[] args)
+			protected IQueryExpression[] ConvertArgs(MemberInfo member, IQueryExpression[] args)
 			{
 				if (member is MethodInfo)
 				{
 					var method = (MethodInfo)member;
 
 					if (method.DeclaringType.IsGenericTypeEx())
-						args = args.Concat(method.DeclaringType.GetGenericArgumentsEx().Select(t => (ISqlExpression)SqlDataType.GetDataType(t))).ToArray();
+						args = args.Concat(method.DeclaringType.GetGenericArgumentsEx().Select(t => (IQueryExpression)SqlDataType.GetDataType(t))).ToArray();
 
 					if (method.IsGenericMethod)
-						args = args.Concat(method.GetGenericArguments().Select(t => (ISqlExpression)SqlDataType.GetDataType(t))).ToArray();
+						args = args.Concat(method.GetGenericArguments().Select(t => (IQueryExpression)SqlDataType.GetDataType(t))).ToArray();
 				}
 
 				if (ArgIndices != null)
 				{
-					var idxs = new ISqlExpression[ArgIndices.Length];
+					var idxs = new IQueryExpression[ArgIndices.Length];
 
 					for (var i = 0; i < ArgIndices.Length; i++)
 						idxs[i] = args[ArgIndices[i]];
@@ -77,9 +78,9 @@
 				return args;
 			}
 
-			public virtual void SetTable(MappingSchema mappingSchema, SqlTable table, MemberInfo member, IEnumerable<Expression> arguments, IEnumerable<ISqlExpression> sqlArgs)
+			public virtual void SetTable(MappingSchema mappingSchema, ISqlTable table, MemberInfo member, IEnumerable<Expression> arguments, IEnumerable<IQueryExpression> sqlArgs)
 			{
-				table.SqlTableType   = SqlTableType.Function;
+				table.SqlTableType   = ESqlTableType.Function;
 				table.Name           = Name ?? member.Name;
 				table.PhysicalName   = Name ?? member.Name;
 				table.TableArguments = ConvertArgs(member, sqlArgs.ToArray());

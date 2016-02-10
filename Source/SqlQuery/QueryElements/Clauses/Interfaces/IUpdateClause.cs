@@ -13,6 +13,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         List<ISetExpression> Keys { get; }
 
-        SqlTable Table { get; set; }
+        ISqlTable Table { get; set; }
     }
 }

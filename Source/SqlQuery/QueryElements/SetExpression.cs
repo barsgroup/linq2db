@@ -11,18 +11,18 @@ namespace LinqToDB.SqlQuery.QueryElements
 
     public class SetExpression : BaseQueryElement, ISetExpression
     {
-        public SetExpression(ISqlExpression column, ISqlExpression expression)
+        public SetExpression(IQueryExpression column, IQueryExpression expression)
         {
             Column     = column;
             Expression = expression;
 
-            if (expression is SqlParameter)
+            if (expression is ISqlParameter)
             {
-                var p = (SqlParameter)expression;
+                var p = (ISqlParameter)expression;
 
-                if (column is SqlField)
+                if (column is ISqlField)
                 {
-                    var field = (SqlField)column;
+                    var field = (ISqlField)column;
 
                     if (field.ColumnDescriptor != null)
                     {
@@ -36,8 +36,8 @@ namespace LinqToDB.SqlQuery.QueryElements
             }
         }
 
-        public ISqlExpression Column     { get; set; }
-        public ISqlExpression Expression { get; set; }
+        public IQueryExpression Column     { get; set; }
+        public IQueryExpression Expression { get; set; }
 
         #region ICloneableElement Members
 
@@ -51,8 +51,8 @@ namespace LinqToDB.SqlQuery.QueryElements
             if (!objectTree.TryGetValue(this, out clone))
             {
                 objectTree.Add(this, clone = new SetExpression(
-                                                 (ISqlExpression)Column.    Clone(objectTree, doClone),
-                                                 (ISqlExpression)Expression.Clone(objectTree, doClone)));
+                                                 (IQueryExpression)Column.    Clone(objectTree, doClone),
+                                                 (IQueryExpression)Expression.Clone(objectTree, doClone)));
             }
 
             return clone;
@@ -62,7 +62,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region ISqlExpressionWalkable Members
 
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             Column     = Column.    Walk(skipColumns, func);
             Expression = Expression.Walk(skipColumns, func);

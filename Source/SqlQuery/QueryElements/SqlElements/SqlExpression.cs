@@ -10,9 +10,17 @@
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class SqlExpression : BaseQueryElement, ISqlExpression
-	{
-		public SqlExpression(Type systemType, string expr, int precedence, params ISqlExpression[] parameters)
+    public interface ISqlExpression : IQueryExpression
+    {
+        string Expr { get; }
+
+        IQueryExpression[] Parameters { get; }
+    }
+
+    public class SqlExpression : BaseQueryElement,
+                                 ISqlExpression
+    {
+		public SqlExpression(Type systemType, string expr, int precedence, params IQueryExpression[] parameters)
 		{
 			if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
@@ -25,17 +33,17 @@
 			Parameters = parameters;
 		}
 
-		public SqlExpression(string expr, int precedence, params ISqlExpression[] parameters)
+		public SqlExpression(string expr, int precedence, params IQueryExpression[] parameters)
 			: this(null, expr, precedence, parameters)
 		{
 		}
 
-		public SqlExpression(Type systemType, string expr, params ISqlExpression[] parameters)
+		public SqlExpression(Type systemType, string expr, params IQueryExpression[] parameters)
 			: this(systemType, expr, SqlQuery.Precedence.Unknown, parameters)
 		{
 		}
 
-		public SqlExpression(string expr, params ISqlExpression[] parameters)
+		public SqlExpression(string expr, params IQueryExpression[] parameters)
 			: this(null, expr, SqlQuery.Precedence.Unknown, parameters)
 		{
 		}
@@ -43,7 +51,7 @@
 		public Type             SystemType { get; private set; }
 		public string           Expr       { get; private set; }
 		public int              Precedence { get; private set; }
-		public ISqlExpression[] Parameters { get; private set; }
+		public IQueryExpression[] Parameters { get; private set; }
 
 		#region Overrides
 
@@ -60,7 +68,7 @@
 
 		#region ISqlExpressionWalkable Members
 
-		ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
 		{
 			for (var i = 0; i < Parameters.Length; i++)
 				Parameters[i] = Parameters[i].Walk(skipColumns, func);
@@ -72,7 +80,7 @@
 
 		#region IEquatable<ISqlExpression> Members
 
-		bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+		bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
 		{
 			return Equals(other, DefaultComparer);
 		}
@@ -90,14 +98,14 @@
 			return false;
 		}
 
-		internal static Func<ISqlExpression,ISqlExpression,bool> DefaultComparer = (x, y) => true;
+		internal static Func<IQueryExpression,IQueryExpression,bool> DefaultComparer = (x, y) => true;
 
-		public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+		public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
 		{
 			if (this == other)
 				return true;
 
-			var expr = other as SqlExpression;
+			var expr = other as ISqlExpression;
 
 			if (expr == null || SystemType != expr.SystemType || Expr != expr.Expr || Parameters.Length != expr.Parameters.Length)
 				return false;
@@ -126,7 +134,7 @@
 					SystemType,
 					Expr,
 					Precedence,
-					Parameters.Select(e => (ISqlExpression)e.Clone(objectTree, doClone)).ToArray()));
+					Parameters.Select(e => (IQueryExpression)e.Clone(objectTree, doClone)).ToArray()));
 			}
 
 			return clone;
@@ -170,7 +178,7 @@
 				case EQueryElementType.Column      : return true;
 				case EQueryElementType.SqlFunction :
 
-					var f = (SqlFunction)ex;
+					var f = (ISqlFunction)ex;
 
 					switch (f.Name)
 					{

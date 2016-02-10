@@ -16,6 +16,7 @@ namespace LinqToDB.SqlProvider
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
 	using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
@@ -292,7 +293,7 @@ namespace LinqToDB.SqlProvider
 			StringBuilder.AppendLine();
 		}
 
-		protected virtual void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected virtual void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			BuildExpression(expr, true, true, alias, ref addAlias, true);
 		}
@@ -632,7 +633,7 @@ namespace LinqToDB.SqlProvider
 
 		class CreateFieldInfo
 		{
-			public SqlField      Field;
+			public ISqlField     Field;
 			public StringBuilder StringBuilder;
 			public string        Name;
 			public string        Type;
@@ -855,7 +856,7 @@ namespace LinqToDB.SqlProvider
 			BuildEndCreateTableStatement(SelectQuery.CreateTable);
 		}
 
-		protected virtual void BuildCreateTableFieldType(SqlField field)
+		protected virtual void BuildCreateTableFieldType(ISqlField field)
 		{
 			BuildDataType(new SqlDataType(
 				field.DataType,
@@ -866,7 +867,7 @@ namespace LinqToDB.SqlProvider
 				createDbType : true);
 		}
 
-		protected virtual void BuildCreateTableNullAttribute(SqlField field, EDefaulNullable eDefaulNullable)
+		protected virtual void BuildCreateTableNullAttribute(ISqlField field, EDefaulNullable eDefaulNullable)
 		{
 			if (eDefaulNullable == EDefaulNullable.Null && field.Nullable)
 				return;
@@ -877,11 +878,11 @@ namespace LinqToDB.SqlProvider
 			StringBuilder.Append(field.Nullable ? "    NULL" : "NOT NULL");
 		}
 
-		protected virtual void BuildCreateTableIdentityAttribute1(SqlField field)
+		protected virtual void BuildCreateTableIdentityAttribute1(ISqlField field)
 		{
 		}
 
-		protected virtual void BuildCreateTableIdentityAttribute2(SqlField field)
+		protected virtual void BuildCreateTableIdentityAttribute2(ISqlField field)
 		{
 		}
 
@@ -972,7 +973,7 @@ namespace LinqToDB.SqlProvider
 
 			if (buildAlias)
 			{
-				if (ts.SqlTableType != SqlTableType.Expression)
+				if (ts.SqlTableType != ESqlTableType.Expression)
 				{
 					var alias = GetTableAlias(ts);
 
@@ -1085,7 +1086,7 @@ namespace LinqToDB.SqlProvider
 			if (SelectQuery.GroupBy.Items.Count == 0)
 				return;
 
-			var items = SelectQuery.GroupBy.Items.Where(i => !(i is SqlValue || i is SqlParameter)).ToList();
+			var items = SelectQuery.GroupBy.Items.Where(i => !(i is ISqlValue || i is ISqlParameter)).ToList();
 
 			if (items.Count == 0)
 				return;
@@ -1094,9 +1095,9 @@ namespace LinqToDB.SqlProvider
 //			{
 //				var item = SelectQuery.GroupBy.Items[0];
 //
-//				if (item is SqlValue || item is SqlParameter)
+//				if (item is ISqlValue || item is SqlParameter)
 //				{
-//					var value = ((SqlValue)item).Value;
+//					var value = ((ISqlValue)item).Value;
 //
 //					if (value is Sql.GroupBy || value is int)
 //						return;
@@ -1292,7 +1293,7 @@ namespace LinqToDB.SqlProvider
 
 		protected virtual void BuildSearchCondition(int parentPrecedence, ISearchCondition condition)
 		{
-			var wrap = Wrap(GetPrecedence(condition as ISqlExpression), parentPrecedence);
+			var wrap = Wrap(GetPrecedence(condition as IQueryExpression), parentPrecedence);
 
 			if (wrap) StringBuilder.Append('(');
 			BuildSearchCondition(condition);
@@ -1316,7 +1317,7 @@ namespace LinqToDB.SqlProvider
 							case EOperator.Equal :
 							case EOperator.NotEqual :
 								{
-									ISqlExpression e = null;
+									IQueryExpression e = null;
 
 									if (expr.Expr1 is IValueContainer && ((IValueContainer)expr.Expr1).Value == null)
 										e = expr.Expr2;
@@ -1421,9 +1422,9 @@ namespace LinqToDB.SqlProvider
 					{
 						var p = (IExpr)predicate;
 
-						if (p.Expr1 is SqlValue)
+						if (p.Expr1 is ISqlValue)
 						{
-							var value = ((SqlValue)p.Expr1).Value;
+							var value = ((ISqlValue)p.Expr1).Value;
 
 							if (value is bool)
 							{
@@ -1442,11 +1443,11 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		static SqlField GetUnderlayingField(ISqlExpression expr)
+		static ISqlField GetUnderlayingField(IQueryExpression expr)
 		{
 			switch (expr.ElementType)
 			{
-				case EQueryElementType.SqlField: return (SqlField)expr;
+				case EQueryElementType.SqlField: return (ISqlField)expr;
 				case EQueryElementType.Column  : return GetUnderlayingField(((IColumn)expr).Expression);
 			}
 
@@ -1465,10 +1466,10 @@ namespace LinqToDB.SqlProvider
 			{
 				ICollection values = p.Values;
 
-				if (p.Values.Count == 1 && p.Values[0] is SqlParameter &&
-					!(p.Expr1.SystemType == typeof(string) && ((SqlParameter)p.Values[0]).Value is string))
+				if (p.Values.Count == 1 && p.Values[0] is ISqlParameter &&
+					!(p.Expr1.SystemType == typeof(string) && ((ISqlParameter)p.Values[0]).Value is string))
 				{
-					var pr = (SqlParameter)p.Values[0];
+					var pr = (ISqlParameter)p.Values[0];
 
 					if (pr.Value == null)
 					{
@@ -1503,8 +1504,8 @@ namespace LinqToDB.SqlProvider
 									var field = GetUnderlayingField(keys[0]);
 									var value = field.ColumnDescriptor.MemberAccessor.GetValue(item);
 
-									if (value is ISqlExpression)
-										BuildExpression((ISqlExpression)value);
+									if (value is IQueryExpression)
+										BuildExpression((IQueryExpression)value);
 									else
 										BuildValue(
 											new SqlDataType(
@@ -1636,7 +1637,7 @@ namespace LinqToDB.SqlProvider
 					{
 						case EQueryElementType.SqlField     :
 							{
-								var field = (SqlField)predicate.Expr1;
+								var field = (ISqlField)predicate.Expr1;
 
 								sqlDataType = new SqlDataType(
 									field.DataType,
@@ -1649,7 +1650,7 @@ namespace LinqToDB.SqlProvider
 
 						case EQueryElementType.SqlParameter :
 							{
-								var p = (SqlParameter)predicate.Expr1;
+								var p = (ISqlParameter)predicate.Expr1;
 								sqlDataType = new SqlDataType(p.DataType, p.SystemType, 0, 0, 0);
 							}
 
@@ -1657,8 +1658,8 @@ namespace LinqToDB.SqlProvider
 					}
 				}
 
-				if (value is ISqlExpression)
-					BuildExpression((ISqlExpression)value);
+				if (value is IQueryExpression)
+					BuildExpression((IQueryExpression)value);
 				else
 					BuildValue(sqlDataType, value);
 
@@ -1726,7 +1727,7 @@ namespace LinqToDB.SqlProvider
 		#region BuildExpression
 
 		protected virtual StringBuilder BuildExpression(
-			ISqlExpression expr,
+			IQueryExpression expr,
 			bool           buildTableName,
 			bool           checkParentheses,
 			string         alias,
@@ -1741,7 +1742,7 @@ namespace LinqToDB.SqlProvider
 			{
 				case EQueryElementType.SqlField:
 					{
-						var field = (SqlField)expr;
+						var field = (ISqlField)expr;
 
 						if (buildTableName)
 						{
@@ -1831,7 +1832,7 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case EQueryElementType.SqlValue:
-			        var sqlValue = ((SqlValue)expr);
+			        var sqlValue = ((ISqlValue)expr);
 
                     // Если значение не равно NULL, то CAST не требуется
                     // Для колонок, которые не принимают непосредственное участие в формировании поля сущности, нет смысла делать CAST
@@ -1856,7 +1857,7 @@ namespace LinqToDB.SqlProvider
 
 				case EQueryElementType.SqlExpression:
 					{
-						var e = (SqlExpression)expr;
+						var e = (ISqlExpression)expr;
 						var s = new StringBuilder();
 
 						if (e.Parameters == null || e.Parameters.Length == 0)
@@ -1881,16 +1882,16 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case EQueryElementType.SqlBinaryExpression:
-					BuildBinaryExpression((SqlBinaryExpression)expr);
+					BuildBinaryExpression((ISqlBinaryExpression)expr);
 					break;
 
 				case EQueryElementType.SqlFunction:
-					BuildFunction((SqlFunction)expr);
+					BuildFunction((ISqlFunction)expr);
 					break;
 
 				case EQueryElementType.SqlParameter:
 					{
-						var parm = (SqlParameter)expr;
+						var parm = (ISqlParameter)expr;
 
 						if (parm.IsQueryParameter)
 						{
@@ -1906,7 +1907,7 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case EQueryElementType.SqlDataType:
-					BuildDataType((SqlDataType)expr);
+					BuildDataType((ISqlDataType)expr);
 					break;
 
 				case EQueryElementType.SearchCondition:
@@ -1920,7 +1921,7 @@ namespace LinqToDB.SqlProvider
 			return StringBuilder;
 		}
 
-		void BuildExpression(int parentPrecedence, ISqlExpression expr, string alias, ref bool addAlias)
+		void BuildExpression(int parentPrecedence, IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = Wrap(GetPrecedence(expr), parentPrecedence);
 
@@ -1929,19 +1930,19 @@ namespace LinqToDB.SqlProvider
 			if (wrap) StringBuilder.Append(')');
 		}
 
-		protected StringBuilder BuildExpression(ISqlExpression expr)
+		protected StringBuilder BuildExpression(IQueryExpression expr)
 		{
 			var dummy = false;
 			return BuildExpression(expr, true, true, null, ref dummy);
 		}
 
-		protected void BuildExpression(ISqlExpression expr, bool buildTableName, bool checkParentheses, bool throwExceptionIfTableNotFound = true)
+		protected void BuildExpression(IQueryExpression expr, bool buildTableName, bool checkParentheses, bool throwExceptionIfTableNotFound = true)
 		{
 			var dummy = false;
 			BuildExpression(expr, buildTableName, checkParentheses, null, ref dummy, throwExceptionIfTableNotFound);
 		}
 
-		protected void BuildExpression(int precedence, ISqlExpression expr)
+		protected void BuildExpression(int precedence, IQueryExpression expr)
 		{
 			var dummy = false;
 			BuildExpression(precedence, expr, null, ref dummy);
@@ -1951,7 +1952,7 @@ namespace LinqToDB.SqlProvider
 
 		#region BuildValue
 
-		protected void BuildValue(SqlDataType dataType, object value)
+		protected void BuildValue(ISqlDataType dataType, object value)
 		{
 			if (dataType != null)
 				ValueToSqlConverter.Convert(StringBuilder, dataType, value);
@@ -1963,16 +1964,16 @@ namespace LinqToDB.SqlProvider
 
 		#region BuildBinaryExpression
 
-		protected virtual void BuildBinaryExpression(SqlBinaryExpression expr)
+		protected virtual void BuildBinaryExpression(ISqlBinaryExpression expr)
 		{
 			BuildBinaryExpression(expr.Operation, expr);
 		}
 
-		void BuildBinaryExpression(string op, SqlBinaryExpression expr)
+		void BuildBinaryExpression(string op, ISqlBinaryExpression expr)
 		{
-			if (expr.Operation == "*" && expr.Expr1 is SqlValue)
+			if (expr.Operation == "*" && expr.Expr1 is ISqlValue)
 			{
-				var value = (SqlValue)expr.Expr1;
+				var value = (ISqlValue)expr.Expr1;
 
 				if (value.Value is int && (int)value.Value == -1)
 				{
@@ -1991,7 +1992,7 @@ namespace LinqToDB.SqlProvider
 
 		#region BuildFunction
 
-		protected virtual void BuildFunction(SqlFunction func)
+		protected virtual void BuildFunction(ISqlFunction func)
 		{
 			if (func.Name == "CASE")
 			{
@@ -2042,7 +2043,7 @@ namespace LinqToDB.SqlProvider
 				BuildFunction(func.Name, func.Parameters);
 		}
 
-		void BuildFunction(string name, ISqlExpression[] exprs)
+		void BuildFunction(string name, IQueryExpression[] exprs)
 		{
 			StringBuilder.Append(name).Append('(');
 
@@ -2065,7 +2066,7 @@ namespace LinqToDB.SqlProvider
 
 		#region BuildDataType
 	
-		protected virtual void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected virtual void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -2095,7 +2096,7 @@ namespace LinqToDB.SqlProvider
 
 		#region GetPrecedence
 
-		static int GetPrecedence(ISqlExpression expr)
+		static int GetPrecedence(IQueryExpression expr)
 		{
 			return expr.Precedence;
 		}
@@ -2215,7 +2216,7 @@ namespace LinqToDB.SqlProvider
 					var expr1 = Add(SelectQuery.Select.SkipValue, 1);
 					var expr2 = Add<int>(SelectQuery.Select.SkipValue, SelectQuery.Select.TakeValue);
 
-					if (expr1 is SqlValue && expr2 is SqlValue && Equals(((SqlValue)expr1).Value, ((SqlValue)expr2).Value))
+					if (expr1 is ISqlValue && expr2 is ISqlValue && Equals(((ISqlValue)expr1).Value, ((ISqlValue)expr2).Value))
 					{
 						AppendIndent().AppendFormat("{0}.{1} = ", aliases[1], rnaliase);
 						BuildExpression(expr1);
@@ -2261,10 +2262,10 @@ namespace LinqToDB.SqlProvider
 			{
 				AppendIndent().Append("SELECT TOP ");
 
-				var p = SelectQuery.Select.SkipValue as SqlParameter;
+				var p = SelectQuery.Select.SkipValue as ISqlParameter;
 
-				if (p != null && !p.IsQueryParameter && SelectQuery.Select.TakeValue is SqlValue)
-					BuildValue(null, (int)p.Value + (int)((SqlValue)(SelectQuery.Select.TakeValue)).Value);
+				if (p != null && !p.IsQueryParameter && SelectQuery.Select.TakeValue is ISqlValue)
+					BuildValue(null, (int)p.Value + (int)((ISqlValue)(SelectQuery.Select.TakeValue)).Value);
 				else
 					BuildExpression(Add<int>(SelectQuery.Select.SkipValue, SelectQuery.Select.TakeValue));
 
@@ -2349,29 +2350,29 @@ namespace LinqToDB.SqlProvider
 				yield return new Column(SelectQuery, SelectQuery.OrderBy.Items[i].Expression, obys[i]);
 		}
 
-		protected static bool IsDateDataType(ISqlExpression expr, string dateName)
+		protected static bool IsDateDataType(IQueryExpression expr, string dateName)
 		{
 			switch (expr.ElementType)
 			{
-				case EQueryElementType.SqlDataType   : return ((SqlDataType)  expr).DataType == DataType.Date;
-				case EQueryElementType.SqlExpression : return ((SqlExpression)expr).Expr     == dateName;
+				case EQueryElementType.SqlDataType   : return ((ISqlDataType)  expr).DataType == DataType.Date;
+				case EQueryElementType.SqlExpression : return ((ISqlExpression)expr).Expr     == dateName;
 			}
 
 			return false;
 		}
 
-		protected static bool IsTimeDataType(ISqlExpression expr)
+		protected static bool IsTimeDataType(IQueryExpression expr)
 		{
 			switch (expr.ElementType)
 			{
-				case EQueryElementType.SqlDataType   : return ((SqlDataType)expr).  DataType == DataType.Time;
-				case EQueryElementType.SqlExpression : return ((SqlExpression)expr).Expr     == "Time";
+				case EQueryElementType.SqlDataType   : return ((ISqlDataType)expr).  DataType == DataType.Time;
+				case EQueryElementType.SqlExpression : return ((ISqlExpression)expr).Expr     == "Time";
 			}
 
 			return false;
 		}
 
-		static bool IsBooleanParameter(ISqlExpression expr, int count, int i)
+		static bool IsBooleanParameter(IQueryExpression expr, int count, int i)
 		{
 			if ((i % 2 == 1 || i == count - 1) && expr.SystemType == typeof(bool) || expr.SystemType == typeof(bool?))
 			{
@@ -2384,7 +2385,7 @@ namespace LinqToDB.SqlProvider
 			return false;
 		}
 
-		protected SqlFunction ConvertFunctionParameters(SqlFunction func)
+		protected ISqlFunction ConvertFunctionParameters(ISqlFunction func)
 		{
 			if (func.Name == "CASE" &&
 				func.Parameters.Select((p,i) => new { p, i }).Any(p => IsBooleanParameter(p.p, func.Parameters.Length, p.i)))
@@ -2407,7 +2408,7 @@ namespace LinqToDB.SqlProvider
 
 		#region Helpers
 
-		protected SequenceNameAttribute GetSequenceNameAttribute(SqlTable table, bool throwException)
+		protected SequenceNameAttribute GetSequenceNameAttribute(ISqlTable table, bool throwException)
 		{
 			var identityField = table.GetIdentityField();
 
@@ -2476,7 +2477,7 @@ namespace LinqToDB.SqlProvider
 					return alias != "$" ? alias : null;
 
 				case EQueryElementType.SqlTable :
-					return ((SqlTable)table).Alias;
+					return ((ISqlTable)table).Alias;
 
                 case EQueryElementType.SqlQuery:
                     return GetTableAlias(((ISelectQuery)table).From.Tables[0]);
@@ -2486,17 +2487,17 @@ namespace LinqToDB.SqlProvider
 			}
 		}
 
-		protected virtual string GetTableDatabaseName(SqlTable table)
+		protected virtual string GetTableDatabaseName(ISqlTable table)
 		{
 			return table.Database == null ? null : Convert(table.Database, ConvertType.NameToDatabase).ToString();
 		}
 
-		protected virtual string GetTableOwnerName(SqlTable table)
+		protected virtual string GetTableOwnerName(ISqlTable table)
 		{
 			return table.Owner == null ? null : Convert(table.Owner, ConvertType.NameToOwner).ToString();
 		}
 
-		protected virtual string GetTablePhysicalName(SqlTable table)
+		protected virtual string GetTablePhysicalName(ISqlTable table)
 		{
 			return table.PhysicalName == null ? null : Convert(table.PhysicalName, ConvertType.NameToQueryTable).ToString();
 		}
@@ -2507,7 +2508,7 @@ namespace LinqToDB.SqlProvider
 			{
 				case EQueryElementType.SqlTable :
 					{
-						var tbl = (SqlTable)table;
+						var tbl = (ISqlTable)table;
 
 						var database     = GetTableDatabaseName(tbl);
 						var owner        = GetTableOwnerName   (tbl);
@@ -2517,7 +2518,7 @@ namespace LinqToDB.SqlProvider
 
 						BuildTableName(sb, database, owner, physicalName);
 
-						if (tbl.SqlTableType == SqlTableType.Expression)
+						if (tbl.SqlTableType == ESqlTableType.Expression)
 						{
 							var values = new object[2 + (tbl.TableArguments == null ? 0 : tbl.TableArguments.Length)];
 
@@ -2537,7 +2538,7 @@ namespace LinqToDB.SqlProvider
 							sb.AppendFormat(tbl.Name, values);
 						}
 
-						if (tbl.SqlTableType == SqlTableType.Function)
+						if (tbl.SqlTableType == ESqlTableType.Function)
 						{
 							sb.Append('(');
 
@@ -2578,17 +2579,17 @@ namespace LinqToDB.SqlProvider
 			return StringBuilder;
 		}
 
-		ISqlExpression Add(ISqlExpression expr1, ISqlExpression expr2, Type type)
+		IQueryExpression Add(IQueryExpression expr1, IQueryExpression expr2, Type type)
 		{
 			return SqlOptimizer.ConvertExpression(new SqlBinaryExpression(type, expr1, "+", expr2, Precedence.Additive));
 		}
 
-		protected ISqlExpression Add<T>(ISqlExpression expr1, ISqlExpression expr2)
+		protected IQueryExpression Add<T>(IQueryExpression expr1, IQueryExpression expr2)
 		{
 			return Add(expr1, expr2, typeof(T));
 		}
 
-		ISqlExpression Add(ISqlExpression expr1, int value)
+		IQueryExpression Add(IQueryExpression expr1, int value)
 		{
 			return Add<int>(expr1, new SqlValue(value));
 		}
@@ -2597,7 +2598,7 @@ namespace LinqToDB.SqlProvider
 
 		#region ISqlProvider Members
 
-		public virtual ISqlExpression GetIdentityExpression(SqlTable table)
+		public virtual IQueryExpression GetIdentityExpression(ISqlTable table)
 		{
 			return null;
 		}

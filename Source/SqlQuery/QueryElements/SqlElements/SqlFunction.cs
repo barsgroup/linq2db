@@ -10,14 +10,17 @@
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class SqlFunction : BaseQueryElement, ISqlExpression//ISqlTableSource
+    public class SqlFunction : BaseQueryElement,
+                               ISqlFunction
+
+        //ISqlTableSource
     {
-		public SqlFunction(Type systemType, string name, params ISqlExpression[] parameters)
+		public SqlFunction(Type systemType, string name, params IQueryExpression[] parameters)
 			: this(systemType, name, SqlQuery.Precedence.Primary, parameters)
 		{
 		}
 
-		public SqlFunction(Type systemType, string name, int precedence, params ISqlExpression[] parameters)
+		public SqlFunction(Type systemType, string name, int precedence, params IQueryExpression[] parameters)
 		{
 			//_sourceID = Interlocked.Increment(ref SqlQuery.SourceIDCounter);
 
@@ -35,14 +38,14 @@
 		public Type             SystemType { get; private set; }
 		public string           Name       { get; private set; }
 		public int              Precedence { get; private set; }
-		public ISqlExpression[] Parameters { get; private set; }
+		public IQueryExpression[] Parameters { get; private set; }
 
-		public static SqlFunction CreateCount (Type type, ISqlTableSource table) { return new SqlFunction(type, "Count",  new SqlExpression("*")); }
+		public static ISqlFunction CreateCount (Type type, ISqlTableSource table) { return new SqlFunction(type, "Count",  new SqlExpression("*")); }
 
-		public static SqlFunction CreateAll   (ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "ALL",    SqlQuery.Precedence.Comparison, subQuery); }
-		public static SqlFunction CreateSome  (ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "SOME",   SqlQuery.Precedence.Comparison, subQuery); }
-		public static SqlFunction CreateAny   (ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "ANY",    SqlQuery.Precedence.Comparison, subQuery); }
-		public static SqlFunction CreateExists(ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "EXISTS", SqlQuery.Precedence.Comparison, subQuery); }
+        public static ISqlFunction CreateAll   (ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "ALL",    SqlQuery.Precedence.Comparison, subQuery); }
+		public static ISqlFunction CreateSome  (ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "SOME",   SqlQuery.Precedence.Comparison, subQuery); }
+		public static ISqlFunction CreateAny   (ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "ANY",    SqlQuery.Precedence.Comparison, subQuery); }
+		public static ISqlFunction CreateExists(ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "EXISTS", SqlQuery.Precedence.Comparison, subQuery); }
 
 		#region Overrides
 
@@ -59,7 +62,7 @@
 
 		#region ISqlExpressionWalkable Members
 
-		ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> action)
+		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> action)
 		{
 			for (var i = 0; i < Parameters.Length; i++)
 				Parameters[i] = Parameters[i].Walk(skipColumns, action);
@@ -71,7 +74,7 @@
 
 		#region IEquatable<ISqlExpression> Members
 
-		bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+		bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
 		{
 			return Equals(other, SqlExpression.DefaultComparer);
 		}
@@ -102,18 +105,18 @@
 					SystemType,
 					Name,
 					Precedence,
-					Parameters.Select(e => (ISqlExpression)e.Clone(objectTree, doClone)).ToArray()));
+					Parameters.Select(e => (IQueryExpression)e.Clone(objectTree, doClone)).ToArray()));
 			}
 
 			return clone;
 		}
 
-		public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+		public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
 		{
 			if (this == other)
 				return true;
 
-			var func = other as SqlFunction;
+			var func = other as ISqlFunction;
 
 			if (func == null || Name != func.Name || Parameters.Length != func.Parameters.Length && SystemType != func.SystemType)
 				return false;

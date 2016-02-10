@@ -13,17 +13,17 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     public class FuncLike : Predicate,
                             IFuncLike
     {
-        public FuncLike(SqlFunction func)
+        public FuncLike(ISqlFunction func)
             : base(func.Precedence)
         {
             Function = func;
         }
 
-        public SqlFunction Function { get; private set; }
+        public ISqlFunction Function { get; private set; }
 
-        protected override void Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
-            Function = (SqlFunction)((ISqlExpression)Function).Walk(skipColumns, func);
+            Function = (ISqlFunction)((IQueryExpression)Function).Walk(skipColumns, func);
         }
 
         public override bool CanBeNull()
@@ -39,7 +39,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             ICloneableElement clone;
 
             if (!objectTree.TryGetValue(this, out clone))
-                objectTree.Add(this, clone = new FuncLike((SqlFunction)Function.Clone(objectTree, doClone)));
+                objectTree.Add(this, clone = new FuncLike((ISqlFunction)Function.Clone(objectTree, doClone)));
 
             return clone;
         }

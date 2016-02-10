@@ -61,7 +61,7 @@ namespace LinqToDB.SqlQuery
 		class QueryData
 		{
 			public ISelectQuery Query;
-			public List<ISqlExpression> Fields  = new List<ISqlExpression>();
+			public List<IQueryExpression> Fields  = new List<IQueryExpression>();
 			public List<QueryData>      Queries = new List<QueryData>();
 		}
 
@@ -82,7 +82,7 @@ namespace LinqToDB.SqlQuery
 				{
 					case EQueryElementType.SqlField :
 						{
-							var field = (SqlField)e;
+							var field = (ISqlField)e;
 
 							if (field.Name.Length != 1 || field.Name[0] != '*')
 								data.Fields.Add(field);
@@ -114,7 +114,7 @@ namespace LinqToDB.SqlQuery
 			return data;
 		}
 
-		static ITableSource FindField(SqlField field, ITableSource table)
+		static ITableSource FindField(ISqlField field, ITableSource table)
 		{
 			if (field.Table == table.Source)
 				return table;
@@ -130,7 +130,7 @@ namespace LinqToDB.SqlQuery
 			return null;
 		}
 
-		static ISqlExpression GetColumn(QueryData data, SqlField field)
+		static IQueryExpression GetColumn(QueryData data, ISqlField field)
 		{
 			foreach (var query in data.Queries)
 			{
@@ -162,9 +162,9 @@ namespace LinqToDB.SqlQuery
 			if (data.Queries.Count == 0)
 				return;
 
-			var dic = new Dictionary<ISqlExpression,ISqlExpression>();
+			var dic = new Dictionary<IQueryExpression,IQueryExpression>();
 
-			foreach (SqlField field in data.Fields)
+			foreach (ISqlField field in data.Fields)
 			{
 				if (dic.ContainsKey(field))
 					continue;
@@ -191,7 +191,7 @@ namespace LinqToDB.SqlQuery
 			if (dic.Count > 0)
 				new QueryVisitor().VisitParentFirst(data.Query, e =>
 				{
-					ISqlExpression ex;
+					IQueryExpression ex;
 
 					switch (e.ElementType)
 					{
@@ -200,7 +200,7 @@ namespace LinqToDB.SqlQuery
 
 						case EQueryElementType.SqlFunction :
 							{
-								var parms = ((SqlFunction)e).Parameters;
+								var parms = ((ISqlFunction)e).Parameters;
 
 								for (var i = 0; i < parms.Length; i++)
 									if (dic.TryGetValue(parms[i], out ex))
@@ -211,7 +211,7 @@ namespace LinqToDB.SqlQuery
 
 						case EQueryElementType.SqlExpression :
 							{
-								var parms = ((SqlExpression)e).Parameters;
+								var parms = ((ISqlExpression)e).Parameters;
 
 								for (var i = 0; i < parms.Length; i++)
 									if (dic.TryGetValue(parms[i], out ex))
@@ -222,7 +222,7 @@ namespace LinqToDB.SqlQuery
 
 						case EQueryElementType.SqlBinaryExpression :
 							{
-								var expr = (SqlBinaryExpression)e;
+								var expr = (ISqlBinaryExpression)e;
 								if (dic.TryGetValue(expr.Expr1, out ex)) expr.Expr1 = ex;
 								if (dic.TryGetValue(expr.Expr2, out ex)) expr.Expr2 = ex;
 								break;
@@ -325,7 +325,7 @@ namespace LinqToDB.SqlQuery
 
 	    void OptimizeUnions()
 	    {
-	        var exprs = new Dictionary<ISqlExpression, ISqlExpression>();
+	        var exprs = new Dictionary<IQueryExpression, IQueryExpression>();
 
 	        foreach (var element in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery))
 	        {
@@ -381,7 +381,7 @@ namespace LinqToDB.SqlQuery
 	            false,
 	            expr =>
 	            {
-	                ISqlExpression e;
+	                IQueryExpression e;
 
 	                if (exprs.TryGetValue(expr, out e))
 	                    return e;
@@ -500,9 +500,9 @@ namespace LinqToDB.SqlQuery
 				{
 					var expr = (IExpr)cond.Predicate;
 
-					if (expr.Expr1 is SqlValue)
+					if (expr.Expr1 is ISqlValue)
 					{
-						var value = (SqlValue)expr.Expr1;
+						var value = (ISqlValue)expr.Expr1;
 
 						if (value.Value is bool)
 							if (cond.IsNot ? !(bool)value.Value : (bool)value.Value)
@@ -519,9 +519,9 @@ namespace LinqToDB.SqlQuery
 				{
 					var expr = (IExpr)cond.Predicate;
 
-					if (expr.Expr1 is SqlValue)
+					if (expr.Expr1 is ISqlValue)
 					{
-						var value = (SqlValue)expr.Expr1;
+						var value = (ISqlValue)expr.Expr1;
 
 						if (value.Value is bool)
 						{
@@ -605,9 +605,9 @@ namespace LinqToDB.SqlQuery
                                             _selectQuery.IsDelete ? _selectQuery.Delete : null,
                                         };
 
-						    var tableArguments = QueryVisitor.FindAll<SqlTable>(_selectQuery.From).Where(t => t.TableArguments != null).SelectMany(t => t.TableArguments);
+						    var tableArguments = QueryVisitor.FindAll<ISqlTable>(_selectQuery.From).Where(t => t.TableArguments != null).SelectMany(t => t.TableArguments);
 
-                            var newFileds = QueryVisitor.FindAll<SqlField>(items.Union(tableArguments).ToArray())
+                            var newFileds = QueryVisitor.FindAll<ISqlField>(items.Union(tableArguments).ToArray())
                             .Where(field => !tables.Contains(field.Table));
 
                             tables.AddRange(newFileds.Select(f => f.Table));
@@ -663,21 +663,21 @@ namespace LinqToDB.SqlQuery
 				source;
 		}
 
-	    static bool CheckColumn(IColumn column, ISqlExpression expr, ISelectQuery query, bool optimizeValues, bool optimizeColumns)
+	    static bool CheckColumn(IColumn column, IQueryExpression expr, ISelectQuery query, bool optimizeValues, bool optimizeColumns)
 	    {
-	        if (expr is SqlField || expr is IColumn)
+	        if (expr is ISqlField || expr is IColumn)
 	            return false;
 
-	        if (expr is SqlValue)
-	            return !optimizeValues && 1.Equals(((SqlValue)expr).Value);
+	        if (expr is ISqlValue)
+	            return !optimizeValues && 1.Equals(((ISqlValue)expr).Value);
 
-	        if (expr is SqlBinaryExpression)
+	        if (expr is ISqlBinaryExpression)
 	        {
-	            var e = (SqlBinaryExpression)expr;
+	            var e = (ISqlBinaryExpression)expr;
 
-	            if (e.Operation == "*" && e.Expr1 is SqlValue)
+	            if (e.Operation == "*" && e.Expr1 is ISqlValue)
 	            {
-	                var value = (SqlValue)e.Expr1;
+	                var value = (ISqlValue)e.Expr1;
 
 	                if (value.Value is int && (int)value.Value == -1)
 	                    return CheckColumn(column, e.Expr2, query, optimizeValues, optimizeColumns);
@@ -722,7 +722,7 @@ namespace LinqToDB.SqlQuery
 			if (!isColumnsOK)
 				return childSource;
 
-			var map = new Dictionary<ISqlExpression,ISqlExpression>(query.Select.Columns.Count);
+			var map = new Dictionary<IQueryExpression,IQueryExpression>(query.Select.Columns.Count);
 
 			foreach (var c in query.Select.Columns)
 				map.Add(c, c.Expression);
@@ -734,7 +734,7 @@ namespace LinqToDB.SqlQuery
 
 			top.Walk(false, expr =>
 			{
-				ISqlExpression fld;
+				IQueryExpression fld;
 				return map.TryGetValue(expr, out fld) ? fld : expr;
 			});
 
@@ -769,8 +769,8 @@ namespace LinqToDB.SqlQuery
 
 		static bool IsAggregationFunction(IQueryElement expr)
 		{
-			if (expr is SqlFunction)
-				switch (((SqlFunction)expr).Name)
+			if (expr is ISqlFunction)
+				switch (((ISqlFunction)expr).Name)
 				{
 					case "Count"   :
 					case "Average" :
@@ -847,7 +847,7 @@ namespace LinqToDB.SqlQuery
 		{
 			return null != new QueryVisitor().Find(sql, e =>
 				e == table ||
-				e.ElementType == EQueryElementType.SqlField && table == ((SqlField)e).Table ||
+				e.ElementType == EQueryElementType.SqlField && table == ((ISqlField)e).Table ||
 				e.ElementType == EQueryElementType.Column   && table == ((IColumn)  e).Parent);
 		}
 

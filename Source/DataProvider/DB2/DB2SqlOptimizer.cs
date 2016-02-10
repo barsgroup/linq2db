@@ -19,7 +19,7 @@
 
 		public override ISelectQuery Finalize(ISelectQuery selectQuery)
 		{
-		    foreach (var parameter in QueryVisitor.FindOnce<SqlParameter>(selectQuery.Select) )
+		    foreach (var parameter in QueryVisitor.FindOnce<ISqlParameter>(selectQuery.Select) )
 		    {
 				parameter.IsQueryParameter = false;
 
@@ -35,13 +35,13 @@
 			}
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+			if (expr is ISqlBinaryExpression)
 			{
-				var be = (SqlBinaryExpression)expr;
+				var be = (ISqlBinaryExpression)expr;
 
 				switch (be.Operation)
 				{
@@ -56,9 +56,9 @@
 					case "+": return be.SystemType == typeof(string)? new SqlBinaryExpression(be.SystemType, be.Expr1, "||", be.Expr2, be.Precedence): expr;
 				}
 			}
-			else if (expr is SqlFunction)
+			else if (expr is ISqlFunction)
 			{
-				var func = (SqlFunction) expr;
+				var func = (ISqlFunction) expr;
 
 				switch (func.Name)
 				{
@@ -70,9 +70,9 @@
 								return ex;
 						}
 
-						if (func.Parameters[0] is SqlDataType)
+						if (func.Parameters[0] is ISqlDataType)
 						{
-							var type = (SqlDataType)func.Parameters[0];
+							var type = (ISqlDataType)func.Parameters[0];
 
 							if (type.Type == typeof(string) && func.Parameters[1].SystemType != typeof(string))
 								return new SqlFunction(func.SystemType, "RTrim", new SqlFunction(typeof(string), "Char", func.Parameters[1]));
@@ -86,9 +86,9 @@
 							return new SqlFunction(func.SystemType, type.DataType.ToString(), func.Parameters[1]);
 						}
 
-						if (func.Parameters[0] is SqlFunction)
+						if (func.Parameters[0] is ISqlFunction)
 						{
-							var f = (SqlFunction)func.Parameters[0];
+							var f = (ISqlFunction)func.Parameters[0];
 
 							return
 								f.Name == "Char" ?
@@ -99,7 +99,7 @@
 						}
 
 						{
-							var e = (SqlExpression)func.Parameters[0];
+							var e = (ISqlExpression)func.Parameters[0];
 							return new SqlFunction(func.SystemType, e.Expr, func.Parameters[1]);
 						}
 
@@ -127,7 +127,7 @@
 					case "NChar"         :
 					case "NVarChar"      : return new SqlFunction(func.SystemType, "Char",      func.Parameters);
 					case "DateDiff"      :
-						switch ((Sql.DateParts)((SqlValue)func.Parameters[0]).Value)
+						switch ((Sql.DateParts)((ISqlValue)func.Parameters[0]).Value)
 						{
 							case Sql.DateParts.Day         : return new SqlExpression(typeof(int), "((Days({0}) - Days({1})) * 86400 + (MIDNIGHT_SECONDS({0}) - MIDNIGHT_SECONDS({1}))) / 86400",                                               Precedence.Multiplicative, func.Parameters[2], func.Parameters[1]);
 							case Sql.DateParts.Hour        : return new SqlExpression(typeof(int), "((Days({0}) - Days({1})) * 86400 + (MIDNIGHT_SECONDS({0}) - MIDNIGHT_SECONDS({1}))) / 3600",                                                Precedence.Multiplicative, func.Parameters[2], func.Parameters[1]);

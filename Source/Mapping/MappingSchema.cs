@@ -20,6 +20,7 @@ namespace LinqToDB.Mapping
 	using Extensions;
 
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Metadata;
 	using SqlProvider;
@@ -82,7 +83,7 @@ namespace LinqToDB.Mapping
 
 		public ValueToSqlConverter ValueToSqlConverter { get; private set; }
 
-		public void SetValueToSqlConverter(Type type, Action<StringBuilder,SqlDataType,object> converter)
+		public void SetValueToSqlConverter(Type type, Action<StringBuilder,ISqlDataType,object> converter)
 		{
 			ValueToSqlConverter.SetConverter(type, converter);
 		}
@@ -805,29 +806,31 @@ namespace LinqToDB.Mapping
 
 		#region DataTypes
 
-		public SqlDataType GetDataType(Type type)
+		public ISqlDataType GetDataType(Type type)
 		{
-			foreach (var info in _schemas)
-			{
-				var o = info.GetDataType(type);
-				if (o.IsSome)
-					return o.Value;
-			}
+		    for (var i = 0; i < _schemas.Length; i++)
+		    {
+		        var dataType = _schemas[i].GetDataType(type);
+		        if (dataType.IsSome)
+		        {
+		            return dataType.Value;
+		        }
+		    }
 
-			return SqlDataType.Undefined;
+		    return SqlDataType.Undefined;
 		}
 
-		public void SetDataType(Type type, DataType dataType)
-		{
-			_schemas[0].SetDataType(type, dataType);
-		}
-
-		public void SetDataType(Type type, SqlDataType dataType)
+        public void SetDataType(Type type, DataType dataType)
 		{
 			_schemas[0].SetDataType(type, dataType);
 		}
 
-		public SqlDataType GetUnderlyingDataType(Type type, ref bool canBeNull)
+		public void SetDataType(Type type, ISqlDataType dataType)
+		{
+			_schemas[0].SetDataType(type, dataType);
+		}
+
+		public ISqlDataType GetUnderlyingDataType(Type type, ref bool canBeNull)
 		{
 			int? length = null;
 

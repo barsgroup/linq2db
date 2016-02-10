@@ -108,9 +108,9 @@ namespace LinqToDB.Linq.Builder
 				throw new InvalidOperationException();
 			}
 
-			ISqlExpression _subQuerySql;
+			IQueryExpression _subQuerySql;
 
-			public override ISqlExpression GetSubQuery(IBuildContext context)
+			public override IQueryExpression GetSubQuery(IBuildContext context)
 			{
 				if (_subQuerySql == null)
 				{

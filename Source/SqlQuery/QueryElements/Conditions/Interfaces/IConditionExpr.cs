@@ -6,8 +6,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
 
     public interface IConditionExpr<out T>
     {
-        T Expr    (ISqlExpression expr);
-        T Field   (SqlField       field);
+        T Expr    (IQueryExpression expr);
+        T Field   (ISqlField field);
         T SubQuery(ISelectQuery selectQuery);
         T Value   (object         value);
     }

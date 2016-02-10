@@ -25,23 +25,23 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
 
         IOperator<T2> NotLess { get; }
 
-        ISqlExpression SqlExpression { get; }
+        IQueryExpression SqlExpression { get; }
 
         T2 IsNull { get; }
 
         T2 IsNotNull { get; }
 
-        T2 Like(ISqlExpression expression, SqlValue escape);
+        T2 Like(IQueryExpression expression, ISqlValue escape);
 
-        T2 Like(ISqlExpression expression);
+        T2 Like(IQueryExpression expression);
 
-        T2 Like(string expression,         SqlValue escape);
+        T2 Like(string expression, ISqlValue escape);
 
         T2 Like(string expression);
 
-        T2 Between   (ISqlExpression expr1, ISqlExpression expr2);
+        T2 Between   (IQueryExpression expr1, IQueryExpression expr2);
 
-        T2 NotBetween(ISqlExpression expr1, ISqlExpression expr2);
+        T2 NotBetween(IQueryExpression expr1, IQueryExpression expr2);
 
         T2 In   (ISelectQuery subQuery);
 

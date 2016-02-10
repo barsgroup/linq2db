@@ -16,8 +16,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         readonly IConditionBase<T1,T2> _condition;
 
-        public IExpr<T1, T2> Expr    (ISqlExpression expr)        { return new Expr<T1, T2>(_condition, true, expr); }
-        public IExpr<T1, T2> Field   (SqlField       field)       { return Expr(field);               }
+        public IExpr<T1, T2> Expr    (IQueryExpression expr)        { return new Expr<T1, T2>(_condition, true, expr); }
+        public IExpr<T1, T2> Field   (ISqlField field)       { return Expr(field);               }
         public IExpr<T1, T2> SubQuery(ISelectQuery selectQuery) { return Expr(selectQuery);            }
         public IExpr<T1, T2> Value   (object         value)       { return Expr(new SqlValue(value)); }
 

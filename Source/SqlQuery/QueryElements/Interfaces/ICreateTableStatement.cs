@@ -8,7 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
                                              ISqlExpressionWalkable,
                                              ICloneableElement
     {
-        SqlTable Table { get; set; }
+        ISqlTable Table { get; set; }
 
         bool IsDrop { get; set; }
 

@@ -22,7 +22,7 @@ namespace LinqToDB.DataProvider.Oracle
 		{
 			CheckAliases(selectQuery, 30);
 
-		    foreach (var parameter in QueryVisitor.FindOnce<SqlParameter>(selectQuery.Select))
+		    foreach (var parameter in QueryVisitor.FindOnce<ISqlParameter>(selectQuery.Select))
 		    {
 		        parameter.IsQueryParameter = false;
 		    }
@@ -37,13 +37,13 @@ namespace LinqToDB.DataProvider.Oracle
 			}
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+			if (expr is ISqlBinaryExpression)
 			{
-				var be = (SqlBinaryExpression)expr;
+				var be = (ISqlBinaryExpression)expr;
 
 				switch (be.Operation)
 				{
@@ -63,9 +63,9 @@ namespace LinqToDB.DataProvider.Oracle
 					case "+": return be.SystemType == typeof(string)? new SqlBinaryExpression(be.SystemType, be.Expr1, "||", be.Expr2, be.Precedence): expr;
 				}
 			}
-			else if (expr is SqlFunction)
+			else if (expr is ISqlFunction)
 			{
-				var func = (SqlFunction) expr;
+				var func = (ISqlFunction) expr;
 
 				switch (func.Name)
 				{
@@ -126,9 +126,9 @@ namespace LinqToDB.DataProvider.Oracle
 							new SqlValue(27));
 				}
 			}
-			else if (expr is SqlExpression)
+			else if (expr is ISqlExpression)
 			{
-				var e = (SqlExpression)expr;
+				var e = (ISqlExpression)expr;
 
 				if (e.Expr.StartsWith("To_Number(To_Char(") && e.Expr.EndsWith(", 'FF'))"))
 					return Div(new SqlExpression(e.SystemType, e.Expr.Replace("To_Number(To_Char(", "to_Number(To_Char("), e.Parameters), 1000);

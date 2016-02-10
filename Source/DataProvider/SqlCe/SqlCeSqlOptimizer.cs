@@ -22,7 +22,7 @@ namespace LinqToDB.DataProvider.SqlCe
 		{
 			selectQuery = base.Finalize(selectQuery);
 
-            foreach (var parameter in QueryVisitor.FindOnce<SqlParameter>(selectQuery.Select))
+            foreach (var parameter in QueryVisitor.FindOnce<ISqlParameter>(selectQuery.Select))
             {
                 parameter.IsQueryParameter = false;
                 selectQuery.IsParameterDependent = true;
@@ -44,13 +44,13 @@ namespace LinqToDB.DataProvider.SqlCe
 			return selectQuery;
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+			if (expr is ISqlBinaryExpression)
 			{
-				var be = (SqlBinaryExpression)expr;
+				var be = (ISqlBinaryExpression)expr;
 
 				switch (be.Operation)
 				{
@@ -65,9 +65,9 @@ namespace LinqToDB.DataProvider.SqlCe
 								be.Precedence);
 				}
 			}
-			else if (expr is SqlFunction)
+			else if (expr is ISqlFunction)
 			{
-				var func = (SqlFunction)expr;
+				var func = (ISqlFunction)expr;
 
 				switch (func.Name)
 				{

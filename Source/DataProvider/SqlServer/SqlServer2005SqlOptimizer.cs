@@ -11,12 +11,12 @@
 		{
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlFunction)
-				return ConvertConvertFunction((SqlFunction)expr);
+			if (expr is ISqlFunction)
+				return ConvertConvertFunction((ISqlFunction)expr);
 
 			return expr;
 		}

@@ -1,11 +1,13 @@
 namespace LinqToDB.SqlQuery.QueryElements
 {
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
+    [DebuggerDisplay("SQL = {SqlText}")]
     public abstract class BaseQueryElement : IQueryElement
     {
         public IEnumerable<IQueryElement> GetSelfWithChildren()
@@ -33,5 +35,7 @@ namespace LinqToDB.SqlQuery.QueryElements
         public abstract EQueryElementType ElementType { get; }
 
         public abstract StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic);
+
+        public string SqlText => ToString(new StringBuilder(), new Dictionary<IQueryElement, IQueryElement>()).ToString();
     }
 }

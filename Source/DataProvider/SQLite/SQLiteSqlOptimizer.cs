@@ -38,13 +38,13 @@ namespace LinqToDB.DataProvider.SQLite
 			return selectQuery;
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+			if (expr is ISqlBinaryExpression)
 			{
-				var be = (SqlBinaryExpression)expr;
+				var be = (ISqlBinaryExpression)expr;
 
 				switch (be.Operation)
 				{
@@ -55,9 +55,9 @@ namespace LinqToDB.DataProvider.SQLite
 							Mul(new SqlBinaryExpression(be.SystemType, be.Expr1, "&", be.Expr2), 2), be.SystemType);
 				}
 			}
-			else if (expr is SqlFunction)
+			else if (expr is ISqlFunction)
 			{
-				var func = (SqlFunction) expr;
+				var func = (ISqlFunction) expr;
 
 				switch (func.Name)
 				{
@@ -84,9 +84,9 @@ namespace LinqToDB.DataProvider.SQLite
 						}
 				}
 			}
-			else if (expr is SqlExpression)
+			else if (expr is ISqlExpression)
 			{
-				var e = (SqlExpression)expr;
+				var e = (ISqlExpression)expr;
 
 				if (e.Expr.StartsWith("Cast(StrFTime(Quarter"))
 					return Inc(Div(Dec(new SqlExpression(e.SystemType, e.Expr.Replace("Cast(StrFTime(Quarter", "Cast(StrFTime('%m'"), e.Parameters)), 3));

@@ -32,21 +32,21 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             _items.AddRange(items);
         }
 
-        public IOrderByClause Expr(ISqlExpression expr, bool isDescending)
+        public IOrderByClause Expr(IQueryExpression expr, bool isDescending)
         {
             Add(expr, isDescending);
             return this;
         }
 
-        public IOrderByClause Expr     (ISqlExpression expr)               { return Expr(expr,  false);        }
-        public IOrderByClause ExprAsc  (ISqlExpression expr)               { return Expr(expr,  false);        }
-        public IOrderByClause ExprDesc (ISqlExpression expr)               { return Expr(expr,  true);         }
-        public IOrderByClause Field    (SqlField field, bool isDescending) { return Expr(field, isDescending); }
-        public IOrderByClause Field    (SqlField field)                    { return Expr(field, false);        }
-        public IOrderByClause FieldAsc (SqlField field)                    { return Expr(field, false);        }
-        public IOrderByClause FieldDesc(SqlField field)                    { return Expr(field, true);         }
+        public IOrderByClause Expr     (IQueryExpression expr)               { return Expr(expr,  false);        }
+        public IOrderByClause ExprAsc  (IQueryExpression expr)               { return Expr(expr,  false);        }
+        public IOrderByClause ExprDesc (IQueryExpression expr)               { return Expr(expr,  true);         }
+        public IOrderByClause Field    (ISqlField field, bool isDescending) { return Expr(field, isDescending); }
+        public IOrderByClause Field    (ISqlField field)                    { return Expr(field, false);        }
+        public IOrderByClause FieldAsc (ISqlField field)                    { return Expr(field, false);        }
+        public IOrderByClause FieldDesc(ISqlField field)                    { return Expr(field, true);         }
 
-        void Add(ISqlExpression expr, bool isDescending)
+        void Add(IQueryExpression expr, bool isDescending)
         {
             foreach (var item in Items)
                 if (item.Expression.Equals(expr, (x, y) =>
@@ -67,7 +67,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region ISqlExpressionWalkable Members
 
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             foreach (var t in Items)
                 t.Walk(skipColumns, func);

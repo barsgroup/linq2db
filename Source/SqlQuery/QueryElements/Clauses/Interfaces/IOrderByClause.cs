@@ -9,21 +9,21 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     public interface IOrderByClause : ISqlExpressionWalkable, IQueryElement
     {
-        IOrderByClause Expr(ISqlExpression expr, bool isDescending);
+        IOrderByClause Expr(IQueryExpression expr, bool isDescending);
 
-        IOrderByClause Expr     (ISqlExpression expr);
+        IOrderByClause Expr     (IQueryExpression expr);
 
-        IOrderByClause ExprAsc  (ISqlExpression expr);
+        IOrderByClause ExprAsc  (IQueryExpression expr);
 
-        IOrderByClause ExprDesc (ISqlExpression expr);
+        IOrderByClause ExprDesc (IQueryExpression expr);
 
-        IOrderByClause Field    (SqlField field, bool isDescending);
+        IOrderByClause Field    (ISqlField field, bool isDescending);
 
-        IOrderByClause Field    (SqlField field);
+        IOrderByClause Field    (ISqlField field);
 
-        IOrderByClause FieldAsc (SqlField field);
+        IOrderByClause FieldAsc (ISqlField field);
 
-        IOrderByClause FieldDesc(SqlField field);
+        IOrderByClause FieldDesc(ISqlField field);
 
         List<IOrderByItem> Items { get; }
 

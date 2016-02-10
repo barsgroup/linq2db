@@ -460,10 +460,15 @@
     <Compile Include="SqlQuery\QueryElements\Predicates\NotExpr.cs" />
     <Compile Include="SqlQuery\QueryElements\Predicates\Predicate.cs" />
     <Compile Include="SqlQuery\QueryElements\SetExpression.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Enums\ESqlTableType.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlBinaryExpression.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlDataType.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlField.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlFunction.cs" />
     <Compile Include="SqlQuery\QueryElements\TableSource.cs" />
     <Compile Include="SqlQuery\QueryElements\Union.cs" />
     <Compile Include="SqlQuery\SelectQueryOptimizer.cs" />
-    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlExpression.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\IQueryExpression.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlExpressionWalkable.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlTableSource.cs" />
     <Compile Include="SqlEntities\Sql.cs" />
@@ -490,8 +495,6 @@
     <Compile Include="Mapping\SequenceNameAttribute.cs" />
     <Compile Include="SqlQuery\QueryElements\SelectQuery.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\SqlTable.cs" />
-    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlTableT.cs" />
-    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlTableType.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\SqlValue.cs" />
     <Compile Include="Expressions\TransformInfo.cs" />
     <Compile Include="LinqToDBException.cs" />

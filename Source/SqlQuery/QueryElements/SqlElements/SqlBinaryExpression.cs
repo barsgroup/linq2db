@@ -11,9 +11,10 @@
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     [Serializable, DebuggerDisplay("SQL = {SqlText}")]
-	public class SqlBinaryExpression : BaseQueryElement, ISqlExpression
+	public class SqlBinaryExpression : BaseQueryElement,
+	                                   ISqlBinaryExpression
     {
-		public SqlBinaryExpression(Type systemType, ISqlExpression expr1, string operation, ISqlExpression expr2, int precedence)
+		public SqlBinaryExpression(Type systemType, IQueryExpression expr1, string operation, IQueryExpression expr2, int precedence)
 		{
 			if (expr1     == null) throw new ArgumentNullException(nameof(expr1));
 			if (operation == null) throw new ArgumentNullException(nameof(operation));
@@ -26,14 +27,14 @@
 			Precedence = precedence;
 		}
 
-		public SqlBinaryExpression(Type systemType, ISqlExpression expr1, string operation, ISqlExpression expr2)
+		public SqlBinaryExpression(Type systemType, IQueryExpression expr1, string operation, IQueryExpression expr2)
 			: this(systemType, expr1, operation, expr2, SqlQuery.Precedence.Unknown)
 		{
 		}
 
-		public ISqlExpression Expr1      { get; internal set; }
+		public IQueryExpression Expr1      { get; set; }
 		public string         Operation  { get; private set;  }
-		public ISqlExpression Expr2      { get; internal set; }
+		public IQueryExpression Expr2      { get; set; }
 		public Type           SystemType { get; private set;  }
 		public int            Precedence { get; private set;  }
 
@@ -54,7 +55,7 @@
 
 		#region ISqlExpressionWalkable Members
 
-		ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
 		{
 			Expr1 = Expr1.Walk(skipColumns, func);
 			Expr2 = Expr2.Walk(skipColumns, func);
@@ -66,7 +67,7 @@
 
 		#region IEquatable<ISqlExpression> Members
 
-		bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+		bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
 		{
 			return Equals(other, SqlExpression.DefaultComparer);
 		}
@@ -80,12 +81,12 @@
 			return Expr1.CanBeNull() || Expr2.CanBeNull();
 		}
 
-		public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+		public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
 		{
 			if (this == other)
 				return true;
 
-			var expr = other as SqlBinaryExpression;
+			var expr = other as ISqlBinaryExpression;
 
 			return
 				expr        != null                &&
@@ -111,9 +112,9 @@
 			{
 				objectTree.Add(this, clone = new SqlBinaryExpression(
 					SystemType,
-					(ISqlExpression)Expr1.Clone(objectTree, doClone),
+					(IQueryExpression)Expr1.Clone(objectTree, doClone),
 					Operation,
-					(ISqlExpression)Expr2.Clone(objectTree, doClone),
+					(IQueryExpression)Expr2.Clone(objectTree, doClone),
 					Precedence));
 			}
 

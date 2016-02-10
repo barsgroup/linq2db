@@ -8,6 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class TableSource : BaseQueryElement, ITableSource
@@ -40,7 +41,11 @@ namespace LinqToDB.SqlQuery.QueryElements
         }
 
         public ISqlTableSource Source       { get; set; }
-        public SqlTableType    SqlTableType => Source.SqlTableType;
+        public ESqlTableType    SqlTableType
+        {
+            get { return Source.SqlTableType; }
+            set { throw new NotSupportedException();}
+        }
 
         // TODO: remove internal.
         internal string _alias;
@@ -53,8 +58,8 @@ namespace LinqToDB.SqlQuery.QueryElements
                     if (Source is ITableSource)
                         return (Source as ITableSource).Alias;
 
-                    if (Source is SqlTable)
-                        return ((SqlTable)Source).Alias;
+                    if (Source is ISqlTable)
+                        return ((ISqlTable)Source).Alias;
                 }
 
                 return _alias;
@@ -123,7 +128,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region IEquatable<ISqlExpression> Members
 
-        bool IEquatable<ISqlExpression>.Equals(ISqlExpression other)
+        bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
         {
             return this == other;
         }
@@ -132,7 +137,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region ISqlExpressionWalkable Members
 
-        public ISqlExpression Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> func)
+        public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             Source = (ISqlTableSource)Source.Walk(skipColumns, func);
 
@@ -148,13 +153,13 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public int       SourceID => Source.SourceID;
 
-        public SqlField  All
+        public ISqlField All
         {
             get { return Source.All; }
             set {  }
         }
 
-        IList<ISqlExpression> ISqlTableSource.GetKeys(bool allIfEmpty)
+        IList<IQueryExpression> ISqlTableSource.GetKeys(bool allIfEmpty)
         {
             return Source.GetKeys(allIfEmpty);
         }
@@ -236,7 +241,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             return Source.CanBeNull();
         }
 
-        public bool Equals(ISqlExpression other, Func<ISqlExpression,ISqlExpression,bool> comparer)
+        public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
         {
             return this == other;
         }

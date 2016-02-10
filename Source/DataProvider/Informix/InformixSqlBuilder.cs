@@ -9,6 +9,7 @@ namespace LinqToDB.DataProvider.Informix
     using LinqToDB.SqlQuery.QueryElements.Predicates;
     using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using SqlProvider;
 
@@ -76,13 +77,13 @@ namespace LinqToDB.DataProvider.Informix
 			}
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -121,7 +122,7 @@ namespace LinqToDB.DataProvider.Informix
 			return value;
 		}
 
-		protected override void BuildCreateTableFieldType(SqlField field)
+		protected override void BuildCreateTableFieldType(ISqlField field)
 		{
 			if (field.IsIdentity)
 			{

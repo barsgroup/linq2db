@@ -50,7 +50,7 @@
 
 			public int Precedence { get; set; }
 
-			public override ISqlExpression GetExpression(MemberInfo member, params ISqlExpression[] args)
+			public override IQueryExpression GetExpression(MemberInfo member, params IQueryExpression[] args)
 			{
 				return new SqlExpression(member.GetMemberType(), Expression ?? member.Name, Precedence, ConvertArgs(member, args));
 			}

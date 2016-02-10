@@ -85,7 +85,7 @@ namespace LinqToDB.Linq.Builder
 			private  SqlInfo[] _index;
 
 			public int            FieldIndex;
-			public ISqlExpression Sql;
+			public IQueryExpression Sql;
 
 			static int CheckNullValue(IDataRecord reader, object context)
 			{

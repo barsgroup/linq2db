@@ -22,6 +22,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
         List<ITableSource> Tables { get; }
 
-        ISqlTableSource FindTableSource(SqlTable table);
+        ISqlTableSource FindTableSource(ISqlTable table);
     }
 }

@@ -5,9 +5,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public interface IColumn : IEquatable<IColumn>,
-                               ISqlExpression
+                               IQueryExpression
     {
-        ISqlExpression Expression { get; set; }
+        IQueryExpression Expression { get; set; }
 
         ISelectQuery Parent { get; set; }
 

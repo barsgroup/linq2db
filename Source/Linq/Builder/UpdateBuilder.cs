@@ -223,8 +223,8 @@ namespace LinqToDB.Linq.Builder
 
 						if (expr.ElementType == EQueryElementType.SqlParameter)
 						{
-							var parm  = (SqlParameter)expr;
-							var field = (SqlField)column[0].Sql;
+							var parm  = (ISqlParameter)expr;
+							var field = (ISqlField)column[0].Sql;
 
 							if (parm.DataType == DataType.Undefined)
 								parm.DataType = field.DataType;
@@ -244,7 +244,7 @@ namespace LinqToDB.Linq.Builder
 			LambdaExpression                extract,
 			LambdaExpression                update,
 			IBuildContext                   select,
-			SqlTable                        table,
+            ISqlTable                        table,
 			List<ISetExpression> items)
 		{
 			var ext = extract.Body;

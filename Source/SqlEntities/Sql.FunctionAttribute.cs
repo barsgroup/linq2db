@@ -49,22 +49,22 @@
 			public bool   InlineParameters { get; set; }
 			public int[]  ArgIndices       { get; set; }
 
-			protected ISqlExpression[] ConvertArgs(MemberInfo member, ISqlExpression[] args)
+			protected IQueryExpression[] ConvertArgs(MemberInfo member, IQueryExpression[] args)
 			{
 				if (member is MethodInfo)
 				{
 					var method = (MethodInfo)member;
 
 					if (method.DeclaringType.IsGenericTypeEx())
-						args = args.Concat(method.DeclaringType.GetGenericArgumentsEx().Select(t => (ISqlExpression)SqlDataType.GetDataType(t))).ToArray();
+						args = args.Concat(method.DeclaringType.GetGenericArgumentsEx().Select(t => (IQueryExpression)SqlDataType.GetDataType(t))).ToArray();
 
 					if (method.IsGenericMethod)
-						args = args.Concat(method.GetGenericArguments().Select(t => (ISqlExpression)SqlDataType.GetDataType(t))).ToArray();
+						args = args.Concat(method.GetGenericArguments().Select(t => (IQueryExpression)SqlDataType.GetDataType(t))).ToArray();
 				}
 
 				if (ArgIndices != null)
 				{
-					var idxs = new ISqlExpression[ArgIndices.Length];
+					var idxs = new IQueryExpression[ArgIndices.Length];
 
 					for (var i = 0; i < ArgIndices.Length; i++)
 						idxs[i] = args[ArgIndices[i]];
@@ -75,7 +75,7 @@
 				return args;
 			}
 
-			public virtual ISqlExpression GetExpression(MemberInfo member, params ISqlExpression[] args)
+			public virtual IQueryExpression GetExpression(MemberInfo member, params IQueryExpression[] args)
 			{
 				return new SqlFunction(member.GetMemberType(), Name ?? member.Name, ConvertArgs(member, args));
 			}

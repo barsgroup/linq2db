@@ -72,7 +72,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region ISqlExpressionWalkable Members
 
-        ISqlExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<ISqlExpression,ISqlExpression> action)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> action)
         {
             SearchCondition = (ISearchCondition)((ISqlExpressionWalkable)SearchCondition).Walk(skipColumns, action);
             return null;
