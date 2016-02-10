@@ -847,26 +847,17 @@ namespace LinqToDB.Data
 
 		private MappingSchema _mappingSchema;
 
-		public  MappingSchema  MappingSchema
-		{
-			get { return _mappingSchema; }
-		}
+		public  MappingSchema  MappingSchema => _mappingSchema;
 
-		public bool InlineParameters { get; set; }
+	    public bool InlineParameters { get; set; }
 
 		private List<string> _queryHints;
-		public  List<string>  QueryHints
-		{
-			get { return _queryHints ?? (_queryHints = new List<string>()); }
-		}
+		public  List<string>  QueryHints => _queryHints ?? (_queryHints = new List<string>());
 
-		private List<string> _nextQueryHints;
-		public  List<string>  NextQueryHints
-		{
-			get { return _nextQueryHints ?? (_nextQueryHints = new List<string>()); }
-		}
+	    private List<string> _nextQueryHints;
+		public  List<string>  NextQueryHints => _nextQueryHints ?? (_nextQueryHints = new List<string>());
 
-		public DataConnection AddMappingSchema(MappingSchema mappingSchema)
+	    public DataConnection AddMappingSchema(MappingSchema mappingSchema)
 		{
 			_mappingSchema = new MappingSchema(mappingSchema, _mappingSchema);
 			_id            = null;
@@ -892,12 +883,20 @@ namespace LinqToDB.Data
 
 		public object Clone()
 		{
-			var connection =
-				_connection == null       ? null :
-				_connection is ICloneable ? (IDbConnection)((ICloneable)_connection).Clone() :
-				                            DataProvider.CreateConnection(ConnectionString);
+			IDbConnection connection;
+		    if (_connection != null)
+		    {
+		        var cloneable = _connection as ICloneable;
+		        connection = cloneable != null
+		                         ? (IDbConnection)cloneable.Clone()
+		                         : DataProvider.CreateConnection(ConnectionString);
+		    }
+		    else
+		    {
+		        connection = null;
+		    }
 
-			return new DataConnection(ConfigurationString, DataProvider, ConnectionString, connection, MappingSchema);
+		    return new DataConnection(ConfigurationString, DataProvider, ConnectionString, connection, MappingSchema);
 		}
 		
 		#endregion

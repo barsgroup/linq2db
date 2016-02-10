@@ -106,18 +106,18 @@ namespace LinqToDB.Linq.Builder
 
 							var ex = ma.Expression;
 
-							while (ex is MemberExpression)
-								ex = ((MemberExpression)ex).Expression;
+						    MemberExpression memberExpression;
+							while ((memberExpression = ex as MemberExpression) != null)
+								ex = memberExpression.Expression;
 
-							if (ex is MethodCallExpression)
+						    var callExpression = ex as MethodCallExpression;
+						    if (callExpression != null)
 							{
-								var ce = (MethodCallExpression)ex;
-
-								if (IsSubQuery(context, ce))
+								if (IsSubQuery(context, callExpression))
 								{
-									if (!IsMultipleQuery(ce))
+									if (!IsMultipleQuery(callExpression))
 									{
-										var info = GetSubQueryContext(context, ce);
+										var info = GetSubQueryContext(context, callExpression);
 										var par  = Expression.Parameter(ex.Type);
 										var bex  = info.Context.BuildExpression(ma.Transform(e => e == ex ? par : e), 0);
 

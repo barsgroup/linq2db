@@ -130,7 +130,7 @@ namespace LinqToDB
 			[NotNull, InstantHandle] Expression<Func<T, object>> selector)
 		{
 			var expressionQuery = (IExpressionQuery<T>)table;
-			return (ITable<T>)(expressionQuery.LoadWith(selector));
+			return (ITable<T>)expressionQuery.LoadWith(selector);
 		}
 
 		static public IQueryable<T> LoadWith<T>(

@@ -406,94 +406,81 @@ namespace LinqToDB.SqlProvider
 						switch (be.Operation)
 						{
 							case "+":
-								if (be.Expr1 is ISqlValue)
+						        var value2 = be.Expr1 as ISqlValue;
+						        if (value2 != null)
 								{
-									var v1 = (ISqlValue)be.Expr1;
-									if (v1.Value is int    && (int)   v1.Value == 0 ||
-										v1.Value is string && (string)v1.Value == "") return be.Expr2;
+								    if (value2.Value is int    && (int)   value2.Value == 0 ||
+										value2.Value is string && (string)value2.Value == "") return be.Expr2;
 								}
 
-								if (be.Expr2 is ISqlValue)
+						        var expr4 = be.Expr2 as ISqlValue;
+						        if (expr4 != null)
 								{
-									var v2 = (ISqlValue) be.Expr2;
-
-									if (v2.Value is int)
+								    if (expr4.Value is int)
 									{
-										if ((int)v2.Value == 0) return be.Expr1;
+										if ((int)expr4.Value == 0) return be.Expr1;
 
-										if (be.Expr1 is ISqlBinaryExpression)
-										{
-											var be1 = (ISqlBinaryExpression)be.Expr1;
+									    var binaryExpression = be.Expr1 as ISqlBinaryExpression;
+									    var be1 = binaryExpression;
 
-											if (be1.Expr2 is ISqlValue)
-											{
-												var be1v2 = (ISqlValue)be1.Expr2;
+									    var be1v2 = be1?.Expr2 as ISqlValue;
 
-												if (be1v2.Value is int)
-												{
-													switch (be1.Operation)
-													{
-														case "+":
-															{
-																var value = (int)be1v2.Value + (int)v2.Value;
-																var oper  = be1.Operation;
+									    if (be1v2?.Value is int)
+									    {
+									        switch (be1.Operation)
+									        {
+									            case "+":
+									            {
+									                var value = (int)be1v2.Value + (int)expr4.Value;
+									                var oper  = be1.Operation;
 
-																if (value < 0)
-																{
-																	value = - value;
-																	oper  = "-";
-																}
+									                if (value < 0)
+									                {
+									                    value = - value;
+									                    oper  = "-";
+									                }
 
-																return new SqlBinaryExpression(be.SystemType, be1.Expr1, oper, new SqlValue(value), be.Precedence);
-															}
+									                return new SqlBinaryExpression(be.SystemType, be1.Expr1, oper, new SqlValue(value), be.Precedence);
+									            }
 
-														case "-":
-															{
-																var value = (int)be1v2.Value - (int)v2.Value;
-																var oper  = be1.Operation;
+									            case "-":
+									            {
+									                var value = (int)be1v2.Value - (int)expr4.Value;
+									                var oper  = be1.Operation;
 
-																if (value < 0)
-																{
-																	value = - value;
-																	oper  = "+";
-																}
+									                if (value < 0)
+									                {
+									                    value = - value;
+									                    oper  = "+";
+									                }
 
-																return new SqlBinaryExpression(be.SystemType, be1.Expr1, oper, new SqlValue(value), be.Precedence);
-															}
-													}
-												}
-											}
-										}
+									                return new SqlBinaryExpression(be.SystemType, be1.Expr1, oper, new SqlValue(value), be.Precedence);
+									            }
+									        }
+									    }
 									}
-									else if (v2.Value is string)
+									else if (expr4.Value is string)
 									{
-										if ((string)v2.Value == "") return be.Expr1;
+										if ((string)expr4.Value == "") return be.Expr1;
 
-										if (be.Expr1 is ISqlBinaryExpression)
-										{
-											var be1 = (ISqlBinaryExpression)be.Expr1;
+									    var be1 = be.Expr1 as ISqlBinaryExpression;
+									    var value = (be1?.Expr2 as ISqlValue)?.Value;
 
-											if (be1.Expr2 is ISqlValue)
-											{
-												var value = ((ISqlValue)be1.Expr2).Value;
-
-												if (value is string)
-													return new SqlBinaryExpression(
-														be1.SystemType,
-														be1.Expr1,
-														be1.Operation,
-														new SqlValue(string.Concat(value, v2.Value)));
-											}
-										}
+									    if (value is string)
+									        return new SqlBinaryExpression(
+									            be1.SystemType,
+									            be1.Expr1,
+									            be1.Operation,
+									            new SqlValue(string.Concat(value, expr4.Value)));
 									}
 								}
 
-								if (be.Expr1 is ISqlValue && be.Expr2 is ISqlValue)
+						        var sqlValue2 = be.Expr1 as ISqlValue;
+						        var v3 = be.Expr2 as ISqlValue;
+						        if (sqlValue2 != null && v3 != null)
 								{
-									var v1 = (ISqlValue)be.Expr1;
-									var v2 = (ISqlValue)be.Expr2;
-									if (v1.Value is int    && v2.Value is int)    return new SqlValue((int)v1.Value + (int)v2.Value);
-									if (v1.Value is string || v2.Value is string) return new SqlValue(v1.Value.ToString() + v2.Value);
+								    if (sqlValue2.Value is int    && v3.Value is int)    return new SqlValue((int)sqlValue2.Value + (int)v3.Value);
+									if (sqlValue2.Value is string || v3.Value is string) return new SqlValue(sqlValue2.Value.ToString() + v3.Value);
 								}
 
 								if (be.Expr1.SystemType == typeof(string) && be.Expr2.SystemType != typeof(string))
@@ -529,123 +516,105 @@ namespace LinqToDB.SqlProvider
 								break;
 
 							case "-":
-								if (be.Expr2 is ISqlValue)
+						        var expr3 = be.Expr2 as ISqlValue;
+						        if (expr3?.Value is int)
+						        {
+						            if ((int)expr3.Value == 0) return be.Expr1;
+
+						            var binaryExpression = be.Expr1 as ISqlBinaryExpression;
+						            var be1V2 = binaryExpression?.Expr2 as ISqlValue;
+						            if (be1V2?.Value is int)
+						            {
+						                switch (binaryExpression.Operation)
+						                {
+						                    case "+":
+						                    {
+						                        var value = (int)be1V2.Value - (int)expr3.Value;
+						                        var oper  = binaryExpression.Operation;
+
+						                        if (value < 0)
+						                        {
+						                            value = -value;
+						                            oper  = "-";
+						                        }
+
+						                        return new SqlBinaryExpression(be.SystemType, binaryExpression.Expr1, oper, new SqlValue(value), be.Precedence);
+						                    }
+
+						                    case "-":
+						                    {
+						                        var value = (int)be1V2.Value + (int)expr3.Value;
+						                        var oper  = binaryExpression.Operation;
+
+						                        if (value < 0)
+						                        {
+						                            value = -value;
+						                            oper  = "+";
+						                        }
+
+						                        return new SqlBinaryExpression(be.SystemType, binaryExpression.Expr1, oper, new SqlValue(value), be.Precedence);
+						                    }
+						                }
+						            }
+						        }
+
+						        var sqlValue1 = be.Expr1 as ISqlValue;
+						        if (sqlValue1 != null && be.Expr2 is ISqlValue)
 								{
-									var v2 = (ISqlValue) be.Expr2;
-
-									if (v2.Value is int)
-									{
-										if ((int)v2.Value == 0) return be.Expr1;
-
-										if (be.Expr1 is ISqlBinaryExpression)
-										{
-											var be1 = (ISqlBinaryExpression)be.Expr1;
-
-											if (be1.Expr2 is ISqlValue)
-											{
-												var be1v2 = (ISqlValue)be1.Expr2;
-
-												if (be1v2.Value is int)
-												{
-													switch (be1.Operation)
-													{
-														case "+":
-															{
-																var value = (int)be1v2.Value - (int)v2.Value;
-																var oper  = be1.Operation;
-
-																if (value < 0)
-																{
-																	value = -value;
-																	oper  = "-";
-																}
-
-																return new SqlBinaryExpression(be.SystemType, be1.Expr1, oper, new SqlValue(value), be.Precedence);
-															}
-
-														case "-":
-															{
-																var value = (int)be1v2.Value + (int)v2.Value;
-																var oper  = be1.Operation;
-
-																if (value < 0)
-																{
-																	value = -value;
-																	oper  = "+";
-																}
-
-																return new SqlBinaryExpression(be.SystemType, be1.Expr1, oper, new SqlValue(value), be.Precedence);
-															}
-													}
-												}
-											}
-										}
-									}
-								}
-
-								if (be.Expr1 is ISqlValue && be.Expr2 is ISqlValue)
-								{
-									var v1 = (ISqlValue)be.Expr1;
-									var v2 = (ISqlValue)be.Expr2;
-									if (v1.Value is int && v2.Value is int) return new SqlValue((int)v1.Value - (int)v2.Value);
+								    var v2 = (ISqlValue)be.Expr2;
+									if (sqlValue1.Value is int && v2.Value is int) return new SqlValue((int)sqlValue1.Value - (int)v2.Value);
 								}
 
 								break;
 
 							case "*":
-								if (be.Expr1 is ISqlValue)
+						        var value1 = be.Expr1 as ISqlValue;
+						        if (value1?.Value is int)
+						        {
+						            var v1v = (int)value1.Value;
+
+						            switch (v1v)
+						            {
+						                case  0 : return new SqlValue(0);
+						                case  1 : return be.Expr2;
+						                default :
+						                {
+						                    var be2 = be.Expr2 as ISqlBinaryExpression;
+
+						                    var v1 = be2.Expr1 as ISqlValue;
+						                    if (be2 != null && be2.Operation == "*" && v1 != null)
+						                    {
+						                        if (v1.Value is int)
+						                            return ConvertExpression(
+						                                new SqlBinaryExpression(be2.SystemType, new SqlValue(v1v * (int)v1.Value), "*", be2.Expr2));
+						                    }
+
+						                    break;
+						                }
+
+						            }
+						        }
+
+						        var expr2 = be.Expr2 as ISqlValue;
+						        if (expr2 != null)
 								{
-									var v1 = (ISqlValue)be.Expr1;
-
-									if (v1.Value is int)
-									{
-										var v1v = (int)v1.Value;
-
-										switch (v1v)
-										{
-											case  0 : return new SqlValue(0);
-											case  1 : return be.Expr2;
-											default :
-												{
-													var be2 = be.Expr2 as ISqlBinaryExpression;
-
-													if (be2 != null && be2.Operation == "*" && be2.Expr1 is ISqlValue)
-													{
-														var be2v1 = be2.Expr1 as ISqlValue;
-
-														if (be2v1.Value is int)
-															return ConvertExpression(
-																new SqlBinaryExpression(be2.SystemType, new SqlValue(v1v * (int)be2v1.Value), "*", be2.Expr2));
-													}
-
-													break;
-												}
-
-										}
-									}
+								    if (expr2.Value is int && (int)expr2.Value == 1) return be.Expr1;
+									if (expr2.Value is int && (int)expr2.Value == 0) return new SqlValue(0);
 								}
 
-								if (be.Expr2 is ISqlValue)
+						        var expr1 = be.Expr1 as ISqlValue;
+						        var sqlValue = be.Expr2 as ISqlValue;
+						        if (expr1 != null && sqlValue != null)
 								{
-									var v2 = (ISqlValue)be.Expr2;
-									if (v2.Value is int && (int)v2.Value == 1) return be.Expr1;
-									if (v2.Value is int && (int)v2.Value == 0) return new SqlValue(0);
-								}
-
-								if (be.Expr1 is ISqlValue && be.Expr2 is ISqlValue)
-								{
-									var v1 = (ISqlValue)be.Expr1;
-									var v2 = (ISqlValue)be.Expr2;
-
-									if (v1.Value is int)
+								    if (expr1.Value is int)
 									{
-										if (v2.Value is int)    return new SqlValue((int)   v1.Value * (int)   v2.Value);
-										if (v2.Value is double) return new SqlValue((int)   v1.Value * (double)v2.Value);
+										if (sqlValue.Value is int)    return new SqlValue((int)   expr1.Value * (int)   sqlValue.Value);
+										if (sqlValue.Value is double) return new SqlValue((int)   expr1.Value * (double)sqlValue.Value);
 									}
-									else if (v1.Value is double)
+									else if (expr1.Value is double)
 									{
-										if (v2.Value is int)    return new SqlValue((double)v1.Value * (int)   v2.Value);
-										if (v2.Value is double) return new SqlValue((double)v1.Value * (double)v2.Value);
+										if (sqlValue.Value is int)    return new SqlValue((double)expr1.Value * (int)   sqlValue.Value);
+										if (sqlValue.Value is double) return new SqlValue((double)expr1.Value * (double)sqlValue.Value);
 									}
 								}
 
@@ -781,20 +750,29 @@ namespace LinqToDB.SqlProvider
 					{
 						var expr = (IExprExpr)predicate;
 
-						if (expr.Expr1 is ISqlField && expr.Expr2 is ISqlParameter)
+					    var field = expr.Expr1 as ISqlField;
+					    var parameter = expr.Expr2 as ISqlParameter;
+					    if (field != null && parameter != null)
 						{
-							if (((ISqlParameter)expr.Expr2).DataType == DataType.Undefined)
-								((ISqlParameter)expr.Expr2).DataType = ((ISqlField)expr.Expr1).DataType;
+							if (parameter.DataType == DataType.Undefined)
+								parameter.DataType = field.DataType;
 						}
-						else if (expr.Expr2 is ISqlField && expr.Expr1 is ISqlParameter)
-						{
-							if (((ISqlParameter)expr.Expr1).DataType == DataType.Undefined)
-								((ISqlParameter)expr.Expr1).DataType = ((ISqlField)expr.Expr2).DataType;
-						}
+						else
+					    {
+					        var expr2 = expr.Expr2 as ISqlField;
+					        var expr1 = expr.Expr1 as ISqlParameter;
+					        if (expr2 != null && expr1 != null)
+					        {
+					            if (expr1.DataType == DataType.Undefined)
+					                expr1.DataType = expr2.DataType;
+					        }
+					    }
 
-						if (expr.EOperator == EOperator.Equal && expr.Expr1 is ISqlValue && expr.Expr2 is ISqlValue)
+					    var sqlValue = expr.Expr1 as ISqlValue;
+					    var sqlValue1 = expr.Expr2 as ISqlValue;
+					    if (expr.EOperator == EOperator.Equal && sqlValue != null && sqlValue1 != null)
 						{
-							var value = Equals(((ISqlValue)expr.Expr1).Value, ((ISqlValue)expr.Expr2).Value);
+							var value = Equals(sqlValue.Value, sqlValue1.Value);
 							return new Expr(new SqlValue(value), Precedence.Comparison);
 						}
 
@@ -810,9 +788,10 @@ namespace LinqToDB.SqlProvider
 								break;
 						}
 
-						if (predicate is IExprExpr)
+					    var exprExpr = predicate as IExprExpr;
+					    if (exprExpr != null)
 						{
-							expr = (IExprExpr)predicate;
+							expr = exprExpr;
 
 							switch (expr.EOperator)
 							{
@@ -842,26 +821,24 @@ namespace LinqToDB.SqlProvider
 					{
 						var expr = (INotExpr)predicate;
 
-						if (expr.IsNot && expr.Expr1 is ISearchCondition)
+					    var searchCondition = expr.Expr1 as ISearchCondition;
+					    if (expr.IsNot && searchCondition != null)
 						{
-							var sc = (ISearchCondition)expr.Expr1;
-
-							if (sc.Conditions.Count == 1)
+						    if (searchCondition.Conditions.Count == 1)
 							{
-								var cond = sc.Conditions[0];
+								var cond = searchCondition.Conditions[0];
 
 								if (cond.IsNot)
 									return cond.Predicate;
 
-								if (cond.Predicate is IExprExpr)
+							    var exprExpr = cond.Predicate as IExprExpr;
+							    if (exprExpr != null)
 								{
-									var ee = (IExprExpr)cond.Predicate;
+									if (exprExpr.EOperator == EOperator.Equal)
+										return new ExprExpr(exprExpr.Expr1, EOperator.NotEqual, exprExpr.Expr2);
 
-									if (ee.EOperator == EOperator.Equal)
-										return new ExprExpr(ee.Expr1, EOperator.NotEqual, ee.Expr2);
-
-									if (ee.EOperator == EOperator.NotEqual)
-										return new ExprExpr(ee.Expr1, EOperator.Equal, ee.Expr2);
+									if (exprExpr.EOperator == EOperator.NotEqual)
+										return new ExprExpr(exprExpr.Expr1, EOperator.Equal, exprExpr.Expr2);
 								}
 							}
 						}
@@ -934,8 +911,7 @@ namespace LinqToDB.SqlProvider
 					var v2 = func.Parameters[3] as ISqlValue;
 					var v3 = func.Parameters[4] as ISqlValue;
 
-					if (c1 != null && c1.Conditions.Count == 1 && v1 != null && v1.Value is int &&
-						c2 != null && c2.Conditions.Count == 1 && v2 != null && v2.Value is int && v3 != null && v3.Value is int)
+					if (c1 != null && c1.Conditions.Count == 1 && v1?.Value is int && c2 != null && c2.Conditions.Count == 1 && v2?.Value is int && v3?.Value is int)
 					{
 						var ee1 = c1.Conditions[0].Predicate as IExprExpr;
 						var ee2 = c2.Conditions[0].Predicate as IExprExpr;
@@ -1002,7 +978,7 @@ namespace LinqToDB.SqlProvider
 					var v1 = func.Parameters[1] as ISqlValue;
 					var v2 = func.Parameters[2] as ISqlValue;
 
-					if (c1 != null && c1.Conditions.Count == 1 && v1 != null && v1.Value is bool && v2 != null && v2.Value is bool)
+					if (c1 != null && c1.Conditions.Count == 1 && v1?.Value is bool && v2?.Value is bool)
 					{
 						var bv  = (bool)value.Value;
 						var bv1 = (bool)v1.Value;
@@ -1166,16 +1142,17 @@ namespace LinqToDB.SqlProvider
 
 		protected ISelectQuery GetAlternativeDelete(ISelectQuery selectQuery)
 		{
-			if (selectQuery.IsDelete && 
+		    var source = selectQuery.From.Tables[0].Source as ISqlTable;
+		    if (selectQuery.IsDelete && 
 				(selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables[0].Joins.Count > 0) && 
-				selectQuery.From.Tables[0].Source is ISqlTable)
+				source != null)
 			{
 				var sql = new SelectQuery { EQueryType = EQueryType.Delete, IsParameterDependent = selectQuery.IsParameterDependent };
 
 				selectQuery.ParentSelect = sql;
 				selectQuery.EQueryType = EQueryType.Select;
 
-				var table = (ISqlTable)selectQuery.From.Tables[0].Source;
+				var table = source;
 				var copy  = new SqlTable(table) { Alias = null };
 
 				var tableKeys = table.GetKeys(true);
@@ -1216,7 +1193,8 @@ namespace LinqToDB.SqlProvider
 
 		protected ISelectQuery GetAlternativeUpdate(ISelectQuery selectQuery)
 		{
-			if (selectQuery.IsUpdate && (selectQuery.From.Tables[0].Source is ISqlTable || selectQuery.Update.Table != null))
+		    var source = selectQuery.From.Tables[0].Source as ISqlTable;
+		    if (selectQuery.IsUpdate && (source != null || selectQuery.Update.Table != null))
 			{
 				if (selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables[0].Joins.Count > 0)
 				{
@@ -1230,7 +1208,11 @@ namespace LinqToDB.SqlProvider
 					if (selectQuery.Update.Table != null)
 						if (new QueryVisitor().Find(selectQuery.From, t => t == table) == null)
 							table = (ISqlTable)new QueryVisitor().Find(selectQuery.From,
-								ex => ex is ISqlTable && ((ISqlTable)ex).ObjectType == table.ObjectType) ?? table;
+							    ex =>
+							    {
+							        var sqlTable = ex as ISqlTable;
+							        return sqlTable != null && sqlTable.ObjectType == table.ObjectType;
+							    }) ?? table;
 
 					var copy = new SqlTable(table);
 

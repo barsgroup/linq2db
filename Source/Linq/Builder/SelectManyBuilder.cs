@@ -49,9 +49,10 @@ namespace LinqToDB.Linq.Builder
 				e.ElementType == EQueryElementType.SqlField    && sequenceTables.Contains(((ISqlField)e).Table) ||
 				e.ElementType == EQueryElementType.Column      && sequenceTables.Contains(((IColumn)e).Parent));
 
-			if (collection is JoinBuilder.GroupJoinSubQueryContext)
+		    var groupJoinSubQueryContext = collection as JoinBuilder.GroupJoinSubQueryContext;
+		    if (groupJoinSubQueryContext != null)
 			{
-				var groupJoin = ((JoinBuilder.GroupJoinSubQueryContext)collection).GroupJoin;
+				var groupJoin = groupJoinSubQueryContext.GroupJoin;
 
 				groupJoin.Select.From.Tables[0].Joins[0].JoinType = EJoinType.Inner;
 				groupJoin.Select.From.Tables[0].Joins[0].IsWeak   = false;
@@ -80,11 +81,10 @@ namespace LinqToDB.Linq.Builder
 				}
 			}
 
-			if (collection is TableBuilder.TableContext)
+		    var tableContext = collection as TableBuilder.TableContext;
+		    if (tableContext != null)
 			{
-				var table = (TableBuilder.TableContext)collection;
-
-				var join = table.SqlTable.TableArguments != null && table.SqlTable.TableArguments.Length > 0 ?
+				var join = tableContext.SqlTable.TableArguments != null && tableContext.SqlTable.TableArguments.Length > 0 ?
 					(leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql)) :
 					(leftJoin ? SelectQuery.LeftJoin  (sql) : SelectQuery.InnerJoin (sql));
 

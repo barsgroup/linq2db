@@ -99,9 +99,10 @@ namespace LinqToDB.Linq.Builder
 
 					case ExpressionType.Extension    :
 						{
-							if (expression is GetItemExpression)
+						    var itemExpression = expression as GetItemExpression;
+						    if (itemExpression != null)
 							{
-								expression = ((GetItemExpression)expression).Expression;
+								expression = itemExpression.Expression;
 								break;
 							}
 

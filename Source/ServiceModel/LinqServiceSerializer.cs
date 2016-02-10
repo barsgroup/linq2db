@@ -541,7 +541,7 @@ namespace LinqToDB.ServiceModel
 						{
 							var p = (ISqlParameter)e;
 							var v = p.Value;
-							var t = v == null ? p.SystemType : v.GetType();
+							var t = v?.GetType() ?? p.SystemType;
 
 							if (v == null || t.IsArray || t == typeof(string) || !(v is IEnumerable))
 							{

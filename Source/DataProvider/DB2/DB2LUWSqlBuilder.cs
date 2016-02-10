@@ -14,9 +14,6 @@
 			return new DB2LUWSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override DB2Version Version
-		{
-			get { return DB2Version.LUW; }
-		}
+		protected override DB2Version Version => DB2Version.LUW;
 	}
 }

@@ -74,12 +74,14 @@ namespace LinqToDB.Linq.Builder
 				builder.DataContextInfo.SqlProviderFlags.IsTakeSupported &&
 				!builder.DataContextInfo.SqlProviderFlags.GetIsSkipSupportedFlag(sql))
 			{
-				if (sql.Select.SkipValue is ISqlParameter && sql.Select.TakeValue is ISqlValue)
+			    var sqlParameter = sql.Select.SkipValue as ISqlParameter;
+			    var sqlValue = sql.Select.TakeValue as ISqlValue;
+			    if (sqlParameter != null && sqlValue != null)
 				{
-					var skip = (ISqlParameter)sql.Select.SkipValue;
-					var parm = (ISqlParameter)sql.Select.SkipValue.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
+					var skip = sqlParameter;
+					var parm = (ISqlParameter)sqlParameter.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
 
-					parm.SetTakeConverter((int)((ISqlValue)sql.Select.TakeValue).Value);
+					parm.SetTakeConverter((int)sqlValue.Value);
 
 					sql.Select.Take(parm);
 
@@ -100,7 +102,7 @@ namespace LinqToDB.Linq.Builder
 						new SqlBinaryExpression(typeof(int), sql.Select.SkipValue, "+", sql.Select.TakeValue, Precedence.Additive)));
 			}
 
-			if (!builder.DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))
+		    if (!builder.DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))
 			{
 				var p = sql.Select.TakeValue as ISqlParameter;
 

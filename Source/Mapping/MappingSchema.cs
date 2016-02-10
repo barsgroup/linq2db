@@ -224,12 +224,9 @@ namespace LinqToDB.Mapping
 			return null;
 		}
 
-		internal ConcurrentDictionary<object,Func<object,object>> Converters
-		{
-			get { return _schemas[0].Converters; }
-		}
+		internal ConcurrentDictionary<object,Func<object,object>> Converters => _schemas[0].Converters;
 
-		public Expression<Func<TFrom,TTo>> GetConvertExpression<TFrom,TTo>()
+        public Expression<Func<TFrom,TTo>> GetConvertExpression<TFrom,TTo>()
 		{
 			var li = GetConverter(typeof(TFrom), typeof(TTo), true);
 			return (Expression<Func<TFrom,TTo>>)ReduceDefaultValue(li.CheckNullLambda);
@@ -646,12 +643,9 @@ namespace LinqToDB.Mapping
 		#region Configuration
 
 		private string _configurationID;
-		public  string  ConfigurationID
-		{
-			get { return _configurationID ?? (_configurationID = string.Join(".", ConfigurationList)); }
-		}
+		public  string  ConfigurationID => _configurationID ?? (_configurationID = string.Join(".", ConfigurationList));
 
-		private string[] _configurationList;
+        private string[] _configurationList;
 		public  string[]  ConfigurationList
 		{
 			get

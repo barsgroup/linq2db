@@ -25,10 +25,7 @@
 		/// <summary>
 		/// Gets format parameter name
 		/// </summary>
-		public string FormatParameterName
-		{
-			get { return _formatParameterName; }
-		}
+		public string FormatParameterName => _formatParameterName;
 	}
 
 	/// <summary>
@@ -73,10 +70,7 @@
 		/// <summary>
 		/// Gets condition type
 		/// </summary>
-		public AssertionConditionType ConditionType
-		{
-			get { return _conditionType; }
-		}
+		public AssertionConditionType ConditionType => _conditionType;
 	}
 
 	/// <summary>
@@ -182,10 +176,7 @@
 		/// <summary>
 		/// Gets enumerations of specified base types
 		/// </summary>
-		public IEnumerable<Type> BaseTypes
-		{
-			get { return _baseTypes; }
-		}
+		public IEnumerable<Type> BaseTypes => _baseTypes;
 	}
 
 	/// <summary>
@@ -200,12 +191,9 @@
 		/// Gets value indicating what is meant to be used
 		/// </summary>
 		[UsedImplicitly]
-		public ImplicitUseFlags Flags
-		{
-			get { return _flags; }
-		}
+		public ImplicitUseFlags Flags => _flags;
 
-		/// <summary>
+	    /// <summary>
 		/// Initializes new instance of UsedImplicitlyAttribute
 		/// </summary>
 		public UsedImplicitlyAttribute()
@@ -234,12 +222,9 @@
 		/// Gets value indicating what is meant to be used
 		/// </summary>
 		[UsedImplicitly]
-		public ImplicitUseFlags Flags
-		{
-			get { return _flags; }
-		}
+		public ImplicitUseFlags Flags => _flags;
 
-		/// <summary>
+	    /// <summary>
 		/// Initializes new instance of MeansImplicitUseAttribute
 		/// </summary>
 		[UsedImplicitly]

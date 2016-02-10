@@ -41,17 +41,12 @@ namespace LinqToDB.Configuration
 			}
 		}
 
-		protected override ConfigurationPropertyCollection Properties
-		{
-			get { return _properties; }
-		}
+		protected override ConfigurationPropertyCollection Properties => _properties;
 
-		public DataProviderElementCollection DataProviders
-		{
-			get { return (DataProviderElementCollection) base[_propDataProviders]; }
-		}
+	    public DataProviderElementCollection DataProviders => (DataProviderElementCollection) base[_propDataProviders];
 
-		public string DefaultConfiguration { get { return (string)base[_propDefaultConfiguration]; } }
-		public string DefaultDataProvider  { get { return (string)base[_propDefaultDataProvider];  } }
+	    public string DefaultConfiguration => (string)base[_propDefaultConfiguration];
+
+	    public string DefaultDataProvider => (string)base[_propDefaultDataProvider];
 	}
 }

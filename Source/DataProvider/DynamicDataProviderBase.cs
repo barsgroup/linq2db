@@ -51,12 +51,9 @@ namespace LinqToDB.DataProvider
 		}
 
 		private         Type _dataReaderType;
-		public override Type  DataReaderType
-		{
-			get { return _dataReaderType ?? (_dataReaderType = Type.GetType(DataReaderTypeName, true)); }
-		}
+		public override Type  DataReaderType => _dataReaderType ?? (_dataReaderType = Type.GetType(DataReaderTypeName, true));
 
-		Func<string,IDbConnection> _createConnection;
+	    Func<string,IDbConnection> _createConnection;
 
 		protected override IDbConnection CreateConnectionInternal(string connectionString)
 		{

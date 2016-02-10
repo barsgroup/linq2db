@@ -44,7 +44,7 @@ namespace LinqToDB.Linq.Builder
 					throw new NotSupportedException("Explicit construction of entity type '{0}' in group by is not allowed.".Args(body.Type));
 			}
 
-			return (methodCall.Arguments[methodCall.Arguments.Count - 1].Unwrap().NodeType == ExpressionType.Lambda);
+			return methodCall.Arguments[methodCall.Arguments.Count - 1].Unwrap().NodeType == ExpressionType.Lambda;
 		}
 
 		protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
@@ -418,13 +418,13 @@ namespace LinqToDB.Linq.Builder
 					{
 						var ex = call.Arguments[i].Unwrap();
 
-						if (ex is LambdaExpression)
+					    var lambdaExpression = ex as LambdaExpression;
+					    if (lambdaExpression != null)
 						{
-							var l   = (LambdaExpression)ex;
 							var p   = _element.Parent;
-							var ctx = new ExpressionContext(Parent, _element, l);
+							var ctx = new ExpressionContext(Parent, _element, lambdaExpression);
 
-							args[i - 1] = Builder.ConvertToSql(ctx, l.Body, true);
+							args[i - 1] = Builder.ConvertToSql(ctx, lambdaExpression.Body, true);
 
 							Builder.ReplaceParent(ctx, p);
 						}
@@ -549,7 +549,12 @@ namespace LinqToDB.Linq.Builder
 			{
 				var expr = Select.Select.Columns[index].Expression;
 
-				if (!Select.GroupBy.Items.Any(_ => ReferenceEquals(_, expr) || (expr is IColumn && ReferenceEquals(_, ((IColumn)expr).Expression))))
+			    if (!Select.GroupBy.Items.Any(
+			        _ =>
+			        {
+			            var column = expr as IColumn;
+			            return ReferenceEquals(_, expr) || (column != null && ReferenceEquals(_, column.Expression));
+			        }))
 					Select.GroupBy.Items.Add(expr);
 
 				return base.ConvertToParentIndex(index, this);
@@ -578,15 +583,15 @@ namespace LinqToDB.Linq.Builder
 			{
 				if (expression == null && buildInfo != null)
 				{
-					if (buildInfo.Parent is SelectManyBuilder.SelectManyContext)
+				    var selectManyContext = buildInfo.Parent as SelectManyBuilder.SelectManyContext;
+				    if (selectManyContext != null)
 					{
-						var sm     = (SelectManyBuilder.SelectManyContext)buildInfo.Parent;
 						var ctype  = typeof(ContextHelper<>).MakeGenericType(_key.Lambda.Parameters[0].Type);
 						var helper = (IContextHelper)Activator.CreateInstance(ctype);
 						var expr   = helper.GetContext(
 							Sequence.Expression,
 							_key.Lambda.Parameters[0],
-							Expression.PropertyOrField(sm.Lambda.Parameters[0], "Key"),
+							Expression.PropertyOrField(selectManyContext.Lambda.Parameters[0], "Key"),
 							_key.Lambda.Body);
 
 						return Builder.BuildSequence(new BuildInfo(buildInfo, expr));

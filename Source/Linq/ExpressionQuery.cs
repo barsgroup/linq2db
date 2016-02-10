@@ -43,8 +43,9 @@ namespace LinqToDB.Linq
 
 // ReSharper disable InconsistentNaming
 		[UsedImplicitly]
-		private string _sqlText { get { return SqlText; }}
-// ReSharper restore InconsistentNaming
+		private string _sqlText => SqlText;
+
+        // ReSharper restore InconsistentNaming
 
 		public  string  SqlText
 		{
@@ -98,22 +99,13 @@ namespace LinqToDB.Linq
 
 		#region IQueryable Members
 
-		Type IQueryable.ElementType
-		{
-			get { return typeof(T); }
-		}
+		Type IQueryable.ElementType => typeof(T);
 
-		Expression IQueryable.Expression
-		{
-			get { return Expression; }
-		}
+        Expression IQueryable.Expression => Expression;
 
-		IQueryProvider IQueryable.Provider
-		{
-			get { return this; }
-		}
+        IQueryProvider IQueryable.Provider => this;
 
-		#endregion
+        #endregion
 
 		#region IQueryProvider Members
 

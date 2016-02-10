@@ -99,7 +99,7 @@ namespace LinqToDB.Linq.Builder
 		{
 			return SubQuery
 				.ConvertToIndex(expression, level, flags)
-				.Select(idx => new SqlInfo((idx.Members)) { Sql = SubQuery.Select.Select.Columns[idx.Index] })
+				.Select(idx => new SqlInfo(idx.Members) { Sql = SubQuery.Select.Select.Columns[idx.Index] })
 				.ToArray();
 		}
 

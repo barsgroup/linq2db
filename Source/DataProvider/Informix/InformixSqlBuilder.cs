@@ -56,10 +56,11 @@ namespace LinqToDB.DataProvider.Informix
 				base.BuildSelectClause();
 		}
 
-		protected override string FirstFormat { get { return "FIRST {0}"; } }
-		protected override string SkipFormat  { get { return "SKIP {0}";  } }
+		protected override string FirstFormat => "FIRST {0}";
 
-		protected override void BuildLikePredicate(ILike predicate)
+	    protected override string SkipFormat => "SKIP {0}";
+
+	    protected override void BuildLikePredicate(ILike predicate)
 		{
 			if (predicate.IsNot)
 				StringBuilder.Append("NOT ");
@@ -113,7 +114,7 @@ namespace LinqToDB.DataProvider.Informix
 					if (value != null)
 					{
 						var str = value.ToString();
-						return (str.Length > 0 && str[0] == ':')? str.Substring(1): str;
+						return str.Length > 0 && str[0] == ':'? str.Substring(1): str;
 					}
 
 					break;

@@ -37,12 +37,9 @@
 			{
 			}
 
-			protected new string Name
-			{
-				get { return base.Name; }
-			}
+			protected new string Name => base.Name;
 
-			public string Expression
+		    public string Expression
 			{
 				get { return base.Name;  }
 				set { base.Name = value; }

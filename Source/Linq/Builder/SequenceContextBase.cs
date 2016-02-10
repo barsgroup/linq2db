@@ -21,7 +21,7 @@ namespace LinqToDB.Linq.Builder
 		}
 
 #if DEBUG
-		public string _sqlQueryText { get { return Select == null ? "" : Select.SqlText; } }
+		public string _sqlQueryText => Select == null ? "" : Select.SqlText;
 #endif
 
 		public IBuildContext     Parent      { get; set; }
@@ -30,9 +30,9 @@ namespace LinqToDB.Linq.Builder
 		public LambdaExpression  Lambda      { get; set; }
 		public ISelectQuery      Select { get; set; }
 
-		Expression IBuildContext.Expression { get { return Lambda; } }
+		Expression IBuildContext.Expression => Lambda;
 
-		public virtual void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
+        public virtual void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
 		{
 			var expr   = BuildExpression(null, 0);
 			var mapper = Builder.BuildMapper<T>(expr);

@@ -27,26 +27,24 @@ namespace LinqToDB.Linq.Builder
 			// Check association.
 			//
 			var ctx = sequence as SelectContext;
-
 			if (ctx != null && ctx.IsScalar)
 			{
 				var res = ctx.IsExpression(null, 0, RequestFor.Association);
 
-				if (res.Result && res.Context is TableBuilder.AssociatedTableContext)
+			    var associatedTableContext = res.Context as TableBuilder.AssociatedTableContext;
+			    if (res.Result && associatedTableContext != null)
 				{
-					var atc = (TableBuilder.AssociatedTableContext)res.Context;
-					sequence.Select.Delete.Table = atc.SqlTable;
+				    sequence.Select.Delete.Table = associatedTableContext.SqlTable;
 				}
 				else
 				{
 					res = ctx.IsExpression(null, 0, RequestFor.Table);
 
-					if (res.Result && res.Context is TableBuilder.TableContext)
+				    var tableContext = res.Context as TableBuilder.TableContext;
+				    if (res.Result && tableContext != null)
 					{
-						var tc = (TableBuilder.TableContext)res.Context;
-
-						if (sequence.Select.From.Tables.Count == 0 || sequence.Select.From.Tables[0].Source != tc.Select)
-							sequence.Select.Delete.Table = tc.SqlTable;
+					    if (sequence.Select.From.Tables.Count == 0 || sequence.Select.From.Tables[0].Source != tableContext.Select)
+							sequence.Select.Delete.Table = tableContext.SqlTable;
 					}
 				}
 			}

@@ -703,54 +703,63 @@ namespace LinqToDB.Extensions
 		///<summary>
 		/// Gets the Type of a list item.
 		///</summary>
-		/// <param name="list">A <see cref="System.Object"/> instance. </param>
+		/// <param name="collection">A <see cref="System.Object"/> instance. </param>
 		///<returns>The Type instance that represents the exact runtime type of a list item.</returns>
-		public static Type GetListItemType(this IEnumerable list)
+		public static Type GetListItemType(this IEnumerable collection)
 		{
 			var typeOfObject = typeof(object);
 
-			if (list == null)
+			if (collection == null)
 				return typeOfObject;
 
-			if (list is Array)
-				return list.GetType().GetElementType();
+			if (collection is Array)
+				return collection.GetType().GetElementType();
 
-			var type = list.GetType();
+			var type = collection.GetType();
 
-			if (list is IList
+			if (collection is IList
 #if !SILVERLIGHT && !NETFX_CORE
-				|| list is ITypedList || list is IListSource
+				|| collection is ITypedList || collection is IListSource
 #endif
 				)
 			{
 				PropertyInfo last = null;
 
-				foreach (var pi in type.GetPropertiesEx())
-				{
-					if (pi.GetIndexParameters().Length > 0 && pi.PropertyType != typeOfObject)
-					{
-						if (pi.Name == "Item")
-							return pi.PropertyType;
+			    var propertyInfos = type.GetPropertiesEx();
+			    for (int i = 0; i < propertyInfos.Length; i++)
+			    {
+			        var pi = propertyInfos[i];
+			        if (pi.GetIndexParameters().Length > 0 && pi.PropertyType != typeOfObject)
+			        {
+			            if (pi.Name == "Item")
+			            {
+			                return pi.PropertyType;
+			            }
 
-						last = pi;
-					}
-				}
+			            last = pi;
+			        }
+			    }
 
-				if (last != null)
+			    if (last != null)
 					return last.PropertyType;
 			}
 
-			if (list is IList)
+		    var list = collection as IList;
+		    if (list != null)
 			{
-				foreach (var o in (IList)list)
-					if (o != null && o.GetType() != typeOfObject)
-						return o.GetType();
+			    for (int i = 0; i < list.Count; i++)
+			    {
+			        var item = list[i];
+			        if (item != null && item.GetType() != typeOfObject)
+			        {
+			            return item.GetType();
+			        }
+			    }
 			}
 			else
 			{
-				foreach (var o in list)
-					if (o != null && o.GetType() != typeOfObject)
-						return o.GetType();
+				foreach (var o in collection.Cast<object>().Where(o => o != null && o.GetType() != typeOfObject))
+				    return o.GetType();
 			}
 
 			return typeOfObject;
@@ -1082,18 +1091,19 @@ namespace LinqToDB.Extensions
 				if (member1.DeclaringType == member2.DeclaringType)
 					return true;
 
-				if (member1 is PropertyInfo)
+			    var propertyInfo = member1 as PropertyInfo;
+			    if (propertyInfo != null)
 				{
 					var isSubclass =
-						member1.DeclaringType.IsSameOrParentOf(member2.DeclaringType) ||
-						member2.DeclaringType.IsSameOrParentOf(member1.DeclaringType);
+						propertyInfo.DeclaringType.IsSameOrParentOf(member2.DeclaringType) ||
+						member2.DeclaringType.IsSameOrParentOf(propertyInfo.DeclaringType);
 
 					if (isSubclass)
 						return true;
 
 					if (declaringType != null && member2.DeclaringType.IsInterfaceEx())
 					{
-						var getter1 = ((PropertyInfo)member1).GetGetMethodEx();
+						var getter1 = propertyInfo.GetGetMethodEx();
 						var getter2 = ((PropertyInfo)member2).GetGetMethodEx();
 
 						var map = declaringType.GetInterfaceMapEx(member2.DeclaringType);
@@ -1108,16 +1118,17 @@ namespace LinqToDB.Extensions
 
 			if (member2.DeclaringType.IsInterfaceEx() && !member1.DeclaringType.IsInterfaceEx() && member1.Name.EndsWith(member2.Name))
 			{
-				if (member1 is PropertyInfo)
+			    var propertyInfo = member1 as PropertyInfo;
+			    if (propertyInfo != null)
 				{
-					var isSubclass = member2.DeclaringType.IsAssignableFromEx(member1.DeclaringType);
+					var isSubclass = member2.DeclaringType.IsAssignableFromEx(propertyInfo.DeclaringType);
 
 					if (isSubclass)
 					{
-						var getter1 = ((PropertyInfo)member1).GetGetMethodEx();
+						var getter1 = propertyInfo.GetGetMethodEx();
 						var getter2 = ((PropertyInfo)member2).GetGetMethodEx();
 
-						var map = member1.DeclaringType.GetInterfaceMapEx(member2.DeclaringType);
+						var map = propertyInfo.DeclaringType.GetInterfaceMapEx(member2.DeclaringType);
 
 						foreach (var mi in map.InterfaceMethods)
 							if ((getter2 == null || (getter2.Name == mi.Name && getter2.DeclaringType == mi.DeclaringType)) &&
@@ -1129,7 +1140,7 @@ namespace LinqToDB.Extensions
 				}
 			}
 
-			return false;
+		    return false;
 		}
 
 		#endregion

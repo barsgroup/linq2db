@@ -46,12 +46,13 @@ namespace LinqToDB.DataProvider.SapHana
 			return new SapHanaSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override string LimitFormat { get { return "LIMIT {0}"; } }
-		protected override string OffsetFormat { get { return SelectQuery.Select.TakeValue == null ? "LIMIT 4200000000 OFFSET {0}" : "OFFSET {0}"; } }
-		
-		public override bool IsNestedJoinParenthesisRequired { get { return true; } }
+		protected override string LimitFormat => "LIMIT {0}";
 
-		protected override void BuildStartCreateTableStatement(ICreateTableStatement createTable)
+	    protected override string OffsetFormat => SelectQuery.Select.TakeValue == null ? "LIMIT 4200000000 OFFSET {0}" : "OFFSET {0}";
+
+	    public override bool IsNestedJoinParenthesisRequired => true;
+
+	    protected override void BuildStartCreateTableStatement(ICreateTableStatement createTable)
 		{
 			if (createTable.StatementHeader == null)
 			{

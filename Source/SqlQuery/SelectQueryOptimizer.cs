@@ -334,29 +334,28 @@ namespace LinqToDB.SqlQuery
 
 	            var table = element.From.Tables[0];
 
-	            if (table.Joins.Count != 0 || !(table.Source is ISelectQuery))
+	            var selectQuery = table.Source as ISelectQuery;
+	            if (table.Joins.Count != 0 || selectQuery == null)
 	                return;
 
-	            var union = (ISelectQuery)table.Source;
-
-	            if (!union.HasUnion)
+	            if (!selectQuery.HasUnion)
 	                return;
 
 	            for (var i = 0; i < element.Select.Columns.Count; i++)
 	            {
 	                var scol = element.Select.Columns[i];
-	                var ucol = union.Select.Columns[i];
+	                var ucol = selectQuery.Select.Columns[i];
 
 	                if (scol.Expression != ucol)
 	                    return;
 	            }
 
-	            exprs.Add(union, element);
+	            exprs.Add(selectQuery, element);
 
 	            for (var i = 0; i < element.Select.Columns.Count; i++)
 	            {
 	                var scol = element.Select.Columns[i];
-	                var ucol = union.Select.Columns[i];
+	                var ucol = selectQuery.Select.Columns[i];
 
 	                scol.Expression = ucol.Expression;
 	                scol.Alias = ucol.Alias;
@@ -364,17 +363,17 @@ namespace LinqToDB.SqlQuery
 	                exprs.Add(ucol, scol);
 	            }
 
-	            for (var i = element.Select.Columns.Count; i < union.Select.Columns.Count; i++)
-	                element.Select.Expr(union.Select.Columns[i].Expression);
+	            for (var i = element.Select.Columns.Count; i < selectQuery.Select.Columns.Count; i++)
+	                element.Select.Expr(selectQuery.Select.Columns[i].Expression);
 
 	            element.From.Tables.Clear();
-	            element.From.Tables.AddRange(union.From.Tables);
+	            element.From.Tables.AddRange(selectQuery.From.Tables);
 
-	            element.Where.SearchCondition.Conditions.AddRange(union.Where.SearchCondition.Conditions);
-	            element.Having.SearchCondition.Conditions.AddRange(union.Having.SearchCondition.Conditions);
-	            element.GroupBy.Items.AddRange(union.GroupBy.Items);
-	            element.OrderBy.Items.AddRange(union.OrderBy.Items);
-	            element.Unions.InsertRange(0, union.Unions);
+	            element.Where.SearchCondition.Conditions.AddRange(selectQuery.Where.SearchCondition.Conditions);
+	            element.Having.SearchCondition.Conditions.AddRange(selectQuery.Having.SearchCondition.Conditions);
+	            element.GroupBy.Items.AddRange(selectQuery.GroupBy.Items);
+	            element.OrderBy.Items.AddRange(selectQuery.OrderBy.Items);
+	            element.Unions.InsertRange(0, selectQuery.Unions);
 	        }
 
 	        _selectQuery.Walk(
@@ -450,29 +449,28 @@ namespace LinqToDB.SqlQuery
 			{
 				var cond = searchCondition.Conditions[0];
 
-				if (cond.Predicate is ISearchCondition)
+			    var condition = cond.Predicate as ISearchCondition;
+			    if (condition != null)
 				{
-					var sc = (ISearchCondition)cond.Predicate;
-
 					if (!cond.IsNot)
 					{
 						searchCondition.Conditions.Clear();
-						searchCondition.Conditions.AddRange(sc.Conditions);
+						searchCondition.Conditions.AddRange(condition.Conditions);
 
 						OptimizeSearchCondition(searchCondition);
 						return;
 					}
 
-					if (sc.Conditions.Count == 1)
+					if (condition.Conditions.Count == 1)
 					{
-						var c1 = sc.Conditions[0];
+						var c1 = condition.Conditions[0];
 
-						if (!c1.IsNot && c1.Predicate is IExprExpr)
+					    var predicate = c1.Predicate as IExprExpr;
+					    if (!c1.IsNot && predicate != null)
 						{
-							var ee = (IExprExpr)c1.Predicate;
-							EOperator op;
+						    EOperator op;
 
-							switch (ee.EOperator)
+							switch (predicate.EOperator)
 							{
 								case EOperator.Equal          : op = EOperator.NotEqual;       break;
 								case EOperator.NotEqual       : op = EOperator.Equal;          break;
@@ -485,10 +483,10 @@ namespace LinqToDB.SqlQuery
 								default: throw new InvalidOperationException();
 							}
 
-							c1.Predicate = new ExprExpr(ee.Expr1, op, ee.Expr2);
+							c1.Predicate = new ExprExpr(predicate.Expr1, op, predicate.Expr2);
 
 							searchCondition.Conditions.Clear();
-							searchCondition.Conditions.AddRange(sc.Conditions);
+							searchCondition.Conditions.AddRange(condition.Conditions);
 
 							OptimizeSearchCondition(searchCondition);
 							return;
@@ -500,14 +498,11 @@ namespace LinqToDB.SqlQuery
 				{
 					var expr = (IExpr)cond.Predicate;
 
-					if (expr.Expr1 is ISqlValue)
-					{
-						var value = (ISqlValue)expr.Expr1;
+				    var sqlValue = expr.Expr1 as ISqlValue;
 
-						if (value.Value is bool)
-							if (cond.IsNot ? !(bool)value.Value : (bool)value.Value)
-								searchCondition.Conditions.Clear();
-					}
+				    if (sqlValue?.Value is bool)
+				        if (cond.IsNot ? !(bool)sqlValue.Value : (bool)sqlValue.Value)
+				            searchCondition.Conditions.Clear();
 				}
 			}
 
@@ -519,32 +514,29 @@ namespace LinqToDB.SqlQuery
 				{
 					var expr = (IExpr)cond.Predicate;
 
-					if (expr.Expr1 is ISqlValue)
-					{
-						var value = (ISqlValue)expr.Expr1;
+				    var sqlValue = expr.Expr1 as ISqlValue;
 
-						if (value.Value is bool)
-						{
-							if (cond.IsNot ? !(bool)value.Value : (bool)value.Value)
-							{
-								if (i > 0)
-								{
-									if (searchCondition.Conditions[i-1].IsOr)
-									{
-										searchCondition.Conditions.RemoveRange(0, i);
-										OptimizeSearchCondition(searchCondition);
+				    if (sqlValue?.Value is bool)
+				    {
+				        if (cond.IsNot ? !(bool)sqlValue.Value : (bool)sqlValue.Value)
+				        {
+				            if (i > 0 && searchCondition.Conditions[i - 1].IsOr)
+				            {
+				                searchCondition.Conditions.RemoveRange(0, i);
+				                OptimizeSearchCondition(searchCondition);
 
-										break;
-									}
-								}
-							}
-						}
-					}
+				                break;
+				            }
+				        }
+				    }
 				}
-				else if (cond.Predicate is ISearchCondition)
+				else
 				{
-					var sc = (ISearchCondition)cond.Predicate;
-					OptimizeSearchCondition(sc);
+				    var condition = cond.Predicate as ISearchCondition;
+				    if (condition != null)
+				    {
+				        OptimizeSearchCondition(condition);
+				    }
 				}
 			}
 		}
@@ -571,12 +563,8 @@ namespace LinqToDB.SqlQuery
 					}
 				}
 
-				if (table.Source is ISelectQuery)
-					foreach (var t in ((ISelectQuery)table.Source).From.Tables)
-						if (findTable(t))
-							return true;
-
-				return false;
+			    var selectQuery = table.Source as ISelectQuery;
+			    return selectQuery != null && selectQuery.From.Tables.Any(t => findTable(t));
 			};
 
 			var areTablesCollected = false;
@@ -668,18 +656,19 @@ namespace LinqToDB.SqlQuery
 	        if (expr is ISqlField || expr is IColumn)
 	            return false;
 
-	        if (expr is ISqlValue)
-	            return !optimizeValues && 1.Equals(((ISqlValue)expr).Value);
+	        var sqlValue = expr as ISqlValue;
+	        if (sqlValue != null)
+	            return !optimizeValues && 1.Equals(sqlValue.Value);
 
-	        if (expr is ISqlBinaryExpression)
+	        var sqlBinaryExpression = expr as ISqlBinaryExpression;
+	        if (sqlBinaryExpression != null)
 	        {
-	            var e = (ISqlBinaryExpression)expr;
+	            var e = sqlBinaryExpression;
 
-	            if (e.Operation == "*" && e.Expr1 is ISqlValue)
+	            var expr1 = e.Expr1 as ISqlValue;
+	            if (e.Operation == "*" && expr1 != null)
 	            {
-	                var value = (ISqlValue)e.Expr1;
-
-	                if (value.Value is int && (int)value.Value == -1)
+	                if (expr1.Value is int && (int)expr1.Value == -1)
 	                    return CheckColumn(column, e.Expr2, query, optimizeValues, optimizeColumns);
 	            }
 	        }
@@ -753,12 +742,11 @@ namespace LinqToDB.SqlQuery
 
 			top.Walk(false, expr =>
 			{
-				if (expr is ISelectQuery)
+			    var selectQuery = expr as ISelectQuery;
+			    if (selectQuery != null)
 				{
-					var sql = (ISelectQuery)expr;
-
-					if (sql.ParentSelect == query)
-						sql.ParentSelect = query.ParentSelect ?? _selectQuery;
+					if (selectQuery.ParentSelect == query)
+						selectQuery.ParentSelect = query.ParentSelect ?? _selectQuery;
 				}
 
 				return expr;
@@ -769,17 +757,19 @@ namespace LinqToDB.SqlQuery
 
 		static bool IsAggregationFunction(IQueryElement expr)
 		{
-			if (expr is ISqlFunction)
-				switch (((ISqlFunction)expr).Name)
-				{
-					case "Count"   :
-					case "Average" :
-					case "Min"     :
-					case "Max"     :
-					case "Sum"     : return true;
-				}
+		    var sqlFunction = expr as ISqlFunction;
+		    if (sqlFunction != null)
+		        switch (sqlFunction.Name)
+		        {
+		            case "Count":
+		            case "Average":
+		            case "Min":
+		            case "Max":
+		            case "Sum":
+		                return true;
+		        }
 
-			return false;
+		    return false;
 		}
 
 		void OptimizeApply(ITableSource tableSource, IJoinedTable joinTable, bool isApplySupported, bool optimizeColumns)

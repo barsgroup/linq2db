@@ -110,29 +110,29 @@ namespace LinqToDB.Linq.Builder
 		static void CheckAssociation(IBuildContext sequence)
 		{
 			var ctx = sequence as SelectContext;
+		    if (ctx == null || !ctx.IsScalar)
+		    {
+		        return;
+		    }
 
-			if (ctx != null && ctx.IsScalar)
-			{
-				var res = ctx.IsExpression(null, 0, RequestFor.Association);
+		    var res = ctx.IsExpression(null, 0, RequestFor.Association);
 
-				if (res.Result && res.Context is TableBuilder.AssociatedTableContext)
-				{
-					var atc = (TableBuilder.AssociatedTableContext)res.Context;
-					sequence.Select.Update.Table = atc.SqlTable;
-				}
-				else
-				{
-					res = ctx.IsExpression(null, 0, RequestFor.Table);
+		    var associatedTableContext = res.Context as TableBuilder.AssociatedTableContext;
+		    if (res.Result && associatedTableContext != null)
+		    {
+		        sequence.Select.Update.Table = associatedTableContext.SqlTable;
+		    }
+		    else
+		    {
+		        res = ctx.IsExpression(null, 0, RequestFor.Table);
 
-					if (res.Result && res.Context is TableBuilder.TableContext)
-					{
-						var tc = (TableBuilder.TableContext)res.Context;
-
-						if (sequence.Select.From.Tables.Count == 0 || sequence.Select.From.Tables[0].Source != tc.Select)
-							sequence.Select.Update.Table = tc.SqlTable;
-					}
-				}
-			}
+		        var tableContext = res.Context as TableBuilder.TableContext;
+		        if (res.Result && tableContext != null)
+		        {
+		            if (sequence.Select.From.Tables.Count == 0 || sequence.Select.From.Tables[0].Source != tableContext.Select)
+		                sequence.Select.Update.Table = tableContext.SqlTable;
+		        }
+		    }
 		}
 
 		protected override SequenceConvertInfo Convert(
@@ -199,27 +199,29 @@ namespace LinqToDB.Linq.Builder
 			{
 				var member  = binding.Member;
 
-				if (member is MethodInfo)
-					member = ((MethodInfo)member).GetPropertyInfo();
+			    var methodInfo = member as MethodInfo;
+			    if (methodInfo != null)
+					member = methodInfo.GetPropertyInfo();
 
-				if (binding is MemberAssignment)
+			    var memberAssignment = binding as MemberAssignment;
+			    if (memberAssignment != null)
 				{
-					var ma = binding as MemberAssignment;
-					var pe = Expression.MakeMemberAccess(path, member);
+				    var pe = Expression.MakeMemberAccess(path, member);
 
-					if (ma.Expression is MemberInitExpression && !into.IsExpression(pe, 1, RequestFor.Field).Result)
+				    var initExpression = memberAssignment.Expression as MemberInitExpression;
+				    if (initExpression != null && !into.IsExpression(pe, 1, RequestFor.Field).Result)
 					{
 						BuildSetter(
 							builder,
 							into,
 							items,
 							ctx,
-							(MemberInitExpression)ma.Expression, Expression.MakeMemberAccess(path, member));
+							initExpression, Expression.MakeMemberAccess(path, member));
 					}
 					else
 					{
 						var column = into.ConvertToSql(pe, 1, ConvertFlags.Field);
-						var expr   = builder.ConvertToSqlExpression(ctx, ma.Expression);
+						var expr   = builder.ConvertToSqlExpression(ctx, memberAssignment.Expression);
 
 						if (expr.ElementType == EQueryElementType.SqlParameter)
 						{
@@ -258,8 +260,9 @@ namespace LinqToDB.Linq.Builder
 			var body   = (MemberExpression)ext;
 			var member = body.Member;
 
-			if (member is MethodInfo)
-				member = ((MethodInfo)member).GetPropertyInfo();
+		    var info = member as MethodInfo;
+		    if (info != null)
+				member = info.GetPropertyInfo();
 
 			var members = body.GetMembers();
 			var name    = members
@@ -267,14 +270,14 @@ namespace LinqToDB.Linq.Builder
 				.Select(ex =>
 				{
 					var me = ex as MemberExpression;
-
 					if (me == null)
 						return null;
 
 					var m = me.Member;
 
-					if (m is MethodInfo)
-						m = ((MethodInfo)m).GetPropertyInfo();
+				    var methodInfo = m as MethodInfo;
+				    if (methodInfo != null)
+						m = methodInfo.GetPropertyInfo();
 
 					return m;
 				})
@@ -321,8 +324,9 @@ namespace LinqToDB.Linq.Builder
 			var body   = (MemberExpression)ext;
 			var member = body.Member;
 
-			if (member is MethodInfo)
-				member = ((MethodInfo)member).GetPropertyInfo();
+		    var methodInfo = member as MethodInfo;
+		    if (methodInfo != null)
+				member = methodInfo.GetPropertyInfo();
 
 			var column = select.ConvertToSql(body, 1, ConvertFlags.Field);
 

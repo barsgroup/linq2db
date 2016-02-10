@@ -34,11 +34,13 @@ namespace LinqToDB.DataProvider.SqlCe
 			_sqlOptimizer = new SqlCeSqlOptimizer(SqlProviderFlags);
 		}
 
-		public    override string ConnectionNamespace { get { return "System.Data.SqlServerCe"; } }
-		protected override string ConnectionTypeName  { get { return "{0}.{1}, {0}".Args(ConnectionNamespace, "SqlCeConnection"); } }
-		protected override string DataReaderTypeName  { get { return "{0}.{1}, {0}".Args(ConnectionNamespace, "SqlCeDataReader"); } }
+		public    override string ConnectionNamespace => "System.Data.SqlServerCe";
 
-		protected override void OnConnectionTypeCreated(Type connectionType)
+	    protected override string ConnectionTypeName => "{0}.{1}, {0}".Args(ConnectionNamespace, "SqlCeConnection");
+
+	    protected override string DataReaderTypeName => "{0}.{1}, {0}".Args(ConnectionNamespace, "SqlCeDataReader");
+
+	    protected override void OnConnectionTypeCreated(Type connectionType)
 		{
 			_setNText     = GetSetParameter(connectionType, SqlDbType.NText);
 			_setNChar     = GetSetParameter(connectionType, SqlDbType.NChar);
@@ -105,15 +107,19 @@ namespace LinqToDB.DataProvider.SqlCe
 				case DataType.Xml :
 					dataType = DataType.NVarChar;
 
-					if (value is SqlXml)
+			        var sqlXml = value as SqlXml;
+			        if (sqlXml != null)
 					{
-						var xml = (SqlXml)value;
-						value = xml.IsNull ? null : xml.Value;
+						value = sqlXml.IsNull ? null : sqlXml.Value;
 					}
 					else if (value is XDocument)   value = value.ToString();
-					else if (value is XmlDocument) value = ((XmlDocument)value).InnerXml;
+					else
+					{
+					    var xmlDocument = value as XmlDocument;
+					    if (xmlDocument != null) value = xmlDocument.InnerXml;
+					}
 
-					break;
+			        break;
 			}
 
 			base.SetParameter(parameter, name, dataType, value);

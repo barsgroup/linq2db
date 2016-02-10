@@ -176,17 +176,16 @@ namespace LinqToDB.Linq
 
 				Type[] args = null;
 
-				if (mi is MethodInfo)
+			    var methodInfo = mi as MethodInfo;
+			    if (methodInfo != null)
 				{
-					var mm = (MethodInfo)mi;
-
-					var isTypeGeneric   = mm.DeclaringType.IsGenericTypeEx() && !mm.DeclaringType.IsGenericTypeDefinitionEx();
-					var isMethodGeneric = mm.IsGenericMethod && !mm.IsGenericMethodDefinition;
+					var isTypeGeneric   = methodInfo.DeclaringType.IsGenericTypeEx() && !methodInfo.DeclaringType.IsGenericTypeDefinitionEx();
+					var isMethodGeneric = methodInfo.IsGenericMethod && !methodInfo.IsGenericMethodDefinition;
 
 					if (isTypeGeneric || isMethodGeneric)
 					{
-						var typeGenericArgs   = isTypeGeneric   ? mm.DeclaringType.GetGenericArgumentsEx() : Array<Type>.Empty;
-						var methodGenericArgs = isMethodGeneric ? mm.GetGenericArguments()                 : Array<Type>.Empty;
+						var typeGenericArgs   = isTypeGeneric   ? methodInfo.DeclaringType.GetGenericArgumentsEx() : Array<Type>.Empty;
+						var methodGenericArgs = isMethodGeneric ? methodInfo.GetGenericArguments()                 : Array<Type>.Empty;
 
 						args = typeGenericArgs.SequenceEqual(methodGenericArgs) ?
 							typeGenericArgs : typeGenericArgs.Concat(methodGenericArgs).ToArray();
@@ -366,18 +365,18 @@ namespace LinqToDB.Linq
 					{ M(() => "".Length               ), N(() => L<string,int>                   ((string obj)                              => Sql.Length(obj).Value)) },
 					{ M(() => "".Substring  (0)       ), N(() => L<string,int,string>            ((string obj,int  p0)                    => Sql.Substring(obj, p0 + 1, obj.Length - p0))) },
 					{ M(() => "".Substring  (0,0)     ), N(() => L<string,int,int,string>      ((string obj,int  p0,int  p1)          => Sql.Substring(obj, p0 + 1, p1))) },
-					{ M(() => "".IndexOf    ("")      ), N(() => L<string,string,int>            ((string obj,string p0)                    => p0.Length == 0                    ? 0  : (Sql.CharIndex(p0, obj)                      .Value) - 1)) },
-					{ M(() => "".IndexOf    ("",0)    ), N(() => L<string,string,int,int>      ((string obj,string p0,int  p1)          => p0.Length == 0 && obj.Length > p1 ? p1 : (Sql.CharIndex(p0, obj,               p1 + 1).Value) - 1)) },
-					{ M(() => "".IndexOf    ("",0,0)  ), N(() => L<string,string,int,int,int>((string obj,string p0,int  p1,int p2) => p0.Length == 0 && obj.Length > p1 ? p1 : (Sql.CharIndex(p0, Sql.Left(obj, p2), p1)    .Value) - 1)) },
-					{ M(() => "".IndexOf    (' ')     ), N(() => L<string,char,int>              ((string obj,char   p0)                    =>                                          (Sql.CharIndex(p0, obj)                      .Value) - 1)) },
-					{ M(() => "".IndexOf    (' ',0)   ), N(() => L<string,char,int,int>        ((string obj,char   p0,int  p1)          =>                                          (Sql.CharIndex(p0, obj,               p1 + 1).Value) - 1)) },
+					{ M(() => "".IndexOf    ("")      ), N(() => L<string,string,int>            ((string obj,string p0)                    => p0.Length == 0                    ? 0  : Sql.CharIndex(p0, obj)                      .Value - 1)) },
+					{ M(() => "".IndexOf    ("",0)    ), N(() => L<string,string,int,int>      ((string obj,string p0,int  p1)          => p0.Length == 0 && obj.Length > p1 ? p1 : Sql.CharIndex(p0, obj,               p1 + 1).Value - 1)) },
+					{ M(() => "".IndexOf    ("",0,0)  ), N(() => L<string,string,int,int,int>((string obj,string p0,int  p1,int p2) => p0.Length == 0 && obj.Length > p1 ? p1 : Sql.CharIndex(p0, Sql.Left(obj, p2), p1)    .Value - 1)) },
+					{ M(() => "".IndexOf    (' ')     ), N(() => L<string,char,int>              ((string obj,char   p0)                    =>                                          Sql.CharIndex(p0, obj)                      .Value - 1)) },
+					{ M(() => "".IndexOf    (' ',0)   ), N(() => L<string,char,int,int>        ((string obj,char   p0,int  p1)          =>                                          Sql.CharIndex(p0, obj,               p1 + 1).Value - 1)) },
 					{ M(() => "".IndexOf    (' ',0,0) ), N(() => L<string,char,int,int,int>  ((string obj,char   p0,int  p1,int p2) =>                                          (Sql.CharIndex(p0, Sql.Left(obj, p2), p1)     ?? 0) - 1)) },
-					{ M(() => "".LastIndexOf("")      ), N(() => L<string,string,int>            ((string obj,string p0)                    => p0.Length == 0 ? obj.Length - 1 : (Sql.CharIndex(p0, obj)                           .Value) == 0 ? -1 : obj.Length - (Sql.CharIndex(Sql.Reverse(p0), Sql.Reverse(obj))                               .Value) - p0.Length + 1)) },
-					{ M(() => "".LastIndexOf("",0)    ), N(() => L<string,string,int,int>      ((string obj,string p0,int  p1)          => p0.Length == 0 ? p1             : (Sql.CharIndex(p0, obj,                    p1 + 1).Value) == 0 ? -1 : obj.Length - (Sql.CharIndex(Sql.Reverse(p0), Sql.Reverse(obj.Substring(p1, obj.Length - p1))).Value) - p0.Length + 1)) },
-					{ M(() => "".LastIndexOf("",0,0)  ), N(() => L<string,string,int,int,int>((string obj,string p0,int  p1,int p2) => p0.Length == 0 ? p1             : (Sql.CharIndex(p0, Sql.Left(obj, p1 + p2), p1 + 1).Value) == 0 ? -1 :    p1 + p2 - (Sql.CharIndex(Sql.Reverse(p0), Sql.Reverse(obj.Substring(p1, p2)))             .Value) - p0.Length + 1)) },
-					{ M(() => "".LastIndexOf(' ')     ), N(() => L<string,char,int>              ((string obj,char   p0)                    => (Sql.CharIndex(p0, obj)                           .Value) == 0 ? -1 : obj.Length - (Sql.CharIndex(p0, Sql.Reverse(obj))                               .Value))) },
-					{ M(() => "".LastIndexOf(' ',0)   ), N(() => L<string,char,int,int>        ((string obj,char   p0,int  p1)          => (Sql.CharIndex(p0, obj, p1 + 1)                   .Value) == 0 ? -1 : obj.Length - (Sql.CharIndex(p0, Sql.Reverse(obj.Substring(p1, obj.Length - p1))).Value))) },
-					{ M(() => "".LastIndexOf(' ',0,0) ), N(() => L<string,char,int,int,int>  ((string obj,char   p0,int  p1,int p2) => (Sql.CharIndex(p0, Sql.Left(obj, p1 + p2), p1 + 1).Value) == 0 ? -1 : p1 + p2    - (Sql.CharIndex(p0, Sql.Reverse(obj.Substring(p1, p2)))             .Value))) },
+					{ M(() => "".LastIndexOf("")      ), N(() => L<string,string,int>            ((string obj,string p0)                    => p0.Length == 0 ? obj.Length - 1 : Sql.CharIndex(p0, obj)                           .Value == 0 ? -1 : obj.Length - Sql.CharIndex(Sql.Reverse(p0), Sql.Reverse(obj))                               .Value - p0.Length + 1)) },
+					{ M(() => "".LastIndexOf("",0)    ), N(() => L<string,string,int,int>      ((string obj,string p0,int  p1)          => p0.Length == 0 ? p1             : Sql.CharIndex(p0, obj,                    p1 + 1).Value == 0 ? -1 : obj.Length - Sql.CharIndex(Sql.Reverse(p0), Sql.Reverse(obj.Substring(p1, obj.Length - p1))).Value - p0.Length + 1)) },
+					{ M(() => "".LastIndexOf("",0,0)  ), N(() => L<string,string,int,int,int>((string obj,string p0,int  p1,int p2) => p0.Length == 0 ? p1             : Sql.CharIndex(p0, Sql.Left(obj, p1 + p2), p1 + 1).Value == 0 ? -1 :    p1 + p2 - Sql.CharIndex(Sql.Reverse(p0), Sql.Reverse(obj.Substring(p1, p2)))             .Value - p0.Length + 1)) },
+					{ M(() => "".LastIndexOf(' ')     ), N(() => L<string,char,int>              ((string obj,char   p0)                    => Sql.CharIndex(p0, obj)                           .Value == 0 ? -1 : obj.Length - Sql.CharIndex(p0, Sql.Reverse(obj))                               .Value)) },
+					{ M(() => "".LastIndexOf(' ',0)   ), N(() => L<string,char,int,int>        ((string obj,char   p0,int  p1)          => Sql.CharIndex(p0, obj, p1 + 1)                   .Value == 0 ? -1 : obj.Length - Sql.CharIndex(p0, Sql.Reverse(obj.Substring(p1, obj.Length - p1))).Value)) },
+					{ M(() => "".LastIndexOf(' ',0,0) ), N(() => L<string,char,int,int,int>  ((string obj,char   p0,int  p1,int p2) => Sql.CharIndex(p0, Sql.Left(obj, p1 + p2), p1 + 1).Value == 0 ? -1 : p1 + p2    - Sql.CharIndex(p0, Sql.Reverse(obj.Substring(p1, p2)))             .Value)) },
 					{ M(() => "".Insert     (0,"")    ), N(() => L<string,int,string,string>     ((string obj,int  p0,string p1)          => obj.Length == p0 ? obj + p1 : Sql.Stuff(obj, p0 + 1, 0, p1))) },
 					{ M(() => "".Remove     (0)       ), N(() => L<string,int,string>          ((string obj,int  p0)                    => Sql.Left     (obj, p0))) },
 					{ M(() => "".Remove     (0,0)     ), N(() => L<string,int,int,string>      ((string obj,int  p0,int  p1)          => Sql.Stuff    (obj, p0 + 1, p1, ""))) },

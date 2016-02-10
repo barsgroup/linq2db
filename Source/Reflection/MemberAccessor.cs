@@ -28,7 +28,7 @@ namespace LinqToDB.Reflection
 
 				var members  = memberName.Split('.');
 				var objParam = Expression.Parameter(TypeAccessor.Type, "obj");
-				var expr     = objParam as Expression;
+				var expr     = (Expression)objParam;
 				var infos    = members.Select(m =>
 				{
 					expr = Expression.PropertyOrField(expr, m);
@@ -101,7 +101,12 @@ namespace LinqToDB.Reflection
 				// Build setter.
 				//
 				{
-					HasSetter = !infos.Any(info => info.member is PropertyInfo && ((PropertyInfo)info.member).GetSetMethodEx(true) == null);
+					HasSetter = !infos.Any(
+					    info =>
+					    {
+					        var propertyInfo = info.member as PropertyInfo;
+					        return propertyInfo != null && propertyInfo.GetSetMethodEx(true) == null;
+					    });
 
 					var valueParam = Expression.Parameter(Type, "value");
 
@@ -188,12 +193,14 @@ namespace LinqToDB.Reflection
 		void SetSimple(MemberInfo memberInfo)
 		{
 			MemberInfo = memberInfo;
-			Type       = MemberInfo is PropertyInfo ? ((PropertyInfo)MemberInfo).PropertyType : ((FieldInfo)MemberInfo).FieldType;
+		    var propertyInfo = MemberInfo as PropertyInfo;
+		    Type       = propertyInfo?.PropertyType ?? ((FieldInfo)MemberInfo).FieldType;
 
 			HasGetter = true;
 
-			if (memberInfo is PropertyInfo)
-				HasSetter = ((PropertyInfo)memberInfo).GetSetMethodEx(true) != null;
+		    var info = memberInfo as PropertyInfo;
+		    if (info != null)
+				HasSetter = info.GetSetMethodEx(true) != null;
 			else
 				HasSetter = !((FieldInfo)memberInfo).IsInitOnly;
 
@@ -252,12 +259,9 @@ namespace LinqToDB.Reflection
 		public Func  <object,object> Getter           { get; private set; }
 		public Action<object,object> Setter           { get; private set; }
 
-		public string Name
-		{
-			get { return MemberInfo.Name; }
-		}
+		public string Name => MemberInfo.Name;
 
-		#endregion
+	    #endregion
 
 		#region Public Methods
 

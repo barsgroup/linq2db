@@ -17,9 +17,9 @@ namespace LinqToDB.DataProvider.SqlServer
 			ByTargetText = "BY Target ";
 		}
 
-		protected override bool IsIdentitySupported { get { return true; } }
+		protected override bool IsIdentitySupported => true;
 
-		public override int Merge<T>(DataConnection dataConnection, Expression<Func<T, bool>> predicate, bool delete, IEnumerable<T> source,
+	    public override int Merge<T>(DataConnection dataConnection, Expression<Func<T, bool>> predicate, bool delete, IEnumerable<T> source,
 			string tableName, string databaseName, string schemaName)
 		{
 			var table       = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));

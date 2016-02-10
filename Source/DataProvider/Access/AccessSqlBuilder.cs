@@ -36,13 +36,13 @@ namespace LinqToDB.DataProvider.Access
 			StringBuilder.AppendLine("SELECT @@IDENTITY");
 		}
 
-		public override bool IsNestedJoinSupported     { get { return false; } }
+		public override bool IsNestedJoinSupported => false;
 
-		#region Skip / Take Support
+	    #region Skip / Take Support
 
-		protected override string FirstFormat { get { return "TOP {0}"; } }
+		protected override string FirstFormat => "TOP {0}";
 
-		protected override void BuildSql()
+	    protected override void BuildSql()
 		{
 			if (NeedSkip)
 			{
@@ -52,44 +52,47 @@ namespace LinqToDB.DataProvider.Access
 
 			if (SelectQuery.From.Tables.Count == 0 && SelectQuery.Select.Columns.Count == 1)
 			{
-				if (SelectQuery.Select.Columns[0].Expression is ISqlFunction)
+			    var sqlFunction = SelectQuery.Select.Columns[0].Expression as ISqlFunction;
+			    if (sqlFunction != null)
 				{
-					var func = (ISqlFunction)SelectQuery.Select.Columns[0].Expression;
+				    if (sqlFunction.Parameters.Length == 3)
+                    {
+                        var searchCondition = sqlFunction.Parameters[0] as ISearchCondition;
+                        if (sqlFunction.Name == "Iif" && searchCondition != null)
+                        {
+                            if (searchCondition.Conditions.Count == 1)
+                            {
+                                var like = searchCondition.Conditions[0].Predicate as IFuncLike;
+                                if (like != null && like.Function.Name == "EXISTS")
+                                {
+                                    BuildAnyAsCount();
+                                    return;
+                                }
+                            }
 
-					if (func.Name == "Iif" && func.Parameters.Length == 3 && func.Parameters[0] is ISearchCondition)
-					{
-						var sc = (ISearchCondition)func.Parameters[0];
-
-						if (sc.Conditions.Count == 1 && sc.Conditions[0].Predicate is IFuncLike)
-						{
-							var p = (IFuncLike)sc.Conditions[0].Predicate;
-
-							if (p.Function.Name == "EXISTS")
-							{
-								BuildAnyAsCount();
-								return;
-							}
-						}
-					}
+                        }
+                    }
 				}
-				else if (SelectQuery.Select.Columns[0].Expression is ISearchCondition)
-				{
-					var sc = (ISearchCondition)SelectQuery.Select.Columns[0].Expression;
+				else
+			    {
+			        var searchCondition = SelectQuery.Select.Columns[0].Expression as ISearchCondition;
 
-					if (sc.Conditions.Count == 1 && sc.Conditions[0].Predicate is IFuncLike)
-					{
-						var p = (IFuncLike)sc.Conditions[0].Predicate;
-
-						if (p.Function.Name == "EXISTS")
-						{
-							BuildAnyAsCount();
-							return;
-						}
-					}
-				}
+                    if (searchCondition?.Conditions.Count == 1)
+                    {
+                        var like = searchCondition.Conditions[0].Predicate as IFuncLike;
+                        if (like != null)
+			            {
+                            if (like.Function.Name == "EXISTS")
+                            {
+                                BuildAnyAsCount();
+                                return;
+                            }
+                        }
+                    }
+			    }
 			}
 
-			base.BuildSql();
+		    base.BuildSql();
 		}
 
         IColumn _selectColumn;
@@ -98,10 +101,10 @@ namespace LinqToDB.DataProvider.Access
 		{
             ISearchCondition cond;
 
-			if (SelectQuery.Select.Columns[0].Expression is ISqlFunction)
+		    var sqlFunction = SelectQuery.Select.Columns[0].Expression as ISqlFunction;
+		    if (sqlFunction != null)
 			{
-				var func  = (ISqlFunction)SelectQuery.Select.Columns[0].Expression;
-				cond  = (ISearchCondition)func.Parameters[0];
+				cond  = (ISearchCondition)sqlFunction.Parameters[0];
 			}
 			else
 			{
@@ -161,58 +164,63 @@ namespace LinqToDB.DataProvider.Access
 
 		protected override void BuildLikePredicate(ILike predicate)
 		{
-			if (predicate.Expr2 is ISqlValue)
+		    var sqlValue = predicate.Expr2 as ISqlValue;
+		    if (sqlValue != null)
 			{
-				var value = ((ISqlValue)predicate.Expr2).Value;
+				var value = sqlValue.Value;
 
 				if (value != null)
 				{
-					var text  = ((ISqlValue)predicate.Expr2).Value.ToString();
+					var text  = sqlValue.Value.ToString();
 					var ntext = text.Replace("[", "[[]");
 
 					if (text != ntext)
 						predicate = new Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
 				}
 			}
-			else if (predicate.Expr2 is ISqlParameter)
-			{
-				var p = ((ISqlParameter)predicate.Expr2);
-				p.ReplaceLike = true;
-			}
+			else
+		    {
+		        var sqlParameter = predicate.Expr2 as ISqlParameter;
+		        if (sqlParameter != null)
+		        {
+		            sqlParameter.ReplaceLike = true;
+		        }
+		    }
 
-			if (predicate.Escape != null)
-			{
-				if (predicate.Expr2 is ISqlValue && predicate.Escape is ISqlValue)
+		    if (predicate.Escape != null)
+		    {
+		        var escape = predicate.Escape as ISqlValue;
+		        if (escape != null)
 				{
 					var value = ((ISqlValue)predicate.Expr2).Value;
 
 					if (value != null)
 					{
 						var text = ((ISqlValue)predicate.Expr2).Value.ToString();
-						var val  = new SqlValue(ReescapeLikeText(text, (char)((ISqlValue)predicate.Escape).Value));
+						var val  = new SqlValue(ReescapeLikeText(text, (char)escape.Value));
 
 						predicate = new Like(predicate.Expr1, predicate.IsNot, val, null);
 					}
 				}
-				else if (predicate.Expr2 is ISqlParameter)
-				{
-					var p = (ISqlParameter)predicate.Expr2;
+				else
+		        {
+		            var p = predicate.Expr2 as ISqlParameter;
 
-					if (p.LikeStart != null)
-					{
-						var value = (string)p.Value;
+		            if (p?.LikeStart != null)
+		            {
+		                var value = (string)p.Value;
 
-						if (value != null)
-						{
-							value     = value.Replace("[", "[[]").Replace("~%", "[%]").Replace("~_", "[_]").Replace("~~", "[~]");
-							p         = new SqlParameter(p.SystemType, p.Name, value) { DbSize = p.DbSize, DataType = p.DataType, IsQueryParameter = p.IsQueryParameter };
-							predicate = new Like(predicate.Expr1, predicate.IsNot, p, null);
-						}
-					}
-				}
-			}
+		                if (value != null)
+		                {
+		                    value     = value.Replace("[", "[[]").Replace("~%", "[%]").Replace("~_", "[_]").Replace("~~", "[~]");
+		                    p         = new SqlParameter(p.SystemType, p.Name, value) { DbSize = p.DbSize, DataType = p.DataType, IsQueryParameter = p.IsQueryParameter };
+		                    predicate = new Like(predicate.Expr1, predicate.IsNot, p, null);
+		                }
+		            }
+		        }
+		    }
 
-			base.BuildLikePredicate(predicate);
+		    base.BuildLikePredicate(predicate);
 		}
 
 		static string ReescapeLikeText(string text, char esc)

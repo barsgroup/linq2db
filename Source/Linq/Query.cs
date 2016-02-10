@@ -29,12 +29,9 @@ namespace LinqToDB.Linq
 
         public bool IsSaveResultMappingIndexes { get; set; }
 
-        public ICollection<int> ResultMappingIndexes
-        {
-            get { return _resultMappingIndexes; }
-        }
+        public ICollection<int> ResultMappingIndexes => _resultMappingIndexes;
 
-		#region Init
+        #region Init
 
 		public abstract void Init(IBuildContext parseContext, List<ParameterAccessor> sqlParameters);
 
@@ -479,9 +476,10 @@ namespace LinqToDB.Linq
 			{
 				var value = p.Accessor(expr, parameters);
 
-				if (value is IEnumerable)
+			    var enumerable = value as IEnumerable;
+			    if (enumerable != null)
 				{
-					var type  = value.GetType();
+					var type  = enumerable.GetType();
 					var etype = type.GetItemType();
 
 					if (etype == null || etype == typeof(object) || etype.IsEnumEx() ||
@@ -489,7 +487,7 @@ namespace LinqToDB.Linq
 					{
 						var values = new List<object>();
 
-						foreach (var v in (IEnumerable)value)
+						foreach (var v in enumerable)
 						{
 							value = v;
 
@@ -1148,9 +1146,10 @@ namespace LinqToDB.Linq
 			{
 				var q = query;
 
-				if (select.SkipValue is ISqlValue)
+			    var sqlValue = @select.SkipValue as ISqlValue;
+			    if (sqlValue != null)
 				{
-					var n = (int)((IValueContainer)select.SkipValue).Value;
+					var n = (int)sqlValue.Value;
 
 					if (n > 0)
 						query = (db, expr, ps, qn) => q(db, expr, ps, qn).Skip(n);
@@ -1166,9 +1165,10 @@ namespace LinqToDB.Linq
 			{
 				var q = query;
 
-				if (select.TakeValue is ISqlValue)
+			    var sqlValue = @select.TakeValue as ISqlValue;
+			    if (sqlValue != null)
 				{
-					var n = (int)((IValueContainer)select.TakeValue).Value;
+					var n = (int)sqlValue.Value;
 
 					if (n > 0)
 						query = (db, expr, ps, qn) => q(db, expr, ps, qn).Take(n);

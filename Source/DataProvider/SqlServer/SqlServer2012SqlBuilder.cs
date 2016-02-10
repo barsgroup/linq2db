@@ -18,12 +18,15 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 		}
 
-		protected override string LimitFormat         { get { return SelectQuery.Select.SkipValue != null ? "FETCH NEXT {0} ROWS ONLY" : null; } }
-		protected override string OffsetFormat        { get { return "OFFSET {0} ROWS"; } }
-		protected override bool   OffsetFirst         { get { return true;              } }
-		protected override bool   BuildAlternativeSql { get { return false;             } }
+		protected override string LimitFormat => SelectQuery.Select.SkipValue != null ? "FETCH NEXT {0} ROWS ONLY" : null;
 
-		protected override ISqlBuilder CreateSqlBuilder()
+	    protected override string OffsetFormat => "OFFSET {0} ROWS";
+
+	    protected override bool   OffsetFirst => true;
+
+	    protected override bool   BuildAlternativeSql => false;
+
+	    protected override ISqlBuilder CreateSqlBuilder()
 		{
 			return new SqlServer2012SqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
@@ -45,12 +48,9 @@ namespace LinqToDB.DataProvider.SqlServer
 			StringBuilder.AppendLine(";");
 		}
 
-		public override string  Name
-		{
-			get { return ProviderName.SqlServer2012; }
-		}
+		public override string  Name => ProviderName.SqlServer2012;
 
-		protected override void BuildFunction(ISqlFunction func)
+	    protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 

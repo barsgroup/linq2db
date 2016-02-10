@@ -20,18 +20,16 @@ namespace LinqToDB.Linq.Builder
 			var sequence     = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 			var defaultValue = methodCall.Arguments.Count == 1 ? null : methodCall.Arguments[1].Unwrap();
 
-			if (buildInfo.Parent is SelectManyBuilder.SelectManyContext)
-			{
-				var groupJoin = ((SelectManyBuilder.SelectManyContext)buildInfo.Parent).Sequence[0] as JoinBuilder.GroupJoinContext;
+		    var selectManyContext = buildInfo.Parent as SelectManyBuilder.SelectManyContext;
+		    var groupJoin = selectManyContext?.Sequence[0] as JoinBuilder.GroupJoinContext;
 
-				if (groupJoin != null)
-				{
-					groupJoin.Select.From.Tables[0].Joins[0].JoinType = EJoinType.Left;
-					groupJoin.Select.From.Tables[0].Joins[0].IsWeak   = false;
-				}
-			}
+		    if (groupJoin != null)
+		    {
+		        groupJoin.Select.From.Tables[0].Joins[0].JoinType = EJoinType.Left;
+		        groupJoin.Select.From.Tables[0].Joins[0].IsWeak   = false;
+		    }
 
-			return new DefaultIfEmptyContext(buildInfo.Parent, sequence, defaultValue);
+		    return new DefaultIfEmptyContext(buildInfo.Parent, sequence, defaultValue);
 		}
 
 		protected override SequenceConvertInfo Convert(

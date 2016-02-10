@@ -17,12 +17,15 @@ namespace LinqToDB.Expressions
 		readonly Expression _expression;
 		readonly Type       _type;
 
-		public          Expression     Expression { get { return _expression;              } }
-		public override Type           Type       { get { return _type;                    } }
-		public override ExpressionType NodeType   { get { return ExpressionType.Extension; } }
-		public override bool           CanReduce  { get { return true;                     } }
+		public          Expression     Expression => _expression;
 
-		public override Expression Reduce()
+	    public override Type           Type => _type;
+
+	    public override ExpressionType NodeType => ExpressionType.Extension;
+
+	    public override bool           CanReduce => true;
+
+	    public override Expression Reduce()
 		{
 			var mi = MemberHelper.MethodOf(() => Enumerable.First<string>(null));
 			var gi = mi.GetGenericMethodDefinition().MakeGenericMethod(_type);

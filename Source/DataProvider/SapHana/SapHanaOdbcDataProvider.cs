@@ -42,10 +42,11 @@ namespace LinqToDB.DataProvider.SapHana
 			_sqlOptimizer = new SapHanaSqlOptimizer(SqlProviderFlags);
 		}
 
-		public override string ConnectionNamespace { get { return typeof(OdbcConnection).Namespace; } }
-		public override Type   DataReaderType      { get { return typeof(OdbcDataReader); } }
+		public override string ConnectionNamespace => typeof(OdbcConnection).Namespace;
 
-		public override bool IsCompatibleConnection(IDbConnection connection)
+	    public override Type   DataReaderType => typeof(OdbcDataReader);
+
+	    public override bool IsCompatibleConnection(IDbConnection connection)
 		{
 			return typeof(OdbcConnection).IsSameOrParentOf(connection.GetType());
 		}
@@ -107,9 +108,8 @@ namespace LinqToDB.DataProvider.SapHana
 						value = (bool)value ? (byte)1 : (byte)0;
 					break;
 				case DataType.Guid:
-					if (value != null)
-						value = value.ToString();
-					dataType = DataType.Char;
+			        value = value?.ToString();
+			        dataType = DataType.Char;
 					parameter.Size = 36;
 					break;
 			}
@@ -121,6 +121,7 @@ namespace LinqToDB.DataProvider.SapHana
 		{
 			if (parameter is BulkCopyReader.Parameter)
 				return;
+
 			switch (dataType)
 			{
 				case DataType.Boolean:

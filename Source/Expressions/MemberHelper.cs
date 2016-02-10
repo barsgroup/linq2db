@@ -8,23 +8,22 @@ namespace LinqToDB.Expressions
 
 	public static class MemberHelper
 	{
-		public static MemberInfo GetMemeberInfo(LambdaExpression func)
-		{
-			var ex = func.Body;
+	    public static MemberInfo GetMemeberInfo(LambdaExpression func)
+	    {
+	        var ex = func.Body;
 
-			if (ex is UnaryExpression)
-				ex = ((UnaryExpression)ex).Operand;
+	        var unaryExpression = ex as UnaryExpression;
+	        if (unaryExpression != null)
+	            ex = unaryExpression.Operand;
 
-			if (ex.NodeType == ExpressionType.New)
-				return ((NewExpression)ex).Constructor;
+	        var newExpression = ex as NewExpression;
+	        if (newExpression != null)
+	            return newExpression.Constructor;
 
-			return
-				ex is MemberExpression     ? ((MemberExpression)    ex).Member :
-				ex is MethodCallExpression ? ((MethodCallExpression)ex).Method :
-				                 (MemberInfo)((NewExpression)       ex).Constructor;
-		}
+	        return (ex as MemberExpression)?.Member ?? (ex as MethodCallExpression)?.Method;
+	    }
 
-		public static MemberInfo MemberOf<T>(Expression<Func<T,object>> func)
+	    public static MemberInfo MemberOf<T>(Expression<Func<T,object>> func)
 		{
 			return GetMemeberInfo(func);
 		}
@@ -42,13 +41,15 @@ namespace LinqToDB.Expressions
 		public static MethodInfo MethodOf<T>(Expression<Func<T,object>> func)
 		{
 			var mi = GetMemeberInfo(func);
-			return mi is PropertyInfo ? ((PropertyInfo)mi).GetGetMethodEx() : (MethodInfo)mi;
+		    var propertyInfo = mi as PropertyInfo;
+		    return propertyInfo != null ? propertyInfo.GetGetMethodEx() : (MethodInfo)mi;
 		}
 
 		public static MethodInfo MethodOf(Expression<Func<object>> func)
 		{
 			var mi = GetMemeberInfo(func);
-			return mi is PropertyInfo ? ((PropertyInfo)mi).GetGetMethodEx() : (MethodInfo)mi;
+		    var propertyInfo = mi as PropertyInfo;
+		    return propertyInfo != null ? propertyInfo.GetGetMethodEx() : (MethodInfo)mi;
 		}
 
 		public static ConstructorInfo ConstructorOf<T>(Expression<Func<T,object>> func)

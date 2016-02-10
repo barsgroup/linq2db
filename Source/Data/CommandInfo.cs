@@ -638,11 +638,13 @@ namespace LinqToDB.Data
 			if (parameters == null)
 				return null;
 
-			if (parameters is DataParameter[])
-				return (DataParameter[])parameters;
+		    var dataParameters = parameters as DataParameter[];
+		    if (dataParameters != null)
+				return dataParameters;
 
-			if (parameters is DataParameter)
-				return new[] { (DataParameter)parameters };
+		    var parameter = parameters as DataParameter;
+		    if (parameter != null)
+				return new[] { parameter };
 
 			Func<object,DataParameter[]> func;
 			var type = parameters.GetType();

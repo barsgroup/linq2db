@@ -137,7 +137,7 @@
             list.AddRange(Parameters);
         }
 
-        public override EQueryElementType ElementType { get { return EQueryElementType.SqlFunction; } }
+        public override EQueryElementType ElementType => EQueryElementType.SqlFunction;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

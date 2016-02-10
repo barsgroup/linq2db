@@ -8,14 +8,17 @@
 	class DefaultDataContextInfo : IDataContextInfo
 	{
 		private IDataContext    _dataContext;
-		public  IDataContext     DataContext      { get { return _dataContext ?? (_dataContext = new DataConnection()); } }
+		public  IDataContext     DataContext => _dataContext ?? (_dataContext = new DataConnection());
 
-		public MappingSchema     MappingSchema    { get { return MappingSchema.Default; } }
-		public bool              DisposeContext   { get { return true;                  } }
-		public SqlProviderFlags  SqlProviderFlags { get { return _dataProvider.SqlProviderFlags; } }
-		public string            ContextID        { get { return _dataProvider.Name;    } }
+	    public MappingSchema     MappingSchema => MappingSchema.Default;
 
-		public ISqlBuilder CreateSqlBuilder()
+	    public bool              DisposeContext => true;
+
+	    public SqlProviderFlags  SqlProviderFlags => _dataProvider.SqlProviderFlags;
+
+	    public string            ContextID => _dataProvider.Name;
+
+	    public ISqlBuilder CreateSqlBuilder()
 		{
 			return _dataProvider.CreateSqlBuilder();
 		}

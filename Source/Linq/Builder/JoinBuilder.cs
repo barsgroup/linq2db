@@ -61,8 +61,8 @@ namespace LinqToDB.Linq.Builder
 			context.     SetAlias(selector.Parameters[0].Name);
 			innerContext.SetAlias(selector.Parameters[1].Name);
 
-			var outerKeyLambda = ((LambdaExpression)methodCall.Arguments[2].Unwrap());
-			var innerKeyLambda = ((LambdaExpression)methodCall.Arguments[3].Unwrap());
+			var outerKeyLambda = (LambdaExpression)methodCall.Arguments[2].Unwrap();
+			var innerKeyLambda = (LambdaExpression)methodCall.Arguments[3].Unwrap();
 
 			var outerKeySelector = outerKeyLambda.Body.Unwrap();
 			var innerKeySelector = innerKeyLambda.Body.Unwrap();

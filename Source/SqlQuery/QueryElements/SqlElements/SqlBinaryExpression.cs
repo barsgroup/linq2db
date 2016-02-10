@@ -40,8 +40,6 @@
 
 		#region Overrides
 
-		public string SqlText { get { return ToString(); } }
-
 #if OVERRIDETOSTRING
 
 		public override string ToString()
@@ -131,9 +129,9 @@
             list.Add(Expr2);
         }
 
-        public override EQueryElementType ElementType { get { return EQueryElementType.SqlBinaryExpression; } }
+        public override EQueryElementType ElementType => EQueryElementType.SqlBinaryExpression;
 
-		public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			Expr1
 				.ToString(sb, dic)

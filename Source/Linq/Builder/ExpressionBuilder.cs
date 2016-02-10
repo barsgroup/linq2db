@@ -135,12 +135,9 @@ namespace LinqToDB.Linq.Builder
 		public static readonly ParameterExpression ParametersParam  = Expression.Parameter(typeof(object[]),     "ps");
 		public static readonly ParameterExpression ExpressionParam  = Expression.Parameter(typeof(Expression),   "expr");
 
-		public MappingSchema MappingSchema
-		{
-			get { return DataContextInfo.MappingSchema; }
-		}
+		public MappingSchema MappingSchema => DataContextInfo.MappingSchema;
 
-		#endregion
+        #endregion
 
 		#region Builder SQL
 
@@ -358,9 +355,10 @@ namespace LinqToDB.Linq.Builder
 							//if (c.Value is IExpressionQuery)
 							//	return ((IQueryable)c.Value).Expression;
 
-							if (c.Value is IQueryable && !(c.Value is ITable))
+						    var queryable = c.Value as IQueryable;
+						    if (queryable != null && !(c.Value is ITable))
 							{
-								var e = ((IQueryable)c.Value).Expression;
+								var e = queryable.Expression;
 
 								if (!_visitedExpressions.Contains(e))
 								{
@@ -382,18 +380,12 @@ namespace LinqToDB.Linq.Builder
 		#region OptimizeExpression
 
 		private MethodInfo[] _enumerableMethods;
-		public  MethodInfo[]  EnumerableMethods
-		{
-			get { return _enumerableMethods ?? (_enumerableMethods = typeof(Enumerable).GetMethodsEx()); }
-		}
+		public  MethodInfo[]  EnumerableMethods => _enumerableMethods ?? (_enumerableMethods = typeof(Enumerable).GetMethodsEx());
 
-		private MethodInfo[] _queryableMethods;
-		public  MethodInfo[]  QueryableMethods
-		{
-			get { return _queryableMethods ?? (_queryableMethods = typeof(Queryable).GetMethodsEx()); }
-		}
+        private MethodInfo[] _queryableMethods;
+		public  MethodInfo[]  QueryableMethods => _queryableMethods ?? (_queryableMethods = typeof(Queryable).GetMethodsEx());
 
-		readonly Dictionary<Expression, Expression> _optimizedExpressions = new Dictionary<Expression, Expression>();
+        readonly Dictionary<Expression, Expression> _optimizedExpressions = new Dictionary<Expression, Expression>();
 
 		Expression OptimizeExpression(Expression expression)
 		{
@@ -509,15 +501,15 @@ namespace LinqToDB.Linq.Builder
 			{
 				Expression expr;
 
-				if (mi is MethodInfo && ((MethodInfo)mi).IsGenericMethod)
+			    var methodInfo = mi as MethodInfo;
+			    if (methodInfo != null && methodInfo.IsGenericMethod)
 				{
-					var method = (MethodInfo)mi;
-					var args   = method.GetGenericArguments();
+					var args   = methodInfo.GetGenericArguments();
 					var names  = args.Select(t => (object)t.Name).ToArray();
 					var name   = attr.MethodName.Args(names);
 
 					expr = Expression.Call(
-						mi.DeclaringType,
+						methodInfo.DeclaringType,
 						name,
 						name != attr.MethodName ? Array<Type>.Empty : args);
 				}

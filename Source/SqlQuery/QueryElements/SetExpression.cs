@@ -16,24 +16,18 @@ namespace LinqToDB.SqlQuery.QueryElements
             Column     = column;
             Expression = expression;
 
-            if (expression is ISqlParameter)
-            {
-                var p = (ISqlParameter)expression;
-
-                if (column is ISqlField)
-                {
-                    var field = (ISqlField)column;
-
-                    if (field.ColumnDescriptor != null)
-                    {
-                        //							if (field.ColumnDescriptorptor.MapMemberInfo.IsDbTypeSet)
-                        //								p.DbType = field.ColumnDescriptorptor.MapMemberInfo.DbType;
-                        //
-                        //							if (field.ColumnDescriptorptor.MapMemberInfo.IsDbSizeSet)
-                        //								p.DbSize = field.ColumnDescriptor.MapMemberInfo.DbSize;
-                    }
-                }
-            }
+            //if (expression is ISqlParameter)
+            //{
+            //    var sqlField = column as ISqlField;
+            //    if (sqlField?.ColumnDescriptor != null)
+            //    {
+            //        //							if (field.ColumnDescriptorptor.MapMemberInfo.IsDbTypeSet)
+            //        //								p.DbType = field.ColumnDescriptorptor.MapMemberInfo.DbType;
+            //        //
+            //        //							if (field.ColumnDescriptorptor.MapMemberInfo.IsDbSizeSet)
+            //        //								p.DbSize = field.ColumnDescriptor.MapMemberInfo.DbSize;
+            //    }
+            //}
         }
 
         public IQueryExpression Column     { get; set; }

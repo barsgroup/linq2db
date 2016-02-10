@@ -51,15 +51,14 @@
 
 			protected IQueryExpression[] ConvertArgs(MemberInfo member, IQueryExpression[] args)
 			{
-				if (member is MethodInfo)
+			    var methodInfo = member as MethodInfo;
+			    if (methodInfo != null)
 				{
-					var method = (MethodInfo)member;
+					if (methodInfo.DeclaringType.IsGenericTypeEx())
+						args = args.Concat(methodInfo.DeclaringType.GetGenericArgumentsEx().Select(t => (IQueryExpression)SqlDataType.GetDataType(t))).ToArray();
 
-					if (method.DeclaringType.IsGenericTypeEx())
-						args = args.Concat(method.DeclaringType.GetGenericArgumentsEx().Select(t => (IQueryExpression)SqlDataType.GetDataType(t))).ToArray();
-
-					if (method.IsGenericMethod)
-						args = args.Concat(method.GetGenericArguments().Select(t => (IQueryExpression)SqlDataType.GetDataType(t))).ToArray();
+					if (methodInfo.IsGenericMethod)
+						args = args.Concat(methodInfo.GetGenericArguments().Select(t => (IQueryExpression)SqlDataType.GetDataType(t))).ToArray();
 				}
 
 				if (ArgIndices != null)

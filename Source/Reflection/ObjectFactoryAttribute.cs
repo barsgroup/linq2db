@@ -18,9 +18,6 @@ namespace LinqToDB.Reflection
 		}
 
 		private readonly IObjectFactory _objectFactory;
-		public           IObjectFactory  ObjectFactory
-		{
-			get { return _objectFactory; }
-		}
+		public           IObjectFactory  ObjectFactory => _objectFactory;
 	}
 }

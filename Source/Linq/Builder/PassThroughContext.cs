@@ -17,12 +17,14 @@ namespace LinqToDB.Linq.Builder
 		public IBuildContext Context { get; set; }
 
 #if DEBUG
-		string IBuildContext._sqlQueryText { get { return Context._sqlQueryText; } }
+		string IBuildContext._sqlQueryText => Context._sqlQueryText;
 #endif
 
-		public virtual ExpressionBuilder Builder     { get { return Context.Builder;     } }
-		public virtual Expression        Expression  { get { return Context.Expression;  } }
-		public virtual ISelectQuery Select { get { return Context.Select; } set { Context.Select = value; } }
+		public virtual ExpressionBuilder Builder => Context.Builder;
+
+        public virtual Expression        Expression => Context.Expression;
+
+        public virtual ISelectQuery Select { get { return Context.Select; } set { Context.Select = value; } }
 		public virtual IBuildContext     Parent      { get { return Context.Parent;      } set { Context.Parent      = value; } }
 
 		public virtual void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)

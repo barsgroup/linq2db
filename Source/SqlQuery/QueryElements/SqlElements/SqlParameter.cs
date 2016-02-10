@@ -93,12 +93,9 @@
 			set { _value = value; }
 		}
 
-		public object RawValue
-		{
-			get { return _value; }
-		}
+		public object RawValue => _value;
 
-		#region Value Converter
+        #region Value Converter
 
 		internal List<int>  TakeValues;
 
@@ -178,12 +175,9 @@
 
 		#region ISqlExpression Members
 
-		public int Precedence
-		{
-			get { return SqlQuery.Precedence.Primary; }
-		}
+		public int Precedence => SqlQuery.Precedence.Primary;
 
-		#endregion
+        #endregion
 
 		#region ISqlExpressionWalkable Members
 
@@ -259,7 +253,7 @@
         {
         }
 
-        public override EQueryElementType ElementType { get { return EQueryElementType.SqlParameter; } }
+        public override EQueryElementType ElementType => EQueryElementType.SqlParameter;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

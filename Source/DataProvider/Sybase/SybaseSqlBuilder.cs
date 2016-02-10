@@ -26,9 +26,9 @@ namespace LinqToDB.DataProvider.Sybase
 				.AppendLine("SELECT @@IDENTITY");
 		}
 
-		protected override string FirstFormat { get { return "TOP {0}"; } }
+		protected override string FirstFormat => "TOP {0}";
 
-		protected override void BuildFunction(ISqlFunction func)
+	    protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
@@ -112,26 +112,30 @@ namespace LinqToDB.DataProvider.Sybase
 
 		protected override void BuildLikePredicate(ILike predicate)
 		{
-			if (predicate.Expr2 is ISqlValue)
+		    var sqlValue = predicate.Expr2 as ISqlValue;
+		    if (sqlValue != null)
 			{
-				var value = ((ISqlValue)predicate.Expr2).Value;
+				var value = sqlValue.Value;
 
 				if (value != null)
 				{
-					var text  = ((ISqlValue)predicate.Expr2).Value.ToString();
+					var text  = value.ToString();
 					var ntext = text.Replace("[", "[[]");
 
 					if (text != ntext)
 						predicate = new Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
 				}
 			}
-			else if (predicate.Expr2 is ISqlParameter)
-			{
-				var p = ((ISqlParameter)predicate.Expr2);
-				p.ReplaceLike = true;
-			}
+			else
+		    {
+		        var expr2 = predicate.Expr2 as ISqlParameter;
+		        if (expr2 != null)
+		        {
+		            expr2.ReplaceLike = true;
+		        }
+		    }
 
-			base.BuildLikePredicate(predicate);
+		    base.BuildLikePredicate(predicate);
 		}
 
 		protected override void BuildUpdateTableName()

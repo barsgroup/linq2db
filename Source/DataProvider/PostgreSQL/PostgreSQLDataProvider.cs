@@ -135,11 +135,13 @@ namespace LinqToDB.DataProvider.PostgreSQL
 			}
 		}
 
-		public    override string ConnectionNamespace { get { return "Npgsql";                          } }
-		protected override string ConnectionTypeName  { get { return "Npgsql.NpgsqlConnection, Npgsql"; } }
-		protected override string DataReaderTypeName  { get { return "Npgsql.NpgsqlDataReader, Npgsql"; } }
+		public    override string ConnectionNamespace => "Npgsql";
 
-		public override ISqlBuilder CreateSqlBuilder()
+	    protected override string ConnectionTypeName => "Npgsql.NpgsqlConnection, Npgsql";
+
+	    protected override string DataReaderTypeName => "Npgsql.NpgsqlDataReader, Npgsql";
+
+	    public override ISqlBuilder CreateSqlBuilder()
 		{
 			return new PostgreSQLSqlBuilder(GetSqlOptimizer(), SqlProviderFlags, MappingSchema.ValueToSqlConverter);
 		}

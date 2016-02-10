@@ -202,14 +202,13 @@ namespace LinqToDB.Linq.Builder
 			{
 				if (context.Select.Select.SkipValue is ISqlParameter && sql.Select.TakeValue is ISqlValue)
 				{
-					var skip = (ISqlParameter)sql.Select.SkipValue;
-					var parm = (ISqlParameter)sql.Select.SkipValue.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
+				    var parm = (ISqlParameter)sql.Select.SkipValue.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
 
 					parm.SetTakeConverter((int)((ISqlValue)sql.Select.TakeValue).Value);
 
 					sql.Select.Take(parm);
 
-					var ep = (from pm in CurrentSqlParameters where ReferenceEquals(pm.SqlParameter, skip) select pm).First();
+					var ep = (from pm in CurrentSqlParameters where ReferenceEquals(pm.SqlParameter, (ISqlParameter)sql.Select.SkipValue) select pm).First();
 
 					ep = new ParameterAccessor
 					{
@@ -584,8 +583,9 @@ namespace LinqToDB.Linq.Builder
 							.Select((arg,i) =>
 							{
 								var mi = expr.Members[i];
-								if (mi is MethodInfo)
-									mi = ((MethodInfo)mi).GetPropertyInfo();
+							    var methodInfo = mi as MethodInfo;
+							    if (methodInfo != null)
+									mi = (methodInfo).GetPropertyInfo();
 
 								return ConvertExpressions(context, arg, queryConvertFlag).Select(si => si.Clone(mi));
 							})
@@ -607,8 +607,9 @@ namespace LinqToDB.Linq.Builder
 							.Select (a =>
 							{
 								var mi = a.Member;
-								if (mi is MethodInfo)
-									mi = ((MethodInfo)mi).GetPropertyInfo();
+							    var methodInfo = mi as MethodInfo;
+							    if (methodInfo != null)
+									mi = (methodInfo).GetPropertyInfo();
 
 								return ConvertExpressions(context, a.Expression, queryConvertFlag).Select(si => si.Clone(mi));
 							})
@@ -700,22 +701,18 @@ namespace LinqToDB.Linq.Builder
 							case ExpressionType.SubtractChecked : return Convert(context, new SqlBinaryExpression(t, l, "-", r, Precedence.Subtraction));
 							case ExpressionType.Coalesce        :
 								{
-									if (r is ISqlFunction)
-									{
-										var c = (ISqlFunction)r;
+								    var sqlFunction = r as ISqlFunction;
+								    if (sqlFunction != null && sqlFunction.Name == "Coalesce")
+								    {
+								        var parms = new IQueryExpression[sqlFunction.Parameters.Length + 1];
 
-										if (c.Name == "Coalesce")
-										{
-											var parms = new IQueryExpression[c.Parameters.Length + 1];
+								        parms[0] = l;
+								        sqlFunction.Parameters.CopyTo(parms, 1);
 
-											parms[0] = l;
-											c.Parameters.CopyTo(parms, 1);
+								        return Convert(context, new SqlFunction(t, "Coalesce", parms));
+								    }
 
-											return Convert(context, new SqlFunction(t, "Coalesce", parms));
-										}
-									}
-
-									return Convert(context, new SqlFunction(t, "Coalesce", l, r));
+								    return Convert(context, new SqlFunction(t, "Coalesce", l, r));
 								}
 						}
 
@@ -776,23 +773,19 @@ namespace LinqToDB.Linq.Builder
 						var t = ConvertToSql(context, e.IfTrue);
 						var f = ConvertToSql(context, e.IfFalse);
 
-						if (f is ISqlFunction)
-						{
-							var c = (ISqlFunction)f;
+					    var sqlFunction = f as ISqlFunction;
+					    if (sqlFunction != null && sqlFunction.Name == "CASE")
+					    {
+					        var parms = new IQueryExpression[sqlFunction.Parameters.Length + 2];
 
-							if (c.Name == "CASE")
-							{
-								var parms = new IQueryExpression[c.Parameters.Length + 2];
+					        parms[0] = s;
+					        parms[1] = t;
+					        sqlFunction.Parameters.CopyTo(parms, 2);
 
-								parms[0] = s;
-								parms[1] = t;
-								c.Parameters.CopyTo(parms, 2);
+					        return Convert(context, new SqlFunction(e.Type, "CASE", parms));
+					    }
 
-								return Convert(context, new SqlFunction(e.Type, "CASE", parms));
-							}
-						}
-
-						return Convert(context, new SqlFunction(e.Type, "CASE", s, t, f));
+					    return Convert(context, new SqlFunction(e.Type, "CASE", s, t, f));
 					}
 
 				case ExpressionType.MemberAccess :
@@ -893,7 +886,8 @@ namespace LinqToDB.Linq.Builder
 							{
 								var arg = e.Arguments[i];
 
-								if (arg is NewArrayExpression)
+							    var newArrayExpression = arg as NewArrayExpression;
+							    if (newArrayExpression != null)
 								{
 									if (pis == null)
 										pis = e.Method.GetParameters();
@@ -902,13 +896,11 @@ namespace LinqToDB.Linq.Builder
 
 									if (p.GetCustomAttributesEx(true).OfType<ParamArrayAttribute>().Any())
 									{
-										var nae = (NewArrayExpression)arg;
-
-										parms.AddRange(nae.Expressions.Select(a => ConvertToSql(context, a)));
+										parms.AddRange(newArrayExpression.Expressions.Select(a => ConvertToSql(context, a)));
 									}
 									else
 									{
-										parms.Add(ConvertToSql(context, arg));
+										parms.Add(ConvertToSql(context, newArrayExpression));
 									}
 								}
 								else
@@ -1488,33 +1480,42 @@ namespace LinqToDB.Linq.Builder
 				operand = left;
 				value   = right;
 			}
-			else if (left.NodeType == ExpressionType.Convert && ((UnaryExpression)left).Operand is MemberExpression)
-			{
-				operand = ((UnaryExpression)left).Operand;
-				value   = right;
-			}
-			else if (right is MemberExpression)
-			{
-				operand = right;
-				value   = left;
-			}
-			else if (right.NodeType == ExpressionType.Convert && ((UnaryExpression)right).Operand is MemberExpression)
-			{
-				operand = ((UnaryExpression)right).Operand;
-				value   = left;
-			}
-			else if (left.NodeType == ExpressionType.Convert)
-			{
-				operand = ((UnaryExpression)left).Operand;
-				value   = right;
-			}
 			else
 			{
-				operand = ((UnaryExpression)right).Operand;
-				value = left;
+			    var leftUnaryExpression = (UnaryExpression)left;
+
+			    if (left.NodeType == ExpressionType.Convert && leftUnaryExpression.Operand is MemberExpression)
+			    {
+			        operand = leftUnaryExpression.Operand;
+			        value   = right;
+			    }
+			    else if (right is MemberExpression)
+			    {
+			        operand = right;
+			        value   = left;
+			    }
+			    else
+			    {
+			        var rightUnaryExpression = (UnaryExpression)right;
+			        if (right.NodeType == ExpressionType.Convert && rightUnaryExpression.Operand is MemberExpression)
+			        {
+			            operand = rightUnaryExpression.Operand;
+			            value   = left;
+			        }
+			        else if (left.NodeType == ExpressionType.Convert)
+			        {
+			            operand = leftUnaryExpression.Operand;
+			            value   = right;
+			        }
+			        else
+			        {
+			            operand = rightUnaryExpression.Operand;
+			            value = left;
+			        }
+			    }
 			}
 
-			var type = operand.Type;
+		    var type = operand.Type;
 
 			if (!type.ToNullableUnderlying().IsEnumEx())
 				return null;
@@ -1653,7 +1654,8 @@ namespace LinqToDB.Linq.Builder
 					rmembers = lm;
 				}
 
-				isNull = right is ConstantExpression && ((ConstantExpression)right).Value == null;
+			    var constantExpression = right as ConstantExpression;
+			    isNull = constantExpression != null && constantExpression.Value == null;
 				lcols  = lmembers.Select(m => new SqlInfo(m.Key) { Sql = ConvertToSql(leftContext, m.Value) }).ToArray();
 			}
 			else
@@ -1674,7 +1676,8 @@ namespace LinqToDB.Linq.Builder
 					sr = false;
 				}
 
-				isNull = right is ConstantExpression && ((ConstantExpression)right).Value == null;
+			    var constantExpression = right as ConstantExpression;
+			    isNull = constantExpression != null && constantExpression.Value == null;
 				lcols  = qsl.ConvertToSql(left, 0, ConvertFlags.Key);
 
 				if (!sr)
@@ -1770,8 +1773,9 @@ namespace LinqToDB.Linq.Builder
 
 		IQueryExpression GetParameter(Expression ex, MemberInfo member)
 		{
-			if (member is MethodInfo)
-				member = ((MethodInfo)member).GetPropertyInfo();
+		    var info = member as MethodInfo;
+		    if (info != null)
+				member = info.GetPropertyInfo();
 
 			var par  = ReplaceParameter(_expressionAccessors, ex, _ => {});
 			var expr = Expression.MakeMemberAccess(par.Type == typeof(object) ? Expression.Convert(par, member.DeclaringType) : par, member);
@@ -1922,32 +1926,31 @@ namespace LinqToDB.Linq.Builder
 			var o = ConvertToSql(context, e.Object);
 			var a = ConvertToSql(context, e.Arguments[0]);
 
-			if (a is ISqlValue)
+		    var sqlValue = a as ISqlValue;
+		    if (sqlValue != null)
 			{
-				var value = ((ISqlValue)a).Value;
-
-				if (value == null)
+				if (sqlValue.Value == null)
 					throw new LinqException("NULL cannot be used as a LIKE predicate parameter.");
 
-				return value.ToString().IndexOfAny(new[] { '%', '_' }) < 0?
-					new Like(o, false, new SqlValue(start + value + end), null):
-					new Like(o, false, new SqlValue(start + EscapeLikeText(value.ToString()) + end), new SqlValue('~'));
+				return sqlValue.Value.ToString().IndexOfAny(new[] { '%', '_' }) < 0?
+					new Like(o, false, new SqlValue(start + sqlValue.Value + end), null):
+					new Like(o, false, new SqlValue(start + EscapeLikeText(sqlValue.Value.ToString()) + end), new SqlValue('~'));
 			}
 
-			if (a is ISqlParameter)
+		    var sqlParameter = a as ISqlParameter;
+		    if (sqlParameter != null)
 			{
-				var p  = (ISqlParameter)a;
-				var ep = (from pm in CurrentSqlParameters where pm.SqlParameter == p select pm).First();
+				var ep = (from pm in CurrentSqlParameters where pm.SqlParameter == sqlParameter select pm).First();
 
 				ep = new ParameterAccessor
 				{
 					Expression   = ep.Expression,
 					Accessor     = ep.Accessor,
-					SqlParameter = new SqlParameter(ep.Expression.Type, p.Name, p.Value)
+					SqlParameter = new SqlParameter(ep.Expression.Type, sqlParameter.Name, sqlParameter.Value)
 					{
 						LikeStart        = start,
 						LikeEnd          = end,
-						ReplaceLike      = p.ReplaceLike,
+						ReplaceLike      = sqlParameter.ReplaceLike,
 						IsQueryParameter = !DataContextInfo.DataContext.InlineParameters
 					},
 				};
@@ -2190,16 +2193,21 @@ namespace LinqToDB.Linq.Builder
 
 				case ExpressionType.Not    :
 					{
-						var e            = expression as UnaryExpression;
+						var e            = (UnaryExpression)expression;
 						var notCondition = new SearchCondition();
 
 						BuildSearchCondition(context, e.Operand, notCondition.Conditions);
 
-						if (notCondition.Conditions.Count == 1 && notCondition.Conditions[0].Predicate is INotExpr)
+						if (notCondition.Conditions.Count == 1)
 						{
-							var p = notCondition.Conditions[0].Predicate as INotExpr;
-							p.IsNot = !p.IsNot;
-							conditions.Add(notCondition.Conditions[0]);
+						    var notExpr = notCondition.Conditions[0].Predicate as INotExpr;
+						    if (notExpr != null)
+						    {
+						        notExpr.IsNot = !notExpr.IsNot;
+						        conditions.Add(notCondition.Conditions[0]);
+						    }
+						    else
+						        conditions.Add(new Condition(true, notCondition));
 						}
 						else
 							conditions.Add(new Condition(true, notCondition));
@@ -2210,23 +2218,17 @@ namespace LinqToDB.Linq.Builder
 				default                    :
 					var predicate = ConvertPredicate(context, expression);
 
-					if (predicate is IExpr)
-					{
-						var expr = ((IExpr)predicate).Expr1;
+			        var expr = predicate as IExpr;
+			        var expr1 = expr?.Expr1;
 
-						if (expr.ElementType == EQueryElementType.SearchCondition)
-						{
-							var sc = (ISearchCondition)expr;
+			        var searchCondition = expr1 as ISearchCondition;
+			        if (searchCondition?.Conditions.Count == 1)
+			        {
+			            conditions.Add(searchCondition.Conditions[0]);
+			            break;
+			        }
 
-							if (sc.Conditions.Count == 1)
-							{
-								conditions.Add(sc.Conditions[0]);
-								break;
-							}
-						}
-					}
-
-					conditions.Add(new Condition(false, predicate));
+			        conditions.Add(new Condition(false, predicate));
 
 					break;
 			}
@@ -2423,8 +2425,9 @@ namespace LinqToDB.Linq.Builder
 
 							members.Add(member, expr.Arguments[i]);
 
-							if (member is MethodInfo)
-								members.Add(((MethodInfo)member).GetPropertyInfo(), expr.Arguments[i]);
+						    var methodInfo = member as MethodInfo;
+						    if (methodInfo != null)
+								members.Add(methodInfo.GetPropertyInfo(), expr.Arguments[i]);
 						}
 
 						return true;
@@ -2443,8 +2446,9 @@ namespace LinqToDB.Linq.Builder
 						{
 							members.Add(binding.Member, binding.Expression);
 
-							if (binding.Member is MethodInfo)
-								members.Add(((MethodInfo)binding.Member).GetPropertyInfo(), binding.Expression);
+						    var methodInfo = binding.Member as MethodInfo;
+						    if (methodInfo != null)
+								members.Add(methodInfo.GetPropertyInfo(), binding.Expression);
 						}
 
 						return true;

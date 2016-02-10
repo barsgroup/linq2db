@@ -26,8 +26,9 @@ namespace LinqToDB.DataProvider.SapHana
 		// b) we don't have dataprovider here ether
 		private static string ValueToString(object value)
 		{
-			if (value is string)
-				return value as string;
+		    var valueToString = value as string;
+		    if (valueToString != null)
+				return valueToString;
 			if (value is decimal)
 				return ((decimal)value).ToString(new NumberFormatInfo());
 			if (value is double)

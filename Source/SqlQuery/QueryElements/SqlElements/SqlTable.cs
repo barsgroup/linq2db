@@ -303,9 +303,9 @@
 		#region ISqlTableSource Members
 
 		readonly int _sourceID;
-		public   int  SourceID { get { return _sourceID; } }
+		public   int  SourceID => _sourceID;
 
-		List<IQueryExpression> _keyFields;
+        List<IQueryExpression> _keyFields;
 
 		public IList<IQueryExpression> GetKeys(bool allIfEmpty)
 		{
@@ -387,7 +387,7 @@
             }
         }
 
-        public override EQueryElementType ElementType { get { return EQueryElementType.SqlTable; } }
+        public override EQueryElementType ElementType => EQueryElementType.SqlTable;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
@@ -408,17 +408,11 @@
 			return this == other;
 		}
 
-        public int Precedence
-		{
-			get { return SqlQuery.Precedence.Unknown; }
-		}
+        public int Precedence => SqlQuery.Precedence.Unknown;
 
-		Type IQueryExpression.SystemType
-		{
-			get { return ObjectType; }
-		}
+        Type IQueryExpression.SystemType => ObjectType;
 
-		#endregion
+        #endregion
 
 		#region IEquatable<ISqlExpression> Members
 

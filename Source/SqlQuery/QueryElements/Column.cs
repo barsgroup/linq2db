@@ -45,16 +45,16 @@ namespace LinqToDB.SqlQuery.QueryElements
             {
                 if (_alias == null)
                 {
-                    if (Expression is ISqlField)
+                    var sqlField = Expression as ISqlField;
+                    if (sqlField != null)
                     {
-                        var field = (ISqlField)Expression;
-                        return field.Alias ?? field.PhysicalName;
+                        return sqlField.Alias ?? sqlField.PhysicalName;
                     }
 
-                    if (Expression is IColumn)
+                    var column = Expression as IColumn;
+                    if (column != null)
                     {
-                        var col = (IColumn)Expression;
-                        return col.Alias;
+                        return column.Alias;
                     }
                 }
 
@@ -89,10 +89,11 @@ namespace LinqToDB.SqlQuery.QueryElements
             if (this == other)
                 return true;
 
+            var column = other as IColumn;
             return
-                other is IColumn &&
-                Expression.Equals(((IColumn)other).Expression, comparer) &&
-                comparer(this, other);
+                column != null &&
+                Expression.Equals(column.Expression, comparer) &&
+                comparer(this, column);
         }
 
         public int Precedence => SqlQuery.Precedence.Primary;
@@ -126,7 +127,8 @@ namespace LinqToDB.SqlQuery.QueryElements
             if (this == other)
                 return true;
 
-            return other is IColumn && Equals((IColumn)other);
+            var column = other as IColumn;
+            return column != null && Equals(column);
         }
 
         #endregion

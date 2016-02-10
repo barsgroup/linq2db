@@ -59,8 +59,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         bool HasUnion { get; }
 
-        string SqlText { get; }
-
         void ClearInsert();
 
         void ClearUpdate();

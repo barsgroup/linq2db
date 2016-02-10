@@ -89,13 +89,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
             {
                 foreach (var item in exprs)
                 {
-                    if (item == null || item is ISqlValue && ((ISqlValue)item).Value == null)
+                    var sqlValue = item as ISqlValue;
+                    if (item == null || sqlValue != null && sqlValue.Value == null)
                         continue;
 
-                    if (item is IQueryExpression)
-                        list.Values.Add((IQueryExpression)item);
-                    else
-                        list.Values.Add(new SqlValue(item));
+                    var queryExpression = item as IQueryExpression;
+                    list.Values.Add(queryExpression ?? new SqlValue(item));
                 }
             }
 

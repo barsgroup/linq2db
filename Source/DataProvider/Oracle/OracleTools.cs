@@ -48,12 +48,9 @@ namespace LinqToDB.DataProvider.Oracle
 			new AssemblyResolver(assembly, AssemblyName);
 		}
 
-		public static bool IsXmlTypeSupported
-		{
-			get { return _oracleDataProvider.IsXmlTypeSupported; }
-		}
+		public static bool IsXmlTypeSupported => _oracleDataProvider.IsXmlTypeSupported;
 
-		#region CreateDataConnection
+	    #region CreateDataConnection
 
 		public static DataConnection CreateDataConnection(string connectionString)
 		{

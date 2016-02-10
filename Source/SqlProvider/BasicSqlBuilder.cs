@@ -46,10 +46,11 @@ namespace LinqToDB.SqlProvider
 
 		#region Support Flags
 
-		public virtual bool IsNestedJoinSupported           { get { return true;  } }
-		public virtual bool IsNestedJoinParenthesisRequired { get { return false; } }
+		public virtual bool IsNestedJoinSupported => true;
 
-		#endregion
+	    public virtual bool IsNestedJoinParenthesisRequired => false;
+
+	    #endregion
 
 		#region CommandCount
 
@@ -1091,19 +1092,6 @@ namespace LinqToDB.SqlProvider
 			if (items.Count == 0)
 				return;
 
-//			if (SelectQuery.GroupBy.Items.Count == 1)
-//			{
-//				var item = SelectQuery.GroupBy.Items[0];
-//
-//				if (item is ISqlValue || item is SqlParameter)
-//				{
-//					var value = ((ISqlValue)item).Value;
-//
-//					if (value is Sql.GroupBy || value is int)
-//						return;
-//				}
-//			}
-
 			AppendIndent();
 
 			StringBuilder.Append("GROUP BY").AppendLine();
@@ -1185,17 +1173,23 @@ namespace LinqToDB.SqlProvider
 
 		#region Skip/Take
 
-		protected virtual bool   SkipFirst    { get { return true;  } }
-		protected virtual string SkipFormat   { get { return null;  } }
-		protected virtual string FirstFormat  { get { return null;  } }
-		protected virtual string LimitFormat  { get { return null;  } }
-		protected virtual string OffsetFormat { get { return null;  } }
-		protected virtual bool   OffsetFirst  { get { return false; } }
+		protected virtual bool   SkipFirst => true;
 
-		protected bool NeedSkip { get { return SelectQuery.Select.SkipValue != null && SqlProviderFlags.GetIsSkipSupportedFlag(SelectQuery); } }
-		protected bool NeedTake { get { return SelectQuery.Select.TakeValue != null && SqlProviderFlags.IsTakeSupported; } }
+	    protected virtual string SkipFormat => null;
 
-		protected virtual void BuildSkipFirst()
+	    protected virtual string FirstFormat => null;
+
+	    protected virtual string LimitFormat => null;
+
+	    protected virtual string OffsetFormat => null;
+
+	    protected virtual bool   OffsetFirst => false;
+
+	    protected bool NeedSkip => SelectQuery.Select.SkipValue != null && SqlProviderFlags.GetIsSkipSupportedFlag(SelectQuery);
+
+	    protected bool NeedTake => SelectQuery.Select.TakeValue != null && SqlProviderFlags.IsTakeSupported;
+
+	    protected virtual void BuildSkipFirst()
 		{
 			if (SkipFirst && NeedSkip && SkipFormat != null)
 				StringBuilder.Append(' ').AppendFormat(
@@ -1319,12 +1313,17 @@ namespace LinqToDB.SqlProvider
 								{
 									IQueryExpression e = null;
 
-									if (expr.Expr1 is IValueContainer && ((IValueContainer)expr.Expr1).Value == null)
+								    var valueContainer = expr.Expr1 as IValueContainer;
+								    if (valueContainer != null && valueContainer.Value == null)
 										e = expr.Expr2;
-									else if (expr.Expr2 is IValueContainer && ((IValueContainer)expr.Expr2).Value == null)
-										e = expr.Expr1;
+									else
+								    {
+								        var container = expr.Expr2 as IValueContainer;
+								        if (container != null && container.Value == null)
+								            e = expr.Expr1;
+								    }
 
-									if (e != null)
+								    if (e != null)
 									{
 										BuildExpression(GetPrecedence(expr), e);
 										StringBuilder.Append(expr.EOperator == EOperator.Equal ? " IS NULL" : " IS NOT NULL");
@@ -1422,18 +1421,16 @@ namespace LinqToDB.SqlProvider
 					{
 						var p = (IExpr)predicate;
 
-						if (p.Expr1 is ISqlValue)
-						{
-							var value = ((ISqlValue)p.Expr1).Value;
+					    var sqlValue = p.Expr1 as ISqlValue;
+					    var value = sqlValue?.Value;
 
-							if (value is bool)
-							{
-								StringBuilder.Append((bool)value ? "1 = 1" : "1 = 0");
-								return;
-							}
-						}
+					    if (value is bool)
+					    {
+					        StringBuilder.Append((bool)value ? "1 = 1" : "1 = 0");
+					        return;
+					    }
 
-						BuildExpression(GetPrecedence(p), p.Expr1);
+					    BuildExpression(GetPrecedence(p), p.Expr1);
 					}
 
 					break;
@@ -1466,26 +1463,26 @@ namespace LinqToDB.SqlProvider
 			{
 				ICollection values = p.Values;
 
-				if (p.Values.Count == 1 && p.Values[0] is ISqlParameter &&
-					!(p.Expr1.SystemType == typeof(string) && ((ISqlParameter)p.Values[0]).Value is string))
+			    var sqlParameter = p.Values[0] as ISqlParameter;
+			    if (p.Values.Count == 1 && sqlParameter != null &&
+					!(p.Expr1.SystemType == typeof(string) && sqlParameter.Value is string))
 				{
-					var pr = (ISqlParameter)p.Values[0];
-
-					if (pr.Value == null)
+				    if (sqlParameter.Value == null)
 					{
 						BuildPredicate(new Expr(new SqlValue(false)));
 						return;
 					}
 
-					if (pr.Value is IEnumerable)
+				    var enumerable = sqlParameter.Value as IEnumerable;
+				    if (enumerable != null)
 					{
-						var items = (IEnumerable)pr.Value;
+						var items = enumerable;
 
-						if (p.Expr1 is ISqlTableSource)
+					    var tableSource = p.Expr1 as ISqlTableSource;
+					    if (tableSource != null)
 						{
 							var firstValue = true;
-							var table      = (ISqlTableSource)p.Expr1;
-							var keys       = table.GetKeys(true);
+							var keys       = tableSource.GetKeys(true);
 
 							if (keys == null || keys.Count == 0)
 								throw new SqlException("Cannot create IN expression.");
@@ -1504,8 +1501,9 @@ namespace LinqToDB.SqlProvider
 									var field = GetUnderlayingField(keys[0]);
 									var value = field.ColumnDescriptor.MemberAccessor.GetValue(item);
 
-									if (value is IQueryExpression)
-										BuildExpression((IQueryExpression)value);
+								    var queryExpression = value as IQueryExpression;
+								    if (queryExpression != null)
+										BuildExpression(queryExpression);
 									else
 										BuildValue(
 											new SqlDataType(
@@ -1618,8 +1616,9 @@ namespace LinqToDB.SqlProvider
 
 				var val = value;
 
-				if (val is IValueContainer)
-					val = ((IValueContainer)value).Value;
+			    var valueContainer = val as IValueContainer;
+			    if (valueContainer != null)
+					val = valueContainer.Value;
 
 				if (val == null)
 				{
@@ -1658,8 +1657,9 @@ namespace LinqToDB.SqlProvider
 					}
 				}
 
-				if (value is IQueryExpression)
-					BuildExpression((IQueryExpression)value);
+			    var queryExpression = value as IQueryExpression;
+			    if (queryExpression != null)
+					BuildExpression(queryExpression);
 				else
 					BuildValue(sqlDataType, value);
 
@@ -1832,7 +1832,7 @@ namespace LinqToDB.SqlProvider
 					break;
 
 				case EQueryElementType.SqlValue:
-			        var sqlValue = ((ISqlValue)expr);
+			        var sqlValue = (ISqlValue)expr;
 
                     // Если значение не равно NULL, то CAST не требуется
                     // Для колонок, которые не принимают непосредственное участие в формировании поля сущности, нет смысла делать CAST
@@ -1971,11 +1971,10 @@ namespace LinqToDB.SqlProvider
 
 		void BuildBinaryExpression(string op, ISqlBinaryExpression expr)
 		{
-			if (expr.Operation == "*" && expr.Expr1 is ISqlValue)
+		    var sqlValue = expr.Expr1 as ISqlValue;
+		    if (expr.Operation == "*" && sqlValue != null)
 			{
-				var value = (ISqlValue)expr.Expr1;
-
-				if (value.Value is int && (int)value.Value == -1)
+			    if (sqlValue.Value is int && (int)sqlValue.Value == -1)
 				{
 					StringBuilder.Append('-');
 					BuildExpression(GetPrecedence(expr), expr.Expr2);
@@ -2216,10 +2215,12 @@ namespace LinqToDB.SqlProvider
 					var expr1 = Add(SelectQuery.Select.SkipValue, 1);
 					var expr2 = Add<int>(SelectQuery.Select.SkipValue, SelectQuery.Select.TakeValue);
 
-					if (expr1 is ISqlValue && expr2 is ISqlValue && Equals(((ISqlValue)expr1).Value, ((ISqlValue)expr2).Value))
+				    var sqlValue1 = expr1 as ISqlValue;
+				    var sqlValue2 = expr2 as ISqlValue;
+				    if (sqlValue1 != null && sqlValue2 != null && Equals(sqlValue1.Value, sqlValue2.Value))
 					{
 						AppendIndent().AppendFormat("{0}.{1} = ", aliases[1], rnaliase);
-						BuildExpression(expr1);
+						BuildExpression(sqlValue1);
 					}
 					else
 					{
@@ -2264,8 +2265,9 @@ namespace LinqToDB.SqlProvider
 
 				var p = SelectQuery.Select.SkipValue as ISqlParameter;
 
-				if (p != null && !p.IsQueryParameter && SelectQuery.Select.TakeValue is ISqlValue)
-					BuildValue(null, (int)p.Value + (int)((ISqlValue)(SelectQuery.Select.TakeValue)).Value);
+			    var sqlValue = SelectQuery.Select.TakeValue as ISqlValue;
+			    if (p != null && !p.IsQueryParameter && sqlValue != null)
+					BuildValue(null, (int)p.Value + (int)sqlValue.Value);
 				else
 					BuildExpression(Add<int>(SelectQuery.Select.SkipValue, SelectQuery.Select.TakeValue));
 
@@ -2700,11 +2702,8 @@ namespace LinqToDB.SqlProvider
 		}
 
 		private        string _name;
-		public virtual string  Name
-		{
-			get { return _name ?? (_name = GetType().Name.Replace("SqlBuilder", "")); }
-		}
+		public virtual string  Name => _name ?? (_name = GetType().Name.Replace("SqlBuilder", ""));
 
-		#endregion
+	    #endregion
 	}
 }

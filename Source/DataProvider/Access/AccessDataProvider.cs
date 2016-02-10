@@ -47,10 +47,11 @@ namespace LinqToDB.DataProvider.Access
 			return value;
 		}
 
-		public override string ConnectionNamespace { get { return typeof(OleDbConnection).Namespace; } }
-		public override Type   DataReaderType      { get { return typeof(OleDbDataReader);           } }
-		
-		protected override IDbConnection CreateConnectionInternal(string connectionString)
+		public override string ConnectionNamespace => typeof(OleDbConnection).Namespace;
+
+	    public override Type   DataReaderType => typeof(OleDbDataReader);
+
+	    protected override IDbConnection CreateConnectionInternal(string connectionString)
 		{
 			return new OleDbConnection(connectionString);
 		}

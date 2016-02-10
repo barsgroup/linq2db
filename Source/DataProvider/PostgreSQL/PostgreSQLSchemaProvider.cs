@@ -58,7 +58,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 
 		protected override List<TableInfo> GetTables(DataConnection dataConnection)
 		{
-			var sql = (@"
+			var sql = @"
 				SELECT
 					table_catalog || '.' || table_schema || '.' || table_name as TableID,
 					table_catalog                                             as CatalogName,
@@ -67,7 +67,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 					table_schema = 'public'                                   as IsDefaultSchema,
 					table_type = 'VIEW'                                       as IsView
 				FROM
-					information_schema.tables");
+					information_schema.tables";
 
 			if (ExcludedSchemas.Length == 0 && IncludedSchemas.Length == 0)
 				sql += @"

@@ -143,22 +143,13 @@ namespace LinqToDB
 			}
 		}
 
-		Func<ISqlBuilder> IDataContext.CreateSqlProvider
-		{
-			get { return DataProvider.CreateSqlBuilder; }
-		}
+		Func<ISqlBuilder> IDataContext.CreateSqlProvider => DataProvider.CreateSqlBuilder;
 
-		Func<ISqlOptimizer> IDataContext.GetSqlOptimizer
-		{
-			get { return DataProvider.GetSqlOptimizer; }
-		}
+	    Func<ISqlOptimizer> IDataContext.GetSqlOptimizer => DataProvider.GetSqlOptimizer;
 
-		Type IDataContext.DataReaderType
-		{
-			get { return DataProvider.DataReaderType; }
-		}
+	    Type IDataContext.DataReaderType => DataProvider.DataReaderType;
 
-		Expression IDataContext.GetReaderExpression(MappingSchema mappingSchema, IDataReader reader, int idx, Expression readerExpression, Type toType)
+	    Expression IDataContext.GetReaderExpression(MappingSchema mappingSchema, IDataReader reader, int idx, Expression readerExpression, Type toType)
 		{
 			return DataProvider.GetReaderExpression(mappingSchema, reader, idx, readerExpression, toType);
 		}
@@ -197,12 +188,9 @@ namespace LinqToDB
 			ReleaseQuery();
 		}
 
-		SqlProviderFlags IDataContext.SqlProviderFlags
-		{
-			get { return DataProvider.SqlProviderFlags; }
-		}
+		SqlProviderFlags IDataContext.SqlProviderFlags => DataProvider.SqlProviderFlags;
 
-		string IDataContext.GetSqlText(object query)
+	    string IDataContext.GetSqlText(object query)
 		{
 			if (_dataConnection != null)
 				return ((IDataContext)_dataConnection).GetSqlText(query);

@@ -16,12 +16,15 @@ namespace LinqToDB.DataProvider.SqlCe
 		{
 		}
 
-		protected override string FirstFormat  { get { return SelectQuery.Select.SkipValue == null ? "TOP ({0})" :                null; } }
-		protected override string LimitFormat  { get { return SelectQuery.Select.SkipValue != null ? "FETCH NEXT {0} ROWS ONLY" : null; } }
-		protected override string OffsetFormat { get { return "OFFSET {0} ROWS"; } }
-		protected override bool   OffsetFirst  { get { return true;              } }
+		protected override string FirstFormat => SelectQuery.Select.SkipValue == null ? "TOP ({0})" :                null;
 
-		public override int CommandCount(ISelectQuery selectQuery)
+	    protected override string LimitFormat => SelectQuery.Select.SkipValue != null ? "FETCH NEXT {0} ROWS ONLY" : null;
+
+	    protected override string OffsetFormat => "OFFSET {0} ROWS";
+
+	    protected override bool   OffsetFirst => true;
+
+	    public override int CommandCount(ISelectQuery selectQuery)
 		{
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}

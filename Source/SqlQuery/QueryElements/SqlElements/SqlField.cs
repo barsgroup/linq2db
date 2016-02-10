@@ -90,12 +90,9 @@
 			return this == other;
 		}
 
-		public int Precedence
-		{
-			get { return SqlQuery.Precedence.Primary; }
-		}
+		public int Precedence => SqlQuery.Precedence.Primary;
 
-		#endregion
+        #endregion
 
 		#region ISqlExpressionWalkable Members
 
@@ -134,7 +131,7 @@
         {
         }
 
-        public override EQueryElementType ElementType { get { return EQueryElementType.SqlField; } }
+        public override EQueryElementType ElementType => EQueryElementType.SqlField;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

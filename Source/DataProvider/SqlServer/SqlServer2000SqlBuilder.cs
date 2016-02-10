@@ -11,9 +11,9 @@
 		{
 		}
 
-		protected override string FirstFormat { get { return "TOP {0}"; } }
+		protected override string FirstFormat => "TOP {0}";
 
-		protected override ISqlBuilder CreateSqlBuilder()
+        protected override ISqlBuilder CreateSqlBuilder()
 		{
 			return new SqlServer2000SqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
@@ -74,12 +74,9 @@
 			base.BuildFunction(func);
 		}
 
-		public override string  Name
-		{
-			get { return ProviderName.SqlServer2000; }
-		}
+		public override string  Name => ProviderName.SqlServer2000;
 
-		protected override void BuildDropTableStatement()
+        protected override void BuildDropTableStatement()
 		{
 			var table = SelectQuery.CreateTable.Table;
 

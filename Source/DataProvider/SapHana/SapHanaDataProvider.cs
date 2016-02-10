@@ -42,25 +42,13 @@ namespace LinqToDB.DataProvider.SapHana
 			_sqlOptimizer = new SapHanaSqlOptimizer(SqlProviderFlags);
 		}
 
-		public override string ConnectionNamespace { get { return "Sap.Data.Hana"; } }
+		public override string ConnectionNamespace => "Sap.Data.Hana";
 
-		protected override string ConnectionTypeName
-		{
-			get
-			{
-				return "{0}.{1}, {2}".Args(ConnectionNamespace, "HanaConnection", SapHanaTools.AssemblyName);
-			}
-		}
+	    protected override string ConnectionTypeName => "{0}.{1}, {2}".Args(ConnectionNamespace, "HanaConnection", SapHanaTools.AssemblyName);
 
-		protected override string DataReaderTypeName
-		{
-			get
-			{
-				return "{0}.{1}, {2}".Args(ConnectionNamespace, "HanaDataReader", SapHanaTools.AssemblyName);
-			}
-		}
+	    protected override string DataReaderTypeName => "{0}.{1}, {2}".Args(ConnectionNamespace, "HanaDataReader", SapHanaTools.AssemblyName);
 
-		static Action<IDbDataParameter> _setText;
+	    static Action<IDbDataParameter> _setText;
 		static Action<IDbDataParameter> _setNText;
 		static Action<IDbDataParameter> _setBlob;
 		static Action<IDbDataParameter> _setVarBinary;

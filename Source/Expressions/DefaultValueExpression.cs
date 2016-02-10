@@ -17,11 +17,13 @@ namespace LinqToDB.Expressions
 		readonly MappingSchema _mappingSchema;
 		readonly Type          _type;
 
-		public override Type           Type      { get { return _type;                    } }
-		public override ExpressionType NodeType  { get { return ExpressionType.Extension; } }
-		public override bool           CanReduce { get { return true;                     } }
+		public override Type           Type => _type;
 
-		public override Expression Reduce()
+	    public override ExpressionType NodeType => ExpressionType.Extension;
+
+	    public override bool           CanReduce => true;
+
+	    public override Expression Reduce()
 		{
 			return Constant(
 				_mappingSchema == null ?

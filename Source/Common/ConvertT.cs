@@ -90,9 +90,6 @@ namespace LinqToDB.Common
 			}
 		}
 
-		public static Func<TFrom,TTo> From
-		{
-			get { return _lambda; }
-		}
+		public static Func<TFrom,TTo> From => _lambda;
 	}
 }

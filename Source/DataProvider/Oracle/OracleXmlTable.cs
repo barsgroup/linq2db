@@ -118,24 +118,26 @@ namespace LinqToDB.DataProvider.Oracle
 				var arg = sqlArgs.ElementAt(1);
 				var ed  = mappingSchema.GetEntityDescriptor(table.ObjectType);
 
-				if (arg is ISqlParameter)
+			    var sqlParameter = arg as ISqlParameter;
+			    if (sqlParameter != null)
 				{
 					var exp = expArgs.ElementAt(1).Unwrap();
 
-					if (exp is ConstantExpression)
+				    var constantExpression = exp as ConstantExpression;
+				    if (constantExpression != null)
 					{
-						if (((ConstantExpression)exp).Value is Func<string>)
+						if (constantExpression.Value is Func<string>)
 						{
-							((ISqlParameter)arg).ValueConverter = l => ((Func<string>)l)();
+							sqlParameter.ValueConverter = l => ((Func<string>)l)();
 						}
 						else
 						{
-							((ISqlParameter)arg).ValueConverter = GetXmlConverter(mappingSchema, table);
+							sqlParameter.ValueConverter = GetXmlConverter(mappingSchema, table);
 						}
 					}
 					else if (exp is LambdaExpression)
 					{
-						((ISqlParameter)arg).ValueConverter = l => ((Func<string>)l)();
+						sqlParameter.ValueConverter = l => ((Func<string>)l)();
 					}
 				}
 
@@ -178,7 +180,7 @@ namespace LinqToDB.DataProvider.Oracle
 		{
 			return dataContext.GetTable<T>(
 				null,
-				((MethodInfo)(MethodBase.GetCurrentMethod())).MakeGenericMethod(typeof(T)),
+				((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)),
 				dataContext,
 				data);
 		}
@@ -189,7 +191,7 @@ namespace LinqToDB.DataProvider.Oracle
 		{
 			return dataContext.GetTable<T>(
 				null,
-				((MethodInfo)(MethodBase.GetCurrentMethod())).MakeGenericMethod(typeof(T)),
+				((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)),
 				dataContext,
 				xmlData);
 		}
@@ -200,7 +202,7 @@ namespace LinqToDB.DataProvider.Oracle
 		{
 			return dataContext.GetTable<T>(
 				null,
-				((MethodInfo)(MethodBase.GetCurrentMethod())).MakeGenericMethod(typeof(T)),
+				((MethodInfo)MethodBase.GetCurrentMethod()).MakeGenericMethod(typeof(T)),
 				dataContext,
 				xmlData);
 		}

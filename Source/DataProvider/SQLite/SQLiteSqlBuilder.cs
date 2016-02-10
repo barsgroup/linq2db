@@ -31,12 +31,13 @@ namespace LinqToDB.DataProvider.SQLite
 			return new SQLiteSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override string LimitFormat  { get { return "LIMIT {0}";  } }
-		protected override string OffsetFormat { get { return "OFFSET {0}"; } }
+		protected override string LimitFormat => "LIMIT {0}";
 
-		public override bool IsNestedJoinSupported { get { return false; } }
+	    protected override string OffsetFormat => "OFFSET {0}";
 
-		protected override void BuildFromClause()
+	    public override bool IsNestedJoinSupported => false;
+
+	    protected override void BuildFromClause()
 		{
 			if (!SelectQuery.IsUpdate)
 				base.BuildFromClause();

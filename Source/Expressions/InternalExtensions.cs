@@ -167,9 +167,10 @@ namespace LinqToDB.Expressions
 						if (e1.Value == null || e2.Value == null)
 							return false;
 
-						if (e1.Value is IQueryable)
+					    var queryable = e1.Value as IQueryable;
+					    if (queryable != null)
 						{
-							var eq1 = ((IQueryable)e1.Value).Expression;
+							var eq1 = queryable.Expression;
 							var eq2 = ((IQueryable)e2.Value).Expression;
 
 							if (!visited.Contains(eq1))
@@ -910,7 +911,7 @@ namespace LinqToDB.Expressions
 
 				case ExpressionType.MemberAccess:
 					{
-						var e = ((MemberExpression)expression);
+						var e = (MemberExpression)expression;
 
 						if (e.Expression != null)
 						{

@@ -45,11 +45,13 @@ namespace LinqToDB.DataProvider.Firebird
 				base.BuildSelectClause();
 		}
 
-		protected override bool   SkipFirst   { get { return false;       } }
-		protected override string SkipFormat  { get { return "SKIP {0}";  } }
-		protected override string FirstFormat { get { return "FIRST {0}"; } }
+		protected override bool   SkipFirst => false;
 
-		protected override void BuildGetIdentity()
+	    protected override string SkipFormat => "SKIP {0}";
+
+	    protected override string FirstFormat => "FIRST {0}";
+
+	    protected override void BuildGetIdentity()
 		{
 			var identityField = SelectQuery.Insert.Into.GetIdentityField();
 

@@ -41,11 +41,11 @@ namespace LinqToDB.DataProvider.MySql
 			return new MySqlSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override string LimitFormat { get { return "LIMIT {0}"; } }
+		protected override string LimitFormat => "LIMIT {0}";
 
-		public override bool IsNestedJoinParenthesisRequired { get { return true; } }
+	    public override bool IsNestedJoinParenthesisRequired => true;
 
-		protected override void BuildOffsetLimit()
+	    protected override void BuildOffsetLimit()
 		{
 			if (SelectQuery.Select.SkipValue == null)
 				base.BuildOffsetLimit();
@@ -172,7 +172,7 @@ namespace LinqToDB.DataProvider.MySql
 				case ConvertType.SprocParameterToName:
 					{
 						var str = value.ToString();
-						str = (str.Length > 0 && (str[0] == ParameterSymbol || (TryConvertParameterSymbol && ConvertParameterSymbols.Contains(str[0])))) ? str.Substring(1) : str;
+						str = str.Length > 0 && (str[0] == ParameterSymbol || (TryConvertParameterSymbol && ConvertParameterSymbols.Contains(str[0]))) ? str.Substring(1) : str;
 
 						if (!string.IsNullOrEmpty(SprocParameterPrefix) && str.StartsWith(SprocParameterPrefix))
 							str = str.Substring(SprocParameterPrefix.Length);

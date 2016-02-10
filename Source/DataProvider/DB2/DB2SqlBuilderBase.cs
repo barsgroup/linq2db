@@ -93,12 +93,9 @@ namespace LinqToDB.DataProvider.DB2
 				base.BuildSelectClause();
 		}
 
-		protected override string LimitFormat
-		{
-			get { return SelectQuery.Select.SkipValue == null ? "FETCH FIRST {0} ROWS ONLY" : null; }
-		}
+		protected override string LimitFormat => SelectQuery.Select.SkipValue == null ? "FETCH FIRST {0} ROWS ONLY" : null;
 
-		protected override void BuildFunction(ISqlFunction func)
+	    protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);

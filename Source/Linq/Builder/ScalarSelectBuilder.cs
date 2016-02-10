@@ -49,7 +49,7 @@ namespace LinqToDB.Linq.Builder
 			}
 
 #if DEBUG
-			public string _sqlQueryText { get { return Select == null ? "" : Select.SqlText; } }
+			public string _sqlQueryText => Select == null ? "" : Select.SqlText;
 #endif
 
 			public ExpressionBuilder Builder     { get; private set; }

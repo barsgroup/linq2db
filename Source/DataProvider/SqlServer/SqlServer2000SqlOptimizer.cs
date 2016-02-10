@@ -15,10 +15,10 @@
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is ISqlFunction)
-				return ConvertConvertFunction((ISqlFunction)expr);
-
-			return expr;
+		    var sqlFunction = expr as ISqlFunction;
+		    return sqlFunction != null
+		               ? ConvertConvertFunction(sqlFunction)
+		               : expr;
 		}
 	}
 }

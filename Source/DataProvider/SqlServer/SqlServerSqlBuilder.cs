@@ -21,14 +21,11 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 		}
 
-		protected virtual  bool BuildAlternativeSql { get { return true; } }
+		protected virtual  bool BuildAlternativeSql => true;
 
-		protected override string FirstFormat
-		{
-			get { return SelectQuery.Select.SkipValue == null ? "TOP ({0})" : null; }
-		}
+	    protected override string FirstFormat => SelectQuery.Select.SkipValue == null ? "TOP ({0})" : null;
 
-		protected override void BuildSql()
+	    protected override void BuildSql()
 		{
 			if (BuildAlternativeSql)
 				AlternativeBuildSql(true, base.BuildSql);
@@ -123,26 +120,30 @@ namespace LinqToDB.DataProvider.SqlServer
 
 		protected override void BuildLikePredicate(ILike predicate)
 		{
-			if (predicate.Expr2 is ISqlValue)
+		    var sqlValue = predicate.Expr2 as ISqlValue;
+		    if (sqlValue != null)
 			{
-				var value = ((ISqlValue)predicate.Expr2).Value;
+				var value = sqlValue.Value;
 
 				if (value != null)
 				{
-					var text  = ((ISqlValue)predicate.Expr2).Value.ToString();
+					var text  = value.ToString();
 					var ntext = text.Replace("[", "[[]");
 
 					if (text != ntext)
 						predicate = new Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
 				}
 			}
-			else if (predicate.Expr2 is ISqlParameter)
-			{
-				var p = ((ISqlParameter)predicate.Expr2);
-				p.ReplaceLike = true;
-			}
+			else
+		    {
+		        var sqlParameter = predicate.Expr2 as ISqlParameter;
+		        if (sqlParameter != null)
+		        {
+		            sqlParameter.ReplaceLike = true;
+		        }
+		    }
 
-			base.BuildLikePredicate(predicate);
+		    base.BuildLikePredicate(predicate);
 		}
 
 		public override object Convert(object value, ConvertType convertType)

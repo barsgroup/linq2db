@@ -75,12 +75,9 @@ namespace LinqToDB.ServiceModel
 		protected abstract string       ContextIDPrefix { get; }
 
 		string             _contextID;
-		string IDataContext.ContextID
-		{
-			get { return _contextID ?? (_contextID = GetConfigurationInfo().MappingSchema.ConfigurationList[0]); }
-		}
+		string IDataContext.ContextID => _contextID ?? (_contextID = GetConfigurationInfo().MappingSchema.ConfigurationList[0]);
 
-		private MappingSchema _mappingSchema;
+	    private MappingSchema _mappingSchema;
 		public  MappingSchema  MappingSchema
 		{
 			get { return _mappingSchema ?? (_mappingSchema = GetConfigurationInfo().MappingSchema); }
@@ -90,18 +87,12 @@ namespace LinqToDB.ServiceModel
 		public  bool InlineParameters { get; set; }
 
 		private List<string> _queryHints;
-		public  List<string>  QueryHints
-		{
-			get { return _queryHints ?? (_queryHints = new List<string>()); }
-		}
+		public  List<string>  QueryHints => _queryHints ?? (_queryHints = new List<string>());
 
-		private List<string> _nextQueryHints;
-		public  List<string>  NextQueryHints
-		{
-			get { return _nextQueryHints ?? (_nextQueryHints = new List<string>()); }
-		}
+	    private List<string> _nextQueryHints;
+		public  List<string>  NextQueryHints => _nextQueryHints ?? (_nextQueryHints = new List<string>());
 
-		private        Type _sqlProviderType;
+	    private        Type _sqlProviderType;
 		public virtual Type  SqlProviderType
 		{
 			get
@@ -135,17 +126,11 @@ namespace LinqToDB.ServiceModel
 			set { _sqlOptimizerType = value;  }
 		}
 
-		SqlProviderFlags IDataContext.SqlProviderFlags
-		{
-			get { return GetConfigurationInfo().LinqServiceInfo.SqlProviderFlags; }
-		}
+		SqlProviderFlags IDataContext.SqlProviderFlags => GetConfigurationInfo().LinqServiceInfo.SqlProviderFlags;
 
-		Type IDataContext.DataReaderType
-		{
-			get { return typeof(ServiceModelDataReader); }
-		}
+	    Type IDataContext.DataReaderType => typeof(ServiceModelDataReader);
 
-		Expression IDataContext.GetReaderExpression(MappingSchema mappingSchema, IDataReader reader, int idx, Expression readerExpression, Type toType)
+	    Expression IDataContext.GetReaderExpression(MappingSchema mappingSchema, IDataReader reader, int idx, Expression readerExpression, Type toType)
 		{
 			var dataType   = reader.GetFieldType(idx);
 			var methodInfo = GetReaderMethodInfo(dataType);

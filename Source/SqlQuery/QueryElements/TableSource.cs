@@ -55,11 +55,13 @@ namespace LinqToDB.SqlQuery.QueryElements
             {
                 if (string.IsNullOrEmpty(_alias))
                 {
-                    if (Source is ITableSource)
-                        return (Source as ITableSource).Alias;
+                    var tableSource = Source as ITableSource;
+                    if (tableSource != null)
+                        return tableSource.Alias;
 
-                    if (Source is ISqlTable)
-                        return ((ISqlTable)Source).Alias;
+                    var sqlTable = Source as ISqlTable;
+                    if (sqlTable != null)
+                        return sqlTable.Alias;
                 }
 
                 return _alias;
@@ -69,21 +71,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public ITableSource this[ISqlTableSource table] => this[table, null];
 
-        public ITableSource this[ISqlTableSource table, string alias]
-        {
-            get
-            {
-                foreach (var tj in Joins)
-                {
-                    var t = SelectQuery.CheckTableSource(tj.Table, table, alias);
-
-                    if (t != null)
-                        return t;
-                }
-
-                return null;
-            }
-        }
+        public ITableSource this[ISqlTableSource table, string alias] => Joins.Select(tj => SelectQuery.CheckTableSource(tj.Table, table, alias)).FirstOrDefault(t => t != null);
 
         readonly List<IJoinedTable> _joins = new List<IJoinedTable>();
         public   List<IJoinedTable>  Joins => _joins;
@@ -94,8 +82,9 @@ namespace LinqToDB.SqlQuery.QueryElements
             foreach (var join in Joins)
                 @join.Table.ForEach(action, visitedQueries);
 
-            if (Source is ISelectQuery && visitedQueries.Contains((ISelectQuery)Source))
-                ((ISelectQuery)Source).ForEachTable(action, visitedQueries);
+            var item = Source as ISelectQuery;
+            if (item != null && visitedQueries.Contains(item))
+                item.ForEachTable(action, visitedQueries);
         }
 
         public IEnumerable<ISqlTableSource> GetTables()
@@ -220,7 +209,7 @@ namespace LinqToDB.SqlQuery.QueryElements
                 .Append(" as t")
                 .Append(SourceID);
 
-            foreach (IQueryElement join in Joins)
+            foreach (IJoinedTable join in Joins)
             {
                 sb.AppendLine().Append('\t');
                 var len = sb.Length;

@@ -764,8 +764,12 @@ namespace LinqToDB.SqlQuery
 							{
 								if (e == null)
 									ps.Add(p);
-								else if (e is ISqlParameter)
-									ps.Add((ISqlParameter)e);
+								else
+								{
+								    var sqlParameter = e as ISqlParameter;
+								    if (sqlParameter != null)
+								        ps.Add(sqlParameter);
+								}
 							}
 						}
 

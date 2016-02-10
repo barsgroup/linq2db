@@ -134,7 +134,7 @@ namespace LinqToDB.Linq.Builder
 			#region Properties
 
 #if DEBUG
-			public string _sqlQueryText { get { return Select == null ? "" : Select.SqlText; } }
+			public string _sqlQueryText => Select == null ? "" : Select.SqlText;
 #endif
 
 			public ExpressionBuilder  Builder     { get; private set; }
@@ -614,10 +614,9 @@ namespace LinqToDB.Linq.Builder
 
 				if (table == null)
 				{
-					if (expression is MemberExpression)
+				    var memberExpression = expression as MemberExpression;
+				    if (memberExpression != null)
 					{
-						var memberExpression = (MemberExpression)expression;
-
 						if (EntityDescriptor != null &&
 							EntityDescriptor.TypeAccessor.Type == memberExpression.Member.DeclaringType)
 						{
@@ -716,15 +715,10 @@ namespace LinqToDB.Linq.Builder
 				if (_indexes.TryGetValue(expr.Sql, out n))
 					return n;
 
-				if (expr.Sql is ISqlField)
-				{
-					var field = (ISqlField)expr.Sql;
-					expr.Index = Select.Select.Add(field, field.Alias);
-				}
-				else
-				{
-					expr.Index = Select.Select.Add(expr.Sql);
-				}
+			    var sqlField = expr.Sql as ISqlField;
+			    expr.Index = sqlField != null
+			                     ? Select.Select.Add(sqlField, sqlField.Alias)
+			                     : Select.Select.Add(expr.Sql);
 
 				expr.Query = Select;
 
@@ -863,13 +857,14 @@ namespace LinqToDB.Linq.Builder
 					Expression expr  = null;
 					var        param = Expression.Parameter(typeof(T), "c");
 
-					foreach (var cond in (association).ParentAssociationJoin.Condition.Conditions)
+					foreach (var cond in association.ParentAssociationJoin.Condition.Conditions)
 					{
                         IExprExpr p;
 
-						if (cond.Predicate is ISearchCondition)
+					    var searchCondition = cond.Predicate as ISearchCondition;
+					    if (searchCondition != null)
 						{
-							p = ((ISearchCondition)cond.Predicate).Conditions
+							p = searchCondition.Conditions
 								.Select(c => c.Predicate)
 								.OfType<IExprExpr>()
 								.First();
@@ -1137,14 +1132,14 @@ namespace LinqToDB.Linq.Builder
                                     if (field.ColumnDescriptor.MemberAccessor.IsComplex)
 									{
 										var name = memberExpression.Member.Name;
-										var me   = memberExpression;
+										var childExpression   = memberExpression;
 
-										if (me.Expression is MemberExpression)
+									    childExpression = childExpression.Expression as MemberExpression;
+									    if (childExpression != null)
 										{
-											while (me.Expression is MemberExpression)
+											while ((childExpression = childExpression.Expression as MemberExpression) != null)
 											{
-												me = (MemberExpression)me.Expression;
-												name = me.Member.Name + '.' + name;
+												name = childExpression.Member.Name + '.' + name;
 											}
 
 											var fld = SqlTable.Fields.Values.FirstOrDefault(f => f.Name == name);

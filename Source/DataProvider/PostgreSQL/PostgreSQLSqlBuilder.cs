@@ -57,10 +57,11 @@ namespace LinqToDB.DataProvider.PostgreSQL
 			return new PostgreSQLSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override string LimitFormat  { get { return "LIMIT {0}";   } }
-		protected override string OffsetFormat { get { return "OFFSET {0} "; } }
+		protected override string LimitFormat => "LIMIT {0}";
 
-		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
+	    protected override string OffsetFormat => "OFFSET {0} ";
+
+	    protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -134,7 +135,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 					if (value != null)
 					{
 						var str = value.ToString();
-						return (str.Length > 0 && str[0] == ':')? str.Substring(1): str;
+						return str.Length > 0 && str[0] == ':'? str.Substring(1): str;
 					}
 
 					break;

@@ -197,10 +197,10 @@ namespace LinqToDB.Linq.Builder
 						var type  = _methodCall.Method.GetGenericArguments()[0];
 						var nctor = (NewExpression)Expression.Find(e =>
 						{
-							if (e.NodeType == ExpressionType.New && e.Type == type)
+						    var newExpression = e as NewExpression;
+						    if (newExpression != null && e.Type == type)
 							{
-								var ne = (NewExpression)e;
-								return ne.Arguments != null && ne.Arguments.Count > 0;
+							    return newExpression.Arguments != null && newExpression.Arguments.Count > 0;
 							}
 
 							return false;
@@ -211,7 +211,14 @@ namespace LinqToDB.Linq.Builder
 						if (nctor != null)
 						{
 							var members = nctor.Members
-								.Select(m => m is MethodInfo ? ((MethodInfo)m).GetPropertyInfo() : m)
+								.Select(
+								    m =>
+								    {
+								        var methodInfo = m as MethodInfo;
+								        return methodInfo != null
+								                   ? methodInfo.GetPropertyInfo()
+								                   : m;
+								    })
 								.ToList();
 
 							expr = Expression.New(

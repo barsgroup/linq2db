@@ -89,11 +89,8 @@ namespace LinqToDB.ServiceModel
 			};
 		}
 
-		protected override string ContextIDPrefix
-		{
-			get { return "LinqService"; }
-		}
+		protected override string ContextIDPrefix => "LinqService";
 
-		#endregion
+        #endregion
 	}
 }

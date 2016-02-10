@@ -232,19 +232,29 @@
                                 object value1;
                                 object value2;
 
-                                if (ee.Expr1 is ISqlValue)
-                                    value1 = ((ISqlValue)ee.Expr1).Value;
-                                else if (ee.Expr1 is ISqlParameter)
-                                    value1 = ((ISqlParameter)ee.Expr1).Value;
+                                var expr1 = ee.Expr1 as ISqlValue;
+                                if (expr1 != null)
+                                    value1 = expr1.Value;
                                 else
-                                    break;
+                                {
+                                    var parameter = ee.Expr1 as ISqlParameter;
+                                    if (parameter != null)
+                                        value1 = parameter.Value;
+                                    else
+                                        break;
+                                }
 
-                                if (ee.Expr2 is ISqlValue)
-                                    value2 = ((ISqlValue)ee.Expr2).Value;
-                                else if (ee.Expr2 is ISqlParameter)
-                                    value2 = ((ISqlParameter)ee.Expr2).Value;
+                                var sqlValue = ee.Expr2 as ISqlValue;
+                                if (sqlValue != null)
+                                    value2 = sqlValue.Value;
                                 else
-                                    break;
+                                {
+                                    var parameter = ee.Expr2 as ISqlParameter;
+                                    if (parameter != null)
+                                        value2 = parameter.Value;
+                                    else
+                                        break;
+                                }
 
                                 var value = Equals(value1, value2);
 
@@ -284,20 +294,19 @@
 			if (p.Values == null || p.Values.Count == 0)
 				return new Expr(new SqlValue(p.IsNot));
 
-			if (p.Values.Count == 1 && p.Values[0] is ISqlParameter)
+            var sqlParameter = p.Values[0] as ISqlParameter;
+            if (p.Values.Count == 1 && sqlParameter != null)
 			{
-				var pr = (ISqlParameter)p.Values[0];
-
-				if (pr.Value == null)
+			    if (sqlParameter.Value == null)
 					return new Expr(new SqlValue(p.IsNot));
 
-				if (pr.Value is IEnumerable)
+			    var enumerable = sqlParameter.Value as IEnumerable;
+			    if (enumerable != null)
 				{
-					var items = (IEnumerable)pr.Value;
-
-					if (p.Expr1 is ISqlTableSource)
+				    var sqlTableSource = p.Expr1 as ISqlTableSource;
+				    if (sqlTableSource != null)
 					{
-						var table = (ISqlTableSource)p.Expr1;
+						var table = sqlTableSource;
 						var keys  = table.GetKeys(true);
 
 						if (keys == null || keys.Count == 0)
@@ -309,7 +318,7 @@
 							var field  = GetUnderlayingField(keys[0]);
 							var cd     = field.ColumnDescriptor;
 
-							foreach (var item in items)
+							foreach (var item in enumerable)
 							{
 								var value = cd.MemberAccessor.GetValue(item);
 								values.Add(cd.MappingSchema.GetSqlValue(cd.MemberType, value));
@@ -324,7 +333,7 @@
 						{
 							var sc = new SearchCondition();
 
-							foreach (var item in items)
+							foreach (var item in enumerable)
 							{
 								var itemCond = new SearchCondition();
 
@@ -356,7 +365,7 @@
 				    var expr = p.Expr1 as ISqlExpression;
 				    if (expr?.Expr.Length > 1 && expr.Expr[0] == '\x1')
 				    {
-				        var type  = items.GetListItemType();
+				        var type  = enumerable.GetListItemType();
 				        var ta    = TypeAccessor.GetAccessor(type);
 				        var names = expr.Expr.Substring(1).Split(',');
 
@@ -364,7 +373,7 @@
 				        {
 				            var values = new List<IQueryExpression>();
 
-				            foreach (var item in items)
+				            foreach (var item in enumerable)
 				            {
 				                var ma    = ta[names[0]];
 				                var value = ma.GetValue(item);
@@ -380,7 +389,7 @@
 				        {
 				            var sc = new SearchCondition();
 
-				            foreach (var item in items)
+				            foreach (var item in enumerable)
 				            {
 				                var itemCond = new SearchCondition();
 

@@ -460,17 +460,11 @@
 
 		#region ISqlExpression Members
 
-		public int Precedence
-		{
-			get { return SqlQuery.Precedence.Primary; }
-		}
+		public int Precedence => SqlQuery.Precedence.Primary;
 
-		public Type SystemType
-		{
-			get { return typeof(Type); }
-		}
+        public Type SystemType => typeof(Type);
 
-		#endregion
+        #endregion
 
 		#region ISqlExpressionWalkable Members
 
@@ -531,9 +525,9 @@
         {
         }
 
-        public override EQueryElementType ElementType { get { return EQueryElementType.SqlDataType; } }
+        public override EQueryElementType ElementType => EQueryElementType.SqlDataType;
 
-		public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			sb.Append(this.DataType);
 

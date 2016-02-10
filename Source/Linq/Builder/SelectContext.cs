@@ -24,9 +24,9 @@ namespace LinqToDB.Linq.Builder
 		#region Init
 
 #if DEBUG
-		public string _sqlQueryText { get { return Select == null ? "" : Select.SqlText; } }
+		public string _sqlQueryText => Select == null ? "" : Select.SqlText;
 
-		public MethodCallExpression MethodCall;
+	    public MethodCallExpression MethodCall;
 #endif
 
 		public IBuildContext[]   Sequence    { get; set; }
@@ -37,9 +37,9 @@ namespace LinqToDB.Linq.Builder
 		public IBuildContext     Parent      { get; set; }
 		public bool              IsScalar    { get; private set; }
 
-		Expression IBuildContext.Expression { get { return Lambda; } }
+		Expression IBuildContext.Expression => Lambda;
 
-		public readonly Dictionary<MemberInfo,Expression> Members = new Dictionary<MemberInfo,Expression>(new MemberInfoComparer());
+	    public readonly Dictionary<MemberInfo,Expression> Members = new Dictionary<MemberInfo,Expression>(new MemberInfoComparer());
 
 		public SelectContext(IBuildContext parent, LambdaExpression lambda, params IBuildContext[] sequences)
 		{

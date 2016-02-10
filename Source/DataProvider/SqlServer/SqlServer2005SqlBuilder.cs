@@ -35,9 +35,6 @@
 			base.BuildFunction(func);
 		}
 
-		public override string  Name
-		{
-			get { return ProviderName.SqlServer2005; }
-		}
+		public override string  Name => ProviderName.SqlServer2005;
 	}
 }

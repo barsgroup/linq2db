@@ -34,56 +34,59 @@
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is ISqlBinaryExpression)
+		    var sqlBinaryExpression = expr as ISqlBinaryExpression;
+		    if (sqlBinaryExpression != null)
 			{
-				var be = (ISqlBinaryExpression)expr;
-
-				switch (be.Operation)
+				switch (sqlBinaryExpression.Operation)
 				{
-					case "^": return new SqlBinaryExpression(be.SystemType, be.Expr1, "#", be.Expr2);
-					case "+": return be.SystemType == typeof(string)? new SqlBinaryExpression(be.SystemType, be.Expr1, "||", be.Expr2, be.Precedence): expr;
+					case "^": return new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "#", sqlBinaryExpression.Expr2);
+					case "+": return sqlBinaryExpression.SystemType == typeof(string)? new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "||", sqlBinaryExpression.Expr2, sqlBinaryExpression.Precedence): expr;
 				}
 			}
-			else if (expr is ISqlFunction)
-			{
-				var func = (ISqlFunction) expr;
+			else
+		    {
+		        var sqlFunction = expr as ISqlFunction;
+		        if (sqlFunction != null)
+		        {
+		            switch (sqlFunction.Name)
+		            {
+		                case "Convert"   :
+		                    if (sqlFunction.SystemType.ToUnderlying() == typeof(bool))
+		                    {
+		                        var ex = AlternativeConvertToBoolean(sqlFunction, 1);
+		                        if (ex != null)
+		                            return ex;
+		                    }
 
-				switch (func.Name)
-				{
-					case "Convert"   :
-						if (func.SystemType.ToUnderlying() == typeof(bool))
-						{
-							var ex = AlternativeConvertToBoolean(func, 1);
-							if (ex != null)
-								return ex;
-						}
+		                    return new SqlExpression(sqlFunction.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(sqlFunction), sqlFunction.Parameters[0]);
 
-						return new SqlExpression(func.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(func), func.Parameters[0]);
+		                case "CharIndex" :
+		                    return sqlFunction.Parameters.Length == 2?
+		                               new SqlExpression(sqlFunction.SystemType, "Position({0} in {1})", Precedence.Primary, sqlFunction.Parameters[0], sqlFunction.Parameters[1]):
+		                               Add<int>(
+		                                   new SqlExpression(sqlFunction.SystemType, "Position({0} in {1})", Precedence.Primary, sqlFunction.Parameters[0],
+		                                   ConvertExpression(new SqlFunction(typeof(string), "Substring",
+		                                   sqlFunction.Parameters[1],
+		                                   sqlFunction.Parameters[2],
+		                                   Sub<int>(ConvertExpression(new SqlFunction(typeof(int), "Length", sqlFunction.Parameters[1])), sqlFunction.Parameters[2])))),
+		                                   Sub(sqlFunction.Parameters[2], 1));
+		            }
+		        }
+		        else
+		        {
+		            var sqlExpression = expr as ISqlExpression;
+		            if (sqlExpression != null)
+		            {
+		                if (sqlExpression.Expr.StartsWith("Extract(DOW"))
+		                    return Inc(new SqlExpression(sqlExpression.SystemType, sqlExpression.Expr.Replace("Extract(DOW", "Extract(Dow"), sqlExpression.Parameters));
 
-					case "CharIndex" :
-						return func.Parameters.Length == 2?
-							new SqlExpression(func.SystemType, "Position({0} in {1})", Precedence.Primary, func.Parameters[0], func.Parameters[1]):
-							Add<int>(
-								new SqlExpression(func.SystemType, "Position({0} in {1})", Precedence.Primary, func.Parameters[0],
-									ConvertExpression(new SqlFunction(typeof(string), "Substring",
-										func.Parameters[1],
-										func.Parameters[2],
-										Sub<int>(ConvertExpression(new SqlFunction(typeof(int), "Length", func.Parameters[1])), func.Parameters[2])))),
-								Sub(func.Parameters[2], 1));
-				}
-			}
-			else if (expr is ISqlExpression)
-			{
-				var e = (ISqlExpression)expr;
+		                if (sqlExpression.Expr.StartsWith("Extract(Millisecond"))
+		                    return new SqlExpression(sqlExpression.SystemType, "Cast(To_Char({0}, 'MS') as int)", sqlExpression.Parameters);
+		            }
+		        }
+		    }
 
-				if (e.Expr.StartsWith("Extract(DOW"))
-					return Inc(new SqlExpression(expr.SystemType, e.Expr.Replace("Extract(DOW", "Extract(Dow"), e.Parameters));
-
-				if (e.Expr.StartsWith("Extract(Millisecond"))
-					return new SqlExpression(expr.SystemType, "Cast(To_Char({0}, 'MS') as int)", e.Parameters);
-			}
-
-			return expr;
+		    return expr;
 		}
 
 	}

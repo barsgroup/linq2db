@@ -43,10 +43,7 @@ namespace LinqToDB.ServiceModel
 		{
 		}
 
-		public int Depth
-		{
-			get { return 0; }
-		}
+		public int Depth => 0;
 
 #if !SILVERLIGHT && !NETFX_CORE
 
@@ -98,12 +95,9 @@ namespace LinqToDB.ServiceModel
 
 		#region IDataRecord Members
 
-		public int FieldCount
-		{
-			get { return _result.FieldCount; }
-		}
+		public int FieldCount => _result.FieldCount;
 
-		public bool GetBoolean(int i)
+	    public bool GetBoolean(int i)
 		{
 			return bool.Parse(GetFieldValue(i));
 		}
@@ -254,16 +248,10 @@ namespace LinqToDB.ServiceModel
 			return _data[i] == null;
 		}
 
-		public object this[string name]
-		{
-			get { return GetValue(GetOrdinal(name)); }
-		}
+		public object this[string name] => GetValue(GetOrdinal(name));
 
-		public object this[int i]
-		{
-			get { return GetValue(i); }
-		}
+	    public object this[int i] => GetValue(i);
 
-		#endregion
+	    #endregion
 	}
 }

@@ -23,21 +23,6 @@ namespace LinqToDB.Linq.Builder
 
 			if (sequence.Select != buildInfo.SelectQuery)
 			{
-//				if (sequence is JoinBuilder.GroupJoinSubQueryContext)
-//				{
-//					var ctx = new CountContext(buildInfo.Parent, sequence, returnType)
-//					{
-//						SelectQuery =
-//							sequence.SelectQuery
-//							//((JoinBuilder.GroupJoinSubQueryContext)sequence).GetCounter(methodCall)
-//					};
-//
-//					ctx.Sql        = ctx.SelectQuery;
-//					ctx.FieldIndex = ctx.SelectQuery.Select.Add(SqlFunction.CreateCount(returnType, ctx.SelectQuery), "cnt");
-//
-//					return ctx;
-//				}
-
 				if (sequence is GroupByBuilder.GroupByContext)
 				{
 					return new CountContext(buildInfo.Parent, sequence, returnType)

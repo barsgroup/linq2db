@@ -261,11 +261,15 @@ namespace LinqToDB.ServiceModel
 				return false;
 			}
 
-			public string                        ContainerNamespace { get { return typeof(T).Namespace; } }
-			public string                        ContainerName      { get { return typeof(T).Name;      } }
-			public IEnumerable<ResourceSet>      ResourceSets       { get { return _data.Sets.Values;   } }
-			public IEnumerable<ResourceType>     Types              { get { return _data.Types.Values;  } }
-			public IEnumerable<ServiceOperation> ServiceOperations  { get { return Enumerable.Empty<ServiceOperation>(); } }
+			public string                        ContainerNamespace => typeof(T).Namespace;
+
+		    public string                        ContainerName => typeof(T).Name;
+
+		    public IEnumerable<ResourceSet>      ResourceSets => _data.Sets.Values;
+
+		    public IEnumerable<ResourceType>     Types => _data.Types.Values;
+
+		    public IEnumerable<ServiceOperation> ServiceOperations => Enumerable.Empty<ServiceOperation>();
 		}
 
 		#endregion
@@ -331,7 +335,7 @@ namespace LinqToDB.ServiceModel
 			}
 
 			public object CurrentDataSource         { get; set; }
-			public bool   IsNullPropagationRequired { get { return true; } }
+			public bool   IsNullPropagationRequired => true;
 		}
 
 		#endregion

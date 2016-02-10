@@ -60,19 +60,20 @@ namespace LinqToDB.DataProvider.SqlServer
 				{
 					arr[0] = new SqlExpression(field.ToString(), Precedence.Primary);
 				}
-				else if (field is LambdaExpression)
+				else
 				{
-					var body = ((LambdaExpression)field).Body;
+				    var body = (field as LambdaExpression)?.Body;
 
-					if (body is MemberExpression)
-					{
-						var name = ((MemberExpression)body).Member.Name;
+				    var memberExpression = body as MemberExpression;
+				    if (memberExpression != null)
+				    {
+				        var name = memberExpression.Member.Name;
 
-						if (name.Length > 0 && name[0] != '[')
-							name = "[" + name + "]";
+				        if (name.Length > 0 && name[0] != '[')
+				            name = "[" + name + "]";
 
-						arr[0] = new SqlExpression(name, Precedence.Primary);
-					}
+				        arr[0] = new SqlExpression(name, Precedence.Primary);
+				    }
 				}
 			}
 
