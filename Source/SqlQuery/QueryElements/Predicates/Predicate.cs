@@ -84,7 +84,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
                 return sb.Append("...");
 
             dic.Add(this, this);
-            ToString(sb, dic);
+            ToStringInternal(sb, dic);
             dic.Remove(this);
 
             return sb;

@@ -144,9 +144,9 @@
 
 		#region IQueryElement Members
 
-		protected override void GetChildrenInternal(List<IQueryElement> list)
+		public override void GetChildren(LinkedList<IQueryElement> list)
 		{
-            list.AddRange(Parameters);
+            FillList(Parameters, list);
 		}
 
         public override EQueryElementType ElementType => EQueryElementType.SqlExpression;

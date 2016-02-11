@@ -34,7 +34,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
             public IWhereClause And => _parent.SetOr(false);
 
-            protected override void GetChildrenInternal(List<IQueryElement> list)
+            public override void GetChildren(LinkedList<IQueryElement> list)
             {
             }
         }
@@ -82,9 +82,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region IQueryElement Members
 
-        protected override void GetChildrenInternal(List<IQueryElement> list)
+        public override void GetChildren(LinkedList<IQueryElement> list)
         {
-            list.Add(SearchCondition);
+            list.AddLast(SearchCondition);
         }
 
         public override EQueryElementType ElementType => EQueryElementType.WhereClause;

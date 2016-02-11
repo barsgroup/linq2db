@@ -78,9 +78,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region IQueryElement Members
 
-        protected override void GetChildrenInternal(List<IQueryElement> list)
+        public override void GetChildren(LinkedList<IQueryElement> list)
         {
-            list.AddRange(Items);
+            FillList(Items, list);
         }
 
         public override EQueryElementType ElementType => EQueryElementType.OrderByClause;

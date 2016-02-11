@@ -50,9 +50,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
         {
             ((IQueryElement)Function).ToString(sb, dic);
         }
-        protected override void GetChildrenInternal(List<IQueryElement> list)
+
+        public override void GetChildren(LinkedList<IQueryElement> list)
         {
-            list.Add(Function);
+            list.AddLast(Function);
         }
 
     }

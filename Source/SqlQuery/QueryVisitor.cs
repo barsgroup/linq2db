@@ -25,40 +25,43 @@ namespace LinqToDB.SqlQuery
 	{
 		#region Visit
 
-		readonly Dictionary<IQueryElement,IQueryElement> _visitedElements = new Dictionary<IQueryElement, IQueryElement>();
-
-        public void VisitParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
+        private static IEnumerable<TElementType> DistinctFunc<TElementType>(IEnumerable<TElementType> source)
+            where TElementType : IQueryElement
         {
-            element.GetSelfWithChildren().Any(childElement => !action(childElement));
-        }
-
-        public static IEnumerable<TElementType> FindOnce<TElementType>(IQueryElement element, Dictionary<IQueryElement, IQueryElement> existItems = null) where TElementType : IQueryElement
-        {
-            if (existItems == null)
-            {
-                existItems = new Dictionary<IQueryElement, IQueryElement>();
-            }
-
-            Func<IEnumerable<IQueryElement>, IEnumerable<IQueryElement>> distinct = source =>
-            {
-                return source.Where(
-                    el =>
+            var existItems = new Dictionary<IQueryElement, IQueryElement>();
+            return source.Where(
+                el =>
+                {
+                    if (el != null && !existItems.ContainsKey(el))
                     {
-                        if (el != null && !existItems.ContainsKey(el))
-                        {
-                            existItems.Add(el, el);
-                            return true;
-                        }
-                        return false;
-                    });
-            };
-
-            return distinct(element.GetSelfWithChildren()).OfType<TElementType>();
+                        existItems.Add(el, el);
+                        return true;
+                    }
+                    return false;
+                });
         }
 
-        public static IEnumerable<TElementType> FindAll<TElementType>(params IQueryElement[] elements) where TElementType : IQueryElement
+        readonly Dictionary<IQueryElement,IQueryElement> _visitedElements = new Dictionary<IQueryElement, IQueryElement>();
+
+        public void FindParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
         {
-            return elements.Where(e => e != null).SelectMany(qe => qe.GetSelfWithChildren()).OfType<TElementType>();
+            element.DeepFindParentFirst<IQueryElement>().Any(childElement => !action(childElement));
+        }
+
+        public static IEnumerable<TElementType> FindOnce<TElementType>(IQueryElement element) where TElementType : class, IQueryElement
+        {
+            return DistinctFunc(element.DeepFindParentLast<TElementType>());
+        }
+
+        public static IEnumerable<TElementType> DeepFindDownTo<TElementType>(IQueryElement element)
+            where TElementType : class, IQueryElement
+        {
+            return element.DeepFindDownTo<TElementType>();
+        }
+
+        public static IEnumerable<TElementType> FindAll<TElementType>(params IQueryElement[] elements) where TElementType :class, IQueryElement
+        {
+            return elements.Where(e => e != null).SelectMany(qe => qe.DeepFindParentLast<TElementType>());
         }
 
         #endregion

@@ -10,27 +10,83 @@ namespace LinqToDB.SqlQuery.QueryElements
     [DebuggerDisplay("SQL = {SqlText}")]
     public abstract class BaseQueryElement : IQueryElement
     {
-        public IEnumerable<IQueryElement> GetSelfWithChildren()
+        protected void FillList<TElement>(IEnumerable<TElement> items, LinkedList<IQueryElement> list) where TElement: IQueryElement
         {
-            var list = new List<IQueryElement>();
-
-            list.Add(this);
-
-            while (list.Count != 0)
+            foreach (var item in items)
             {
-                var current = list[list.Count - 1];
-                if (current != null)
-                {
-                    yield return current;
-                }
-
-                list.RemoveAt(list.Count - 1);
-
-                ((BaseQueryElement)current)?.GetChildrenInternal(list);
+                list.AddLast(item);
             }
         }
 
-        protected abstract void GetChildrenInternal(List<IQueryElement> list);
+        public IEnumerable<TElementType> DeepFindParentLast<TElementType>() where TElementType : class, IQueryElement
+        {
+            var list = new LinkedList<IQueryElement>();
+
+            list.AddFirst(this);
+
+            while (list.First != null)
+            {
+                var current = list.First;
+                var value = current.Value as TElementType;
+
+                value?.GetChildren(list);
+
+                if (value != null)
+                {
+                    yield return value;
+                }
+
+                list.RemoveFirst();
+
+            }
+        }
+
+        public IEnumerable<TElementType> DeepFindParentFirst<TElementType>() where TElementType: class, IQueryElement
+        {
+            var list = new LinkedList<IQueryElement>();
+
+            list.AddFirst(this);
+
+            while (list.First != null)
+            {
+                var value = list.Last.Value as TElementType;
+                if (value != null)
+                {
+                    yield return value;
+                }
+
+                list.RemoveLast();
+
+                value?.GetChildren(list);
+            }
+        }
+
+        public IEnumerable<TElementType> DeepFindDownTo<TElementType>() where TElementType : class, IQueryElement
+        {
+            var list = new LinkedList<IQueryElement>();
+
+            list.AddFirst(this);
+
+            while (list.First != null)
+            {
+                var current = list.Last;
+
+                var value = current.Value as TElementType;
+                if (value != null)
+                {
+                    yield return value;
+                }
+
+                list.RemoveLast();
+
+                if (value == null)
+                {
+                    current.Value.GetChildren(list);
+                }
+            }
+        }
+
+        public abstract void GetChildren(LinkedList<IQueryElement> list);
 
         public abstract EQueryElementType ElementType { get; }
 

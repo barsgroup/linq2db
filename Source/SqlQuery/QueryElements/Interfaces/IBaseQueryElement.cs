@@ -4,6 +4,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     public interface IBaseQueryElement
     {
-        IEnumerable<IQueryElement> GetSelfWithChildren();
+        IEnumerable<TElementType> DeepFindParentFirst<TElementType>() where TElementType : class, IQueryElement;
+
+        IEnumerable<TElementType> DeepFindParentLast<TElementType>() where TElementType : class, IQueryElement;
+
+        IEnumerable<TElementType> DeepFindDownTo<TElementType>() where TElementType : class, IQueryElement;
+
+        void GetChildren(LinkedList<IQueryElement> list);
     }
 }

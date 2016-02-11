@@ -29,9 +29,9 @@ namespace LinqToDB.SqlQuery.QueryElements
 
 #endif
 
-        protected override void GetChildrenInternal(List<IQueryElement> list)
+        public override void GetChildren(LinkedList<IQueryElement> list)
         {
-            list.Add(SelectQuery);
+            list.AddLast(SelectQuery);
         }
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)

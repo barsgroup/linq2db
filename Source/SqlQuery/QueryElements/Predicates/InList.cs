@@ -55,10 +55,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             return clone;
         }
 
-        protected override void GetChildrenInternal(List<IQueryElement> list)
+        public override void GetChildren(LinkedList<IQueryElement> list)
         {
-            list.Add(Expr1);
-            list.AddRange(Values);
+            list.AddLast(Expr1);
+            FillList(Values, list);
         }
 
         public override EQueryElementType ElementType => EQueryElementType.InListPredicate;

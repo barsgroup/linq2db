@@ -76,7 +76,7 @@ namespace LinqToDB.SqlQuery
 		{
 			var data = new QueryData { Query = selectQuery };
 
-			new QueryVisitor().VisitParentFirst(selectQuery, e =>
+			new QueryVisitor().FindParentFirst(selectQuery, e =>
 			{
 				switch (e.ElementType)
 				{
@@ -189,7 +189,7 @@ namespace LinqToDB.SqlQuery
 			}
 
 			if (dic.Count > 0)
-				new QueryVisitor().VisitParentFirst(data.Query, e =>
+				new QueryVisitor().FindParentFirst(data.Query, e =>
 				{
 					IQueryExpression ex;
 
@@ -402,8 +402,7 @@ namespace LinqToDB.SqlQuery
 	            },
 	            new HashSet<ISelectQuery>());
 
-	        foreach (var query in QueryVisitor.FindOnce<
-                ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
+	        foreach (var query in QueryVisitor.DeepFindDownTo<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
 	        {
                 query.ParentSelect = _selectQuery;
 

@@ -180,10 +180,10 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region IQueryElement Members
 
-        protected override void GetChildrenInternal(List<IQueryElement> list)
+        public override void GetChildren(LinkedList<IQueryElement> list)
         {
-            list.Add(Source);
-            list.AddRange(Joins);
+            list.AddLast(Source);
+            FillList(Joins, list);
         }
 
         public override EQueryElementType ElementType => EQueryElementType.TableSource;

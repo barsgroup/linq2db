@@ -376,14 +376,14 @@
 
         #region IQueryElement Members
 
-        protected override void GetChildrenInternal(List<IQueryElement> list)
+        public override void GetChildren(LinkedList<IQueryElement> list)
         {
-            list.Add(All);
-            list.AddRange(Fields.Values);
+            list.AddLast(All);
+            FillList(Fields.Values, list);
 
             if (TableArguments != null)
             {
-                list.AddRange(TableArguments);
+                FillList(TableArguments, list);
             }
         }
 

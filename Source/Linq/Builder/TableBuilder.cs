@@ -1134,8 +1134,7 @@ namespace LinqToDB.Linq.Builder
 										var name = memberExpression.Member.Name;
 										var childExpression   = memberExpression;
 
-									    childExpression = childExpression.Expression as MemberExpression;
-									    if (childExpression != null)
+									    if (childExpression.Expression is MemberExpression)
 										{
 											while ((childExpression = childExpression.Expression as MemberExpression) != null)
 											{

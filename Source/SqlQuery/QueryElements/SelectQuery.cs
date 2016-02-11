@@ -798,50 +798,50 @@
 
 		#region IQueryElement Members
 
-        protected override void GetChildrenInternal(List<IQueryElement> list)
+        public override void GetChildren(LinkedList<IQueryElement> list)
         {
             switch (EQueryType)
             {
                 case EQueryType.InsertOrUpdate:
 
-                    list.Add(Insert);
-                    list.Add(Update);
+                    list.AddLast(Insert);
+                    list.AddLast(Update);
 
                     if (From.Tables.Count != 0)
                     {
-                        list.Add(Select);
+                        list.AddLast(Select);
                     }
                     break;
 
                 case EQueryType.Update:
-                    list.Add(Update);
-                    list.Add(Select);
+                    list.AddLast(Update);
+                    list.AddLast(Select);
                     break;
 
                 case EQueryType.Delete:
-                    list.Add(Delete);
-                    list.Add(Select);
+                    list.AddLast(Delete);
+                    list.AddLast(Select);
                     break;
 
                 case EQueryType.Insert:
-                    list.Add(Insert);
+                    list.AddLast(Insert);
 
                     if (From.Tables.Count != 0)
                     {
-                        list.Add(Select);
+                        list.AddLast(Select);
                     }
 
                     break;
 
                 default:
-                    list.Add(Select);
+                    list.AddLast(Select);
                     break;
             }
-            list.Add(From);
-            list.Add(Where);
-            list.Add(GroupBy);
-            list.Add(Having);
-            list.Add(OrderBy);
+            list.AddLast(From);
+            list.AddLast(Where);
+            list.AddLast(GroupBy);
+            list.AddLast(Having);
+            list.AddLast(OrderBy);
 
             if (HasUnion)
             {
@@ -850,7 +850,7 @@
                     if (Unions[i].SelectQuery == this)
                         throw new InvalidOperationException();
 
-                    list.Add(Unions[i]);
+                    list.AddLast(Unions[i]);
 
                 }
 
