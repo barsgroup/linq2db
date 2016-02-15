@@ -72,7 +72,7 @@
 			GroupByClause        groupBy,
             IWhereClause having,
             IOrderByClause orderBy,
-			List<IUnion>          unions,
+			LinkedList<IUnion>          unions,
             ISelectQuery         parentSelect,
             ICreateTableStatement createTable,
 			bool                 parameterDependent,
@@ -189,13 +189,13 @@
 
         public IOrderByClause OrderBy { get; private set; }
 
-        public List<IUnion> Unions { get; private set; } = new List<IUnion>();
+        public LinkedList<IUnion> Unions { get; private set; } = new LinkedList<IUnion>();
 
 	    public bool HasUnion => Unions != null && Unions.Count > 0;
 
 	    public void AddUnion(ISelectQuery union, bool isAll)
 		{
-			Unions.Add(new Union(union, isAll));
+			Unions.AddLast(new Union(union, isAll));
 		}
 
 		#region ProcessParameters
@@ -690,8 +690,8 @@
 				if (Select.Columns.Count == 1)
 					return Select.Columns[0].SystemType;
 
-				if (From.Tables.Count == 1 && From.Tables[0].Joins.Count == 0)
-					return From.Tables[0].SystemType;
+				if (From.Tables.Count == 1 && From.Tables.First.Value.Joins.Count == 0)
+					return From.Tables.First.Value.SystemType;
 
 				return null;
 			}
@@ -778,12 +778,12 @@
 
 		public IList<IQueryExpression> GetKeys(bool allIfEmpty)
 		{
-			if (_keys == null && From.Tables.Count == 1 && From.Tables[0].Joins.Count == 0)
+			if (_keys == null && From.Tables.Count == 1 && From.Tables.First.Value.Joins.Count == 0)
 			{
 				_keys = new List<IQueryExpression>();
 
 				var q =
-					from key in From.Tables[0].GetKeys(allIfEmpty)
+					from key in From.Tables.First.Value.GetKeys(allIfEmpty)
 					from col in Select.Columns
 					where col.Expression == key
 					select col as IQueryExpression;
@@ -798,66 +798,62 @@
 
 		#region IQueryElement Members
 
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            switch (EQueryType)
-            {
-                case EQueryType.InsertOrUpdate:
+	    public override void GetChildren(LinkedList<IQueryElement> list)
+	    {
+	        switch (EQueryType)
+	        {
+	            case EQueryType.InsertOrUpdate:
 
-                    list.AddLast(Insert);
-                    list.AddLast(Update);
+	                list.AddLast(Insert);
+	                list.AddLast(Update);
 
-                    if (From.Tables.Count != 0)
-                    {
-                        list.AddLast(Select);
-                    }
-                    break;
+	                if (From.Tables.Count != 0)
+	                {
+	                    list.AddLast(Select);
+	                }
+	                break;
 
-                case EQueryType.Update:
-                    list.AddLast(Update);
-                    list.AddLast(Select);
-                    break;
+	            case EQueryType.Update:
+	                list.AddLast(Update);
+	                list.AddLast(Select);
+	                break;
 
-                case EQueryType.Delete:
-                    list.AddLast(Delete);
-                    list.AddLast(Select);
-                    break;
+	            case EQueryType.Delete:
+	                list.AddLast(Delete);
+	                list.AddLast(Select);
+	                break;
 
-                case EQueryType.Insert:
-                    list.AddLast(Insert);
+	            case EQueryType.Insert:
+	                list.AddLast(Insert);
 
-                    if (From.Tables.Count != 0)
-                    {
-                        list.AddLast(Select);
-                    }
+	                if (From.Tables.Count != 0)
+	                {
+	                    list.AddLast(Select);
+	                }
 
-                    break;
+	                break;
 
-                default:
-                    list.AddLast(Select);
-                    break;
-            }
-            list.AddLast(From);
-            list.AddLast(Where);
-            list.AddLast(GroupBy);
-            list.AddLast(Having);
-            list.AddLast(OrderBy);
+	            default:
+	                list.AddLast(Select);
+	                break;
+	        }
+	        list.AddLast(From);
+	        list.AddLast(Where);
+	        list.AddLast(GroupBy);
+	        list.AddLast(Having);
+	        list.AddLast(OrderBy);
 
-            if (HasUnion)
-            {
-                for (int i = 0; i < Unions.Count; i++)
-                {
-                    if (Unions[i].SelectQuery == this)
-                        throw new InvalidOperationException();
+	        Unions.ForEach(
+	            node =>
+	            {
+	                if (node.Value.SelectQuery == this)
+	                    throw new InvalidOperationException();
 
-                    list.AddLast(Unions[i]);
+	                list.AddLast(node.Value);
+	            });
+	    }
 
-                }
-
-            }
-        }
-
-        public override EQueryElementType ElementType => EQueryElementType.SqlQuery;
+	    public override EQueryElementType ElementType => EQueryElementType.SqlQuery;
 
 	    public sealed override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

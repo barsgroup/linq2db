@@ -334,10 +334,10 @@ namespace LinqToDB.SqlProvider
 
 		protected virtual void BuildUpdateTableName()
 		{
-			if (SelectQuery.Update.Table != null && SelectQuery.Update.Table != SelectQuery.From.Tables[0].Source)
+			if (SelectQuery.Update.Table != null && SelectQuery.Update.Table != SelectQuery.From.Tables.First.Value.Source)
 				BuildPhysicalTable(SelectQuery.Update.Table, null);
 			else
-				BuildTableName(SelectQuery.From.Tables[0], true, true);
+				BuildTableName(SelectQuery.From.Tables.First.Value, true, true);
 		}
 
 		protected virtual void BuildUpdateSet()
@@ -474,7 +474,7 @@ namespace LinqToDB.SqlProvider
 		protected void BuildInsertOrUpdateQueryAsMerge(string fromDummyTable)
 		{
 			var table       = SelectQuery.Insert.Into;
-			var targetAlias = Convert(SelectQuery.From.Tables[0].Alias, ConvertType.NameToQueryTableAlias).ToString();
+			var targetAlias = Convert(SelectQuery.From.Tables.First.Value.Alias, ConvertType.NameToQueryTableAlias).ToString();
 			var sourceAlias = Convert(GetTempAliases(1, "s")[0],        ConvertType.NameToQueryTableAlias).ToString();
 			var keys        = SelectQuery.Update.Keys;
 
@@ -551,7 +551,7 @@ namespace LinqToDB.SqlProvider
 
 			AppendIndent().AppendLine("WHERE");
 
-			var alias = Convert(SelectQuery.From.Tables[0].Alias, ConvertType.NameToQueryTableAlias).ToString();
+			var alias = Convert(SelectQuery.From.Tables.First.Value.Alias, ConvertType.NameToQueryTableAlias).ToString();
 			var exprs = SelectQuery.Update.Keys;
 
 			Indent++;
@@ -2482,7 +2482,7 @@ namespace LinqToDB.SqlProvider
 					return ((ISqlTable)table).Alias;
 
                 case EQueryElementType.SqlQuery:
-                    return GetTableAlias(((ISelectQuery)table).From.Tables[0]);
+                    return GetTableAlias(((ISelectQuery)table).From.Tables.First.Value);
 
                 default :
 					throw new InvalidOperationException();

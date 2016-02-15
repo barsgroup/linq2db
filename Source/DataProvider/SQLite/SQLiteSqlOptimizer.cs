@@ -27,7 +27,7 @@ namespace LinqToDB.DataProvider.SQLite
 			{
 				case EQueryType.Delete :
 					selectQuery = GetAlternativeDelete(base.Finalize(selectQuery));
-					selectQuery.From.Tables[0].Alias = "$";
+					selectQuery.From.Tables.First.Value.Alias = "$";
 					break;
 
 				case EQueryType.Update :

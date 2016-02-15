@@ -397,7 +397,7 @@ namespace LinqToDB.Linq.Builder
 
 					var join = ctx.Select.CrossApply();
 
-					Select.From.Tables[0].Joins.Add(join.JoinedTable);
+					Select.From.Tables.First.Value.Joins.Add(join.JoinedTable);
 
 					return ctx.Select.Select.Columns[0];
 				}

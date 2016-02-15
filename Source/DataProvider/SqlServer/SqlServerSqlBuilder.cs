@@ -73,7 +73,7 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 			var table = SelectQuery.Delete.Table != null ?
 				(SelectQuery.From.FindTableSource(SelectQuery.Delete.Table) ?? SelectQuery.Delete.Table) :
-				SelectQuery.From.Tables[0];
+				SelectQuery.From.Tables.First.Value;
 
 			AppendIndent()
 				.Append("DELETE");
@@ -90,7 +90,7 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 			var table = SelectQuery.Update.Table != null ?
 				(SelectQuery.From.FindTableSource(SelectQuery.Update.Table) ?? SelectQuery.Update.Table) :
-				SelectQuery.From.Tables[0];
+				SelectQuery.From.Tables.First.Value;
 
 			if (table is ISqlTable)
 				BuildPhysicalTable(table, null);

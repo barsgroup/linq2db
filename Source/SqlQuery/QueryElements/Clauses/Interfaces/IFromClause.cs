@@ -20,7 +20,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
         bool IsChild(ISqlTableSource table);
 
-        List<ITableSource> Tables { get; }
+        LinkedList<ITableSource> Tables { get; }
 
         ISqlTableSource FindTableSource(ISqlTable table);
     }

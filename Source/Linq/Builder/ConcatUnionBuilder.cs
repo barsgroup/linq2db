@@ -29,7 +29,7 @@ namespace LinqToDB.Linq.Builder
 			var sequence2 = new SubQueryContext(builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQuery())));
 			var union     = new Union(sequence2.Select, methodCall.Method.Name == "Concat");
 
-			sequence1.Select.Unions.Add(union);
+			sequence1.Select.Unions.AddLast(union);
 
 			return new UnionContext(sequence1, sequence2, methodCall);
 		}

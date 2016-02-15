@@ -98,7 +98,7 @@ namespace LinqToDB.DataProvider.MySql
 		{
 			var table = SelectQuery.Delete.Table != null ?
 				(SelectQuery.From.FindTableSource(SelectQuery.Delete.Table) ?? SelectQuery.Delete.Table) :
-				SelectQuery.From.Tables[0];
+				SelectQuery.From.Tables.First.Value;
 
 			AppendIndent()
 				.Append("DELETE ")

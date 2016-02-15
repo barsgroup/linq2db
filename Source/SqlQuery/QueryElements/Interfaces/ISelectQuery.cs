@@ -55,7 +55,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         IOrderByClause OrderBy { get; }
 
-        List<IUnion> Unions { get; }
+        LinkedList<IUnion> Unions { get; }
 
         bool HasUnion { get; }
 
@@ -94,7 +94,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
                   GroupByClause groupBy,
                   IWhereClause having,
                   IOrderByClause orderBy,
-                  List<IUnion> unions,
+                  LinkedList<IUnion> unions,
                   ISelectQuery parentSelect,
                   ICreateTableStatement createTable,
                   bool parameterDependent,

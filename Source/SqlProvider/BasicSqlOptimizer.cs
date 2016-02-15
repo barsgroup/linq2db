@@ -129,7 +129,7 @@ namespace LinqToDB.SqlProvider
 
 					var join = SelectQuery.LeftJoin(subQuery);
 
-					query.From.Tables[0].Joins.Add(join.JoinedTable);
+					query.From.Tables.First.Value.Joins.Add(join.JoinedTable);
 
 					for (var j = 0; j < subQuery.Where.SearchCondition.Conditions.Count; j++)
 					{
@@ -248,7 +248,7 @@ namespace LinqToDB.SqlProvider
 
 						var join = SelectQuery.LeftJoin(subQuery);
 
-						query.From.Tables[0].Joins.Add(join.JoinedTable);
+						query.From.Tables.First.Value.Joins.Add(join.JoinedTable);
 
 						SelectQueryOptimizer.OptimizeSearchCondition(subQuery.Where.SearchCondition);
 
@@ -1142,9 +1142,9 @@ namespace LinqToDB.SqlProvider
 
 		protected ISelectQuery GetAlternativeDelete(ISelectQuery selectQuery)
 		{
-		    var source = selectQuery.From.Tables[0].Source as ISqlTable;
+		    var source = selectQuery.From.Tables.First.Value.Source as ISqlTable;
 		    if (selectQuery.IsDelete && 
-				(selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables[0].Joins.Count > 0) && 
+				(selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables.First.Value.Joins.Count > 0) && 
 				source != null)
 			{
 				var sql = new SelectQuery { EQueryType = EQueryType.Delete, IsParameterDependent = selectQuery.IsParameterDependent };
@@ -1193,17 +1193,17 @@ namespace LinqToDB.SqlProvider
 
 		protected ISelectQuery GetAlternativeUpdate(ISelectQuery selectQuery)
 		{
-		    var source = selectQuery.From.Tables[0].Source as ISqlTable;
+		    var source = selectQuery.From.Tables.First.Value.Source as ISqlTable;
 		    if (selectQuery.IsUpdate && (source != null || selectQuery.Update.Table != null))
 			{
-				if (selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables[0].Joins.Count > 0)
+				if (selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables.First.Value.Joins.Count > 0)
 				{
 					var sql = new SelectQuery { EQueryType = EQueryType.Update, IsParameterDependent = selectQuery.IsParameterDependent  };
 
 					selectQuery.ParentSelect = sql;
 					selectQuery.EQueryType = EQueryType.Select;
 
-					var table = selectQuery.Update.Table ?? (ISqlTable)selectQuery.From.Tables[0].Source;
+					var table = selectQuery.Update.Table ?? (ISqlTable)selectQuery.From.Tables.First.Value.Source;
 
 					if (selectQuery.Update.Table != null)
 						if (new QueryVisitor().Find(selectQuery.From, t => t == table) == null)
@@ -1250,7 +1250,7 @@ namespace LinqToDB.SqlProvider
 					selectQuery = sql;
 				}
 
-				selectQuery.From.Tables[0].Alias = "$";
+				selectQuery.From.Tables.First.Value.Alias = "$";
 			}
 
 			return selectQuery;

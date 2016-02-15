@@ -158,8 +158,8 @@ namespace LinqToDB.Linq.Builder
 #endif
 				return;
 
-			if (Select.From.Tables[0].Alias == null)
-				Select.From.Tables[0].Alias = alias;
+			if (Select.From.Tables.First.Value.Alias == null)
+				Select.From.Tables.First.Value.Alias = alias;
 		}
 
 		public override IQueryExpression GetSubQuery(IBuildContext context)

@@ -237,7 +237,7 @@ namespace LinqToDB.Linq.Builder
 
 				if (sequence.Select.Insert.Into == null)
 				{
-					sequence.Select.Insert.Into = (ISqlTable)sequence.Select.From.Tables[0].Source;
+					sequence.Select.Insert.Into = (ISqlTable)sequence.Select.From.Tables.First.Value.Source;
 					sequence.Select.From.Tables.Clear();
 				}
 

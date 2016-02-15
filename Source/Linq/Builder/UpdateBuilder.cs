@@ -129,7 +129,7 @@ namespace LinqToDB.Linq.Builder
 		        var tableContext = res.Context as TableBuilder.TableContext;
 		        if (res.Result && tableContext != null)
 		        {
-		            if (sequence.Select.From.Tables.Count == 0 || sequence.Select.From.Tables[0].Source != tableContext.Select)
+		            if (sequence.Select.From.Tables.Count == 0 || sequence.Select.From.Tables.First.Value.Source != tableContext.Select)
 		                sequence.Select.Update.Table = tableContext.SqlTable;
 		        }
 		    }

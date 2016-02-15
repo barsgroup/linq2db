@@ -175,7 +175,7 @@ namespace LinqToDB.DataProvider
 						var tableSet  = new HashSet<ISqlTable>();
 						var tables    = new List<ISqlTable>();
 
-						var fromTable = (ISqlTable)sql.From.Tables[0].Source;
+						var fromTable = (ISqlTable)sql.From.Tables.First.Value.Source;
 
 					    foreach (var tableSource in QueryVisitor.FindOnce<ITableSource>(sql.From))
 					    {
@@ -209,7 +209,7 @@ namespace LinqToDB.DataProvider
 
 									tempCopy.Where.SearchCondition.Conditions.Clear();
 
-									var keys = tempCopy.From.Tables[0].Source.GetKeys(true);
+									var keys = tempCopy.From.Tables.First.Value.Source.GetKeys(true);
 
 									foreach (ISqlField key in keys)
 										tempCopy.Where.Field(key).Equal.Field(fromTable.Fields[key.Name]);
@@ -226,7 +226,7 @@ namespace LinqToDB.DataProvider
 						sql.Where.SearchCondition.Conditions.Clear();
 						sql.Where.SearchCondition.Conditions.AddRange(whereClause);
 
-						sql.From.Tables[0].Alias = "Target";
+						sql.From.Tables.First.Value.Alias = "Target";
 
 						ctx.SetParameters();
 

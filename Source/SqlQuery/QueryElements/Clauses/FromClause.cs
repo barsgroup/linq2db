@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 	using System.Linq;
 	using System.Text;
 
+	using LinqToDB.Extensions;
 	using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
@@ -20,20 +21,23 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 		{
 		}
 
-		internal FromClause(
-			ISelectQuery selectQuery,
-            IFromClause clone,
-			Dictionary<ICloneableElement,ICloneableElement> objectTree,
-			Predicate<ICloneableElement> doClone)
-			: base(selectQuery)
-		{
-			_tables.AddRange(clone.Tables.Select(ts => (ITableSource)ts.Clone(objectTree, doClone)));
-		}
+        internal FromClause(ISelectQuery selectQuery, IFromClause clone, Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+            : base(selectQuery)
+        {
 
-		internal FromClause(IEnumerable<ITableSource> tables)
+            foreach (var source in clone.Tables.Select(ts => (ITableSource)ts.Clone(objectTree, doClone)))
+            {
+                _tables.AddLast(source);
+            }
+        }
+
+        internal FromClause(IEnumerable<ITableSource> tables)
 			: base(null)
 		{
-			_tables.AddRange(tables);
+            foreach (var source in tables)
+            {
+                _tables.AddLast(source);
+            }
 		}
 
 		public IFromClause Table(ISqlTableSource table, params IJoin[] joins)
@@ -73,7 +77,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
 			var t = new TableSource(table, alias);
 
-			Tables.Add(t);
+			Tables.AddLast(t);
 
 			return t;
 		}
@@ -109,8 +113,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 			return false;
 		}
 
-		readonly List<ITableSource> _tables = new List<ITableSource>();
-		public   List<ITableSource>  Tables => _tables;
+		readonly LinkedList<ITableSource> _tables = new LinkedList<ITableSource>();
+		public   LinkedList<ITableSource>  Tables => _tables;
 
 		static IEnumerable<ISqlTableSource> GetJoinTables(ITableSource source, EQueryElementType elementType)
 		{
@@ -161,15 +165,14 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
 		#region ISqlExpressionWalkable Members
 
-		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
-		{
-			for (var i = 0; i <	Tables.Count; i++)
-				Tables[i].Walk(skipColumns, func);
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
+        {
+            Tables.ForEach(source => source.Value.Walk(skipColumns, func));
 
-			return null;
-		}
+            return null;
+        }
 
-		#endregion
+        #endregion
 
 		#region IQueryElement Members
 

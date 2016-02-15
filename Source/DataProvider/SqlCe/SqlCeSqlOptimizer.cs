@@ -33,7 +33,7 @@ namespace LinqToDB.DataProvider.SqlCe
 			{
 				case EQueryType.Delete :
 					selectQuery = GetAlternativeDelete(selectQuery);
-					selectQuery.From.Tables[0].Alias = "$";
+					selectQuery.From.Tables.First.Value.Alias = "$";
 					break;
 
 				case EQueryType.Update :

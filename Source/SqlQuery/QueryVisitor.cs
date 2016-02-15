@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery
 {
     using System.Linq;
 
+    using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Clauses;
     using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
@@ -843,7 +844,51 @@ namespace LinqToDB.SqlQuery
 			return arr2;
 		}
 
-		List<T> Convert<T>(List<T> list, Func<IQueryElement, IQueryElement> action)
+        LinkedList<T> Convert<T>(LinkedList<T> list, Func<IQueryElement, IQueryElement> action)
+            where T : class, IQueryElement
+        {
+            return Convert(list, action, null);
+        }
+
+        LinkedList<T> Convert<T>(LinkedList<T> list1, Func<IQueryElement, IQueryElement> action, Clone<T> clone)
+            where T : class, IQueryElement
+        {
+            LinkedList<T> list2 = null;
+
+            list1.ForEach(
+                elem1 =>
+                {
+                    var elem2 = (T)ConvertInternal(elem1.Value, action);
+
+                    if (elem2 != null && !ReferenceEquals(elem1.Value, elem2))
+                    {
+                        if (list2 == null)
+                        {
+                            list2 = new LinkedList<T>();
+
+                            elem1.ReverseEach(
+                                node =>
+                                {
+                                    list2.AddLast(
+                                        clone == null
+                                            ? node.Value
+                                            : clone(node.Value));
+                                });
+                        }
+
+                        list2.AddLast(elem2);
+                    }
+                    else
+                    {
+                        list2?.AddLast(clone == null ? elem1.Value : clone(elem1.Value));
+                    }
+                });
+
+            return list2;
+        }
+
+
+        List<T> Convert<T>(List<T> list, Func<IQueryElement, IQueryElement> action)
 			where T : class, IQueryElement
 		{
 			return Convert(list, action, null);

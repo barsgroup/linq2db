@@ -42,7 +42,7 @@ namespace LinqToDB.Linq.Builder
 			var leftJoin       = collection is DefaultIfEmptyBuilder.DefaultIfEmptyContext;
 			var sql            = collection.Select;
 
-			var sequenceTables = new HashSet<ISqlTableSource>(sequence.Select.From.Tables[0].GetTables());
+			var sequenceTables = new HashSet<ISqlTableSource>(sequence.Select.From.Tables.First.Value.GetTables());
 			var newQuery       = null != new QueryVisitor().Find(sql, e => e == collectionInfo.SelectQuery);
 			var crossApply     = null != new QueryVisitor().Find(sql, e =>
 				e.ElementType == EQueryElementType.TableSource && sequenceTables.Contains((ISqlTableSource)e)  ||
@@ -54,8 +54,8 @@ namespace LinqToDB.Linq.Builder
 			{
 				var groupJoin = groupJoinSubQueryContext.GroupJoin;
 
-				groupJoin.Select.From.Tables[0].Joins[0].JoinType = EJoinType.Inner;
-				groupJoin.Select.From.Tables[0].Joins[0].IsWeak   = false;
+				groupJoin.Select.From.Tables.First.Value.Joins[0].JoinType = EJoinType.Inner;
+				groupJoin.Select.From.Tables.First.Value.Joins[0].IsWeak   = false;
 			}
 
 			if (!newQuery)
@@ -74,7 +74,7 @@ namespace LinqToDB.Linq.Builder
 				else
 				{
 					var join = SelectQuery.OuterApply(sql);
-					sequence.Select.From.Tables[0].Joins.Add(join.JoinedTable);
+					sequence.Select.From.Tables.First.Value.Joins.Add(join.JoinedTable);
 					context.Collection = new SubQueryContext(collection, sequence.Select, false);
 
 					return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
@@ -114,7 +114,7 @@ namespace LinqToDB.Linq.Builder
 				}
 				else
 				{
-					sequence.Select.From.Tables[0].Joins.Add(join.JoinedTable);
+					sequence.Select.From.Tables.First.Value.Joins.Add(join.JoinedTable);
 				}
 
 				context.Collection = new SubQueryContext(collection, sequence.Select, false);
@@ -123,7 +123,7 @@ namespace LinqToDB.Linq.Builder
 			else
 			{
 				var join = leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql);
-				sequence.Select.From.Tables[0].Joins.Add(join.JoinedTable);
+				sequence.Select.From.Tables.First.Value.Joins.Add(join.JoinedTable);
 
 				context.Collection = new SubQueryContext(collection, sequence.Select, false);
 				return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);

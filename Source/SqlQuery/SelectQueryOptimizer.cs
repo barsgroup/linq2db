@@ -4,6 +4,7 @@ using System.Linq;
 
 namespace LinqToDB.SqlQuery
 {
+    using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Clauses;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
@@ -332,7 +333,7 @@ namespace LinqToDB.SqlQuery
 	            if (element.From.Tables.Count != 1 || !element.IsSimple || element.IsInsert || element.IsUpdate || element.IsDelete)
 	                return;
 
-	            var table = element.From.Tables[0];
+	            var table = element.From.Tables.First.Value;
 
 	            var selectQuery = table.Source as ISelectQuery;
 	            if (table.Joins.Count != 0 || selectQuery == null)
@@ -367,13 +368,15 @@ namespace LinqToDB.SqlQuery
 	                element.Select.Expr(selectQuery.Select.Columns[i].Expression);
 
 	            element.From.Tables.Clear();
-	            element.From.Tables.AddRange(selectQuery.From.Tables);
+
+                selectQuery.From.Tables.ForEach(element.From.Tables.AddLast);
 
 	            element.Where.SearchCondition.Conditions.AddRange(selectQuery.Where.SearchCondition.Conditions);
 	            element.Having.SearchCondition.Conditions.AddRange(selectQuery.Having.SearchCondition.Conditions);
 	            element.GroupBy.Items.AddRange(selectQuery.GroupBy.Items);
 	            element.OrderBy.Items.AddRange(selectQuery.OrderBy.Items);
-	            element.Unions.InsertRange(0, selectQuery.Unions);
+
+	            element.Unions.Last.ReverseEach(element.Unions.AddFirst);
 	        }
 
 	        _selectQuery.Walk(
@@ -725,13 +728,13 @@ namespace LinqToDB.SqlQuery
 
 	        foreach (var expr in QueryVisitor.FindOnce<IInList>(top).Where(p => p.Expr1 == query))
 	        {
-                expr.Expr1 = query.From.Tables[0];
+                expr.Expr1 = query.From.Tables.First.Value;
             }
 
-			query.From.Tables[0].Joins.AddRange(childSource.Joins);
+			query.From.Tables.First.Value.Joins.AddRange(childSource.Joins);
 
-			if (query.From.Tables[0].Alias == null)
-				query.From.Tables[0].Alias = childSource.Alias;
+			if (query.From.Tables.First.Value.Alias == null)
+				query.From.Tables.First.Value.Alias = childSource.Alias;
 
 			if (!query.Where. IsEmpty) ConcatSearchCondition(_selectQuery.Where,  query.Where);
 			if (!query.Having.IsEmpty) ConcatSearchCondition(_selectQuery.Having, query.Having);
@@ -741,7 +744,7 @@ namespace LinqToDB.SqlQuery
                 item.ParentSelect = query.ParentSelect ?? _selectQuery;
             }
 
-			return query.From.Tables[0];
+			return query.From.Tables.First.Value;
 		}
 
 		static bool IsAggregationFunction(IQueryElement expr)
@@ -861,27 +864,30 @@ namespace LinqToDB.SqlQuery
 			}
 		}
 
-		void OptimizeSubQueries(bool isApplySupported, bool optimizeColumns)
-		{
-			for (var i = 0; i < _selectQuery.From.Tables.Count; i++)
-			{
-				var table = OptimizeSubQuery(_selectQuery.From.Tables[i], true, false, isApplySupported, true, optimizeColumns);
+	    void OptimizeSubQueries(bool isApplySupported, bool optimizeColumns)
+	    {
+	        _selectQuery.From.Tables.ForEach(
+	            source =>
+	            {
+	                var value = source.Value;
 
-				if (table != _selectQuery.From.Tables[i])
-				{
-					var sql = _selectQuery.From.Tables[i].Source as ISelectQuery;
+	                var table = OptimizeSubQuery(value, true, false, isApplySupported, true, optimizeColumns);
 
-					if (!_selectQuery.Select.Columns.All(c => IsAggregationFunction(c.Expression)))
-						if (sql != null && sql.OrderBy.Items.Count > 0)
-							foreach (var item in sql.OrderBy.Items)
-								_selectQuery.OrderBy.Expr(item.Expression, item.IsDescending);
+	                if (table != value)
+	                {
+	                    var sql = value.Source as ISelectQuery;
 
-					_selectQuery.From.Tables[i] = table;
-				}
-			}
-		}
+	                    if (!_selectQuery.Select.Columns.All(c => IsAggregationFunction(c.Expression)))
+	                        if (sql != null && sql.OrderBy.Items.Count > 0)
+	                            foreach (var item in sql.OrderBy.Items)
+	                                _selectQuery.OrderBy.Expr(item.Expression, item.IsDescending);
 
-		void OptimizeApplies(bool isApplySupported, bool optimizeColumns)
+	                    source.Value = table;
+	                }
+	            });
+	    }
+
+	    void OptimizeApplies(bool isApplySupported, bool optimizeColumns)
 		{
 			foreach (var table in _selectQuery.From.Tables)
 				foreach (var join in table.Joins)

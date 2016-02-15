@@ -100,8 +100,8 @@ namespace LinqToDB.DataProvider.Sybase
 				table = source = SelectQuery.Delete.Table;
 			else
 			{
-				table  = SelectQuery.From.Tables[0];
-				source = SelectQuery.From.Tables[0].Source;
+				table  = SelectQuery.From.Tables.First.Value;
+				source = SelectQuery.From.Tables.First.Value.Source;
 			}
 
 			var alias = GetTableAlias(table);
@@ -140,10 +140,10 @@ namespace LinqToDB.DataProvider.Sybase
 
 		protected override void BuildUpdateTableName()
 		{
-			if (SelectQuery.Update.Table != null && SelectQuery.Update.Table != SelectQuery.From.Tables[0].Source)
+			if (SelectQuery.Update.Table != null && SelectQuery.Update.Table != SelectQuery.From.Tables.First.Value.Source)
 				BuildPhysicalTable(SelectQuery.Update.Table, null);
 			else
-				BuildTableName(SelectQuery.From.Tables[0], true, false);
+				BuildTableName(SelectQuery.From.Tables.First.Value, true, false);
 		}
 
 		public override object Convert(object value, ConvertType convertType)

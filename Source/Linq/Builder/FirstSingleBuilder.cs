@@ -117,7 +117,7 @@ namespace LinqToDB.Linq.Builder
 
 					var join = SelectQuery.OuterApply(Select);
 
-					Parent.Select.From.Tables[0].Joins.Add(join.JoinedTable);
+					Parent.Select.From.Tables.First.Value.Joins.Add(join.JoinedTable);
 				}
 			}
 

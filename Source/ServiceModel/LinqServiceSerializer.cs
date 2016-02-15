@@ -1421,7 +1421,7 @@ namespace LinqToDB.ServiceModel
 								groupBy,
 								having,
 								orderBy,
-								unions == null ? null : unions.ToList(),
+								unions == null ? null : new LinkedList<IUnion>(unions),
 								null,
 								createTable,
 								parameterDependent,
