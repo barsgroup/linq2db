@@ -17,8 +17,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         ITableSource this[ISqlTableSource table, string alias] { get; }
 
-        void ForEach(Action<ITableSource> action, HashSet<ISelectQuery> visitedQueries);
-
         IEnumerable<ISqlTableSource> GetTables();
 
         int GetJoinNumber();

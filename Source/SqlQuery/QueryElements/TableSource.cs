@@ -76,17 +76,6 @@ namespace LinqToDB.SqlQuery.QueryElements
         readonly List<IJoinedTable> _joins = new List<IJoinedTable>();
         public   List<IJoinedTable>  Joins => _joins;
 
-        public void ForEach(Action<ITableSource> action, HashSet<ISelectQuery> visitedQueries)
-        {
-            action(this);
-            foreach (var join in Joins)
-                @join.Table.ForEach(action, visitedQueries);
-
-            var item = Source as ISelectQuery;
-            if (item != null && visitedQueries.Contains(item))
-                item.ForEachTable(action, visitedQueries);
-        }
-
         public IEnumerable<ISqlTableSource> GetTables()
         {
             yield return Source;

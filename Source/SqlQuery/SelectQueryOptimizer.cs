@@ -568,51 +568,51 @@ namespace LinqToDB.SqlQuery
 
 			var areTablesCollected = false;
 
-			_selectQuery.ForEachTable(table =>
-			{
-				for (var i = 0; i < table.Joins.Count; i++)
-				{
-					var join = table.Joins[i];
+		    foreach (var table in QueryVisitor.FindOnce<ITableSource>(_selectQuery))
+		    {
+                for (var i = 0; i < table.Joins.Count; i++)
+                {
+                    var join = table.Joins[i];
 
-					if (join.IsWeak)
-					{
-						if (!areTablesCollected)
-						{
-							areTablesCollected = true;
+                    if (join.IsWeak)
+                    {
+                        if (!areTablesCollected)
+                        {
+                            areTablesCollected = true;
 
-						    var items = new IQueryElement[]
-						                {
-						                    _selectQuery.Select,
-						                    _selectQuery.Where,
-						                    _selectQuery.GroupBy,
-						                    _selectQuery.Having,
-						                    _selectQuery.OrderBy,
+                            var items = new IQueryElement[]
+                                        {
+                                            _selectQuery.Select,
+                                            _selectQuery.Where,
+                                            _selectQuery.GroupBy,
+                                            _selectQuery.Having,
+                                            _selectQuery.OrderBy,
                                             _selectQuery.IsInsert ? _selectQuery.Insert : null,
                                             _selectQuery.IsUpdate ? _selectQuery.Update : null,
                                             _selectQuery.IsDelete ? _selectQuery.Delete : null,
                                         };
 
-						    var tableArguments = QueryVisitor.FindAll<ISqlTable>(_selectQuery.From).Where(t => t.TableArguments != null).SelectMany(t => t.TableArguments);
+                            var tableArguments = QueryVisitor.FindAll<ISqlTable>(_selectQuery.From).Where(t => t.TableArguments != null).SelectMany(t => t.TableArguments);
 
                             var newFileds = QueryVisitor.FindAll<ISqlField>(items.Union(tableArguments).ToArray())
                             .Where(field => !tables.Contains(field.Table));
 
                             tables.AddRange(newFileds.Select(f => f.Table));
 
-						}
+                        }
 
-						if (findTable(join.Table))
-						{
-							join.IsWeak = false;
-						}
-						else
-						{
-							table.Joins.RemoveAt(i);
-							i--;
-						}
-					}
-				}
-			}, new HashSet<ISelectQuery>());
+                        if (findTable(join.Table))
+                        {
+                            join.IsWeak = false;
+                        }
+                        else
+                        {
+                            table.Joins.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                }
+            }
 		}
 
         ITableSource OptimizeSubQuery(

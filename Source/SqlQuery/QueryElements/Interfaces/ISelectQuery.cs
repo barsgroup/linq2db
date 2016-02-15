@@ -81,8 +81,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         string[] GetTempAliases(int n, string defaultAlias);
 
-        void ForEachTable(Action<ITableSource> action, HashSet<ISelectQuery> visitedQueries);
-
         ISqlTableSource GetTableSource(ISqlTableSource table);
 
         void Init(IInsertClause insert,

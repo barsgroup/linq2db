@@ -626,21 +626,6 @@
             }
         }
 
-        public void ForEachTable(Action<ITableSource> action, HashSet<ISelectQuery> visitedQueries)
-        {
-            if (!visitedQueries.Add(this))
-                return;
-
-            foreach (var table in From.Tables)
-                table.ForEach(action, visitedQueries);
-
-            foreach (var query in QueryVisitor.FindOnce<ISelectQuery>(this).Where(q => q != this))
-            {
-                query.ForEachTable(action, visitedQueries);
-
-            }
-        }
-
         public ISqlTableSource GetTableSource(ISqlTableSource table)
 		{
 			var ts = From[table];
