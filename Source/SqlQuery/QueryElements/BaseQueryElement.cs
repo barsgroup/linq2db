@@ -29,7 +29,7 @@ namespace LinqToDB.SqlQuery.QueryElements
                 var current = list.First;
                 var value = current.Value as TElementType;
 
-                value?.GetChildren(list);
+                current.Value?.GetChildren(list);
 
                 if (value != null)
                 {
@@ -43,21 +43,22 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public IEnumerable<TElementType> DeepFindParentFirst<TElementType>() where TElementType: class, IQueryElement
         {
-            var list = new LinkedList<IQueryElement>();
+            var processed = new LinkedList<IQueryElement>();
 
-            list.AddFirst(this);
+            processed.AddFirst(this);
 
-            while (list.First != null)
+            while (processed.First != null)
             {
-                var value = list.Last.Value as TElementType;
+                var current = processed.Last;
+                var value = current.Value as TElementType;
                 if (value != null)
                 {
                     yield return value;
                 }
 
-                list.RemoveLast();
+                processed.RemoveLast();
 
-                value?.GetChildren(list);
+                current.Value?.GetChildren(processed);
             }
         }
 
@@ -69,20 +70,23 @@ namespace LinqToDB.SqlQuery.QueryElements
 
             while (list.First != null)
             {
-                var current = list.Last;
+                var current = list.First;
 
-                var value = current.Value as TElementType;
-                if (value != null)
+                if (current.Value != null)
                 {
-                    yield return value;
+                    var value = current.Value as TElementType;
+
+                    if (value != this && value != null)
+                    {
+                        yield return value;
+                    }
+                    else
+                    {
+                        current.Value.GetChildren(list);
+                    }
                 }
 
-                list.RemoveLast();
-
-                if (value == null)
-                {
-                    current.Value.GetChildren(list);
-                }
+                list.RemoveFirst();
             }
         }
 

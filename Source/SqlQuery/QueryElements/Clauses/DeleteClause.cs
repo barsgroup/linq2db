@@ -38,7 +38,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             if (Table != null)
-                ((ISqlExpressionWalkable)Table).Walk(skipColumns, func);
+                Table.Walk(skipColumns, func);
 
             return null;
         }
@@ -58,7 +58,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         {
             sb.Append("DELETE FROM ");
 
-            ((IQueryElement)Table)?.ToString(sb, dic);
+            Table?.ToString(sb, dic);
 
             sb.AppendLine();
 

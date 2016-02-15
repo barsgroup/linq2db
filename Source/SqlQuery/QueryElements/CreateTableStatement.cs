@@ -31,7 +31,7 @@ namespace LinqToDB.SqlQuery.QueryElements
         {
             sb.Append(IsDrop ? "DROP TABLE " : "CREATE TABLE ");
 
-            ((IQueryElement)Table)?.ToString(sb, dic);
+            Table?.ToString(sb, dic);
 
             sb.AppendLine();
 
@@ -44,7 +44,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
-            ((ISqlExpressionWalkable)Table)?.Walk(skipColumns, func);
+            Table?.Walk(skipColumns, func);
 
             return null;
         }

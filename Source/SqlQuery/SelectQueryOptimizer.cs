@@ -394,15 +394,12 @@ namespace LinqToDB.SqlQuery
 	        OptimizeSearchCondition(_selectQuery.Where.SearchCondition);
 	        OptimizeSearchCondition(_selectQuery.Having.SearchCondition);
 
-	        _selectQuery.ForEachTable(
-	            table =>
-	            {
-	                foreach (var join in table.Joins)
-	                    OptimizeSearchCondition(join.Condition);
-	            },
-	            new HashSet<ISelectQuery>());
+	        foreach (var joinTable in QueryVisitor.FindOnce<IJoinedTable>(_selectQuery))
+	        {
+	            OptimizeSearchCondition(joinTable.Condition);
+	        }
 
-	        foreach (var query in QueryVisitor.DeepFindDownTo<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
+	        foreach (var query in QueryVisitor.FindDownTo<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
 	        {
                 query.ParentSelect = _selectQuery;
 
@@ -726,7 +723,7 @@ namespace LinqToDB.SqlQuery
 				return map.TryGetValue(expr, out fld) ? fld : expr;
 			});
 
-	        foreach (var expr in QueryVisitor.FindAll<IInList>(top).Where(p => p.Expr1 == query))
+	        foreach (var expr in QueryVisitor.FindOnce<IInList>(top).Where(p => p.Expr1 == query))
 	        {
                 expr.Expr1 = query.From.Tables[0];
             }
@@ -739,17 +736,10 @@ namespace LinqToDB.SqlQuery
 			if (!query.Where. IsEmpty) ConcatSearchCondition(_selectQuery.Where,  query.Where);
 			if (!query.Having.IsEmpty) ConcatSearchCondition(_selectQuery.Having, query.Having);
 
-			top.Walk(false, expr =>
-			{
-			    var selectQuery = expr as ISelectQuery;
-			    if (selectQuery != null)
-				{
-					if (selectQuery.ParentSelect == query)
-						selectQuery.ParentSelect = query.ParentSelect ?? _selectQuery;
-				}
-
-				return expr;
-			});
+            foreach (var item in QueryVisitor.FindOnce<ISelectQuery>(top).Where(q => q.ParentSelect == query))
+            {
+                item.ParentSelect = query.ParentSelect ?? _selectQuery;
+            }
 
 			return query.From.Tables[0];
 		}
@@ -901,7 +891,7 @@ namespace LinqToDB.SqlQuery
 
 		void OptimizeColumns()
 		{
-			((ISqlExpressionWalkable)_selectQuery.Select).Walk(false, expr =>
+			_selectQuery.Select.Walk(false, expr =>
 			{
 				var query = expr as ISelectQuery;
 					

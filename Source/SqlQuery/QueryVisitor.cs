@@ -53,10 +53,10 @@ namespace LinqToDB.SqlQuery
             return DistinctFunc(element.DeepFindParentLast<TElementType>());
         }
 
-        public static IEnumerable<TElementType> DeepFindDownTo<TElementType>(IQueryElement element)
+        public static IEnumerable<TElementType> FindDownTo<TElementType>(IQueryElement element)
             where TElementType : class, IQueryElement
         {
-            return element.DeepFindDownTo<TElementType>();
+            return DistinctFunc(element.DeepFindDownTo<TElementType>());
         }
 
         public static IEnumerable<TElementType> FindAll<TElementType>(params IQueryElement[] elements) where TElementType :class, IQueryElement

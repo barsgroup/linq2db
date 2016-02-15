@@ -74,7 +74,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> action)
         {
-            SearchCondition = (ISearchCondition)((ISqlExpressionWalkable)SearchCondition).Walk(skipColumns, action);
+            SearchCondition = (ISearchCondition)SearchCondition.Walk(skipColumns, action);
             return null;
         }
 
@@ -95,7 +95,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
                 return sb;
 
             sb.Append("\nWHERE\n\t");
-            return ((IQueryElement)Search).ToString(sb, dic);
+            return Search.ToString(sb, dic);
         }
 
         #endregion

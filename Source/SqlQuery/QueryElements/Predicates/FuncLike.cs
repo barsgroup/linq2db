@@ -23,7 +23,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
-            Function = (ISqlFunction)((IQueryExpression)Function).Walk(skipColumns, func);
+            Function = (ISqlFunction)Function.Walk(skipColumns, func);
         }
 
         public override bool CanBeNull()
@@ -48,7 +48,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
-            ((IQueryElement)Function).ToString(sb, dic);
+            Function.ToString(sb, dic);
         }
 
         public override void GetChildren(LinkedList<IQueryElement> list)

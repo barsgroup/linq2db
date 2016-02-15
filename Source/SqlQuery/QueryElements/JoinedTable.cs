@@ -66,7 +66,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> action)
         {
-            Condition = (ISearchCondition)((ISqlExpressionWalkable)Condition).Walk(skipColumns, action);
+            Condition = (ISearchCondition)Condition.Walk(skipColumns, action);
 
             Table.Walk(skipColumns, action);
 
@@ -103,7 +103,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
             Table.ToString(sb, dic);
             sb.Append(" ON ");
-            ((IQueryElement)Condition).ToString(sb, dic);
+            Condition.ToString(sb, dic);
 
             dic.Remove(this);
 

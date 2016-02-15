@@ -720,16 +720,16 @@
 
 		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
 		{
-		    ((ISqlExpressionWalkable)Insert)?.Walk(skipColumns, func);
-		    ((ISqlExpressionWalkable)Update)?.Walk(skipColumns, func);
+		    Insert?.Walk(skipColumns, func);
+		    Update?.Walk(skipColumns, func);
 		    ((ISqlExpressionWalkable)Delete)?.Walk(skipColumns, func);
 
-		    ((ISqlExpressionWalkable)Select) .Walk(skipColumns, func);
-			((ISqlExpressionWalkable)From)   .Walk(skipColumns, func);
-			((ISqlExpressionWalkable)Where)  .Walk(skipColumns, func);
+		    Select .Walk(skipColumns, func);
+			From   .Walk(skipColumns, func);
+			Where  .Walk(skipColumns, func);
 			((ISqlExpressionWalkable)GroupBy).Walk(skipColumns, func);
-			((ISqlExpressionWalkable)Having) .Walk(skipColumns, func);
-			((ISqlExpressionWalkable)OrderBy).Walk(skipColumns, func);
+			Having .Walk(skipColumns, func);
+			OrderBy.Walk(skipColumns, func);
 
 			if (HasUnion)
 				foreach (var union in Unions)
@@ -871,12 +871,12 @@
 				.Append(SourceID)
 				.Append(") ");
 
-			((IQueryElement)Select). ToString(sb, dic);
-			((IQueryElement)From).   ToString(sb, dic);
-			((IQueryElement)Where).  ToString(sb, dic);
+			Select. ToString(sb, dic);
+			From.   ToString(sb, dic);
+			Where.  ToString(sb, dic);
 			((IQueryElement)GroupBy).ToString(sb, dic);
-			((IQueryElement)Having). ToString(sb, dic);
-			((IQueryElement)OrderBy).ToString(sb, dic);
+			Having. ToString(sb, dic);
+			OrderBy.ToString(sb, dic);
 
 			if (HasUnion)
 				foreach (IUnion u in Unions)

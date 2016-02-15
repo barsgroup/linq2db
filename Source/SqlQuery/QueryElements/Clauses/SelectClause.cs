@@ -296,7 +296,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
                 foreach (var c in Columns)
                 {
                     sb.Append("\t");
-                    ((IQueryElement)c).ToString(sb, dic);
+                    c.ToString(sb, dic);
                     sb
                         .Append(" as ")
                         .Append(c.Alias ?? "c" + (_columns.IndexOf(c) + 1))

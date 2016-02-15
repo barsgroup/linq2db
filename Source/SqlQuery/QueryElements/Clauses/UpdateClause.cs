@@ -52,13 +52,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
             if (Table != null)
-                ((ISqlExpressionWalkable)Table).Walk(skipColumns, func);
+                Table.Walk(skipColumns, func);
 
             foreach (var t in Items)
-                ((ISqlExpressionWalkable)t).Walk(skipColumns, func);
+                t.Walk(skipColumns, func);
 
             foreach (var t in Keys)
-                ((ISqlExpressionWalkable)t).Walk(skipColumns, func);
+                t.Walk(skipColumns, func);
 
             return null;
         }
@@ -81,14 +81,14 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             sb.Append("SET ");
 
             if (Table != null)
-                ((IQueryElement)Table).ToString(sb, dic);
+                Table.ToString(sb, dic);
 
             sb.AppendLine();
 
             foreach (var e in Items)
             {
                 sb.Append("\t");
-                ((IQueryElement)e).ToString(sb, dic);
+                e.ToString(sb, dic);
                 sb.AppendLine();
             }
 

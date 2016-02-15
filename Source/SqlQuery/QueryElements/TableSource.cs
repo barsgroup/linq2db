@@ -131,7 +131,7 @@ namespace LinqToDB.SqlQuery.QueryElements
             Source = (ISqlTableSource)Source.Walk(skipColumns, func);
 
             foreach (var t in Joins)
-                ((ISqlExpressionWalkable)t).Walk(skipColumns, func);
+                t.Walk(skipColumns, func);
 
             return this;
         }
