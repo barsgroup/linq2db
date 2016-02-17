@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -12,14 +13,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     public class UpdateClause : BaseQueryElement,
                                 IUpdateClause
     {
-        public UpdateClause()
-        {
-            Items = new List<ISetExpression>();
-            Keys  = new List<ISetExpression>();
-        }
 
-        public List<ISetExpression> Items { get; private set; }
-        public List<ISetExpression> Keys  { get; private set; }
+        public LinkedList<ISetExpression> Items { get; } = new LinkedList<ISetExpression>();
+        public LinkedList<ISetExpression> Keys  { get; } = new LinkedList<ISetExpression>();
         public ISqlTable Table { get; set; }
 
         #region ICloneableElement Members
@@ -34,12 +30,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             if (Table != null)
                 clone.Table = (ISqlTable)Table.Clone(objectTree, doClone);
 
-            foreach (var item in Items)
-                clone.Items.Add((ISetExpression)item.Clone(objectTree, doClone));
-
-            foreach (var item in Keys)
-                clone.Keys.Add((ISetExpression)item.Clone(objectTree, doClone));
-
+            Items.ForEach(node => clone.Items.AddLast((ISetExpression)node.Value.Clone(objectTree, doClone)));
+            Keys.ForEach(node => clone.Keys.AddLast((ISetExpression)node.Value.Clone(objectTree, doClone)));
+                
             objectTree.Add(this, clone);
 
             return clone;

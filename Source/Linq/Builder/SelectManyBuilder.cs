@@ -4,7 +4,9 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using LinqToDB.Expressions;
+    using System.Linq;
+
+    using LinqToDB.Expressions;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
@@ -54,8 +56,9 @@ namespace LinqToDB.Linq.Builder
 			{
 				var groupJoin = groupJoinSubQueryContext.GroupJoin;
 
-				groupJoin.Select.From.Tables.First.Value.Joins[0].JoinType = EJoinType.Inner;
-				groupJoin.Select.From.Tables.First.Value.Joins[0].IsWeak   = false;
+			    var joinedTables = groupJoin.Select.From.Tables.First.Value.Joins.First.Value;
+			    joinedTables.JoinType = EJoinType.Inner;
+				joinedTables.IsWeak   = false;
 			}
 
 			if (!newQuery)
@@ -74,7 +77,7 @@ namespace LinqToDB.Linq.Builder
 				else
 				{
 					var join = SelectQuery.OuterApply(sql);
-					sequence.Select.From.Tables.First.Value.Joins.Add(join.JoinedTable);
+					sequence.Select.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
 					context.Collection = new SubQueryContext(collection, sequence.Select, false);
 
 					return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
@@ -84,7 +87,7 @@ namespace LinqToDB.Linq.Builder
 		    var tableContext = collection as TableBuilder.TableContext;
 		    if (tableContext != null)
 			{
-				var join = tableContext.SqlTable.TableArguments != null && tableContext.SqlTable.TableArguments.Length > 0 ?
+				var join = tableContext.SqlTable.TableArguments != null && tableContext.SqlTable.TableArguments.Count > 0 ?
 					(leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql)) :
 					(leftJoin ? SelectQuery.LeftJoin  (sql) : SelectQuery.InnerJoin (sql));
 
@@ -110,11 +113,10 @@ namespace LinqToDB.Linq.Builder
 						return false;
 					});
 
-					ts.Joins.Add(join.JoinedTable);
 				}
 				else
 				{
-					sequence.Select.From.Tables.First.Value.Joins.Add(join.JoinedTable);
+					sequence.Select.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
 				}
 
 				context.Collection = new SubQueryContext(collection, sequence.Select, false);
@@ -123,7 +125,7 @@ namespace LinqToDB.Linq.Builder
 			else
 			{
 				var join = leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql);
-				sequence.Select.From.Tables.First.Value.Joins.Add(join.JoinedTable);
+				sequence.Select.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
 
 				context.Collection = new SubQueryContext(collection, sequence.Select, false);
 				return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);

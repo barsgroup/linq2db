@@ -9,9 +9,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
                                      ISqlExpressionWalkable,
                                      ICloneableElement
     {
-        List<ISetExpression> Items { get; }
+        LinkedList<ISetExpression> Items { get; }
 
-        List<ISetExpression> Keys { get; }
+        LinkedList<ISetExpression> Keys { get; }
 
         ISqlTable Table { get; set; }
     }

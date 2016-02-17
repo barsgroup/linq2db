@@ -158,7 +158,8 @@ namespace LinqToDB.DataProvider.Oracle
 
 				table.SqlTableType   = ESqlTableType.Expression;
 				table.Name           = "XmlTable('/t/r' PASSING XmlType({2}) COLUMNS " + columns + ") {1}";
-				table.TableArguments = new[] { arg };
+                table.TableArguments.Clear();
+			    table.TableArguments.AddFirst(arg);
 			}
 		}
 

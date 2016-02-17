@@ -719,15 +719,18 @@ namespace LinqToDB.ServiceModel
 
 							if (elem.SqlTableType != ESqlTableType.Table)
 							{
-								if (elem.TableArguments == null)
-									Append(0);
-								else
-								{
-									Append(elem.TableArguments.Length);
+							    if (elem.TableArguments == null)
+							        Append(0);
+							    else
+							    {
+							        Append(elem.TableArguments.Count);
 
-									foreach (var expr in elem.TableArguments)
-										Append(Dic[expr]);
-								}
+							        elem.TableArguments.ForEach(
+							            node =>
+							            {
+							                Append(Dic[node.Value]);
+							            });
+							    }
 							}
 
 							break;
@@ -1283,7 +1286,7 @@ namespace LinqToDB.ServiceModel
 
 							obj = new SqlTable(
 								sourceID, name, alias, database, owner, physicalName, objectType, sequenceAttributes, flds,
-								sqlTableType, tableArgs);
+								sqlTableType, new LinkedList<IQueryExpression>(tableArgs));
 
 							break;
 						}
@@ -1510,7 +1513,11 @@ namespace LinqToDB.ServiceModel
 
 							var c = new InsertClause { Into = into, WithIdentity = wid };
 
-							c.Items.AddRange(items);
+						    for (int i = 0; i < items.Length; i++)
+						    {
+						        c.Items.AddLast(items[i]);
+						    }
+
 							obj = c;
 
 							break;
@@ -1524,9 +1531,16 @@ namespace LinqToDB.ServiceModel
 
 							var c = new UpdateClause { Table = table };
 
-							c.Items.AddRange(items);
-							c.Keys. AddRange(keys);
-							obj = c;
+                            for (int i = 0; i < items.Length; i++)
+                            {
+                                c.Items.AddLast(items[i]);
+                            }
+                            for (int i = 0; i < keys.Length; i++)
+                            {
+                                c.Keys.AddLast(keys[i]);
+                            }
+
+                            obj = c;
 
 							break;
 						}
@@ -1559,9 +1573,9 @@ namespace LinqToDB.ServiceModel
 						}
 
 					case EQueryElementType.SetExpression : obj = new SetExpression(Read     <IQueryExpression>(), Read<IQueryExpression>()); break;
-					case EQueryElementType.FromClause    : obj = new FromClause   (ReadArray<ITableSource>());                break;
+					case EQueryElementType.FromClause    : obj = new FromClause   (new LinkedList<ITableSource>(ReadArray<ITableSource>()));                break;
 					case EQueryElementType.WhereClause   : obj = new WhereClause  (Read     <ISearchCondition>());            break;
-					case EQueryElementType.GroupByClause : obj = new GroupByClause(ReadArray<IQueryExpression>());                         break;
+					case EQueryElementType.GroupByClause : obj = new GroupByClause(new LinkedList<IQueryExpression>(ReadArray<IQueryExpression>()));                         break;
 					case EQueryElementType.OrderByClause : obj = new OrderByClause(ReadArray<IOrderByItem>());                break;
 
 					case EQueryElementType.OrderByItem :

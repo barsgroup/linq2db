@@ -31,9 +31,11 @@ namespace LinqToDB.Linq.Builder
 
     public partial class ExpressionBuilder
 	{
-		#region Build Where
+        ExpressionEqualityComparer _expressionComparer = new ExpressionEqualityComparer();
 
-		public IBuildContext BuildWhere(IBuildContext parent, IBuildContext sequence, LambdaExpression condition, bool checkForSubQuery, bool enforceHaving = false)
+        #region Build Where
+
+        public IBuildContext BuildWhere(IBuildContext parent, IBuildContext sequence, LambdaExpression condition, bool checkForSubQuery, bool enforceHaving = false)
 		{
 			var prevParent = sequence.Parent;
 			var ctx        = new ExpressionContext(parent, sequence, condition);
@@ -1165,11 +1167,12 @@ namespace LinqToDB.Linq.Builder
 			return value;
 		}
 
-		#endregion
+        #endregion
 
-		#region Build Parameter
+        #region Build Parameter
 
-		readonly Dictionary<Expression,ParameterAccessor> _parameters = new Dictionary<Expression, ParameterAccessor>();
+        readonly List<KeyValuePair<Expression,ParameterAccessor>> _parameters = new List<KeyValuePair<Expression, ParameterAccessor>>();
+        readonly List<Tuple<FieldInfo, object, ParameterAccessor>> _parametersValues = new List<Tuple<FieldInfo, object, ParameterAccessor>>();
 
 		public readonly HashSet<Expression> AsParameters = new HashSet<Expression>();
 
@@ -1177,17 +1180,51 @@ namespace LinqToDB.Linq.Builder
 		{
 			ParameterAccessor p;
 
-			if (_parameters.TryGetValue(expr, out p))
-				return p;
+            for (int i = 0; i < _parameters.Count; i++)
+		    {
+		        if (_expressionComparer.Equals(_parameters[i].Key, expr))
+		            return _parameters[i].Value;
+		    }
 
-			string name = null;
+		    var memberAccess = expr as MemberExpression;
+		    var constant = memberAccess?.Expression as ConstantExpression;
+		    var field = memberAccess?.Member as FieldInfo;
+
+		    object value = null; 
+
+            if (constant != null && field != null)
+		    {
+                value = constant.Value?.GetType().GetField(field.Name).GetValue(constant.Value);
+
+                for (int i = 0; i < _parametersValues.Count; i++)
+		        {
+		            var parametersValue = _parametersValues[i];
+
+		            if (field.Name == parametersValue.Item1.Name && field.MemberType == parametersValue.Item1.MemberType && field.FieldType == parametersValue.Item1.FieldType)
+		            {
+                        if (value.Equals(parametersValue.Item2))
+                        {
+                            return parametersValue.Item3;
+                        }
+                    }
+                        
+		        }
+		    }
+
+		    string name = null;
 
 			var newExpr = ReplaceParameter(_expressionAccessors, expr, nm => name = nm);
 
 			p = CreateParameterAccessor(
 				DataContextInfo.DataContext, newExpr, expr, ExpressionParam, ParametersParam, name);
 
-			_parameters.Add(expr, p);
+			_parameters.Add(new KeyValuePair<Expression, ParameterAccessor>(expr, p));
+
+		    if (constant != null && field != null)
+		    {
+                _parametersValues.Add(new Tuple<FieldInfo, object, ParameterAccessor>(field, value, p));
+            }
+
 			CurrentSqlParameters.Add(p);
 
 			return p;
@@ -1781,7 +1818,13 @@ namespace LinqToDB.Linq.Builder
 			var expr = Expression.MakeMemberAccess(par.Type == typeof(object) ? Expression.Convert(par, member.DeclaringType) : par, member);
 			var p    = CreateParameterAccessor(DataContextInfo.DataContext, expr, expr, ExpressionParam, ParametersParam, member.Name);
 
-			_parameters.Add(expr, p);
+            for (int i = 0; i < _parameters.Count; i++)
+            {
+                if (!_expressionComparer.Equals(_parameters[i].Key, expr))
+                {
+                    _parameters.Add(new KeyValuePair<Expression, ParameterAccessor>(expr, p));
+                }
+            }
 			CurrentSqlParameters.Add(p);
 
 			return p.SqlParameter;

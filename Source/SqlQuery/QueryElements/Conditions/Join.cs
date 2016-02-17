@@ -37,13 +37,17 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
             return new Next(this);
         }
 
-        internal Join(EJoinType joinType, ISqlTableSource table, string alias, bool isWeak, ICollection<IJoin> joins)
+        internal Join(EJoinType joinType, ISqlTableSource table, string alias, bool isWeak, IReadOnlyList<IJoin> joins)
         {
             JoinedTable = new JoinedTable(joinType, table, alias, isWeak);
 
             if (joins != null && joins.Count > 0)
-                foreach (var join in joins)
-                    JoinedTable.Table.Joins.Add(@join.JoinedTable);
+            {
+                for (var index = 0; index < joins.Count; index++)
+                {
+                    JoinedTable.Table.Joins.AddLast(joins[index].JoinedTable);
+                }
+            }
         }
 
         public IJoinedTable JoinedTable { get; }

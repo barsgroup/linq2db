@@ -82,9 +82,14 @@
 				table.SqlTableType   = ESqlTableType.Function;
 				table.Name           = Name ?? member.Name;
 				table.PhysicalName   = Name ?? member.Name;
-				table.TableArguments = ConvertArgs(member, sqlArgs.ToArray());
 
-				if (Schema   != null) table.Owner    = Schema;
+                var args = ConvertArgs(member, sqlArgs.ToArray());
+                for (var i = 0; i < args.Length; i++)
+                {
+                    table.TableArguments.AddLast(args[i]);
+                }
+
+                if (Schema   != null) table.Owner    = Schema;
 				if (Database != null) table.Database = Database;
 			}
 		}

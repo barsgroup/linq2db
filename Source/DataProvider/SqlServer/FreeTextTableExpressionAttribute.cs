@@ -30,7 +30,7 @@ namespace LinqToDB.DataProvider.SqlServer
 		public override void SetTable(MappingSchema mappingSchema, ISqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<IQueryExpression> sqlArgs)
 		{
 			var aargs  = sqlArgs.ToArray();
-			var arr    = ConvertArgs(member, aargs).ToList();
+			var list    = ConvertArgs(member, aargs).ToList();
 			var method = (MethodInfo)member;
 
 			{
@@ -50,7 +50,7 @@ namespace LinqToDB.DataProvider.SqlServer
 
 				name += physicalName;
 
-				arr.Add(new SqlExpression(name, Precedence.Primary));
+				list.Add(new SqlExpression(name, Precedence.Primary));
 			}
 
 			{
@@ -58,7 +58,7 @@ namespace LinqToDB.DataProvider.SqlServer
 
 				if (field is string)
 				{
-					arr[0] = new SqlExpression(field.ToString(), Precedence.Primary);
+					list[0] = new SqlExpression(field.ToString(), Precedence.Primary);
 				}
 				else
 				{
@@ -72,14 +72,20 @@ namespace LinqToDB.DataProvider.SqlServer
 				        if (name.Length > 0 && name[0] != '[')
 				            name = "[" + name + "]";
 
-				        arr[0] = new SqlExpression(name, Precedence.Primary);
+				        list[0] = new SqlExpression(name, Precedence.Primary);
 				    }
 				}
 			}
 
 			table.SqlTableType   = ESqlTableType.Expression;
 			table.Name           = "FREETEXTTABLE({6}, {2}, {3}) {1}";
-			table.TableArguments = arr.ToArray();
-		}
+
+            table.TableArguments.Clear();
+            for (var i = 0; i < list.Count; i++)
+            {
+                table.TableArguments.AddLast(list[i]);
+
+            }
+        }
 	}
 }

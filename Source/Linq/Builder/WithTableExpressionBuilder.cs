@@ -22,7 +22,7 @@ namespace LinqToDB.Linq.Builder
 			var value    = (string)((ConstantExpression)methodCall.Arguments[1]).Value;
 
 			table.SqlTable.SqlTableType   = ESqlTableType.Expression;
-			table.SqlTable.TableArguments = new IQueryExpression[0];
+			table.SqlTable.TableArguments.Clear();
 
 			switch (methodCall.Method.Name)
 			{

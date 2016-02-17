@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -12,12 +13,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     public class InsertClause : BaseQueryElement,
                                 IInsertClause
     {
-        public InsertClause()
-        {
-            Items = new List<ISetExpression>();
-        }
 
-        public List<ISetExpression> Items        { get; private set; }
+        public LinkedList<ISetExpression> Items { get; } = new LinkedList<ISetExpression>();
         public ISqlTable             Into         { get; set; }
         public bool                WithIdentity { get; set; }
 
@@ -33,8 +30,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             if (Into != null)
                 clone.Into = (ISqlTable)Into.Clone(objectTree, doClone);
 
-            foreach (var item in Items)
-                clone.Items.Add((ISetExpression)item.Clone(objectTree, doClone));
+            Items.ForEach(
+                node =>
+                {
+                    clone.Items.AddLast((ISetExpression)node.Value.Clone(objectTree, doClone));
+                });
 
             objectTree.Add(this, clone);
 
@@ -63,7 +63,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         public override void GetChildren(LinkedList<IQueryElement> list)
         {
             list.AddLast(Into);
-            FillList(Items, list);
+            Items.ForEach(node => list.AddLast(node.Value));
         }
 
         public override EQueryElementType ElementType => EQueryElementType.InsertClause;

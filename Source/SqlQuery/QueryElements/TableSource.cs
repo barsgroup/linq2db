@@ -1,99 +1,102 @@
 namespace LinqToDB.SqlQuery.QueryElements
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
+	using System;
+	using System.Collections.Generic;
+	using System.Linq;
+	using System.Text;
 
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+	using LinqToDB.Extensions;
+	using LinqToDB.SqlQuery.QueryElements.Enums;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class TableSource : BaseQueryElement, ITableSource
-    {
-        public TableSource(ISqlTableSource source, string alias)
-            : this(source, alias, null)
-        {
-        }
+	public class TableSource : BaseQueryElement, ITableSource
+	{
+		public TableSource(ISqlTableSource source, string alias)
+			: this(source, alias, null)
+		{
+		}
 
-        public TableSource(ISqlTableSource source, string alias, params IJoinedTable[] joins)
-        {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+		public TableSource(ISqlTableSource source, string alias, params IJoinedTable[] joins)
+		{
+			if (source == null) throw new ArgumentNullException(nameof(source));
 
-            Source = source;
-            _alias = alias;
+			Source = source;
+			_alias = alias;
 
-            if (joins != null)
-                _joins.AddRange(joins);
-        }
+			if (joins != null)
+			{
+				Joins = new LinkedList<IJoinedTable>(joins);
+			}
+		}
 
-        public TableSource(ISqlTableSource source, string alias, IEnumerable<IJoinedTable> joins)
-        {
-            if (source == null) throw new ArgumentNullException(nameof(source));
+		public TableSource(ISqlTableSource source, string alias, IEnumerable<IJoinedTable> joins)
+		{
+			if (source == null) throw new ArgumentNullException(nameof(source));
 
-            Source = source;
-            _alias = alias;
+			Source = source;
+			_alias = alias;
 
-            if (joins != null)
-                _joins.AddRange(joins);
-        }
+			if (joins != null)
+			{
+				Joins = new LinkedList<IJoinedTable>(joins);
+			}
+		}
 
-        public ISqlTableSource Source       { get; set; }
-        public ESqlTableType    SqlTableType
-        {
-            get { return Source.SqlTableType; }
-            set { throw new NotSupportedException();}
-        }
+		public ISqlTableSource Source       { get; set; }
+		public ESqlTableType    SqlTableType
+		{
+			get { return Source.SqlTableType; }
+			set { throw new NotSupportedException();}
+		}
 
-        // TODO: remove internal.
-        internal string _alias;
-        public   string  Alias
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_alias))
-                {
-                    var tableSource = Source as ITableSource;
-                    if (tableSource != null)
-                        return tableSource.Alias;
+		// TODO: remove internal.
+		internal string _alias;
+		public   string  Alias
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(_alias))
+				{
+					var tableSource = Source as ITableSource;
+					if (tableSource != null)
+						return tableSource.Alias;
 
-                    var sqlTable = Source as ISqlTable;
-                    if (sqlTable != null)
-                        return sqlTable.Alias;
-                }
+					var sqlTable = Source as ISqlTable;
+					if (sqlTable != null)
+						return sqlTable.Alias;
+				}
 
-                return _alias;
-            }
-            set { _alias = value; }
-        }
+				return _alias;
+			}
+			set { _alias = value; }
+		}
 
-        public ITableSource this[ISqlTableSource table] => this[table, null];
+		public ITableSource this[ISqlTableSource table] => this[table, null];
 
-        public ITableSource this[ISqlTableSource table, string alias] => Joins.Select(tj => SelectQuery.CheckTableSource(tj.Table, table, alias)).FirstOrDefault(t => t != null);
+		public ITableSource this[ISqlTableSource table, string alias] => Joins.Select(tj => SelectQuery.CheckTableSource(tj.Table, table, alias)).FirstOrDefault(t => t != null);
 
-        readonly List<IJoinedTable> _joins = new List<IJoinedTable>();
-        public   List<IJoinedTable>  Joins => _joins;
+		public LinkedList<IJoinedTable>  Joins { get; } = new LinkedList<IJoinedTable>();
 
-        public IEnumerable<ISqlTableSource> GetTables()
-        {
-            yield return Source;
+		public IEnumerable<ISqlTableSource> GetTables()
+		{
+			yield return Source;
 
-            foreach (var join in Joins)
-                foreach (var table in @join.Table.GetTables())
-                    yield return table;
-        }
+			foreach (var join in Joins)
+				foreach (var table in @join.Table.GetTables())
+					yield return table;
+		}
 
-        public int GetJoinNumber()
-        {
-            var n = Joins.Count;
+		public int GetJoinNumber()
+		{
+			var n = Joins.Count;
 
-            foreach (var join in Joins)
-                n += @join.Table.GetJoinNumber();
+			Joins.ForEach(node => n += node.Value.Table.GetJoinNumber());
 
-            return n;
-        }
+			return n;
+		}
 
 #if OVERRIDETOSTRING
 
@@ -104,130 +107,133 @@ namespace LinqToDB.SqlQuery.QueryElements
 
 #endif
 
-        #region IEquatable<ISqlExpression> Members
+		#region IEquatable<ISqlExpression> Members
 
-        bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
-        {
-            return this == other;
-        }
+		bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
+		{
+			return this == other;
+		}
 
-        #endregion
+		#endregion
 
-        #region ISqlExpressionWalkable Members
+		#region ISqlExpressionWalkable Members
 
-        public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
-        {
-            Source = (ISqlTableSource)Source.Walk(skipColumns, func);
+		public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
+		{
+			Source = (ISqlTableSource)Source.Walk(skipColumns, func);
 
-            foreach (var t in Joins)
-                t.Walk(skipColumns, func);
+			Joins.ForEach(node => node.Value.Walk(skipColumns, func));
 
-            return this;
-        }
+			return this;
+		}
 
-        #endregion
+		#endregion
 
-        #region ISqlTableSource Members
+		#region ISqlTableSource Members
 
-        public int       SourceID => Source.SourceID;
+		public int       SourceID => Source.SourceID;
 
-        public ISqlField All
-        {
-            get { return Source.All; }
-            set {  }
-        }
+		public ISqlField All
+		{
+			get { return Source.All; }
+			set {  }
+		}
 
-        IList<IQueryExpression> ISqlTableSource.GetKeys(bool allIfEmpty)
-        {
-            return Source.GetKeys(allIfEmpty);
-        }
+		IList<IQueryExpression> ISqlTableSource.GetKeys(bool allIfEmpty)
+		{
+			return Source.GetKeys(allIfEmpty);
+		}
 
-        #endregion
+		#endregion
 
-        #region ICloneableElement Members
+		#region ICloneableElement Members
 
-        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
-        {
-            if (!doClone(this))
-                return this;
+		public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+		{
+			if (!doClone(this))
+				return this;
 
-            ICloneableElement clone;
+			ICloneableElement clone;
 
-            if (!objectTree.TryGetValue(this, out clone))
-            {
-                var ts = new TableSource((ISqlTableSource)Source.Clone(objectTree, doClone), _alias);
+			if (!objectTree.TryGetValue(this, out clone))
+			{
+				var ts = new TableSource((ISqlTableSource)Source.Clone(objectTree, doClone), _alias);
 
-                objectTree.Add(this, clone = ts);
+				objectTree.Add(this, clone = ts);
 
-                ts._joins.AddRange(_joins.Select(jt => (IJoinedTable)jt.Clone(objectTree, doClone)));
-            }
+				foreach (var joinedTable in Joins.Select(jt => (IJoinedTable)jt.Clone(objectTree, doClone)))
+				{
+					ts.Joins.AddLast(joinedTable);
+				}
+			}
 
-            return clone;
-        }
+			return clone;
+		}
 
-        #endregion
+		#endregion
 
-        #region IQueryElement Members
+		#region IQueryElement Members
 
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Source);
-            FillList(Joins, list);
-        }
+		public override void GetChildren(LinkedList<IQueryElement> list)
+		{
+			list.AddLast(Source);
+			Joins.ForEach(node => list.AddLast(node.Value));
+		}
 
-        public override EQueryElementType ElementType => EQueryElementType.TableSource;
+		public override EQueryElementType ElementType => EQueryElementType.TableSource;
 
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
-        {
-            if (dic.ContainsKey(this))
-                return sb.Append("...");
+		public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+		{
+			if (dic.ContainsKey(this))
+				return sb.Append("...");
 
-            dic.Add(this, this);
+			dic.Add(this, this);
 
-            if (Source is ISelectQuery)
-            {
-                sb.Append("(\n\t");
-                var len = sb.Length;
-                Source.ToString(sb, dic).Replace("\n", "\n\t", len, sb.Length - len);
-                sb.Append("\n)");
-            }
-            else
-                Source.ToString(sb, dic);
+			if (Source is ISelectQuery)
+			{
+				sb.Append("(\n\t");
+				var len = sb.Length;
+				Source.ToString(sb, dic).Replace("\n", "\n\t", len, sb.Length - len);
+				sb.Append("\n)");
+			}
+			else
+				Source.ToString(sb, dic);
 
-            sb
-                .Append(" as t")
-                .Append(SourceID);
+			sb.Append(" as t").Append(SourceID);
 
-            foreach (IJoinedTable join in Joins)
-            {
-                sb.AppendLine().Append('\t');
-                var len = sb.Length;
-                @join.ToString(sb, dic).Replace("\n", "\n\t", len, sb.Length - len);
-            }
+			Joins.ForEach(
+				node =>
 
-            dic.Remove(this);
+				{
+					sb.AppendLine().Append('\t');
+					var len = sb.Length;
+					node.Value.ToString(sb, dic).Replace("\n", "\n\t", len, sb.Length - len);
 
-            return sb;
-        }
+				});
 
-        #endregion
+			dic.Remove(this);
 
-        #region ISqlExpression Members
+			return sb;
+		}
 
-        public bool CanBeNull()
-        {
-            return Source.CanBeNull();
-        }
+		#endregion
 
-        public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
-        {
-            return this == other;
-        }
+		#region ISqlExpression Members
 
-        public int  Precedence => Source.Precedence;
+		public bool CanBeNull()
+		{
+			return Source.CanBeNull();
+		}
 
-        public Type SystemType => Source.SystemType;
+		public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
+		{
+			return this == other;
+		}
 
-        #endregion
-    }
+		public int  Precedence => Source.Precedence;
+
+		public Type SystemType => Source.SystemType;
+
+		#endregion
+	}
 }

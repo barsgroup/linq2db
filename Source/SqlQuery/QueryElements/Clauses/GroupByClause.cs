@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Linq;
     using System.Text;
 
+    using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -16,19 +17,21 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         {
         }
 
-        internal GroupByClause(
-            ISelectQuery selectQuery,
-            GroupByClause clone,
-            Dictionary<ICloneableElement,ICloneableElement> objectTree,
-            Predicate<ICloneableElement> doClone)
+        internal GroupByClause(ISelectQuery selectQuery, GroupByClause clone, Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
-            _items.AddRange(clone._items.Select(e => (IQueryExpression)e.Clone(objectTree, doClone)));
+
+            clone.Items.ForEach(
+                node =>
+                {
+                    var value = (IQueryExpression)node.Value.Clone(objectTree, doClone);
+                    Items.AddLast(value);
+                });
         }
 
-        internal GroupByClause(IEnumerable<IQueryExpression> items) : base(null)
+        internal GroupByClause(LinkedList<IQueryExpression> items) : base(null)
         {
-            _items.AddRange(items);
+            items.ForEach(node => Items.AddLast(node.Value));
         }
 
         public GroupByClause Expr(IQueryExpression expr)
@@ -48,11 +51,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
                 if (e.Equals(expr))
                     return;
 
-            Items.Add(expr);
+            Items.AddLast(expr);
         }
 
-        readonly List<IQueryExpression> _items = new List<IQueryExpression>();
-        public   List<IQueryExpression>  Items => _items;
+        public LinkedList<IQueryExpression> Items { get; } = new LinkedList<IQueryExpression>();
 
         public bool IsEmpty => Items.Count == 0;
 
@@ -60,8 +62,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
-            for (var i = 0; i < Items.Count; i++)
-                Items[i] = Items[i].Walk(skipColumns, func);
+            Items.ForEach(
+                node =>
+                {
+                    node.Value = node.Value.Walk(skipColumns, func);
+                });
 
             return null;
         }
@@ -72,7 +77,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public override void GetChildren(LinkedList<IQueryElement> list)
         {
-            FillList(Items, list);
+            Items.ForEach(node => list.AddLast(node.Value));
         }
 
         public override EQueryElementType ElementType => EQueryElementType.GroupByClause;

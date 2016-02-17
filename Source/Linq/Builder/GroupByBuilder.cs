@@ -397,7 +397,7 @@ namespace LinqToDB.Linq.Builder
 
 					var join = ctx.Select.CrossApply();
 
-					Select.From.Tables.First.Value.Joins.Add(join.JoinedTable);
+					Select.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
 
 					return ctx.Select.Select.Columns[0];
 				}
@@ -555,7 +555,7 @@ namespace LinqToDB.Linq.Builder
 			            var column = expr as IColumn;
 			            return ReferenceEquals(_, expr) || (column != null && ReferenceEquals(_, column.Expression));
 			        }))
-					Select.GroupBy.Items.Add(expr);
+					Select.GroupBy.Items.AddLast(expr);
 
 				return base.ConvertToParentIndex(index, this);
 			}

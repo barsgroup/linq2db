@@ -67,7 +67,10 @@ namespace LinqToDB.Linq.Builder
 						table.Name,
 						((ISqlField)missedKey).Name);
 
-				sequence.Select.Update.Keys.AddRange(q.Select(i => i.i));
+			    for (int index = 0; index < q.Count; index++)
+			    {
+			        sequence.Select.Update.Keys.AddLast(q[index].i);
+			    }
 			}
 			else
 			{

@@ -25,8 +25,10 @@ namespace LinqToDB.Linq.Builder
 
 		    if (groupJoin != null)
 		    {
-		        groupJoin.Select.From.Tables.First.Value.Joins[0].JoinType = EJoinType.Left;
-		        groupJoin.Select.From.Tables.First.Value.Joins[0].IsWeak   = false;
+		        var joinedTable = groupJoin.Select.From.Tables.First.Value.Joins.First.Value;
+
+		        joinedTable.JoinType = EJoinType.Left;
+		        joinedTable.IsWeak = false;
 		    }
 
 		    return new DefaultIfEmptyContext(buildInfo.Parent, sequence, defaultValue);

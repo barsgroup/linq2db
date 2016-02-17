@@ -640,7 +640,7 @@ namespace LinqToDB.Linq
 
 								ei.Queries[0].Parameters.Add(param);
 
-								sqlQuery.Insert.Items.Add(new SetExpression(field.Value, param.SqlParameter));
+								sqlQuery.Insert.Items.AddLast(new SetExpression(field.Value, param.SqlParameter));
 							}
 							else if (field.Value.IsIdentity)
 							{
@@ -648,7 +648,7 @@ namespace LinqToDB.Linq
 								var expr = sqlb.GetIdentityExpression(sqlTable);
 
 								if (expr != null)
-									sqlQuery.Insert.Items.Add(new SetExpression(field.Value, expr));
+									sqlQuery.Insert.Items.AddLast(new SetExpression(field.Value, expr));
 							}
 						}
 
@@ -699,7 +699,7 @@ namespace LinqToDB.Linq
 
 								ei.Queries[0].Parameters.Add(param);
 
-								sqlQuery.Insert.Items.Add(new SetExpression(field.Value, param.SqlParameter));
+								sqlQuery.Insert.Items.AddLast(new SetExpression(field.Value, param.SqlParameter));
 							}
 							else if (field.Value.IsIdentity)
 							{
@@ -707,7 +707,7 @@ namespace LinqToDB.Linq
 								var expr = sqlb.GetIdentityExpression(sqlTable);
 
 								if (expr != null)
-									sqlQuery.Insert.Items.Add(new SetExpression(field.Value, expr));
+									sqlQuery.Insert.Items.AddLast(new SetExpression(field.Value, expr));
 							}
 						}
 
@@ -775,7 +775,7 @@ namespace LinqToDB.Linq
 										fieldDic.Add(field, param);
 								}
 
-								sqlQuery.Insert.Items.Add(new SetExpression(field, param.SqlParameter));
+								sqlQuery.Insert.Items.AddLast(new SetExpression(field, param.SqlParameter));
 							}
 							else if (field.IsIdentity)
 							{
@@ -819,10 +819,14 @@ namespace LinqToDB.Linq
 									fieldDic.Add(field, param = GetParameter(dataContextInfo.DataContext, field));
 							}
 
-							sqlQuery.Update.Items.Add(new SetExpression(field, param.SqlParameter));
+							sqlQuery.Update.Items.AddLast(new SetExpression(field, param.SqlParameter));
 						}
 
-						sqlQuery.Update.Keys.AddRange(q.Select(i => i.i));
+					    for (int index = 0; index < q.Count; index++)
+					    {
+					        sqlQuery.Update.Keys.AddLast(q[index].i);
+
+					    }
 
 						// Set the query.
 						//
@@ -931,7 +935,7 @@ namespace LinqToDB.Linq
 
 							ei.Queries[0].Parameters.Add(param);
 
-							sqlQuery.Update.Items.Add(new SetExpression(field, param.SqlParameter));
+							sqlQuery.Update.Items.AddLast(new SetExpression(field, param.SqlParameter));
 						}
 
 						foreach (var field in keys)

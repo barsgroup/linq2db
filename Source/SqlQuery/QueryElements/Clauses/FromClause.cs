@@ -25,22 +25,20 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             : base(selectQuery)
         {
 
-            foreach (var source in clone.Tables.Select(ts => (ITableSource)ts.Clone(objectTree, doClone)))
-            {
-                _tables.AddLast(source);
-            }
+            clone.Tables.ForEach(
+                node =>
+                {
+                    var value = (ITableSource)node.Value.Clone(objectTree, doClone);
+                    _tables.AddLast(value);
+                });
         }
 
-        internal FromClause(IEnumerable<ITableSource> tables)
-			: base(null)
-		{
-            foreach (var source in tables)
-            {
-                _tables.AddLast(source);
-            }
-		}
+        internal FromClause(LinkedList<ITableSource> tables) : base(null)
+        {
+            tables.ForEach(node => _tables.AddLast(node.Value));
+        }
 
-		public IFromClause Table(ISqlTableSource table, params IJoin[] joins)
+        public IFromClause Table(ISqlTableSource table, params IJoin[] joins)
 		{
 			return Table(table, null, joins);
 		}
@@ -50,10 +48,14 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 			var ts = AddOrGetTable(table, alias);
 
 			if (joins != null && joins.Length > 0)
-				foreach (var join in joins)
-					ts.Joins.Add(@join.JoinedTable);
+			{
+			    for (int index = 0; index < joins.Length; index++)
+			    {
+			        ts.Joins.AddLast(joins[index].JoinedTable);
+			    }
+			}
 
-			return this;
+		    return this;
 		}
 
 		ITableSource GetTable(ISqlTableSource table, string alias)
@@ -136,22 +138,23 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 			return Tables.SelectMany(_ => GetJoinTables(_, EQueryElementType.SqlQuery));
 		}
 
-		static ITableSource FindTableSource(ITableSource source, ISqlTable table)
-		{
-			if (source.Source == table)
-				return source;
+        static ITableSource FindTableSource(ITableSource source, ISqlTable table)
+        {
+            if (source.Source == table)
+                return source;
 
-			foreach (var join in source.Joins)
-			{
-				var ts = FindTableSource(@join.Table, table);
-				if (ts != null)
-					return ts;
-			}
+            source.Joins.FindOnce(
+                node =>
+                {
+                    var join = node.Value;
+                    var ts = FindTableSource(join.Table, table);
+                    return ts;
+                });
 
-			return null;
-		}
+            return null;
+        }
 
-		public ISqlTableSource FindTableSource(ISqlTable table)
+        public ISqlTableSource FindTableSource(ISqlTable table)
 		{
 			foreach (var source in Tables)
 			{
@@ -176,12 +179,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
 		#region IQueryElement Members
 
-		public override void GetChildren(LinkedList<IQueryElement> list)
-		{
-		    FillList(Tables, list);
-		}
+        public override void GetChildren(LinkedList<IQueryElement> list)
+        {
+            Tables.ForEach(node => list.AddLast(node.Value));
+        }
 
-		public override EQueryElementType ElementType => EQueryElementType.FromClause;
+        public override EQueryElementType ElementType => EQueryElementType.FromClause;
 
 		public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{

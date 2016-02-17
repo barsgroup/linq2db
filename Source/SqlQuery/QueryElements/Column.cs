@@ -9,6 +9,8 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
+    using Seterlund.CodeGuard;
+
     public class Column : BaseQueryElement,
                           IColumn
     {

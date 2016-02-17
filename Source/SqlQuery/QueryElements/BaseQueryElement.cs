@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Diagnostics;
     using System.Text;
 
+    using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
@@ -18,8 +19,9 @@ namespace LinqToDB.SqlQuery.QueryElements
             }
         }
 
-        public IEnumerable<TElementType> DeepFindParentLast<TElementType>() where TElementType : class, IQueryElement
+        public LinkedList<TElementType> DeepFindParentLast<TElementType>() where TElementType : class, IQueryElement
         {
+            var returnList = new LinkedList<TElementType>();
             var list = new LinkedList<IQueryElement>();
 
             list.AddFirst(this);
@@ -33,16 +35,18 @@ namespace LinqToDB.SqlQuery.QueryElements
 
                 if (value != null)
                 {
-                    yield return value;
+                    returnList.AddFirst(value);
                 }
 
                 list.RemoveFirst();
-
             }
+
+            return returnList;
         }
 
-        public IEnumerable<TElementType> DeepFindParentFirst<TElementType>() where TElementType: class, IQueryElement
+        public LinkedList<TElementType> DeepFindParentFirst<TElementType>() where TElementType: class, IQueryElement
         {
+            var returnList = new LinkedList<TElementType>();
             var processed = new LinkedList<IQueryElement>();
 
             processed.AddFirst(this);
@@ -53,17 +57,20 @@ namespace LinqToDB.SqlQuery.QueryElements
                 var value = current.Value as TElementType;
                 if (value != null)
                 {
-                    yield return value;
+                    returnList.AddLast(value);
                 }
 
                 processed.RemoveLast();
 
                 current.Value?.GetChildren(processed);
             }
+
+            return returnList;
         }
 
-        public IEnumerable<TElementType> DeepFindDownTo<TElementType>() where TElementType : class, IQueryElement
+        public LinkedList<TElementType> DeepFindDownTo<TElementType>() where TElementType : class, IQueryElement
         {
+            var returnList = new LinkedList<TElementType>();
             var list = new LinkedList<IQueryElement>();
 
             list.AddFirst(this);
@@ -78,7 +85,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
                     if (value != this && value != null)
                     {
-                        yield return value;
+                        returnList.AddLast(value);
                     }
                     else
                     {
@@ -88,6 +95,8 @@ namespace LinqToDB.SqlQuery.QueryElements
 
                 list.RemoveFirst();
             }
+
+            return returnList;
         }
 
         public abstract void GetChildren(LinkedList<IQueryElement> list);

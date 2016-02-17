@@ -54,7 +54,7 @@ namespace LinqToDB.Linq.Builder
 			var join = isGroup ? innerContext.Select.WeakLeftJoin() : innerContext.Select.InnerJoin();
 			var sql  = context.Select;
 
-			sql.From.Tables.First.Value.Joins.Add(join.JoinedTable);
+			sql.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
 
 			var selector = (LambdaExpression)methodCall.Arguments[4].Unwrap();
 

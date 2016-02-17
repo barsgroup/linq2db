@@ -609,14 +609,17 @@
                             {
                                 var col = sql.Select.Columns[i];
 
-                                foreach (var t in sql.Unions)
-                                {
-                                    var union = t.SelectQuery.Select;
+                                var index = i;
+                                sql.Unions.ForEach(
+                                    node =>
+                                    {
+                                        var union = node.Value.SelectQuery.Select;
 
-                                    objs.Remove(union.Columns[i].Alias);
+                                        objs.Remove(union.Columns[index].Alias);
 
-                                    union.Columns[i].Alias = col.Alias;
-                                }
+                                        union.Columns[index].Alias = col.Alias;
+                                    });
+
                             }
                         }
 

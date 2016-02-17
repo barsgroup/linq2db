@@ -49,7 +49,12 @@
 			{
 				table.SqlTableType   = ESqlTableType.Expression;
 				table.Name           = Expression ?? member.Name;
-				table.TableArguments = ConvertArgs(member, sqlArgs.ToArray());
+
+			    var args = ConvertArgs(member, sqlArgs.ToArray());
+                for (var i = 0; i < args.Length; i++)
+                {
+                    table.TableArguments.AddLast(args[i]);
+                }
 
 				if (Schema   != null) table.Owner    = Schema;
 				if (Database != null) table.Database = Database;

@@ -26,43 +26,55 @@ namespace LinqToDB.SqlQuery
 	{
 		#region Visit
 
-        private static IEnumerable<TElementType> DistinctFunc<TElementType>(IEnumerable<TElementType> source)
+        private static LinkedList<TElementType> DistinctFunc<TElementType>(LinkedList<TElementType> source)
             where TElementType : IQueryElement
         {
-            var existItems = new Dictionary<IQueryElement, IQueryElement>();
-            return source.Where(
-                el =>
+            var existItems = new HashSet<TElementType>();
+            var distinctList = new LinkedList<TElementType>();
+
+            source.ForEach(
+                node =>
                 {
-                    if (el != null && !existItems.ContainsKey(el))
+                    if (node.Value != null && !existItems.Contains(node.Value))
                     {
-                        existItems.Add(el, el);
-                        return true;
+                        existItems.Add(node.Value);
+                        distinctList.AddLast(node.Value);
                     }
-                    return false;
                 });
+
+            return distinctList;
         }
 
         readonly Dictionary<IQueryElement,IQueryElement> _visitedElements = new Dictionary<IQueryElement, IQueryElement>();
 
         public void FindParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
         {
-            element.DeepFindParentFirst<IQueryElement>().Any(childElement => !action(childElement));
+            element.DeepFindParentFirst<IQueryElement>().FindOnce(node => action(node.Value));
         }
 
-        public static IEnumerable<TElementType> FindOnce<TElementType>(IQueryElement element) where TElementType : class, IQueryElement
+        public static LinkedList<TElementType> FindOnce<TElementType>(IQueryElement element) where TElementType : class, IQueryElement
         {
             return DistinctFunc(element.DeepFindParentLast<TElementType>());
         }
 
-        public static IEnumerable<TElementType> FindDownTo<TElementType>(IQueryElement element)
+        public static LinkedList<TElementType> FindDownTo<TElementType>(IQueryElement element)
             where TElementType : class, IQueryElement
         {
             return DistinctFunc(element.DeepFindDownTo<TElementType>());
         }
 
-        public static IEnumerable<TElementType> FindAll<TElementType>(params IQueryElement[] elements) where TElementType :class, IQueryElement
+        public static IEnumerable<TElementType> FindAll<TElementType>(params IQueryElement[] elements) where TElementType : class, IQueryElement
         {
-            return elements.Where(e => e != null).SelectMany(qe => qe.DeepFindParentLast<TElementType>());
+            var returnList = new LinkedList<TElementType>();
+            for (int i = 0; i < elements.Length; i++)
+            {
+                if (elements[i] != null)
+                {
+                    elements[i].DeepFindParentLast<TElementType>().ForEach(node => returnList.AddLast(node.Value));
+                }
+            }
+
+            return returnList;
         }
 
         #endregion
@@ -535,7 +547,8 @@ namespace LinqToDB.SqlQuery
 						{
 							var sc = new InsertClause { Into = t ?? s.Into };
 
-							sc.Items.AddRange(i ?? s.Items);
+                            (i ?? s.Items).ForEach(node => sc.Items.AddLast(node.Value));
+
 							sc.WithIdentity = s.WithIdentity;
 
 							newElement = sc;
@@ -557,8 +570,8 @@ namespace LinqToDB.SqlQuery
 						{
 							var sc = new UpdateClause { Table = t ?? s.Table };
 
-							sc.Items.AddRange(i ?? s.Items);
-							sc.Keys. AddRange(k ?? s.Keys);
+                            (i ?? s.Items).ForEach(node => sc.Items.AddLast(node.Value));
+                            (k ?? s.Keys).ForEach(node => sc.Keys.AddLast(node.Value));
 
 							newElement = sc;
 						}

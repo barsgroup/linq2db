@@ -6,6 +6,7 @@
     using System.Text;
     using System.Threading;
 
+    using LinqToDB.Extensions;
     using LinqToDB.Mapping;
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Enums;
@@ -29,7 +30,7 @@
 
         string PhysicalName { get; set; }
 
-        IQueryExpression[] TableArguments { get; set; }
+        LinkedList<IQueryExpression> TableArguments { get;}
 
         Dictionary<string, ISqlField> Fields { get; }
 
@@ -71,7 +72,7 @@
 			SequenceNameAttribute[] sequenceAttributes,
             ISqlField[]              fields,
 			ESqlTableType            sqlTableType,
-			IQueryExpression[]        tableArguments)
+			LinkedList<IQueryExpression>        tableArguments)
 		{
 			_sourceID          = id;
 			Name               = name;
@@ -198,7 +199,7 @@
 			TableArguments = table.TableArguments;
 		}
 
-		public SqlTable(ISqlTable table, IEnumerable<ISqlField> fields, IQueryExpression[] tableArguments) : this()
+		public SqlTable(ISqlTable table, IEnumerable<ISqlField> fields, LinkedList<IQueryExpression> tableArguments) : this()
 		{
 			Alias              = table.Alias;
 			Database           = table.Database;
@@ -248,7 +249,7 @@
 		public Type             ObjectType     { get; set; }
 		public string           PhysicalName   { get; set; }
 		public ESqlTableType     SqlTableType   { get; set; }
-		public IQueryExpression[] TableArguments { get; set; }
+		public LinkedList<IQueryExpression> TableArguments { get; } = new LinkedList<IQueryExpression>();
 
 		public Dictionary<string, ISqlField> Fields { get; private set; }
 
@@ -361,8 +362,13 @@
 				}
 
 				if (TableArguments != null)
-					TableArguments = TableArguments.Select(e => (IQueryExpression)e.Clone(objectTree, doClone)).ToArray();
-
+				{
+				    foreach (var tableArgument in TableArguments.Select(e => (IQueryExpression)e.Clone(objectTree, doClone)))
+				    {
+				        TableArguments.AddLast(tableArgument);
+				    }
+				    
+				}
 				objectTree.Add(this, table);
 				objectTree.Add(All,  table.All);
 
@@ -381,10 +387,7 @@
             list.AddLast(All);
             FillList(Fields.Values, list);
 
-            if (TableArguments != null)
-            {
-                FillList(TableArguments, list);
-            }
+            TableArguments.ForEach(node => list.AddLast(node.Value));
         }
 
         public override EQueryElementType ElementType => EQueryElementType.SqlTable;
@@ -425,15 +428,17 @@
 
 		#region ISqlExpressionWalkable Members
 
-		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
-		{
-			if (TableArguments != null)
-				for (var i = 0; i < TableArguments.Length; i++)
-					TableArguments[i] = TableArguments[i].Walk(skipColumns, func);
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
+        {
+            TableArguments.ForEach(
+                node =>
+                {
+                    node.Value = node.Value.Walk(skipColumns, func);
+                });
 
-			return func(this);
-		}
+            return func(this);
+        }
 
-		#endregion
+        #endregion
 	}
 }

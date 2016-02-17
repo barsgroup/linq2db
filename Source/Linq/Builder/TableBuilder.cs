@@ -1310,7 +1310,7 @@ namespace LinqToDB.Linq.Builder
 				ParentAssociation     = parent;
 				ParentAssociationJoin = join.JoinedTable;
 
-				psrc.Joins.Add(join.JoinedTable);
+				psrc.Joins.AddLast(join.JoinedTable);
 
 				for (var i = 0; i < association.ThisKey.Length; i++)
 				{

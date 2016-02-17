@@ -9,6 +9,7 @@ namespace LinqToDB.SqlProvider
 {
 	using Common;
 
+	using LinqToDB.Extensions;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
@@ -484,15 +485,16 @@ namespace LinqToDB.SqlProvider
 
 			AppendIndent().Append("USING (SELECT ");
 
-			for (var i = 0; i < keys.Count; i++)
-			{
-				BuildExpression(keys[i].Expression, false, false);
-				StringBuilder.Append(" AS ");
-				BuildExpression(keys[i].Column, false, false);
+            keys.ForEach(
+                node =>
+                {
+                    BuildExpression(node.Value.Expression, false, false);
+                    StringBuilder.Append(" AS ");
+                    BuildExpression(node.Value.Column, false, false);
 
-				if (i + 1 < keys.Count)
-					StringBuilder.Append(", ");
-			}
+                    if (node.Next != null)
+                        StringBuilder.Append(", ");
+                });
 
 			if (!string.IsNullOrEmpty(fromDummyTable))
 				StringBuilder.Append(' ').Append(fromDummyTable);
@@ -503,23 +505,23 @@ namespace LinqToDB.SqlProvider
 
 			Indent++;
 
-			for (var i = 0; i < keys.Count; i++)
-			{
-				var key = keys[i];
+		    keys.ForEach(
+		        node =>
+		        {
+		            var key = node.Value;
+		            AppendIndent();
 
-				AppendIndent();
+		            StringBuilder.Append(targetAlias).Append('.');
+		            BuildExpression(key.Column, false, false);
 
-				StringBuilder.Append(targetAlias).Append('.');
-				BuildExpression(key.Column, false, false);
+		            StringBuilder.Append(" = ").Append(sourceAlias).Append('.');
+		            BuildExpression(key.Column, false, false);
 
-				StringBuilder.Append(" = ").Append(sourceAlias).Append('.');
-				BuildExpression(key.Column, false, false);
+		            if (node.Next != null)
+		                StringBuilder.Append(" AND");
 
-				if (i + 1 < keys.Count)
-					StringBuilder.Append(" AND");
-
-				StringBuilder.AppendLine();
-			}
+		            StringBuilder.AppendLine();
+		        });
 
 			Indent--;
 
@@ -556,23 +558,24 @@ namespace LinqToDB.SqlProvider
 
 			Indent++;
 
-			for (var i = 0; i < exprs.Count; i++)
-			{
-				var expr = exprs[i];
+            exprs.ForEach(
+                node =>
+                {
+                    var expr = node.Value;
 
-				AppendIndent();
+                    AppendIndent();
 
-				StringBuilder.Append(alias).Append('.');
-				BuildExpression(expr.Column, false, false);
+                    StringBuilder.Append(alias).Append('.');
+                    BuildExpression(expr.Column, false, false);
 
-				StringBuilder.Append(" = ");
-				BuildExpression(Precedence.Comparison, expr.Expression);
+                    StringBuilder.Append(" = ");
+                    BuildExpression(Precedence.Comparison, expr.Expression);
 
-				if (i + 1 < exprs.Count)
-					StringBuilder.Append(" AND");
+                    if (node.Next != null)
+                        StringBuilder.Append(" AND");
 
-				StringBuilder.AppendLine();
-			}
+                    StringBuilder.AppendLine();
+                });
 
 			Indent--;
 
@@ -913,32 +916,33 @@ namespace LinqToDB.SqlProvider
 
 			var first = true;
 
-			foreach (var ts in SelectQuery.From.Tables)
-			{
-				if (!first)
-				{
-					StringBuilder.AppendLine(",");
-					AppendIndent();
-				}
+		    foreach (var ts in SelectQuery.From.Tables)
+		    {
+		        if (!first)
+		        {
+		            StringBuilder.AppendLine(",");
+		            AppendIndent();
+		        }
 
-				first = false;
+		        first = false;
 
-				var jn = ParenthesizeJoin() ? ts.GetJoinNumber() : 0;
+		        int[] jn = { ParenthesizeJoin()
+		                         ? ts.GetJoinNumber()
+		                         : 0 };
 
-				if (jn > 0)
-				{
-					jn--;
-					for (var i = 0; i < jn; i++)
-						StringBuilder.Append("(");
-				}
+		        if (jn[0] > 0)
+		        {
+		            jn[0]--;
+		            for (var i = 0; i < jn[0]; i++)
+		                StringBuilder.Append("(");
+		        }
 
-				BuildTableName(ts, true, true);
+		        BuildTableName(ts, true, true);
 
-				foreach (var jt in ts.Joins)
-					BuildJoinTable(jt, ref jn);
-			}
+		        ts.Joins.ForEach(node => BuildJoinTable(node.Value, ref jn[0]));
+		    }
 
-			Indent--;
+		    Indent--;
 
 			StringBuilder.AppendLine();
 		}
@@ -2522,14 +2526,16 @@ namespace LinqToDB.SqlProvider
 
 						if (tbl.SqlTableType == ESqlTableType.Expression)
 						{
-							var values = new object[2 + (tbl.TableArguments == null ? 0 : tbl.TableArguments.Length)];
+						    var tableArguments = tbl.TableArguments.ToArray();
+
+						    var values = new object[2 + tableArguments.Length];
 
 							values[0] = sb.ToString();
 							values[1] = Convert(alias, ConvertType.NameToQueryTableAlias);
 
 							for (var i = 2; i < values.Length; i++)
 							{
-								var value = tbl.TableArguments[i - 2];
+								var value = tableArguments[i - 2];
 
 								sb.Length = 0;
 								WithStringBuilder(sb, () => BuildExpression(Precedence.Primary, value));
@@ -2544,22 +2550,25 @@ namespace LinqToDB.SqlProvider
 						{
 							sb.Append('(');
 
-							if (tbl.TableArguments != null && tbl.TableArguments.Length > 0)
-							{
-								var first = true;
+						    if (tbl.TableArguments != null && tbl.TableArguments.Count > 0)
+						    {
+						        var first = true;
 
-								foreach (var arg in tbl.TableArguments)
-								{
-									if (!first)
-										sb.Append(", ");
+						        tbl.TableArguments.ForEach(
+						            node =>
+						            {
+						                if (!first)
+						                    sb.Append(", ");
 
-									WithStringBuilder(sb, () => BuildExpression(arg, true, !first));
+						                var firstClosure = first;
+						                WithStringBuilder(sb, () => BuildExpression(node.Value, true, !firstClosure));
 
-									first = false;
-								}
-							}
+						                first = false;
+						            });
 
-							sb.Append(')');
+						    }
+
+						    sb.Append(')');
 						}
 
 						return sb.ToString();

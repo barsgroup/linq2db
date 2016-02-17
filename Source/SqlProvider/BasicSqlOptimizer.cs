@@ -129,7 +129,7 @@ namespace LinqToDB.SqlProvider
 
 					var join = SelectQuery.LeftJoin(subQuery);
 
-					query.From.Tables.First.Value.Joins.Add(join.JoinedTable);
+					query.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
 
 					for (var j = 0; j < subQuery.Where.SearchCondition.Conditions.Count; j++)
 					{
@@ -248,7 +248,7 @@ namespace LinqToDB.SqlProvider
 
 						var join = SelectQuery.LeftJoin(subQuery);
 
-						query.From.Tables.First.Value.Joins.Add(join.JoinedTable);
+						query.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
 
 						SelectQueryOptimizer.OptimizeSearchCondition(subQuery.Where.SearchCondition);
 
@@ -1238,7 +1238,7 @@ namespace LinqToDB.SqlProvider
 							return fld != null && map.TryGetValue(fld, out fld) ? fld : expr;
 						});
 
-						sql.Update.Items.Add(ex);
+						sql.Update.Items.AddLast(ex);
 					}
 
 					sql.Parameters.AddRange(selectQuery.Parameters);

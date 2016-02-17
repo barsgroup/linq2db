@@ -71,9 +71,9 @@
 			{
 				var value = _value;
 
-				if (ReplaceLike && value != null)
+				if (ReplaceLike)
 				{
-					value = value.ToString().Replace("[", "[[]");
+					value = value?.ToString().Replace("[", "[[]");
 				}
 
 				if (LikeStart != null)

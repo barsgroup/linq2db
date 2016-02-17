@@ -73,7 +73,13 @@ namespace LinqToDB.DataProvider.SapHana
 
 			table.SqlTableType = ESqlTableType.Expression;
 			table.Name = "{0}('PLACEHOLDER' = {2}) {1}";
-			table.TableArguments = arg.ToArray();
+
+            table.TableArguments.Clear();
+		    for (var i = 0; i < arg.Length; i++)
+		    {
+		        table.TableArguments.AddLast(arg[i]);
+
+		    }
 		}
 	}
 }

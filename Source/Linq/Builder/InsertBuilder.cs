@@ -96,11 +96,11 @@ namespace LinqToDB.Linq.Builder
 
 				if (expr != null)
 				{
-					insert.Items.Insert(0, new SetExpression(field, expr));
+					insert.Items.AddFirst(new SetExpression(field, expr));
 
 					if (methodCall.Arguments.Count == 3)
 					{
-						sequence.Select.Select.Columns.Insert(0, new Column(sequence.Select, insert.Items[0].Expression));
+						sequence.Select.Select.Columns.Insert(0, new Column(sequence.Select, insert.Items.First.Value.Expression));
 					}
 				}
 			}
