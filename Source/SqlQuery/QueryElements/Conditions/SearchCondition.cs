@@ -147,7 +147,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         public override void GetChildren(LinkedList<IQueryElement> list)
         {
-            FillList(Conditions, list);
+            Conditions.ForEach(node => list.AddLast(node.Value));
         }
 
         public override EQueryElementType ElementType => EQueryElementType.SearchCondition;
@@ -159,7 +159,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
             dic.Add(this, this);
 
-            foreach (IQueryElement c in Conditions)
+            foreach (ICondition c in Conditions)
                 c.ToString(sb, dic);
 
             if (Conditions.Count > 0)
