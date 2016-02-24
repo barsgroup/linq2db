@@ -56,8 +56,8 @@ namespace LinqToDB.Linq.Builder
 				ctx,
 				expr,
 				enforceHaving || makeHaving && !ctx.Select.GroupBy.IsEmpty?
-					ctx.Select.Having.SearchCondition.Conditions :
-					ctx.Select.Where. SearchCondition.Conditions);
+					ctx.Select.Having.Search.Conditions :
+					ctx.Select.Where. Search.Conditions);
 
 			ReplaceParent(ctx, prevParent);
 
@@ -279,9 +279,9 @@ namespace LinqToDB.Linq.Builder
 					if (subQuery.Select.Columns.Count == 1 &&
 					    subQuery.Select.Columns[0].Expression.ElementType == EQueryElementType.SqlFunction &&
 					    subQuery.GroupBy.IsEmpty && !subQuery.Select.HasModifier && !subQuery.HasUnion &&
-					    subQuery.Where.SearchCondition.Conditions.Count == 1)
+					    subQuery.Where.Search.Conditions.Count == 1)
 					{
-						var cond = subQuery.Where.SearchCondition.Conditions[0];
+						var cond = subQuery.Where.Search.Conditions.First.Value;
 
 						if (cond.Predicate.ElementType == EQueryElementType.ExprExprPredicate && query.GroupBy.Items.Count == 1 ||
 						    cond.Predicate.ElementType == EQueryElementType.SearchCondition &&
@@ -1171,7 +1171,7 @@ namespace LinqToDB.Linq.Builder
 
         #region Build Parameter
 
-        readonly List<KeyValuePair<Expression,ParameterAccessor>> _parameters = new List<KeyValuePair<Expression, ParameterAccessor>>();
+        readonly Dictionary<Expression,ParameterAccessor> _parameters = new Dictionary<Expression, ParameterAccessor>();
         readonly List<Tuple<FieldInfo, object, ParameterAccessor>> _parametersValues = new List<Tuple<FieldInfo, object, ParameterAccessor>>();
 
 		public readonly HashSet<Expression> AsParameters = new HashSet<Expression>();
@@ -1180,12 +1180,10 @@ namespace LinqToDB.Linq.Builder
 		{
 			ParameterAccessor p;
 
-            for (int i = 0; i < _parameters.Count; i++)
+		    if (_parameters.TryGetValue(expr, out p))
 		    {
-		        if (_expressionComparer.Equals(_parameters[i].Key, expr))
-		            return _parameters[i].Value;
+		        return p;
 		    }
-
 		    var memberAccess = expr as MemberExpression;
 		    var constant = memberAccess?.Expression as ConstantExpression;
 		    var field = memberAccess?.Member as FieldInfo;
@@ -1218,7 +1216,7 @@ namespace LinqToDB.Linq.Builder
 			p = CreateParameterAccessor(
 				DataContextInfo.DataContext, newExpr, expr, ExpressionParam, ParametersParam, name);
 
-			_parameters.Add(new KeyValuePair<Expression, ParameterAccessor>(expr, p));
+			_parameters.Add(expr, p);
 
 		    if (constant != null && field != null)
 		    {
@@ -1726,32 +1724,73 @@ namespace LinqToDB.Linq.Builder
 
 			var condition = new SearchCondition();
 
-			foreach (var lcol in lcols)
-			{
-				if (lcol.Members.Count == 0)
-					throw new InvalidOperationException();
+            bool find = false;
+            if (isNull)
+		    {
 
-				IQueryExpression rcol = null;
+		        foreach (var lcol in lcols)
+		        {
+		            var info = MappingSchema.GetEntityDescriptor(lcol.Members[0].GetMemberType()).Columns.FirstOrDefault(c => c.IsIdentity)?.MemberInfo;
 
-				var lmember = lcol.Members[lcol.Members.Count - 1];
+                    if (info == null)
+                        break;
+		            
+		            for (int i = 1; i < lcol.Members.Count; i++)
+		            {
+                        if (info  == lcol.Members[i])
+                        {
+                            var rex = MappingSchema.GetSqlValue(right.Type, null);
 
-				if (sr)
-					rcol = ConvertToSql(rightContext, Expression.MakeMemberAccess(right, lmember));
-				else if (rmembers.Count != 0)
-					rcol = ConvertToSql(rightContext, rmembers[lmember]);
+                            var predicate = Convert(leftContext, new ExprExpr(
+                                lcol.Sql,
+                                nodeType == ExpressionType.Equal ? EOperator.Equal : EOperator.NotEqual,
+                                rex));
 
-				var rex =
-					isNull ?
-						MappingSchema.GetSqlValue(right.Type, null) :
-						rcol ?? GetParameter(right, lmember);
+                            condition.Conditions.AddLast(new Condition(false, predicate));
 
-				var predicate = Convert(leftContext, new ExprExpr(
-					lcol.Sql,
-					nodeType == ExpressionType.Equal ? EOperator.Equal : EOperator.NotEqual,
-					rex));
+                            find = true;
+                            break;
+                            
+                        }
 
-				condition.Conditions.Add(new Condition(false, predicate));
-			}
+		                if (find)
+		                {
+		                    break;
+		                }
+                    }
+                }
+            }
+
+		    if (!find)
+		    {
+                foreach (var lcol in lcols)
+                {
+                    if (lcol.Members.Count == 0)
+                        throw new InvalidOperationException();
+
+                    IQueryExpression rcol = null;
+
+                    var lmember = lcol.Members[lcol.Members.Count - 1];
+
+                    if (sr)
+                        rcol = ConvertToSql(rightContext, Expression.MakeMemberAccess(right, lmember));
+                    else if (rmembers.Count != 0)
+                        rcol = ConvertToSql(rightContext, rmembers[lmember]);
+
+                    var rex =
+                        isNull ?
+                            MappingSchema.GetSqlValue(right.Type, null) :
+                            rcol ?? GetParameter(right, lmember);
+
+                    var predicate = Convert(leftContext, new ExprExpr(
+                        lcol.Sql,
+                        nodeType == ExpressionType.Equal ? EOperator.Equal : EOperator.NotEqual,
+                        rex));
+
+                    condition.Conditions.AddLast(new Condition(false, predicate));
+                }
+            }
+			
 
 			if (nodeType == ExpressionType.NotEqual)
 				foreach (var c in condition.Conditions)
@@ -1798,7 +1837,7 @@ namespace LinqToDB.Linq.Builder
 						nodeType == ExpressionType.Equal ? EOperator.Equal : EOperator.NotEqual,
 						rex));
 
-				condition.Conditions.Add(new Condition(false, predicate));
+				condition.Conditions.AddLast(new Condition(false, predicate));
 			}
 
 			if (nodeType == ExpressionType.NotEqual)
@@ -1818,14 +1857,15 @@ namespace LinqToDB.Linq.Builder
 			var expr = Expression.MakeMemberAccess(par.Type == typeof(object) ? Expression.Convert(par, member.DeclaringType) : par, member);
 			var p    = CreateParameterAccessor(DataContextInfo.DataContext, expr, expr, ExpressionParam, ParametersParam, member.Name);
 
-            for (int i = 0; i < _parameters.Count; i++)
-            {
-                if (!_expressionComparer.Equals(_parameters[i].Key, expr))
-                {
-                    _parameters.Add(new KeyValuePair<Expression, ParameterAccessor>(expr, p));
-                }
-            }
-			CurrentSqlParameters.Add(p);
+		    for (int i = 0; i < _parameters.Count; i++)
+		    {
+		        if (!_parameters.ContainsKey(expr))
+		        {
+		            _parameters.Add(expr, p);
+		        }
+		    }
+
+		    CurrentSqlParameters.Add(p);
 
 			return p.SqlParameter;
 		}
@@ -2094,7 +2134,7 @@ namespace LinqToDB.Linq.Builder
 						{
 							foreach (var m in inheritanceMapping.Where(m => !m.IsDefault))
 							{
-								cond.Conditions.Add(
+								cond.Conditions.AddLast(
 									new Condition(
 										false, 
 										Convert(context,
@@ -2108,7 +2148,7 @@ namespace LinqToDB.Linq.Builder
 						{
 							foreach (var m in inheritanceMapping.Where(m => toType.IsSameOrParentOf(m.Type)))
 							{
-								cond.Conditions.Add(
+								cond.Conditions.AddLast(
 									new Condition(
 										false,
 										Convert(context,
@@ -2136,7 +2176,7 @@ namespace LinqToDB.Linq.Builder
 
 						foreach (var m in mapping)
 						{
-							cond.Conditions.Add(
+							cond.Conditions.AddLast(
 								new Condition(
 									false,
 									Convert(context,
@@ -2204,7 +2244,7 @@ namespace LinqToDB.Linq.Builder
 
 		#region Search Condition Builder
 
-		void BuildSearchCondition(IBuildContext context, Expression expression, List<ICondition> conditions)
+		void BuildSearchCondition(IBuildContext context, Expression expression, LinkedList<ICondition> conditions)
 		{
 			switch (expression.NodeType)
 			{
@@ -2226,10 +2266,10 @@ namespace LinqToDB.Linq.Builder
 						var orCondition = new SearchCondition();
 
 						BuildSearchCondition(context, e.Left,  orCondition.Conditions);
-						orCondition.Conditions[orCondition.Conditions.Count - 1].IsOr = true;
+						orCondition.Conditions.Last.Value.IsOr = true;
 						BuildSearchCondition(context, e.Right, orCondition.Conditions);
 
-						conditions.Add(new Condition(false, orCondition));
+						conditions.AddLast(new Condition(false, orCondition));
 
 						break;
 					}
@@ -2243,17 +2283,17 @@ namespace LinqToDB.Linq.Builder
 
 						if (notCondition.Conditions.Count == 1)
 						{
-						    var notExpr = notCondition.Conditions[0].Predicate as INotExpr;
+						    var notExpr = notCondition.Conditions.First.Value.Predicate as INotExpr;
 						    if (notExpr != null)
 						    {
 						        notExpr.IsNot = !notExpr.IsNot;
-						        conditions.Add(notCondition.Conditions[0]);
+						        conditions.AddLast(notCondition.Conditions.First.Value);
 						    }
 						    else
-						        conditions.Add(new Condition(true, notCondition));
+						        conditions.AddLast(new Condition(true, notCondition));
 						}
 						else
-							conditions.Add(new Condition(true, notCondition));
+							conditions.AddLast(new Condition(true, notCondition));
 
 						break;
 					}
@@ -2267,11 +2307,11 @@ namespace LinqToDB.Linq.Builder
 			        var searchCondition = expr1 as ISearchCondition;
 			        if (searchCondition?.Conditions.Count == 1)
 			        {
-			            conditions.Add(searchCondition.Conditions[0]);
+			            conditions.AddLast(searchCondition.Conditions.First.Value);
 			            break;
 			        }
 
-			        conditions.Add(new Condition(false, predicate));
+			        conditions.AddLast(new Condition(false, predicate));
 
 					break;
 			}
@@ -2431,10 +2471,7 @@ namespace LinqToDB.Linq.Builder
 			{
 				if (sqlExpression.CanBeNull())
 				{
-					var notExpr = new SearchCondition
-					{
-						Conditions = { new Condition(true, new Expr(sqlExpression)) }
-					};
+				    var notExpr = new SearchCondition(new Condition(true, new Expr(sqlExpression)));
 
 					return Convert(context, new SqlFunction(sqlExpression.SystemType, "CASE", sqlExpression, new SqlValue(1), notExpr, new SqlValue(0), new SqlValue(null)));
 				}

@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using System.Linq;
     using System.Text;
 
+    using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
@@ -15,7 +16,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     public interface ISearchCondition : IQueryExpression,
         IConditionBase<ISearchCondition, SearchCondition.NextCondition>, ISqlPredicate
     {
-        List<ICondition> Conditions { get; }
+        LinkedList<ICondition> Conditions { get; }
     }
 
     public class SearchCondition : ConditionBase<ISearchCondition, SearchCondition.NextCondition>,
@@ -25,20 +26,26 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
         {
         }
 
-        public SearchCondition(IEnumerable<ICondition> list)
+        public SearchCondition(LinkedList<ICondition> list)
         {
-            _conditions.AddRange(list);
+            list.ForEach(node => Conditions.AddLast(node.Value));
         }
 
         public SearchCondition(params ICondition[] list)
         {
-            _conditions.AddRange(list);
+            for (int i = 0; i < list.Length; i++)
+            {
+                Conditions.AddLast(list[i]);
+            }
         }
 
-        readonly List<ICondition> _conditions = new List<ICondition>();
-        public   List<ICondition>  Conditions => _conditions;
+        public   LinkedList<ICondition>  Conditions { get; } = new LinkedList<ICondition>();
 
-        public override ISearchCondition Search => this;
+        public override ISearchCondition Search
+        {
+            get { return this; }
+            protected set { throw new NotSupportedException(); }
+        }
 
         public override NextCondition GetNext()
         {
@@ -64,10 +71,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
         {
             get
             {
-                if (_conditions.Count == 0) return SqlQuery.Precedence.Unknown;
-                if (_conditions.Count == 1) return _conditions[0].Precedence;
+                if (Conditions.Count == 0) return SqlQuery.Precedence.Unknown;
+                if (Conditions.Count == 1) return Conditions.First.Value.Precedence;
 
-                return _conditions.Select(_ =>
+                return Conditions.Select(_ =>
                                           _.IsNot ? SqlQuery.Precedence.LogicalNegation :
                                               _.IsOr  ? SqlQuery.Precedence.LogicalDisjunction :
                                                   SqlQuery.Precedence.LogicalConjunction).Min();
@@ -128,7 +135,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
                 objectTree.Add(this, clone = sc);
 
-                sc._conditions.AddRange(_conditions.Select(c => (ICondition)c.Clone(objectTree, doClone)));
+                Conditions.ForEach(node => sc.Conditions.AddLast((ICondition)node.Value.Clone(objectTree, doClone)));
             }
 
             return clone;

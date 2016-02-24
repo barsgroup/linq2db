@@ -2,12 +2,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
 {
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
-    public interface IConditionBase<T1, T2> : IConditionExpr<IExpr<T1, T2>>, IQueryElement
+    public interface IConditionBase<T1, out T2> : IConditionExpr<IExpr<T1, T2>>, IQueryElement,
+                                                  IHaveSearchCondition
         where T1 : IConditionBase<T1, T2>
     {
         T2 GetNext();
-
-        ISearchCondition Search { get; }
 
         INot<T1, T2> Not { get; }
 

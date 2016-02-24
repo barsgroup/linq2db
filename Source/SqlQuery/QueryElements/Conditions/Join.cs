@@ -30,7 +30,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
             }
         }
 
-        public override ISearchCondition Search => JoinedTable.Condition;
+        public override ISearchCondition Search
+        {
+            get { return JoinedTable.Condition; }
+            protected set { throw new System.NotSupportedException(); }
+        }
 
         public override Next GetNext()
         {

@@ -223,7 +223,7 @@ namespace LinqToDB.Linq.Builder
 				predicate = builder.Convert(outerKeyContext, predicate);
 			}
 
-			join.JoinedTable.Condition.Conditions.Add(new Condition(false, predicate));
+			join.JoinedTable.Condition.Conditions.AddLast(new Condition(false, predicate));
 		}
 
 		static void BuildSubQueryJoin(
@@ -247,7 +247,7 @@ namespace LinqToDB.Linq.Builder
 				predicate = builder.Convert(outerKeyContext, predicate);
 			}
 
-			subQuerySelect.Where.SearchCondition.Conditions.Add(new Condition(false, predicate));
+			subQuerySelect.Where.Search.Conditions.AddLast(new Condition(false, predicate));
 		}
 
 		class InnerKeyContext : ExpressionContext

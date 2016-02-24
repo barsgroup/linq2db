@@ -10,9 +10,24 @@
             var current = linkedList.First;
             while (current != null)
             {
+                var next = current.Next;
+
                 action(current);
 
-                current = current.Next;
+                current = next;
+            }
+        }
+
+        public static void AddRange<TElement>(this LinkedList<TElement> sourceList, LinkedList<TElement> targetList)
+        {
+            targetList.ForEach(node => sourceList.AddLast(node.Value));
+        }
+
+        public static void AddRange<TElement>(this LinkedList<TElement> sourceList, List<TElement> targetList)
+        {
+            for (int i = 0; i < targetList.Count; i++)
+            {
+                sourceList.AddLast(targetList[i]);
             }
         }
 
@@ -21,13 +36,14 @@
             var current = linkedList.First;
             while (current != null)
             {
+                var next = current.Next;
                 var result = action(current);
                 if (!Equals(result, default(TResult)))
                 {
                     return result;
                 }
 
-                current = current.Next;
+                current = next;
             }
 
             return default(TResult);
@@ -35,12 +51,14 @@
 
         public static void ReverseEach<TElement>(this LinkedListNode<TElement> node, Action<LinkedListNode<TElement>> action)
         {
-            var current = node.Previous;
+            var current = node;
             while (current != null)
             {
+                var previous = current.Previous;
+
                 action(current);
 
-                current = current.Previous;
+                current = previous;
             }
         }
     }

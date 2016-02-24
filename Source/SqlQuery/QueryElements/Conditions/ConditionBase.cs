@@ -10,12 +10,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
                                                  IConditionBase<T1, T2>
         where T1 : IConditionBase<T1,T2>
     {
-        public abstract ISearchCondition Search { get; }
+        public bool IsEmpty => Search.Conditions.Count == 0;
+        public abstract ISearchCondition Search { get; protected set; }
         public abstract T2              GetNext();
 
         public T1 SetOr(bool value)
         {
-            Search.Conditions[Search.Conditions.Count - 1].IsOr = value;
+            Search.Conditions.Last.Value.IsOr = value;
             return (T1)(IConditionBase<T1, T2>)this;
         }
 
@@ -28,7 +29,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         public T2 Exists(ISelectQuery subQuery)
         {
-            Search.Conditions.Add(new Condition(false, new FuncLike(SqlFunction.CreateExists(subQuery))));
+            Search.Conditions.AddLast(new Condition(false, new FuncLike(SqlFunction.CreateExists(subQuery))));
             return GetNext();
         }
 

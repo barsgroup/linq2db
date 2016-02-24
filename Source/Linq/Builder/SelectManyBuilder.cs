@@ -7,7 +7,8 @@ namespace LinqToDB.Linq.Builder
     using System.Linq;
 
     using LinqToDB.Expressions;
-	using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.Extensions;
+    using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -91,10 +92,10 @@ namespace LinqToDB.Linq.Builder
 					(leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql)) :
 					(leftJoin ? SelectQuery.LeftJoin  (sql) : SelectQuery.InnerJoin (sql));
 
-				join.JoinedTable.Condition.Conditions.AddRange(sql.Where.SearchCondition.Conditions);
+				join.JoinedTable.Condition.Conditions.AddRange(sql.Where.Search.Conditions);
 				join.JoinedTable.CanConvertApply = false;
 
-				sql.Where.SearchCondition.Conditions.Clear();
+				sql.Where.Search.Conditions.Clear();
 
 				var collectionParent = collection.Parent as TableBuilder.TableContext;
 

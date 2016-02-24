@@ -231,13 +231,13 @@ namespace LinqToDB.Linq.Builder
 					var predicate = Builder.MakeIsPredicate(this, OriginalType);
 
 					if (!(predicate is IExpr))
-						GetDescriminatorConditionsStorage().Add(new Condition(false, predicate));
+						GetDescriminatorConditionsStorage().AddLast(new Condition(false, predicate));
 				}
 			}
 
-			protected virtual List<ICondition> GetDescriminatorConditionsStorage()
+			protected virtual LinkedList<ICondition> GetDescriminatorConditionsStorage()
 			{
-				return Select.Where.SearchCondition.Conditions;
+				return Select.Where.Search.Conditions;
 			}
 
 			#endregion
@@ -1330,13 +1330,13 @@ namespace LinqToDB.Linq.Builder
 
 					predicate = builder.Convert(parent, predicate);
 
-					join.JoinedTable.Condition.Conditions.Add(new Condition(false, predicate));
+					join.JoinedTable.Condition.Conditions.AddLast(new Condition(false, predicate));
 				}
 
 				Init();
 			}
 
-			protected override List<ICondition> GetDescriminatorConditionsStorage()
+			protected override LinkedList<ICondition> GetDescriminatorConditionsStorage()
 			{
 				return ParentAssociationJoin.Condition.Conditions;
 			}

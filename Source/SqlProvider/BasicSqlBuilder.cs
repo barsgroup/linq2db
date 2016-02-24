@@ -475,7 +475,9 @@ namespace LinqToDB.SqlProvider
 		protected void BuildInsertOrUpdateQueryAsMerge(string fromDummyTable)
 		{
 			var table       = SelectQuery.Insert.Into;
-			var targetAlias = Convert(SelectQuery.From.Tables.First.Value.Alias, ConvertType.NameToQueryTableAlias).ToString();
+		    var tableSource = SelectQuery.From.Tables.First.Value;
+
+		    var targetAlias = Convert(tableSource.Alias, ConvertType.NameToQueryTableAlias).ToString();
 			var sourceAlias = Convert(GetTempAliases(1, "s")[0],        ConvertType.NameToQueryTableAlias).ToString();
 			var keys        = SelectQuery.Update.Keys;
 
@@ -553,7 +555,8 @@ namespace LinqToDB.SqlProvider
 
 			AppendIndent().AppendLine("WHERE");
 
-			var alias = Convert(SelectQuery.From.Tables.First.Value.Alias, ConvertType.NameToQueryTableAlias).ToString();
+		    var tableSource = SelectQuery.From.Tables.First.Value;
+		    var alias = Convert(tableSource.Alias, ConvertType.NameToQueryTableAlias).ToString();
 			var exprs = SelectQuery.Update.Keys;
 
 			Indent++;
@@ -1062,7 +1065,7 @@ namespace LinqToDB.SqlProvider
 
 		protected virtual bool BuildWhere()
 		{
-			return SelectQuery.Where.SearchCondition.Conditions.Count != 0;
+			return SelectQuery.Where.Search.Conditions.Count != 0;
 		}
 
 		protected virtual void BuildWhereClause()
@@ -1076,7 +1079,7 @@ namespace LinqToDB.SqlProvider
 
 			Indent++;
 			AppendIndent();
-			BuildWhereSearchCondition(SelectQuery.Where.SearchCondition);
+			BuildWhereSearchCondition(SelectQuery.Where.Search);
 			Indent--;
 
 			StringBuilder.AppendLine();
@@ -1123,7 +1126,7 @@ namespace LinqToDB.SqlProvider
 
 		protected virtual void BuildHavingClause()
 		{
-			if (SelectQuery.Having.SearchCondition.Conditions.Count == 0)
+			if (SelectQuery.Having.Search.Conditions.Count == 0)
 				return;
 
 			AppendIndent();
@@ -1132,7 +1135,7 @@ namespace LinqToDB.SqlProvider
 
 			Indent++;
 			AppendIndent();
-			BuildWhereSearchCondition(SelectQuery.Having.SearchCondition);
+			BuildWhereSearchCondition(SelectQuery.Having.Search);
 			Indent--;
 
 			StringBuilder.AppendLine();
@@ -1266,7 +1269,7 @@ namespace LinqToDB.SqlProvider
 				{
 					StringBuilder.Append(isOr.Value ? " OR" : " AND");
 
-					if (condition.Conditions.Count < 4 && StringBuilder.Length - len < 50 || condition != SelectQuery.Where.SearchCondition)
+					if (condition.Conditions.Count < 4 && StringBuilder.Length - len < 50 || condition != SelectQuery.Where.Search)
 					{
 						StringBuilder.Append(' ');
 					}

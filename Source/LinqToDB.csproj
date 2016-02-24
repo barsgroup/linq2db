@@ -75,6 +75,7 @@
     <Compile Include="Common\LinqToDBConvertException.cs" />
     <Compile Include="Expressions\ExpressionEqualityComparer.cs" />
     <Compile Include="Extensions\LinkedListExtentions.cs" />
+    <Compile Include="Extensions\TypeSwitch.cs" />
     <Compile Include="KeepConnectionAliveScope.cs" />
     <Compile Include="DataProvider\Access\AccessTools.cs" />
     <Compile Include="DataProvider\Access\AccessSqlOptimizer.cs" />
@@ -406,6 +407,7 @@
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IConditionBase.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IConditionExpr.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IExpr.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IHaveSearchCondition.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IJoin.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\INot.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IOperator.cs" />
@@ -467,6 +469,7 @@
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlDataType.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlField.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlFunction.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlParameter.cs" />
     <Compile Include="SqlQuery\QueryElements\TableSource.cs" />
     <Compile Include="SqlQuery\QueryElements\Union.cs" />
     <Compile Include="SqlQuery\SelectQueryOptimizer.cs" />

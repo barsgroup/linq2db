@@ -173,32 +173,39 @@ namespace LinqToDB.DataProvider.PostgreSQL
 			base.SetParameter(parameter, name, dataType, value);
 		}
 
-		protected override void SetParameterType(IDbDataParameter parameter, DataType dataType)
-		{
-			switch (dataType)
-			{
-				case DataType.SByte      : parameter.DbType = DbType.Int16;            break;
-				case DataType.UInt16     : parameter.DbType = DbType.Int32;            break;
-				case DataType.UInt32     : parameter.DbType = DbType.Int64;            break;
-				case DataType.UInt64     : parameter.DbType = DbType.Decimal;          break;
-				case DataType.DateTime2  : parameter.DbType = DbType.DateTime;         break;
-				case DataType.VarNumeric : parameter.DbType = DbType.Decimal;          break;
-				case DataType.Decimal    :
-				case DataType.Money      : break;
-				case DataType.Image      :
-				case DataType.Binary     :
-				case DataType.VarBinary  : _setVarBinary(parameter);                   break;
-				case DataType.Boolean    : _setBoolean  (parameter);                   break;
-				case DataType.Xml        : _setXml      (parameter);                   break;
-				case DataType.Text       :
-				case DataType.NText      : _setText     (parameter);                   break;
-				default                  : base.SetParameterType(parameter, dataType); break;
-			}
-		}
+        protected override void SetParameterType(IDbDataParameter parameter, DataType dataType)
+        {
+            switch (dataType)
+            {
+                case DataType.SByte: parameter.DbType = DbType.Int16; break;
+                case DataType.UInt16: parameter.DbType = DbType.Int32; break;
+                case DataType.UInt32: parameter.DbType = DbType.Int64; break;
+                case DataType.UInt64: parameter.DbType = DbType.Decimal; break;
+                case DataType.DateTime2: parameter.DbType = DbType.DateTime; break;
+                case DataType.VarNumeric: parameter.DbType = DbType.Decimal; break;
+                case DataType.Decimal:
+                case DataType.Money: break;
+                case DataType.Image:
+                case DataType.Binary:
+                case DataType.VarBinary: _setVarBinary(parameter); break;
+                case DataType.Boolean: _setBoolean(parameter); break;
+                case DataType.Xml: _setXml(parameter); break;
+                case DataType.Text:
+                case DataType.NText: _setText(parameter); break;
+                default: base.SetParameterType(parameter, dataType); break;
+            }
+        }
 
-		#region BulkCopy
+        //public override void InitCommand(DataConnection dataConnection, CommandType commandType, string commandText, DataParameter[] parameters)
+        //{
+        //    EnsureConnection();
 
-		public override BulkCopyRowsCopied BulkCopy<T>(
+        //    base.InitCommand(dataConnection, commandType, commandText, parameters);
+        //}
+
+        #region BulkCopy
+
+        public override BulkCopyRowsCopied BulkCopy<T>(
 			[Properties.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
 			return new PostgreSQLBulkCopy().BulkCopy(

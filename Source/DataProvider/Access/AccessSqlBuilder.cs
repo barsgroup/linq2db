@@ -62,7 +62,7 @@ namespace LinqToDB.DataProvider.Access
                         {
                             if (searchCondition.Conditions.Count == 1)
                             {
-                                var like = searchCondition.Conditions[0].Predicate as IFuncLike;
+                                var like = searchCondition.Conditions.First.Value.Predicate as IFuncLike;
                                 if (like != null && like.Function.Name == "EXISTS")
                                 {
                                     BuildAnyAsCount();
@@ -79,7 +79,7 @@ namespace LinqToDB.DataProvider.Access
 
                     if (searchCondition?.Conditions.Count == 1)
                     {
-                        var like = searchCondition.Conditions[0].Predicate as IFuncLike;
+                        var like = searchCondition.Conditions.First.Value.Predicate as IFuncLike;
                         if (like != null)
 			            {
                             if (like.Function.Name == "EXISTS")
@@ -111,10 +111,10 @@ namespace LinqToDB.DataProvider.Access
 				cond  = (ISearchCondition)SelectQuery.Select.Columns[0].Expression;
 			}
 
-			var exist = ((IFuncLike)cond.Conditions[0].Predicate).Function;
+			var exist = ((IFuncLike)cond.Conditions.First.Value.Predicate).Function;
 			var query = (ISelectQuery)exist.Parameters[0];
 
-			_selectColumn = new Column(SelectQuery, new SqlExpression(cond.Conditions[0].IsNot ? "Count(*) = 0" : "Count(*) > 0"), SelectQuery.Select.Columns[0].Alias);
+			_selectColumn = new Column(SelectQuery, new SqlExpression(cond.Conditions.First.Value.IsNot ? "Count(*) = 0" : "Count(*) > 0"), SelectQuery.Select.Columns[0].Alias);
 
 			BuildSql(0, query, StringBuilder);
 
@@ -277,7 +277,7 @@ namespace LinqToDB.DataProvider.Access
 
 					var sc = new SearchCondition();
 
-					sc.Conditions.Add(new Condition(false, new IsNull(func.Parameters[0], false)));
+					sc.Conditions.AddLast(new Condition(false, new IsNull(func.Parameters[0], false)));
 
 					func = new SqlFunction(func.SystemType, "Iif", sc, func.Parameters[1], func.Parameters[0]);
 

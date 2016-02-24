@@ -5,6 +5,8 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.Informix
 {
+    using System;
+
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
     using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;

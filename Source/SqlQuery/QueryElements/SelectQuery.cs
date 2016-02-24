@@ -346,10 +346,10 @@
 										new Condition(false, new IsNull  (field, false)) :
 										new Condition(false, new ExprExpr(field, EOperator.Equal, cd.MappingSchema.GetSqlValue(value)));
 
-									itemCond.Conditions.Add(cond);
+									itemCond.Conditions.AddLast(cond);
 								}
 
-								sc.Conditions.Add(new Condition(false, new Expr(itemCond), true));
+								sc.Conditions.AddLast(new Condition(false, new Expr(itemCond), true));
 							}
 
 							if (sc.Conditions.Count == 0)
@@ -401,10 +401,10 @@
 				                                    new Condition(false, new IsNull  (sql, false)) :
 				                                    new Condition(false, new ExprExpr(sql, EOperator.Equal, new SqlValue(value)));
 
-				                    itemCond.Conditions.Add(cond);
+				                    itemCond.Conditions.AddLast(cond);
 				                }
 
-				                sc.Conditions.Add(new Condition(false, new Expr(itemCond), true));
+				                sc.Conditions.AddLast(new Condition(false, new Expr(itemCond), true));
 				            }
 
 				            if (sc.Conditions.Count == 0)
@@ -506,24 +506,40 @@
 
 			if (string.IsNullOrEmpty(desiredAlias) || desiredAlias.Length > 25)
 			{
-				desiredAlias = defaultAlias;
 				alias        = defaultAlias + "1";
 			}
 
-			for (var i = 1; ; i++)
-			{
-				var s = alias.ToUpper();
 
-				if (!_aliases.ContainsKey(s) && !_reservedWords.ContainsKey(s))
-				{
-					_aliases.Add(s, s);
-					break;
-				}
+		    string strDigit = string.Empty;
 
-				alias = desiredAlias + i;
-			}
+            var index = alias.Length - 1;
+		    while (char.IsDigit(alias[index]))
+		    {
+		        strDigit = alias[index] + strDigit;
+		        index--;
+		    }
 
-			return alias;
+
+		    int digit = !string.IsNullOrEmpty(strDigit)
+		                    ? int.Parse(strDigit)
+		                    : 1;
+
+            var textAlias = alias.Substring(0, index + 1);
+
+            for (var i = 1;; i++)
+		    {
+		        var s = alias.ToUpper();
+
+		        if (!_aliases.ContainsKey(s) && !_reservedWords.ContainsKey(s))
+		        {
+		            _aliases.Add(s, s);
+		            break;
+		        }
+
+		        alias = string.Concat(textAlias, ++digit);
+		    }
+
+		    return alias;
 		}
 
 		public string[] GetTempAliases(int n, string defaultAlias)

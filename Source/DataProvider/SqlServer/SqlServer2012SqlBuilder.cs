@@ -77,7 +77,7 @@ namespace LinqToDB.DataProvider.SqlServer
 
 					var sc = new SearchCondition();
 
-					sc.Conditions.Add(new Condition(false, new IsNull(func.Parameters[0], false)));
+					sc.Conditions.AddLast(new Condition(false, new IsNull(func.Parameters[0], false)));
 
 					func = new SqlFunction(func.SystemType, "IIF", sc, func.Parameters[1], func.Parameters[0]);
 

@@ -8,14 +8,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public interface IWhereClause : IClauseBase, ISqlExpressionWalkable, IConditionBase<IWhereClause, WhereClause.Next>
     {
-        ISearchCondition SearchCondition { get; }
-
-        bool IsEmpty { get; }
     }
 
     public class WhereClause : ClauseBase<IWhereClause, WhereClause.Next>,
@@ -41,7 +37,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         internal WhereClause(ISelectQuery selectQuery) : base(selectQuery)
         {
-            SearchCondition = new SearchCondition();
+            Search = new SearchCondition();
         }
 
         internal WhereClause(
@@ -51,30 +47,26 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
-            SearchCondition = (ISearchCondition)clone.SearchCondition.Clone(objectTree, doClone);
+            Search = (ISearchCondition)clone.Search.Clone(objectTree, doClone);
         }
 
         internal WhereClause(ISearchCondition searchCondition) : base(null)
         {
-            SearchCondition = searchCondition;
+            Search = searchCondition;
         }
-
-        public ISearchCondition SearchCondition { get; private set; }
-
-        public bool IsEmpty => SearchCondition.Conditions.Count == 0;
-
-        public override ISearchCondition Search => SearchCondition;
 
         public override Next GetNext()
         {
             return new Next(this);
         }
 
+        public override ISearchCondition Search { get; protected set; }
+
         #region ISqlExpressionWalkable Members
 
         IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> action)
         {
-            SearchCondition = (ISearchCondition)SearchCondition.Walk(skipColumns, action);
+            Search = (ISearchCondition)Search.Walk(skipColumns, action);
             return null;
         }
 
@@ -84,7 +76,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public override void GetChildren(LinkedList<IQueryElement> list)
         {
-            list.AddLast(SearchCondition);
+            list.AddLast(Search);
         }
 
         public override EQueryElementType ElementType => EQueryElementType.WhereClause;

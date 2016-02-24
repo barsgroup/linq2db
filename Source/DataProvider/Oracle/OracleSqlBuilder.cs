@@ -3,7 +3,9 @@ using System.Linq;
 
 namespace LinqToDB.DataProvider.Oracle
 {
-	using Common;
+    using System;
+
+    using Common;
 
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;

@@ -4,6 +4,7 @@ namespace LinqToDB.Linq
 {
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public interface IQueryContext
 	{

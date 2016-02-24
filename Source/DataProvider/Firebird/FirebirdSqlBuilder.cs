@@ -8,7 +8,9 @@ using System.Linq;
 
 namespace LinqToDB.DataProvider.Firebird
 {
-	using Common;
+    using System;
+
+    using Common;
 
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
 	using LinqToDB.SqlQuery.QueryElements.Enums;

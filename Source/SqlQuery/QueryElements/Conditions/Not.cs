@@ -23,7 +23,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         public T2 Exists(ISelectQuery subQuery)
         {
-            _condition.Search.Conditions.Add(new Condition(true, new FuncLike(SqlFunction.CreateExists(subQuery))));
+            _condition.Search.Conditions.AddLast(new Condition(true, new FuncLike(SqlFunction.CreateExists(subQuery))));
             return _condition.GetNext();
         }
     }

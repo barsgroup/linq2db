@@ -10,6 +10,7 @@ namespace LinqToDB.DataProvider
 	using Data;
 	using Linq;
 
+	using LinqToDB.Extensions;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -207,7 +208,7 @@ namespace LinqToDB.DataProvider
 									tempCopy.Select.Columns.Clear();
 									tempCopy.Select.Add(((SqlTable)tt.Source).Fields[fld.Name]);
 
-									tempCopy.Where.SearchCondition.Conditions.Clear();
+									tempCopy.Where.Search.Conditions.Clear();
 
 									var keys = tempCopy.From.Tables.First.Value.Source.GetKeys(true);
 
@@ -221,10 +222,10 @@ namespace LinqToDB.DataProvider
 							}
 
 							return e;
-						}).SearchCondition.Conditions.ToList();
+						}).Search.Conditions.ToList();
 
-						sql.Where.SearchCondition.Conditions.Clear();
-						sql.Where.SearchCondition.Conditions.AddRange(whereClause);
+						sql.Where.Search.Conditions.Clear();
+						sql.Where.Search.Conditions.AddRange(whereClause);
 
 						sql.From.Tables.First.Value.Alias = "Target";
 

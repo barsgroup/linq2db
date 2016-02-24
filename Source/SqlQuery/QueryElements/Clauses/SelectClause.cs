@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Linq;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;

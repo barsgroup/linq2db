@@ -1,7 +1,8 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
+namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 {
     using System.Collections.Generic;
 
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public interface ISelectClause : IClauseWithConditionBase, ISqlExpressionWalkable

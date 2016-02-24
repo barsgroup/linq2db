@@ -4,9 +4,10 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.PostgreSQL
 {
-	using Common;
+    using Common;
 
-	using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.Extensions;
+    using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
 	using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
@@ -28,162 +29,184 @@ namespace LinqToDB.DataProvider.PostgreSQL
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}
 
-		protected override void BuildCommand(int commandNumber)
-		{
-			var into = SelectQuery.Insert.Into;
-			var attr = GetSequenceNameAttribute(into, false);
-			var name =
-				attr != null ?
-					attr.SequenceName :
-					Convert(
-						string.Format("{0}_{1}_seq", into.PhysicalName, into.GetIdentityField().PhysicalName),
-						ConvertType.NameToQueryField);
+	    protected override void BuildCommand(int commandNumber)
+	    {
+	        var into = SelectQuery.Insert.Into;
+	        var attr = GetSequenceNameAttribute(into, false);
+	        var name = attr != null
+	                       ? attr.SequenceName
+	                       : Convert(string.Format("{0}_{1}_seq", @into.PhysicalName, @into.GetIdentityField().PhysicalName), ConvertType.NameToQueryField);
 
-			name = Convert(name, ConvertType.NameToQueryTable);
+	        name = Convert(name, ConvertType.NameToQueryTable);
 
-			var database = GetTableDatabaseName(into);
-			var owner    = GetTableOwnerName   (into);
+	        var database = GetTableDatabaseName(into);
+	        var owner = GetTableOwnerName(into);
 
-			AppendIndent()
-				.Append("SELECT currval('");
+	        AppendIndent().Append("SELECT currval('");
 
-			BuildTableName(StringBuilder, database, owner, name.ToString());
+	        BuildTableName(StringBuilder, database, owner, name.ToString());
 
-			StringBuilder.AppendLine("')");
-		}
+	        StringBuilder.AppendLine("')");
+	    }
 
-		protected override ISqlBuilder CreateSqlBuilder()
-		{
-			return new PostgreSQLSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
-		}
+	    protected override ISqlBuilder CreateSqlBuilder()
+	    {
+	        return new PostgreSQLSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
+	    }
 
-		protected override string LimitFormat => "LIMIT {0}";
+	    protected override string LimitFormat => "LIMIT {0}";
 
 	    protected override string OffsetFormat => "OFFSET {0} ";
 
 	    protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
-		{
-			switch (type.DataType)
-			{
-				case DataType.SByte         :
-				case DataType.Byte          : StringBuilder.Append("SmallInt");      break;
-				case DataType.Money         : StringBuilder.Append("Decimal(19,4)"); break;
-				case DataType.SmallMoney    : StringBuilder.Append("Decimal(10,4)"); break;
-				case DataType.DateTime2     :
-				case DataType.SmallDateTime :
-				case DataType.DateTime      : StringBuilder.Append("TimeStamp");     break;
-				case DataType.Boolean       : StringBuilder.Append("Boolean");       break;
-                case DataType.Binary        :
-                case DataType.VarBinary     :
-                case DataType.Blob          :
-                case DataType.Image         : StringBuilder.Append("Bytea");         break;
-				case DataType.NVarChar      :
-					StringBuilder.Append("VarChar");
-					if (type.Length > 0)
-						StringBuilder.Append('(').Append(type.Length).Append(')');
-					break;
-				case DataType.Undefined      :
-					if (type.Type == typeof(string))
-						goto case DataType.NVarChar;
-					break;
-				default                      : base.BuildDataType(type); break;
-			}
-		}
+	    {
+	        switch (type.DataType)
+	        {
+	            case DataType.SByte:
+	            case DataType.Byte:
+	                StringBuilder.Append("SmallInt");
+	                break;
+	            case DataType.Money:
+	                StringBuilder.Append("Decimal(19,4)");
+	                break;
+	            case DataType.SmallMoney:
+	                StringBuilder.Append("Decimal(10,4)");
+	                break;
+	            case DataType.DateTime2:
+	            case DataType.SmallDateTime:
+	            case DataType.DateTime:
+	                StringBuilder.Append("TimeStamp");
+	                break;
+	            case DataType.Boolean:
+	                StringBuilder.Append("Boolean");
+	                break;
+	            case DataType.Binary:
+	            case DataType.VarBinary:
+	            case DataType.Blob:
+	            case DataType.Image:
+	                StringBuilder.Append("Bytea");
+	                break;
+	            case DataType.NVarChar:
+	                StringBuilder.Append("VarChar");
+	                if (type.Length > 0)
+	                {
+	                    StringBuilder.Append('(').Append(type.Length).Append(')');
+	                }
+	                break;
+	            case DataType.Undefined:
+	                if (type.Type == typeof(string))
+	                {
+	                    goto case DataType.NVarChar;
+	                }
+	                break;
+	            default:
+	                base.BuildDataType(type);
+	                break;
+	        }
+	    }
 
-		protected override void BuildFromClause()
-		{
-			if (!SelectQuery.IsUpdate)
-				base.BuildFromClause();
-		}
+	    protected override void BuildFromClause()
+	    {
+	        if (!SelectQuery.IsUpdate)
+	        {
+	            base.BuildFromClause();
+	        }
+	    }
 
-		public static PostgreSQLIdentifierQuoteMode IdentifierQuoteMode = PostgreSQLIdentifierQuoteMode.Auto;
+	    public static PostgreSQLIdentifierQuoteMode IdentifierQuoteMode = PostgreSQLIdentifierQuoteMode.Auto;
 
-		public override object Convert(object value, ConvertType convertType)
-		{
-			switch (convertType)
-			{
-				case ConvertType.NameToQueryField:
-				case ConvertType.NameToQueryFieldAlias:
-				case ConvertType.NameToQueryTable:
-				case ConvertType.NameToQueryTableAlias:
-				case ConvertType.NameToDatabase:
-				case ConvertType.NameToOwner:
-					if (value != null && IdentifierQuoteMode != PostgreSQLIdentifierQuoteMode.None)
-					{
-						var name = value.ToString();
+	    public override object Convert(object value, ConvertType convertType)
+	    {
+	        switch (convertType)
+	        {
+	            case ConvertType.NameToQueryField:
+	            case ConvertType.NameToQueryFieldAlias:
+	            case ConvertType.NameToQueryTable:
+	            case ConvertType.NameToQueryTableAlias:
+	            case ConvertType.NameToDatabase:
+	            case ConvertType.NameToOwner:
+	                if (value != null && IdentifierQuoteMode != PostgreSQLIdentifierQuoteMode.None)
+	                {
+	                    var name = value.ToString();
 
-						if (name.Length > 0 && name[0] == '"')
-							return name;
+	                    if (name.Length > 0 && name[0] == '"')
+	                    {
+	                        return name;
+	                    }
 
-						if (IdentifierQuoteMode == PostgreSQLIdentifierQuoteMode.Quote ||
-							name
+	                    if (IdentifierQuoteMode == PostgreSQLIdentifierQuoteMode.Quote || name
 #if NETFX_CORE
 								.ToCharArray()
 #endif
-								.Any(c => char.IsUpper(c) || char.IsWhiteSpace(c)))
-							return '"' + name + '"';
-					}
+	                                                                                          .Any(c => char.IsUpper(c) || char.IsWhiteSpace(c)))
+	                    {
+	                        return '"' + name + '"';
+	                    }
+	                }
 
-					break;
+	                break;
 
-				case ConvertType.NameToQueryParameter:
-				case ConvertType.NameToCommandParameter:
-				case ConvertType.NameToSprocParameter:
-					return ":" + value;
+	            case ConvertType.NameToQueryParameter:
+	            case ConvertType.NameToCommandParameter:
+	            case ConvertType.NameToSprocParameter:
+	                return ":" + value;
 
-				case ConvertType.SprocParameterToName:
-					if (value != null)
-					{
-						var str = value.ToString();
-						return str.Length > 0 && str[0] == ':'? str.Substring(1): str;
-					}
 
-					break;
-			}
+	            case ConvertType.SprocParameterToName:
+	                if (value != null)
+	                {
+	                    var str = value.ToString();
+	                    return str.Length > 0 && str[0] == ':'
+	                               ? str.Substring(1)
+	                               : str;
+	                }
 
-			return value;
-		}
+	                break;
+	        }
 
-		public override IQueryExpression GetIdentityExpression(ISqlTable table)
-		{
-			if (!table.SequenceAttributes.IsNullOrEmpty())
-			{
-				var attr = GetSequenceNameAttribute(table, false);
+	        return value;
+	    }
 
-				if (attr != null)
-				{
-					var name     = Convert(attr.SequenceName, ConvertType.NameToQueryTable).ToString();
-					var database = GetTableDatabaseName(table);
-					var owner    = GetTableOwnerName   (table);
+	    public override IQueryExpression GetIdentityExpression(ISqlTable table)
+	    {
+	        if (!table.SequenceAttributes.IsNullOrEmpty())
+	        {
+	            var attr = GetSequenceNameAttribute(table, false);
 
-					var sb = BuildTableName(new StringBuilder(), database, owner, name);
+	            if (attr != null)
+	            {
+	                var name = Convert(attr.SequenceName, ConvertType.NameToQueryTable).ToString();
+	                var database = GetTableDatabaseName(table);
+	                var owner = GetTableOwnerName(table);
 
-					return new SqlExpression("nextval('" + sb + "')", Precedence.Primary);
-				}
-			}
+	                var sb = BuildTableName(new StringBuilder(), database, owner, name);
 
-			return base.GetIdentityExpression(table);
-		}
+	                return new SqlExpression("nextval('" + sb + "')", Precedence.Primary);
+	            }
+	        }
 
-		protected override void BuildCreateTableFieldType(ISqlField field)
-		{
-			if (field.IsIdentity)
-			{
-				if (field.DataType == DataType.Int32)
-				{
-					StringBuilder.Append("SERIAL");
-					return;
-				}
+	        return base.GetIdentityExpression(table);
+	    }
 
-				if (field.DataType == DataType.Int64)
-				{
-					StringBuilder.Append("BIGSERIAL");
-					return;
-				}
-			}
+	    protected override void BuildCreateTableFieldType(ISqlField field)
+	    {
+	        if (field.IsIdentity)
+	        {
+	            if (field.DataType == DataType.Int32)
+	            {
+	                StringBuilder.Append("SERIAL");
+	                return;
+	            }
 
-			base.BuildCreateTableFieldType(field);
-		}
+	            if (field.DataType == DataType.Int64)
+	            {
+	                StringBuilder.Append("BIGSERIAL");
+	                return;
+	            }
+	        }
+
+	        base.BuildCreateTableFieldType(field);
+	    }
 
 	    protected override void BuildLikePredicate(ILike predicate)
 	    {
@@ -199,67 +222,74 @@ namespace LinqToDB.DataProvider.PostgreSQL
 	        }
 
 	        if (sqlField != null && sqlField.ColumnDescriptor.IsHierarchical)
-            {
-                var expr2 = predicate.Expr2;
+	        {
+	            var expr2 = predicate.Expr2;
 
-                var sqlValue = expr2 as ISqlValue;
-                if (sqlValue != null)
-                {
-                    var str = (string) sqlValue.Value;
-                    var vStart = str[0] == '%' ? "%" : string.Empty;
-                    var vEnd = str[str.Length - 1] == '%' ? "%" : string.Empty;
-                    str = str.Substring(vStart.Length, str.Length - vStart.Length - vEnd.Length);
+	            var sqlValue = expr2 as ISqlValue;
+	            if (sqlValue != null)
+	            {
+	                var str = (string)sqlValue.Value;
+	                var vStart = str[0] == '%'
+	                                 ? "%"
+	                                 : string.Empty;
+	                var vEnd = str[str.Length - 1] == '%'
+	                               ? "%"
+	                               : string.Empty;
+	                str = str.Substring(vStart.Length, str.Length - vStart.Length - vEnd.Length);
 
-                    var vNewPredicate = new HierarhicalLike(expr1,
-                        new SqlValue(str), vStart, vEnd);
+	                var vNewPredicate = new HierarhicalLike(expr1, new SqlValue(str), vStart, vEnd);
 
-                    base.BuildLikePredicate(vNewPredicate);
-                    return;
-                }
+	                base.BuildLikePredicate(vNewPredicate);
+	                return;
+	            }
 
-                var sqlParameter = expr2 as ISqlParameter;
-                if (sqlParameter != null)
-                {
+	            var sqlParameter = expr2 as ISqlParameter;
+	            if (sqlParameter != null)
+	            {
                     var pStart = sqlParameter.LikeStart;
-                    var pEnd = sqlParameter.LikeEnd;
-                    sqlParameter.LikeStart = string.Empty;
-                    sqlParameter.LikeEnd = string.Empty;
+	                var pEnd = sqlParameter.LikeEnd;
+	                sqlParameter.LikeStart = string.Empty;
+	                sqlParameter.LikeEnd = string.Empty;
 
-                    var pNewPredicate = new HierarhicalLike(expr1, sqlParameter, pStart, pEnd);
-                    base.BuildLikePredicate(pNewPredicate);
-                    return;
-                }
+	                var pNewPredicate = new HierarhicalLike(expr1, sqlParameter, pStart, pEnd);
+	                base.BuildLikePredicate(pNewPredicate);
+	                return;
+	            }
 
-                IQueryExpression value = null;
-                var hasLikeStart = false;
-                var hasLikeEnd = false;
-                var fun = predicate.Expr2 as ISqlFunction;
-                if (fun != null)
-                {
-                    value = GetSqlExpressionFromFunction(fun);
-                }
-                else
-                {
-                    var sqlBinary = predicate.Expr2 as ISqlBinaryExpression;
-                    if (sqlBinary != null)
-                    {
-                        var function = GetFunctionFromBinary(sqlBinary, out hasLikeStart, out hasLikeEnd);
-                        if (function != null)
-                        {
-                            value = GetSqlExpressionFromFunction(function);                            
-                        }
-                    }
-                }
+	            IQueryExpression value = null;
+	            var hasLikeStart = false;
+	            var hasLikeEnd = false;
+	            var fun = predicate.Expr2 as ISqlFunction;
+	            if (fun != null)
+	            {
+	                value = GetSqlExpressionFromFunction(fun);
+	            }
+	            else
+	            {
+	                var sqlBinary = predicate.Expr2 as ISqlBinaryExpression;
+	                if (sqlBinary != null)
+	                {
+	                    var function = GetFunctionFromBinary(sqlBinary, out hasLikeStart, out hasLikeEnd);
+	                    if (function != null)
+	                    {
+	                        value = GetSqlExpressionFromFunction(function);
+	                    }
+	                }
+	            }
 
-                if (value != null)
-                {
-                    var ePredicate = new HierarhicalLike(expr1, value, hasLikeStart ? "%" : string.Empty, hasLikeEnd ? "%" : string.Empty);
-                    base.BuildLikePredicate(ePredicate);
-                    return;
-                }
-            }
-            
-            base.BuildLikePredicate(predicate);                
+	            if (value != null)
+	            {
+	                var ePredicate = new HierarhicalLike(expr1, value, hasLikeStart
+	                                                                       ? "%"
+	                                                                       : string.Empty, hasLikeEnd
+	                                                                                           ? "%"
+	                                                                                           : string.Empty);
+	                base.BuildLikePredicate(ePredicate);
+	                return;
+	            }
+	        }
+
+	        base.BuildLikePredicate(predicate);
 	    }
 
 	    private ISqlFunction GetFunctionFromBinary(ISqlBinaryExpression sqlBinary, out bool hasLikeStart, out bool hasLikeEnd)
@@ -267,23 +297,23 @@ namespace LinqToDB.DataProvider.PostgreSQL
 	        hasLikeStart = false;
 	        hasLikeEnd = false;
 	        ISqlFunction function = null;
-	        var list = new [] { sqlBinary.Expr1, sqlBinary.Expr2};
+	        var list = new[] { sqlBinary.Expr1, sqlBinary.Expr2 };
 	        foreach (var expression in list)
 	        {
 	            var fun = expression as ISqlFunction;
 	            if (fun != null)
 	            {
-                    function = fun;
+	                function = fun;
 	            }
 
 	            var binary = expression as ISqlBinaryExpression;
 	            if (binary != null)
 	            {
-                    function = GetFunctionFromBinary(binary, out hasLikeStart, out hasLikeEnd);
+	                function = GetFunctionFromBinary(binary, out hasLikeStart, out hasLikeEnd);
 	            }
 
 	            var sqlValue = expression as ISqlValue;
-                if (sqlValue != null)
+	            if (sqlValue != null)
 	            {
 	                if (sqlBinary.Expr1 == expression)
 	                {
@@ -306,20 +336,20 @@ namespace LinqToDB.DataProvider.PostgreSQL
 	            var fun = parameter as ISqlFunction;
 	            if (fun != null)
 	            {
-                    return GetSqlExpressionFromFunction(fun);
+	                return GetSqlExpressionFromFunction(fun);
 	            }
 
 	            var field = parameter as ISqlField;
-                if (field != null)
-                {
-                    return field;
-                }
+	            if (field != null)
+	            {
+	                return field;
+	            }
 
-                var column = parameter as IColumn;
-                if (column != null)
-                {
-                    return column;
-                }
+	            var column = parameter as IColumn;
+	            if (column != null)
+	            {
+	                return column;
+	            }
 	        }
 
 	        return null;
@@ -327,11 +357,11 @@ namespace LinqToDB.DataProvider.PostgreSQL
 
 #if !SILVERLIGHT
 
-		protected override string GetProviderTypeName(IDbDataParameter parameter)
-		{
-			dynamic p = parameter;
-			return p.NpgsqlDbType.ToString();
-		}
+	    protected override string GetProviderTypeName(IDbDataParameter parameter)
+	    {
+	        dynamic p = parameter;
+	        return p.NpgsqlDbType.ToString();
+	    }
 
 #endif
 	}

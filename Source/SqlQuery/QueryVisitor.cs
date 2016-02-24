@@ -113,7 +113,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.NotExprPredicate  : return Find(((INotExpr) element).Expr1,           find);
 				case EQueryElementType.IsNullPredicate   : return Find(((IIsNull)  element).Expr1,           find);
 				case EQueryElementType.FromClause        : return Find(((IFromClause)        element).Tables,          find);
-				case EQueryElementType.WhereClause       : return Find(((IWhereClause)       element).SearchCondition, find);
+				case EQueryElementType.WhereClause       : return Find(((IWhereClause)       element).Search, find);
 				case EQueryElementType.GroupByClause     : return Find(((GroupByClause)     element).Items,           find);
 				case EQueryElementType.OrderByClause     : return Find(((IOrderByClause)     element).Items,           find);
 				case EQueryElementType.OrderByItem       : return Find(((IOrderByItem)       element).Expression,      find);
@@ -647,14 +647,14 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.WhereClause:
 					{
 						var wc   = (IWhereClause)element;
-						var cond = (ISearchCondition)ConvertInternal(wc.SearchCondition, action);
+						var cond = (ISearchCondition)ConvertInternal(wc.Search, action);
 
 						IQueryElement parent;
 						_visitedElements.TryGetValue(wc.SelectQuery, out parent);
 
-						if (parent != null || cond != null && !ReferenceEquals(wc.SearchCondition, cond))
+						if (parent != null || cond != null && !ReferenceEquals(wc.Search, cond))
 						{
-							newElement = new WhereClause(cond ?? wc.SearchCondition);
+							newElement = new WhereClause(cond ?? wc.Search);
 							((IWhereClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 

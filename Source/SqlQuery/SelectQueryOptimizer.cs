@@ -30,9 +30,10 @@
 
         public void FinalizeAndValidate(bool isApplySupported, bool optimizeColumns)
         {
-
             OptimizeUnions();
+
             FinalizeAndValidateInternal(isApplySupported, optimizeColumns, new List<ISqlTableSource>());
+
             ResolveFields();
             _selectQuery.SetAliases();
 
@@ -62,7 +63,7 @@
             //
             if (searchCondition.Conditions.Count == 1)
             {
-                var cond = searchCondition.Conditions[0];
+                var cond = searchCondition.Conditions.First.Value;
 
                 var condition = cond.Predicate as ISearchCondition;
                 if (condition != null)
@@ -78,7 +79,7 @@
 
                     if (condition.Conditions.Count == 1)
                     {
-                        var c1 = condition.Conditions[0];
+                        var c1 = condition.Conditions.First.Value;
 
                         var predicate = c1.Predicate as IExprExpr;
                         if (!c1.IsNot && predicate != null)
@@ -140,41 +141,45 @@
                 }
             }
 
-            for (var i = 0; i < searchCondition.Conditions.Count; i++)
-            {
-                var cond = searchCondition.Conditions[i];
-
-                if (cond.Predicate.ElementType == EQueryElementType.ExprPredicate)
+            searchCondition.Conditions.FindOnce(
+                node =>
                 {
-                    var expr = (IExpr)cond.Predicate;
+                    var cond = node.Value;
 
-                    var sqlValue = expr.Expr1 as ISqlValue;
-
-                    if (sqlValue?.Value is bool)
+                    if (cond.Predicate.ElementType == EQueryElementType.ExprPredicate)
                     {
-                        if (cond.IsNot
-                                ? !(bool)sqlValue.Value
-                                : (bool)sqlValue.Value)
-                        {
-                            if (i > 0 && searchCondition.Conditions[i - 1].IsOr)
-                            {
-                                searchCondition.Conditions.RemoveRange(0, i);
-                                OptimizeSearchCondition(searchCondition);
+                        var expr = (IExpr)cond.Predicate;
 
-                                break;
+                        var sqlValue = expr.Expr1 as ISqlValue;
+
+                        if (sqlValue?.Value is bool)
+                        {
+                            if (cond.IsNot
+                                    ? !(bool)sqlValue.Value
+                                    : (bool)sqlValue.Value)
+                            {
+                                if (node.Previous != null && node.Previous.Value.IsOr)
+                                {
+                                    node.ReverseEach(listNode => searchCondition.Conditions.Remove(listNode));
+
+                                    OptimizeSearchCondition(searchCondition);
+
+                                    return false;
+                                }
                             }
                         }
                     }
-                }
-                else
-                {
-                    var condition = cond.Predicate as ISearchCondition;
-                    if (condition != null)
+                    else
                     {
-                        OptimizeSearchCondition(condition);
+                        var condition = cond.Predicate as ISearchCondition;
+                        if (condition != null)
+                        {
+                            OptimizeSearchCondition(condition);
+                        }
                     }
-                }
-            }
+
+                    return true;
+                });
         }
 
         internal void ResolveWeakJoins(List<ISqlTableSource> tables)
@@ -304,35 +309,35 @@
             return true;
         }
 
-        private static void ConcatSearchCondition(IWhereClause where1, IWhereClause where2)
+        private static void ConcatSearchCondition(IHaveSearchCondition fromCondition, IHaveSearchCondition ToCondition)
         {
-            if (where1.IsEmpty)
+            if (fromCondition.IsEmpty)
             {
-                where1.SearchCondition.Conditions.AddRange(where2.SearchCondition.Conditions);
+                fromCondition.Search.Conditions.AddRange(ToCondition.Search.Conditions);
             }
             else
             {
-                if (where1.SearchCondition.Precedence < Precedence.LogicalConjunction)
+                if (fromCondition.Search.Precedence < Precedence.LogicalConjunction)
                 {
                     var sc1 = new SearchCondition();
 
-                    sc1.Conditions.AddRange(where1.SearchCondition.Conditions);
+                    sc1.Conditions.AddRange(fromCondition.Search.Conditions);
 
-                    where1.SearchCondition.Conditions.Clear();
-                    where1.SearchCondition.Conditions.Add(new Condition(false, sc1));
+                    fromCondition.Search.Conditions.Clear();
+                    fromCondition.Search.Conditions.AddLast(new Condition(false, sc1));
                 }
 
-                if (where2.SearchCondition.Precedence < Precedence.LogicalConjunction)
+                if (ToCondition.Search.Precedence < Precedence.LogicalConjunction)
                 {
                     var sc2 = new SearchCondition();
 
-                    sc2.Conditions.AddRange(where2.SearchCondition.Conditions);
+                    sc2.Conditions.AddRange(ToCondition.Search.Conditions);
 
-                    where1.SearchCondition.Conditions.Add(new Condition(false, sc2));
+                    fromCondition.Search.Conditions.AddLast(new Condition(false, sc2));
                 }
                 else
                 {
-                    where1.SearchCondition.Conditions.AddRange(where2.SearchCondition.Conditions);
+                    fromCondition.Search.Conditions.AddRange(ToCondition.Search.Conditions);
                 }
             }
         }
@@ -349,8 +354,8 @@
 
         private void FinalizeAndValidateInternal(bool isApplySupported, bool optimizeColumns, List<ISqlTableSource> tables)
         {
-            OptimizeSearchCondition(_selectQuery.Where.SearchCondition);
-            OptimizeSearchCondition(_selectQuery.Having.SearchCondition);
+            OptimizeSearchCondition(_selectQuery.Where.Search);
+            OptimizeSearchCondition(_selectQuery.Having.Search);
 
             foreach (var joinTable in QueryVisitor.FindOnce<IJoinedTable>(_selectQuery))
             {
@@ -546,20 +551,18 @@
                     return;
                 }
 
-                var searchCondition = new List<ICondition>(sql.Where.SearchCondition.Conditions);
-
-                sql.Where.SearchCondition.Conditions.Clear();
+                sql.Where.Search.Conditions.Clear();
 
                 if (!ContainsTable(tableSource.Source, sql))
                 {
                     joinTable.JoinType = joinTable.JoinType == EJoinType.CrossApply
                                              ? EJoinType.Inner
                                              : EJoinType.Left;
-                    joinTable.Condition.Conditions.AddRange(searchCondition);
+                    joinTable.Condition.Conditions.AddRange(sql.Where.Search.Conditions);
                 }
                 else
                 {
-                    sql.Where.SearchCondition.Conditions.AddRange(searchCondition);
+                    sql.Where.Search.Conditions.AddRange(sql.Where.Search.Conditions);
 
                     var table = OptimizeSubQuery(
                         joinTable.Table,
@@ -649,7 +652,7 @@
                 });
         }
 
-        private ITableSource OptimizeSubQuery(ITableSource source, bool optimizeWhere, bool allColumns, bool isApplySupported, bool optimizeValues, bool optimizeColumns)
+        private ITableSource OptimizeSubQuery(ITableSource source, bool optimizeWhere, bool allColumns, bool isApplySupported, bool optimizeValues, bool optimizeColumns, IJoinedTable joinedTable = null)
         {
             source.Joins.ForEach(
                 node =>
@@ -657,11 +660,13 @@
                     var jt = node.Value;
                     var table = OptimizeSubQuery(
                         jt.Table,
-                        jt.JoinType == EJoinType.Inner || jt.JoinType == EJoinType.CrossApply,
+                        jt.JoinType == EJoinType.Inner || jt.JoinType == EJoinType.CrossApply || jt.JoinType == EJoinType.Left,
                         false,
                         isApplySupported,
-                        jt.JoinType == EJoinType.Inner || jt.JoinType == EJoinType.CrossApply,
-                        optimizeColumns);
+                        jt.JoinType == EJoinType.Inner || jt.JoinType == EJoinType.CrossApply || jt.JoinType == EJoinType.Left,
+                        optimizeColumns,
+                        jt
+                        );
 
                     if (table != jt.Table)
                     {
@@ -680,7 +685,7 @@
                 });
 
             return source.Source is ISelectQuery
-                       ? RemoveSubQuery(source, optimizeWhere, allColumns && !isApplySupported, optimizeValues, optimizeColumns)
+                       ? RemoveSubQuery(source, optimizeWhere, allColumns && !isApplySupported, optimizeValues, optimizeColumns, joinedTable)
                        : source;
         }
 
@@ -688,11 +693,11 @@
         {
             var exprs = new Dictionary<IQueryExpression, IQueryExpression>();
 
-            foreach (var element in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery))
+            foreach (var element in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery) )
             {
                 if (element.From.Tables.Count != 1 || !element.IsSimple || element.IsInsert || element.IsUpdate || element.IsDelete)
                 {
-                    return;
+                    continue;
                 }
 
                 var table = element.From.Tables.First.Value;
@@ -700,14 +705,15 @@
                 var selectQuery = table.Source as ISelectQuery;
                 if (table.Joins.Count != 0 || selectQuery == null)
                 {
-                    return;
+                    continue;
                 }
 
                 if (!selectQuery.HasUnion)
                 {
-                    return;
+                    continue;
                 }
 
+                bool isContinue = false;
                 for (var i = 0; i < element.Select.Columns.Count; i++)
                 {
                     var scol = element.Select.Columns[i];
@@ -715,9 +721,13 @@
 
                     if (scol.Expression != ucol)
                     {
-                        return;
+                        isContinue = true;
+                        break;
                     }
                 }
+
+                if (isContinue)
+                    continue;
 
                 exprs.Add(selectQuery, element);
 
@@ -741,8 +751,8 @@
 
                 selectQuery.From.Tables.ForEach(node => element.From.Tables.AddLast(node.Value));
 
-                element.Where.SearchCondition.Conditions.AddRange(selectQuery.Where.SearchCondition.Conditions);
-                element.Having.SearchCondition.Conditions.AddRange(selectQuery.Having.SearchCondition.Conditions);
+                element.Where.Search.Conditions.AddRange(selectQuery.Where.Search.Conditions);
+                element.Having.Search.Conditions.AddRange(selectQuery.Having.Search.Conditions);
 
                 selectQuery.GroupBy.Items.ForEach(node => element.GroupBy.Items.AddLast(node.Value));
 
@@ -774,7 +784,7 @@
             }
         }
 
-        private ITableSource RemoveSubQuery(ITableSource childSource, bool concatWhere, bool allColumns, bool optimizeValues, bool optimizeColumns)
+        private ITableSource RemoveSubQuery(ITableSource childSource, bool concatWhere, bool allColumns, bool optimizeValues, bool optimizeColumns, IJoinedTable parentJoin)
         {
             var query = (ISelectQuery)childSource.Source;
 
@@ -821,10 +831,14 @@
                                : expr;
                 });
 
-            foreach (var expr in QueryVisitor.FindOnce<IInList>(top).Where(p => p.Expr1 == query))
-            {
-                expr.Expr1 = query.From.Tables.First.Value;
-            }
+            QueryVisitor.FindOnce<IInList>(top).ForEach(
+                node =>
+                {
+                    if (node.Value.Expr1 == query)
+                    {
+                        node.Value.Expr1 = query.From.Tables.First.Value;
+                    }
+                });
 
             childSource.Joins.ForEach(node => query.From.Tables.First.Value.Joins.AddLast(node.Value));
 
@@ -835,17 +849,29 @@
 
             if (!query.Where.IsEmpty)
             {
-                ConcatSearchCondition(_selectQuery.Where, query.Where);
+                if (parentJoin != null && parentJoin.JoinType == EJoinType.Left)
+                {
+                    ConcatSearchCondition(parentJoin.Condition, query.Where);
+                }
+                else
+                {
+                    ConcatSearchCondition(_selectQuery.Where, query.Where);
+                }
             }
             if (!query.Having.IsEmpty)
             {
                 ConcatSearchCondition(_selectQuery.Having, query.Having);
             }
 
-            foreach (var item in QueryVisitor.FindOnce<ISelectQuery>(top).Where(q => q.ParentSelect == query))
-            {
-                item.ParentSelect = query.ParentSelect ?? _selectQuery;
-            }
+
+            QueryVisitor.FindOnce<ISelectQuery>(top).ForEach(
+                node =>
+                {
+                    if (node.Value.ParentSelect == query)
+                    {
+                        node.Value.ParentSelect = query.ParentSelect ?? _selectQuery;
+                    }
+                });
 
             return query.From.Tables.First.Value;
         }

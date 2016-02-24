@@ -14,7 +14,7 @@
 	public class SqlBinaryExpression : BaseQueryElement,
 	                                   ISqlBinaryExpression
     {
-		public SqlBinaryExpression(Type systemType, IQueryExpression expr1, string operation, IQueryExpression expr2, int precedence)
+		public SqlBinaryExpression(Type systemType, IQueryExpression expr1, string operation, IQueryExpression expr2, int precedence = SqlQuery.Precedence.Unknown)
 		{
 			if (expr1     == null) throw new ArgumentNullException(nameof(expr1));
 			if (operation == null) throw new ArgumentNullException(nameof(operation));
@@ -27,12 +27,7 @@
 			Precedence = precedence;
 		}
 
-		public SqlBinaryExpression(Type systemType, IQueryExpression expr1, string operation, IQueryExpression expr2)
-			: this(systemType, expr1, operation, expr2, SqlQuery.Precedence.Unknown)
-		{
-		}
-
-		public IQueryExpression Expr1      { get; set; }
+        public IQueryExpression Expr1      { get; set; }
 		public string         Operation  { get; private set;  }
 		public IQueryExpression Expr2      { get; set; }
 		public Type           SystemType { get; private set;  }

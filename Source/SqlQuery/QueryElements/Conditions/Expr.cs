@@ -28,7 +28,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         public T2 Add(ISqlPredicate predicate)
         {
-            _condition.Search.Conditions.Add(new Condition(_isNot, predicate));
+            _condition.Search.Conditions.AddLast(new Condition(_isNot, predicate));
             return _condition.GetNext();
         }
 

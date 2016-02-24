@@ -1020,7 +1020,7 @@ namespace LinqToDB.ServiceModel
 						}
 
 					case EQueryElementType.FromClause    : Append(((IFromClause)   e).Tables);          break;
-					case EQueryElementType.WhereClause   : Append(((IWhereClause)  e).SearchCondition); break;
+					case EQueryElementType.WhereClause   : Append(((IWhereClause)  e).Search); break;
 					case EQueryElementType.GroupByClause : Append(((GroupByClause)e).Items);           break;
 					case EQueryElementType.OrderByClause : Append(((IOrderByClause)e).Items);           break;
 
