@@ -19,6 +19,14 @@ namespace LinqToDB.SqlQuery.QueryElements
             }
         }
 
+        protected void FillList<TElement>(List<TElement> items, LinkedList<IQueryElement> list) where TElement : IQueryElement
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                list.AddLast(items[i]);
+            }
+        }
+
         public LinkedList<TElementType> DeepFindParentLast<TElementType>() where TElementType : class, IQueryElement
         {
             var returnList = new LinkedList<TElementType>();
