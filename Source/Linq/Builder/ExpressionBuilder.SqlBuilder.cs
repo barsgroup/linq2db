@@ -2441,9 +2441,9 @@ namespace LinqToDB.Linq.Builder
 						return true;
 					}
 
-				// .Select(p => everything else)
-				//
-				default                        :
+                // .Select(p => everything else)
+                //
+                default                        :
 					return false;
 			}
 		}
