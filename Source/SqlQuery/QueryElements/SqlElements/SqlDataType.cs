@@ -521,10 +521,6 @@
 
 		#region IQueryElement Members
 
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-        }
-
         public override EQueryElementType ElementType => EQueryElementType.SqlDataType;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)

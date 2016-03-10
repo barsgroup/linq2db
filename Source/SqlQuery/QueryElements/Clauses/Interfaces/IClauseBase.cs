@@ -1,7 +1,7 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
+namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 {
     using LinqToDB.SqlQuery.QueryElements.Clauses;
-    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     public interface IClauseWithConditionBase : IClauseBase
     {
@@ -17,7 +17,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
         IFromClause From { get; }
 
 
-        GroupByClause GroupBy { get; }
+        IGroupByClause GroupBy { get; }
 
         IWhereClause Having { get; }
 

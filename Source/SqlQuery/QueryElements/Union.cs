@@ -5,6 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class Union : BaseQueryElement,
                          IUnion
@@ -16,6 +17,7 @@ namespace LinqToDB.SqlQuery.QueryElements
         }
 
         public ISelectQuery SelectQuery { get; private set; }
+
         public bool IsAll { get; private set; }
 
         public override EQueryElementType ElementType => EQueryElementType.Union;
@@ -28,11 +30,6 @@ namespace LinqToDB.SqlQuery.QueryElements
 			}
 
 #endif
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(SelectQuery);
-        }
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
         {

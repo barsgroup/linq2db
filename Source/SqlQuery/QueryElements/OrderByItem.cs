@@ -7,6 +7,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class OrderByItem : BaseQueryElement,
                                IOrderByItem
@@ -18,6 +19,7 @@ namespace LinqToDB.SqlQuery.QueryElements
         }
 
         public IQueryExpression Expression   { get;  set; }
+
         public bool           IsDescending { get; private set; }
 
         public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
@@ -54,11 +56,6 @@ namespace LinqToDB.SqlQuery.QueryElements
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Expression);
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.OrderByItem;
 

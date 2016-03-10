@@ -5,9 +5,11 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Text;
 
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class JoinedTable : BaseQueryElement, IJoinedTable
     {
@@ -31,8 +33,11 @@ namespace LinqToDB.SqlQuery.QueryElements
         }
 
         public EJoinType        JoinType        { get; set; }
+
         public ITableSource Table           { get; set; }
+
         public ISearchCondition Condition       { get; private set; }
+
         public bool            IsWeak          { get; set; }
         public bool            CanConvertApply { get; set; }
 
@@ -76,12 +81,6 @@ namespace LinqToDB.SqlQuery.QueryElements
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Table);
-            list.AddLast(Condition);
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.JoinedTable;
 

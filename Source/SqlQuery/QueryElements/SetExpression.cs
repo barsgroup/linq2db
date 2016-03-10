@@ -6,7 +6,6 @@ namespace LinqToDB.SqlQuery.QueryElements
 
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class SetExpression : BaseQueryElement, ISetExpression
@@ -15,22 +14,10 @@ namespace LinqToDB.SqlQuery.QueryElements
         {
             Column     = column;
             Expression = expression;
-
-            //if (expression is ISqlParameter)
-            //{
-            //    var sqlField = column as ISqlField;
-            //    if (sqlField?.ColumnDescriptor != null)
-            //    {
-            //        //							if (field.ColumnDescriptorptor.MapMemberInfo.IsDbTypeSet)
-            //        //								p.DbType = field.ColumnDescriptorptor.MapMemberInfo.DbType;
-            //        //
-            //        //							if (field.ColumnDescriptorptor.MapMemberInfo.IsDbSizeSet)
-            //        //								p.DbSize = field.ColumnDescriptor.MapMemberInfo.DbSize;
-            //    }
-            //}
         }
 
         public IQueryExpression Column     { get; set; }
+
         public IQueryExpression Expression { get; set; }
 
         #region ICloneableElement Members
@@ -66,12 +53,6 @@ namespace LinqToDB.SqlQuery.QueryElements
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Column);
-            list.AddLast(Expression);
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.SetExpression;
 

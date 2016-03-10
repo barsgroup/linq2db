@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
@@ -30,9 +31,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
             public IWhereClause And => _parent.SetOr(false);
 
-            public override void GetChildren(LinkedList<IQueryElement> list)
-            {
-            }
         }
 
         internal WhereClause(ISelectQuery selectQuery) : base(selectQuery)
@@ -73,11 +71,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Search);
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.WhereClause;
 

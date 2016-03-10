@@ -7,6 +7,7 @@ namespace LinqToDB.DataProvider.Sybase
     using System;
 
     using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
     using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;

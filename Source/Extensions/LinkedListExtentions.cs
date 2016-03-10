@@ -2,9 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
 
     public static class LinkedListExtentions
     {
+        [DebuggerHidden]
         public static void ForEach<TElement>(this LinkedList<TElement> linkedList, Action<LinkedListNode<TElement>> action)
         {
             var current = linkedList.First;
@@ -18,12 +20,12 @@
             }
         }
 
-        public static void AddRange<TElement>(this LinkedList<TElement> sourceList, LinkedList<TElement> targetList)
+        public static void AddRange<TElement1, TElement2>(this LinkedList<TElement1> sourceList, LinkedList<TElement2> targetList) where TElement2 : TElement1
         {
             targetList.ForEach(node => sourceList.AddLast(node.Value));
         }
 
-        public static void AddRange<TElement>(this LinkedList<TElement> sourceList, List<TElement> targetList)
+        public static void AddRange<TElement1, TElement2>(this LinkedList<TElement1> sourceList, List<TElement2> targetList) where TElement2: TElement1
         {
             for (int i = 0; i < targetList.Count; i++)
             {
@@ -47,6 +49,20 @@
             }
 
             return default(TResult);
+        }
+
+
+        public static void Each<TElement>(this LinkedListNode<TElement> node, Action<LinkedListNode<TElement>> action)
+        {
+            var current = node;
+            while (current != null)
+            {
+                var previous = current.Next;
+
+                action(current);
+
+                current = previous;
+            }
         }
 
         public static void ReverseEach<TElement>(this LinkedListNode<TElement> node, Action<LinkedListNode<TElement>> action)

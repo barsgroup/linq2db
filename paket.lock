@@ -1,6 +1,7 @@
 NUGET
   remote: https://www.nuget.org/api/v2
   specs:
+    Castle.Core (3.3.3)
     FirebirdSql.Data.FirebirdClient (4.8.1.1) - framework: >= net45
     Microsoft.Bcl.Immutable (1.0.34) - framework: >= net45
     Microsoft.SqlServer.Compact (4.0.8876.1) - framework: >= net40

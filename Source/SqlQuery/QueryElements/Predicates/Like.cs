@@ -20,6 +20,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
         }
 
         public IQueryExpression Expr2  { get; set; }
+
         public IQueryExpression Escape { get; set; }
 
         protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
@@ -44,12 +45,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             return clone;
         }
 
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Expr1);
-            list.AddLast(Expr2);
-            list.AddLast(Escape);
-        }
         public override EQueryElementType ElementType => EQueryElementType.LikePredicate;
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)

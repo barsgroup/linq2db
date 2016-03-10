@@ -6,10 +6,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
     {
         LinkedList<TElementType> DeepFindParentFirst<TElementType>() where TElementType : class, IQueryElement;
 
-        LinkedList<TElementType> DeepFindParentLast<TElementType>() where TElementType : class, IQueryElement;
+        LinkedList<TElementType> DeepFindParentLastOnce<TElementType>() where TElementType : class, IQueryElement;
 
         LinkedList<TElementType> DeepFindDownTo<TElementType>() where TElementType : class, IQueryElement;
-
-        void GetChildren(LinkedList<IQueryElement> list);
     }
 }

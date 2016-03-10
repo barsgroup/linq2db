@@ -8,6 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class ExprExpr : Expr,
                             IExprExpr
@@ -46,12 +47,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
                                                  (IQueryExpression)Expr1.Clone(objectTree, doClone), EOperator, (IQueryExpression)Expr2.Clone(objectTree, doClone)));
 
             return clone;
-        }
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Expr1);
-            list.AddLast(Expr2);
         }
 
         public override EQueryElementType ElementType => EQueryElementType.ExprExprPredicate;

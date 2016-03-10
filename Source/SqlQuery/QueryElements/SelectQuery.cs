@@ -22,8 +22,9 @@
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
-	public class SelectQuery : BaseQueryElement,
+    public class SelectQuery : BaseQueryElement,
 	                           ISelectQuery
     {
 		#region Init
@@ -65,11 +66,11 @@
 		public void Init(
             IInsertClause insert,
             IUpdateClause update,
-			DeleteClause         delete,
+            IDeleteClause delete,
             ISelectClause        select,
             IFromClause          from,
             IWhereClause where,
-			GroupByClause        groupBy,
+            IGroupByClause groupBy,
             IWhereClause having,
             IOrderByClause orderBy,
 			LinkedList<IUnion>          unions,
@@ -134,7 +135,6 @@
 
         public ICreateTableStatement CreateTable { get; private set; } = new CreateTableStatement();
 
-
         public IInsertClause Insert { get; private set; } = new InsertClause();
 
 	    public void ClearInsert()
@@ -150,7 +150,7 @@
             Update = null;
         }
 
-		public  DeleteClause  Delete { get; private set; } = new DeleteClause();
+		public IDeleteClause Delete { get; private set; } = new DeleteClause();
 
 	    public void ClearDelete()
 		{
@@ -183,7 +183,7 @@
 
         public IWhereClause Where { get; private set; }
 
-        public  GroupByClause  GroupBy { get; private set; }
+        public IGroupByClause GroupBy { get; private set; }
 
         public IWhereClause Having { get; private set; }
 
@@ -453,7 +453,7 @@
 
 			if (IsInsert) Insert = (IInsertClause)clone.Insert.Clone(objectTree, doClone);
 			if (IsUpdate) Update = (IUpdateClause)clone.Update.Clone(objectTree, doClone);
-			if (IsDelete) Delete = (DeleteClause)clone.Delete.Clone(objectTree, doClone);
+			if (IsDelete) Delete = (IDeleteClause)clone.Delete.Clone(objectTree, doClone);
 
 			Select  = new SelectClause (this, clone.Select,  objectTree, doClone);
 			From    = new FromClause   (this, clone.From,    objectTree, doClone);
@@ -801,61 +801,6 @@
 		#endregion
 
 		#region IQueryElement Members
-
-	    public override void GetChildren(LinkedList<IQueryElement> list)
-	    {
-	        switch (EQueryType)
-	        {
-	            case EQueryType.InsertOrUpdate:
-
-	                list.AddLast(Insert);
-	                list.AddLast(Update);
-
-	                if (From.Tables.Count != 0)
-	                {
-	                    list.AddLast(Select);
-	                }
-	                break;
-
-	            case EQueryType.Update:
-	                list.AddLast(Update);
-	                list.AddLast(Select);
-	                break;
-
-	            case EQueryType.Delete:
-	                list.AddLast(Delete);
-	                list.AddLast(Select);
-	                break;
-
-	            case EQueryType.Insert:
-	                list.AddLast(Insert);
-
-	                if (From.Tables.Count != 0)
-	                {
-	                    list.AddLast(Select);
-	                }
-
-	                break;
-
-	            default:
-	                list.AddLast(Select);
-	                break;
-	        }
-	        list.AddLast(From);
-	        list.AddLast(Where);
-	        list.AddLast(GroupBy);
-	        list.AddLast(Having);
-	        list.AddLast(OrderBy);
-
-	        Unions.ForEach(
-	            node =>
-	            {
-	                if (node.Value.SelectQuery == this)
-	                    throw new InvalidOperationException();
-
-	                list.AddLast(node.Value);
-	            });
-	    }
 
 	    public override EQueryElementType ElementType => EQueryElementType.SqlQuery;
 

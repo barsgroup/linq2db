@@ -10,14 +10,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
-    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    public interface ISearchCondition : IQueryExpression,
-        IConditionBase<ISearchCondition, SearchCondition.NextCondition>, ISqlPredicate
-    {
-        LinkedList<ICondition> Conditions { get; }
-    }
 
     public class SearchCondition : ConditionBase<ISearchCondition, SearchCondition.NextCondition>,
                                    ISearchCondition
@@ -144,11 +137,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            Conditions.ForEach(node => list.AddLast(node.Value));
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.SearchCondition;
 

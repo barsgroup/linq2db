@@ -9,7 +9,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
     {
         EQueryElementType ElementType { get; }
 
-
         StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic);
 
         string SqlText { get; }

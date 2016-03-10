@@ -9,6 +9,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates;
     using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class Condition : BaseQueryElement,
                              ICondition
@@ -27,7 +28,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
         }
 
         public bool          IsNot     { get; set; }
+
         public ISqlPredicate Predicate { get; set; }
+
         public bool          IsOr      { get; set; }
 
         public int Precedence => IsNot ? SqlQuery.Precedence.LogicalNegation :
@@ -53,11 +56,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
         }
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Predicate);
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.Condition;
 

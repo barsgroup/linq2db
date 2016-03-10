@@ -10,13 +10,6 @@
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public interface ISqlExpression : IQueryExpression
-    {
-        string Expr { get; }
-
-        IQueryExpression[] Parameters { get; }
-    }
-
     public class SqlExpression : BaseQueryElement,
                                  ISqlExpression
     {
@@ -51,7 +44,8 @@
 		public Type             SystemType { get; private set; }
 		public string           Expr       { get; private set; }
 		public int              Precedence { get; private set; }
-		public IQueryExpression[] Parameters { get; private set; }
+
+        public IQueryExpression[] Parameters { get; private set; }
 
 		#region Overrides
 
@@ -143,11 +137,6 @@
 		#endregion
 
 		#region IQueryElement Members
-
-		public override void GetChildren(LinkedList<IQueryElement> list)
-		{
-            FillList(Parameters, list);
-		}
 
         public override EQueryElementType ElementType => EQueryElementType.SqlExpression;
 

@@ -11,8 +11,9 @@ namespace LinqToDB.SqlQuery.QueryElements
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.Search;
 
-	public class TableSource : BaseQueryElement, ITableSource
+    public class TableSource : BaseQueryElement, ITableSource
 	{
 		public TableSource(ISqlTableSource source, string alias)
 			: this(source, alias, null)
@@ -45,7 +46,8 @@ namespace LinqToDB.SqlQuery.QueryElements
 			}
 		}
 
-		public ISqlTableSource Source       { get; set; }
+        public ISqlTableSource Source       { get; set; }
+
 		public ESqlTableType    SqlTableType
 		{
 			get { return Source.SqlTableType; }
@@ -78,7 +80,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
 		public ITableSource this[ISqlTableSource table, string alias] => Joins.Select(tj => SelectQuery.CheckTableSource(tj.Table, table, alias)).FirstOrDefault(t => t != null);
 
-		public LinkedList<IJoinedTable>  Joins { get; } = new LinkedList<IJoinedTable>();
+        public LinkedList<IJoinedTable>  Joins { get; } = new LinkedList<IJoinedTable>();
 
 		public IEnumerable<ISqlTableSource> GetTables()
 		{
@@ -173,12 +175,6 @@ namespace LinqToDB.SqlQuery.QueryElements
 		#endregion
 
 		#region IQueryElement Members
-
-		public override void GetChildren(LinkedList<IQueryElement> list)
-		{
-			list.AddLast(Source);
-			Joins.ForEach(node => list.AddLast(node.Value));
-		}
 
 		public override EQueryElementType ElementType => EQueryElementType.TableSource;
 

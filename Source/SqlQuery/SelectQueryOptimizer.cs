@@ -7,6 +7,7 @@
     using LinqToDB.Extensions;
     using LinqToDB.SqlProvider;
     using LinqToDB.SqlQuery.QueryElements.Clauses;
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
@@ -1026,7 +1027,7 @@
 
                             case EQueryElementType.BetweenPredicate:
                             {
-                                var expr = (Between)e;
+                                var expr = (IBetween)e;
                                 if (dic.TryGetValue(expr.Expr1, out ex))
                                 {
                                     expr.Expr1 = ex;
@@ -1091,7 +1092,7 @@
 
                             case EQueryElementType.GroupByClause:
                             {
-                                var expr = (GroupByClause)e;
+                                var expr = (IGroupByClause)e;
 
                                 expr.Items.ForEach(
                                     node =>

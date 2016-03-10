@@ -9,6 +9,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class FuncLike : Predicate,
                             IFuncLike
@@ -50,11 +51,5 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
         {
             Function.ToString(sb, dic);
         }
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Function);
-        }
-
     }
 }

@@ -9,6 +9,7 @@
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class SqlFunction : BaseQueryElement,
                                ISqlFunction
@@ -38,7 +39,8 @@
 		public Type             SystemType { get; private set; }
 		public string           Name       { get; private set; }
 		public int              Precedence { get; private set; }
-		public IQueryExpression[] Parameters { get; private set; }
+
+        public IQueryExpression[] Parameters { get; private set; }
 
 		public static ISqlFunction CreateCount (Type type, ISqlTableSource table) { return new SqlFunction(type, "Count",  new SqlExpression("*")); }
 
@@ -131,11 +133,6 @@
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            FillList(Parameters, list);
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.SqlFunction;
 

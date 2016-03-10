@@ -15,6 +15,7 @@ namespace LinqToDB.ServiceModel
 	using LinqToDB.SqlQuery.QueryElements.Clauses;
 	using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
@@ -782,7 +783,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.BetweenPredicate :
 						{
-							var elem = (Between)e;
+							var elem = (IBetween)e;
 
 							Append(elem.Expr1);
 							Append(elem.IsNot);
@@ -992,7 +993,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.DeleteClause :
 						{
-							Append(((DeleteClause)e).Table);
+							Append(((IDeleteClause)e).Table);
 							break;
 						}
 
@@ -1021,7 +1022,7 @@ namespace LinqToDB.ServiceModel
 
 					case EQueryElementType.FromClause    : Append(((IFromClause)   e).Tables);          break;
 					case EQueryElementType.WhereClause   : Append(((IWhereClause)  e).Search); break;
-					case EQueryElementType.GroupByClause : Append(((GroupByClause)e).Items);           break;
+					case EQueryElementType.GroupByClause : Append(((IGroupByClause)e).Items);           break;
 					case EQueryElementType.OrderByClause : Append(((IOrderByClause)e).Items);           break;
 
 					case EQueryElementType.OrderByItem :
@@ -1396,7 +1397,7 @@ namespace LinqToDB.ServiceModel
 							var readUpdate         = ReadBool();
 							var update             = readUpdate ? Read<UpdateClause>() : null;
 							var readDelete         = ReadBool();
-							var delete             = readDelete ? Read<DeleteClause>() : null;
+							var delete             = readDelete ? Read<IDeleteClause>() : null;
 							var readSelect         = ReadBool();
 							var select             = readSelect ? Read<ISelectClause>() : new SelectClause(null);
 							var readCreateTable    = ReadBool();
@@ -1404,7 +1405,7 @@ namespace LinqToDB.ServiceModel
 								Read<ICreateTableStatement>() :
 								new CreateTableStatement();
 							var where              = Read<IWhereClause>();
-							var groupBy            = Read<GroupByClause>();
+							var groupBy            = Read<IGroupByClause>();
 							var having             = Read<IWhereClause>();
 							var orderBy            = Read<IOrderByClause>();
 							var parentSql          = ReadInt();

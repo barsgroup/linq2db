@@ -4,12 +4,14 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Collections.Generic;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class DeleteClause : BaseQueryElement, ISqlExpressionWalkable, ICloneableElement
+    public class DeleteClause : BaseQueryElement,
+                                IDeleteClause
     {
         public ISqlTable Table { get; set; }
 
@@ -47,10 +49,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region IQueryElement Members
 
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Table);
-        }
+        //public override void GetChildren(LinkedList<IQueryElement> list)
+        //{
+        //    list.AddLast(Table);
+        //}
 
         public override EQueryElementType ElementType => EQueryElementType.DeleteClause;
 

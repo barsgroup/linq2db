@@ -5,17 +5,21 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Text;
 
     using LinqToDB.Extensions;
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class UpdateClause : BaseQueryElement,
                                 IUpdateClause
     {
 
         public LinkedList<ISetExpression> Items { get; } = new LinkedList<ISetExpression>();
+
         public LinkedList<ISetExpression> Keys  { get; } = new LinkedList<ISetExpression>();
+
         public ISqlTable Table { get; set; }
 
         #region ICloneableElement Members
@@ -59,13 +63,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Table);
-            FillList(Items, list);
-            FillList(Keys, list);
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.UpdateClause;
 

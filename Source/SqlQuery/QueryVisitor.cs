@@ -3,8 +3,6 @@ using System.Collections.Generic;
 
 namespace LinqToDB.SqlQuery
 {
-    using System.Linq;
-
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Clauses;
@@ -26,24 +24,7 @@ namespace LinqToDB.SqlQuery
 	{
 		#region Visit
 
-        private static LinkedList<TElementType> DistinctFunc<TElementType>(LinkedList<TElementType> source)
-            where TElementType : IQueryElement
-        {
-            var existItems = new HashSet<TElementType>();
-            var distinctList = new LinkedList<TElementType>();
-
-            source.ForEach(
-                node =>
-                {
-                    if (node.Value != null && !existItems.Contains(node.Value))
-                    {
-                        existItems.Add(node.Value);
-                        distinctList.AddLast(node.Value);
-                    }
-                });
-
-            return distinctList;
-        }
+       
 
         readonly Dictionary<IQueryElement,IQueryElement> _visitedElements = new Dictionary<IQueryElement, IQueryElement>();
 
@@ -54,13 +35,13 @@ namespace LinqToDB.SqlQuery
 
         public static LinkedList<TElementType> FindOnce<TElementType>(IQueryElement element) where TElementType : class, IQueryElement
         {
-            return DistinctFunc(element.DeepFindParentLast<TElementType>());
+            return element.DeepFindParentLastOnce<TElementType>();
         }
 
         public static LinkedList<TElementType> FindDownTo<TElementType>(IQueryElement element)
             where TElementType : class, IQueryElement
         {
-            return DistinctFunc(element.DeepFindDownTo<TElementType>());
+            return element.DeepFindDownTo<TElementType>();
         }
 
         public static IEnumerable<TElementType> FindAll<TElementType>(params IQueryElement[] elements) where TElementType : class, IQueryElement
@@ -70,7 +51,7 @@ namespace LinqToDB.SqlQuery
             {
                 if (elements[i] != null)
                 {
-                    elements[i].DeepFindParentLast<TElementType>().ForEach(node => returnList.AddLast(node.Value));
+                    elements[i].DeepFindParentLastOnce<TElementType>().ForEach(node => returnList.AddLast(node.Value));
                 }
             }
 
@@ -114,7 +95,7 @@ namespace LinqToDB.SqlQuery
 				case EQueryElementType.IsNullPredicate   : return Find(((IIsNull)  element).Expr1,           find);
 				case EQueryElementType.FromClause        : return Find(((IFromClause)        element).Tables,          find);
 				case EQueryElementType.WhereClause       : return Find(((IWhereClause)       element).Search, find);
-				case EQueryElementType.GroupByClause     : return Find(((GroupByClause)     element).Items,           find);
+				case EQueryElementType.GroupByClause     : return Find(((IGroupByClause)     element).Items,           find);
 				case EQueryElementType.OrderByClause     : return Find(((IOrderByClause)     element).Items,           find);
 				case EQueryElementType.OrderByItem       : return Find(((IOrderByItem)       element).Expression,      find);
 				case EQueryElementType.Union             : return Find(((IUnion)             element).SelectQuery,        find);
@@ -172,7 +153,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.BetweenPredicate:
 					{
-						var p = (Between)element;
+						var p = (IBetween)element;
 						return
 							Find(p.Expr1, find) ??
 							Find(p.Expr2, find) ??
@@ -222,7 +203,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.DeleteClause:
 					{
-						var sc = (DeleteClause)element;
+						var sc = (IDeleteClause)element;
 						return Find(sc.Table, find);
 					}
 
@@ -466,7 +447,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.BetweenPredicate:
 					{
-						var p = (Between)element;
+						var p = (IBetween)element;
 						var e1 = (IQueryExpression)ConvertInternal(p.Expr1, action);
 						var e2 = (IQueryExpression)ConvertInternal(p.Expr2, action);
 						var e3 = (IQueryExpression)ConvertInternal(p.Expr3, action);
@@ -581,7 +562,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.DeleteClause:
 					{
-						var s = (DeleteClause)element;
+						var s = (IDeleteClause)element;
 						var t = s.Table != null ? (ISqlTable)ConvertInternal(s.Table, action) : null;
 
 						if (t != null && !ReferenceEquals(s.Table, t))
@@ -663,7 +644,7 @@ namespace LinqToDB.SqlQuery
 
 				case EQueryElementType.GroupByClause:
 					{
-						var gc = (GroupByClause)element;
+						var gc = (IGroupByClause)element;
 						var es = Convert(gc.Items, action);
 
 						IQueryElement parent;
@@ -672,7 +653,7 @@ namespace LinqToDB.SqlQuery
 						if (parent != null || es != null && !ReferenceEquals(gc.Items, es))
 						{
 							newElement = new GroupByClause(es ?? gc.Items);
-							((GroupByClause)newElement).SetSqlQuery((ISelectQuery)parent);
+							((IGroupByClause)newElement).SetSqlQuery((ISelectQuery)parent);
 						}
 
 						break;
@@ -764,9 +745,9 @@ namespace LinqToDB.SqlQuery
 						var sc = (ISelectClause) ConvertInternal(q.Select,  action) ?? q.Select;
 						var ic = q.IsInsert ? ((IInsertClause)ConvertInternal(q.Insert, action) ?? q.Insert) : null;
 						var uc = q.IsUpdate ? ((IUpdateClause)ConvertInternal(q.Update, action) ?? q.Update) : null;
-						var dc = q.IsDelete ? ((DeleteClause)ConvertInternal(q.Delete, action) ?? q.Delete) : null;
+						var dc = q.IsDelete ? ((IDeleteClause)ConvertInternal(q.Delete, action) ?? q.Delete) : null;
 						var wc = (IWhereClause)  ConvertInternal(q.Where,   action) ?? q.Where;
-						var gc = (GroupByClause)ConvertInternal(q.GroupBy, action) ?? q.GroupBy;
+						var gc = (IGroupByClause)ConvertInternal(q.GroupBy, action) ?? q.GroupBy;
 						var hc = (IWhereClause)  ConvertInternal(q.Having,  action) ?? q.Having;
 						var oc = (IOrderByClause)ConvertInternal(q.OrderBy, action) ?? q.OrderBy;
 						var us = q.HasUnion ? Convert(q.Unions, action) : q.Unions;

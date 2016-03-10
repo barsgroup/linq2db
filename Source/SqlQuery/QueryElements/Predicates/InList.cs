@@ -9,6 +9,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class InList : NotExpr,
                           IInList
@@ -28,7 +29,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
         }
 
         readonly List<IQueryExpression> _values = new List<IQueryExpression>();
-        public   List<IQueryExpression>  Values => _values;
+
+        public List<IQueryExpression>  Values => _values;
 
         protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> action)
         {
@@ -53,12 +55,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             }
 
             return clone;
-        }
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Expr1);
-            FillList(Values, list);
         }
 
         public override EQueryElementType ElementType => EQueryElementType.InListPredicate;

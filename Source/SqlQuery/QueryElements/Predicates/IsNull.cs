@@ -39,11 +39,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
                 .Append("NULL");
         }
 
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Expr1);
-        }
-
         public override EQueryElementType ElementType => EQueryElementType.IsNullPredicate;
     }
 }

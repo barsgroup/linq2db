@@ -13,6 +13,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+	using LinqToDB.SqlQuery.Search;
 
     public class FromClause : ClauseBase,
 							  IFromClause
@@ -116,7 +117,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 		}
 
 		readonly LinkedList<ITableSource> _tables = new LinkedList<ITableSource>();
-		public   LinkedList<ITableSource>  Tables => _tables;
+
+        public LinkedList<ITableSource>  Tables => _tables;
 
 		static IEnumerable<ISqlTableSource> GetJoinTables(ITableSource source, EQueryElementType elementType)
 		{
@@ -178,11 +180,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #endregion
 
 		#region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            Tables.ForEach(node => list.AddLast(node.Value));
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.FromClause;
 

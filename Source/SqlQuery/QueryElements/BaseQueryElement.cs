@@ -27,87 +27,106 @@ namespace LinqToDB.SqlQuery.QueryElements
             }
         }
 
-        public LinkedList<TElementType> DeepFindParentLast<TElementType>() where TElementType : class, IQueryElement
+        public LinkedList<TElementType> DeepFindParentLastOnce<TElementType>() where TElementType : class, IQueryElement
         {
-            var returnList = new LinkedList<TElementType>();
-            var list = new LinkedList<IQueryElement>();
+            //var returnList = new LinkedList<TElementType>();
+            //var list = new LinkedList<IQueryElement>();
 
-            list.AddFirst(this);
+            //var visitedItems = new HashSet<IQueryElement>();
 
-            while (list.First != null)
-            {
-                var current = list.First;
-                var value = current.Value as TElementType;
+            //list.AddFirst(this);
 
-                current.Value?.GetChildren(list);
+            //while (list.First != null)
+            //{
+            //    var current = list.First;
+            //    var value = current.Value as TElementType;
 
-                if (value != null)
-                {
-                    returnList.AddFirst(value);
-                }
+            //    if (!visitedItems.Contains(value))
+            //    {
+            //        current.Value?.GetChildren(list);
 
-                list.RemoveFirst();
-            }
+            //        if (value != null)
+            //        {
+            //            visitedItems.Add(value);
 
-            return returnList;
+            //            returnList.AddFirst(value);
+            //        }
+            //    }
+
+            //    list.RemoveFirst();
+            //}
+
+            //return returnList;
+
+            return null;
         }
 
         public LinkedList<TElementType> DeepFindParentFirst<TElementType>() where TElementType: class, IQueryElement
         {
-            var returnList = new LinkedList<TElementType>();
-            var processed = new LinkedList<IQueryElement>();
+            //var returnList = new LinkedList<TElementType>();
+            //var processed = new LinkedList<IQueryElement>();
 
-            processed.AddFirst(this);
+            //processed.AddFirst(this);
 
-            while (processed.First != null)
-            {
-                var current = processed.Last;
-                var value = current.Value as TElementType;
-                if (value != null)
-                {
-                    returnList.AddLast(value);
-                }
+            //while (processed.First != null)
+            //{
+            //    var current = processed.Last;
+            //    var value = current.Value as TElementType;
+            //    if (value != null)
+            //    {
+            //        returnList.AddLast(value);
+            //    }
 
-                processed.RemoveLast();
+            //    processed.RemoveLast();
 
-                current.Value?.GetChildren(processed);
-            }
+            //    current.Value?.GetChildren(processed);
+            //}
 
-            return returnList;
+            //return returnList;
+            return null;
         }
 
         public LinkedList<TElementType> DeepFindDownTo<TElementType>() where TElementType : class, IQueryElement
         {
-            var returnList = new LinkedList<TElementType>();
-            var list = new LinkedList<IQueryElement>();
+            //var returnList = new LinkedList<TElementType>();
+            //var list = new LinkedList<IQueryElement>();
 
-            list.AddFirst(this);
+            //var visitedItems = new HashSet<IQueryElement>();
 
-            while (list.First != null)
-            {
-                var current = list.First;
+            //list.AddFirst(this);
+            //while (list.First != null)
+            //{
+            //    var current = list.First;
 
-                if (current.Value != null)
-                {
-                    var value = current.Value as TElementType;
+            //    if (current.Value != null)
+            //    {
+            //        var value = current.Value as TElementType;
 
-                    if (value != this && value != null)
-                    {
-                        returnList.AddLast(value);
-                    }
-                    else
-                    {
-                        current.Value.GetChildren(list);
-                    }
-                }
+            //        if (list.Contains(current.Value))
+            //        {
+            //            visitedItems.Add(current.Value);
 
-                list.RemoveFirst();
-            }
+            //            if (value != null && value != this)
+            //            {
+            //                returnList.AddLast(value);
+            //            }
+            //            else
+            //            {
+            //                current.Value.GetChildren(list);
+            //            }
+            //        }
+            //    }
 
-            return returnList;
+            //    list.RemoveFirst();
+            //}
+
+            //return returnList;
+
+
+            return null;
         }
 
-        public abstract void GetChildren(LinkedList<IQueryElement> list);
+        //public abstract void GetChildren(LinkedList<IQueryElement> list);
 
         public abstract EQueryElementType ElementType { get; }
 

@@ -10,6 +10,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class SelectClause : ClauseBase,
                                 ISelectClause
@@ -254,13 +255,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(TakeValue);
-            list.AddLast(SkipValue);
-            FillList(Columns, list);
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.SelectClause;
 

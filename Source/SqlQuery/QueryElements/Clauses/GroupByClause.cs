@@ -6,18 +6,20 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Text;
 
     using LinqToDB.Extensions;
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class GroupByClause : ClauseBase, ISqlExpressionWalkable
+    public class GroupByClause : ClauseBase,
+                                 IGroupByClause
     {
         internal GroupByClause(ISelectQuery selectQuery) : base(selectQuery)
         {
         }
 
-        internal GroupByClause(ISelectQuery selectQuery, GroupByClause clone, Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        internal GroupByClause(ISelectQuery selectQuery, IGroupByClause clone, Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
 
@@ -34,13 +36,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             items.ForEach(node => Items.AddLast(node.Value));
         }
 
-        public GroupByClause Expr(IQueryExpression expr)
+        public IGroupByClause Expr(IQueryExpression expr)
         {
             Add(expr);
             return this;
         }
 
-        public GroupByClause Field(ISqlField field)
+        public IGroupByClause Field(ISqlField field)
         {
             return Expr(field);
         }
@@ -74,11 +76,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            Items.ForEach(node => list.AddLast(node.Value));
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.GroupByClause;
 

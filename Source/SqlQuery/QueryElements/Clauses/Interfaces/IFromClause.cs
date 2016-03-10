@@ -7,6 +7,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public interface IFromClause: IClauseWithConditionBase, ISqlExpressionWalkable
     {
@@ -20,6 +21,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
         bool IsChild(ISqlTableSource table);
 
+        [SearchContainer]
         LinkedList<ITableSource> Tables { get; }
 
         ISqlTableSource FindTableSource(ISqlTable table);

@@ -1,5 +1,6 @@
 source https://www.nuget.org/api/v2
 
+nuget Castle.Core
 nuget Nuget.CommandLine
 nuget FirebirdSql.Data.FirebirdClient 4.8.1.1 framework: >= net45
 nuget Microsoft.Bcl.Immutable 1.0.34 framework: >= net45

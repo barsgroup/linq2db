@@ -14,35 +14,6 @@
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public interface ISqlTable : ISqlTableSource
-    {
-        ISqlField this[string fieldName] { get; }
-
-        string Name { get; set; }
-
-        string Alias { get; set; }
-
-        string Database { get; set; }
-
-        string Owner { get; set; }
-
-        Type ObjectType { get; set; }
-
-        string PhysicalName { get; set; }
-
-        LinkedList<IQueryExpression> TableArguments { get;}
-
-        Dictionary<string, ISqlField> Fields { get; }
-
-        SequenceNameAttribute[] SequenceAttributes { get; }
-
-        ISqlField GetIdentityField();
-
-        void Add(ISqlField field);
-
-        void AddRange(IEnumerable<ISqlField> collection);
-    }
-
     public class SqlTable<TEntity> : SqlTable
     {
         public SqlTable()
@@ -249,14 +220,16 @@
 		public Type             ObjectType     { get; set; }
 		public string           PhysicalName   { get; set; }
 		public ESqlTableType     SqlTableType   { get; set; }
-		public LinkedList<IQueryExpression> TableArguments { get; } = new LinkedList<IQueryExpression>();
 
-		public Dictionary<string, ISqlField> Fields { get; private set; }
+        public LinkedList<IQueryExpression> TableArguments { get; } = new LinkedList<IQueryExpression>();
+
+        public Dictionary<string, ISqlField> Fields { get; private set; }
 
 		public SequenceNameAttribute[] SequenceAttributes { get; private set; }
 
 		private ISqlField _all;
-		public ISqlField All
+
+        public ISqlField All
 		{
 		    get
 		    {
@@ -380,24 +353,12 @@
 
         #endregion
 
-        #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(All);
-            FillList(Fields.Values, list);
-
-            TableArguments.ForEach(node => list.AddLast(node.Value));
-        }
-
         public override EQueryElementType ElementType => EQueryElementType.SqlTable;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
 		{
 			return sb.Append(Name);
 		}
-
-		#endregion
 
 		#region ISqlExpression Members
 

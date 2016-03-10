@@ -8,6 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public interface ISelectQuery : ISqlTableSource
     {
@@ -35,26 +36,35 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         bool IsUpdate { get; }
 
+        [SearchContainer]
         ISelectClause Select { get; }
 
         ICreateTableStatement CreateTable { get; }
 
+        [SearchContainer]
         IInsertClause Insert { get; }
 
         IUpdateClause Update { get; }
 
-        DeleteClause Delete { get; }
+        [SearchContainer]
+        IDeleteClause Delete { get; }
 
+        [SearchContainer]
         IFromClause From { get; }
 
+        [SearchContainer]
         IWhereClause Where { get; }
 
-        GroupByClause GroupBy { get; }
+        [SearchContainer]
+        IGroupByClause GroupBy { get; }
 
+        [SearchContainer]
         IWhereClause Having { get; }
 
+        [SearchContainer]
         IOrderByClause OrderBy { get; }
 
+        [SearchContainer]
         LinkedList<IUnion> Unions { get; }
 
         bool HasUnion { get; }
@@ -85,11 +95,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         void Init(IInsertClause insert,
                   IUpdateClause update,
-                  DeleteClause delete,
+                  IDeleteClause delete,
                   ISelectClause select,
                   IFromClause from,
                   IWhereClause where,
-                  GroupByClause groupBy,
+                  IGroupByClause groupBy,
                   IWhereClause having,
                   IOrderByClause orderBy,
                   LinkedList<IUnion> unions,

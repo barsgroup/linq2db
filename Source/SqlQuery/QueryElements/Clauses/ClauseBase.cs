@@ -23,7 +23,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public IWhereClause Where => SelectQuery.Where;
 
-        public GroupByClause GroupBy => SelectQuery.GroupBy;
+        public IGroupByClause GroupBy => SelectQuery.GroupBy;
 
         public IWhereClause Having => SelectQuery.Having;
 
@@ -58,7 +58,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public IFromClause From => SelectQuery.From;
 
-        public GroupByClause GroupBy => SelectQuery.GroupBy;
+        public IGroupByClause GroupBy => SelectQuery.GroupBy;
 
         public IWhereClause Having => SelectQuery.Having;
 

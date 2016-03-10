@@ -6,9 +6,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public class Between : NotExpr
+    public class Between : NotExpr,
+                           IBetween
     {
         public Between(IQueryExpression exp1, bool isNot, IQueryExpression exp2, IQueryExpression exp3)
             : base(exp1, isNot, SqlQuery.Precedence.Comparison)
@@ -17,8 +19,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             Expr3 = exp3;
         }
 
-        public IQueryExpression Expr2 { get; internal set; }
-        public IQueryExpression Expr3 { get; internal set; }
+        public IQueryExpression Expr2 { get; set; }
+
+        public IQueryExpression Expr3 { get; set; }
 
         protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {
@@ -42,13 +45,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
                                                  (IQueryExpression)Expr3.Clone(objectTree, doClone)));
 
             return clone;
-        }
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Expr1);
-            list.AddLast(Expr2);
-            list.AddLast(Expr3);
         }
 
         public override EQueryElementType ElementType => EQueryElementType.BetweenPredicate;

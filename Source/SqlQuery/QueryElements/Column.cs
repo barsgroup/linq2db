@@ -8,6 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     using Seterlund.CodeGuard;
 
@@ -38,6 +39,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 #endif
 
         public IQueryExpression Expression { get; set; }
+
         public ISelectQuery Parent     { get; set; }
 
         internal string _alias;
@@ -148,11 +150,6 @@ namespace LinqToDB.SqlQuery.QueryElements
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Expression);
-        }
 
         public sealed override EQueryElementType ElementType => EQueryElementType.Column;
 

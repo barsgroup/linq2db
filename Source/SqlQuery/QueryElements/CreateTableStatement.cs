@@ -8,22 +8,19 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class CreateTableStatement : BaseQueryElement,
                                         ICreateTableStatement
     {
         public ISqlTable       Table           { get; set; }
+
         public bool           IsDrop          { get; set; }
         public string         StatementHeader { get; set; }
         public string         StatementFooter { get; set; }
         public EDefaulNullable EDefaulNullable  { get; set; }
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Table);
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.CreateTableStatement;
 

@@ -5,17 +5,21 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Text;
 
     using LinqToDB.Extensions;
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class InsertClause : BaseQueryElement,
                                 IInsertClause
     {
 
         public LinkedList<ISetExpression> Items { get; } = new LinkedList<ISetExpression>();
+
         public ISqlTable             Into         { get; set; }
+
         public bool                WithIdentity { get; set; }
 
         #region ICloneableElement Members
@@ -59,12 +63,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            list.AddLast(Into);
-            Items.ForEach(node => list.AddLast(node.Value));
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.InsertClause;
 

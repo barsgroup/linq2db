@@ -11,6 +11,7 @@ namespace LinqToDB.ServiceModel
 	using Linq;
 
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 	using Mapping;
 

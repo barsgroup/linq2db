@@ -12,6 +12,7 @@ namespace LinqToDB.SqlProvider
 	using LinqToDB.Extensions;
 	using LinqToDB.SqlQuery.QueryElements;
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Predicates;
@@ -1366,7 +1367,7 @@ namespace LinqToDB.SqlProvider
 
 				case EQueryElementType.BetweenPredicate :
 					{
-						var p = (Between)predicate;
+						var p = (IBetween)predicate;
 						BuildExpression(GetPrecedence(p), p.Expr1);
 						if (p.IsNot) StringBuilder.Append(" NOT");
 						StringBuilder.Append(" BETWEEN ");

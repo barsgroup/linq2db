@@ -4,6 +4,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public interface ISelectClause : IClauseWithConditionBase, ISqlExpressionWalkable
     {
@@ -13,6 +14,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
         int Add(IQueryExpression expr, string alias);
 
+        [SearchContainer]
         List<IColumn> Columns { get; }
 
         bool HasModifier { get; }
@@ -21,8 +23,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
         bool IsDistinct { get; set; }
 
+        [SearchContainer]
         IQueryExpression TakeValue { get; set; }
 
+        [SearchContainer]
         IQueryExpression SkipValue { get; set; }
 
         ISelectClause Take(int value);

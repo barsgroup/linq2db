@@ -2,7 +2,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
 {
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
-    public interface IConditionBase<T1, out T2> : IConditionExpr<IExpr<T1, T2>>, IQueryElement,
+    public interface IConditionBase<T1, out T2> : IConditionExpr<IExpr<T1, T2>>,
                                                   IHaveSearchCondition
         where T1 : IConditionBase<T1, T2>
     {

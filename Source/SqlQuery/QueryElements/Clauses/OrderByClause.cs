@@ -5,10 +5,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using System.Linq;
     using System.Text;
 
+    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public class OrderByClause : ClauseBase,
                                  IOrderByClause
@@ -60,7 +62,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         }
 
         readonly List<IOrderByItem> _items = new List<IOrderByItem>();
-        public   List<IOrderByItem>  Items => _items;
+
+        public List<IOrderByItem>  Items => _items;
 
         public bool IsEmpty => Items.Count == 0;
 
@@ -77,11 +80,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #endregion
 
         #region IQueryElement Members
-
-        public override void GetChildren(LinkedList<IQueryElement> list)
-        {
-            FillList(Items, list);
-        }
 
         public override EQueryElementType ElementType => EQueryElementType.OrderByClause;
 

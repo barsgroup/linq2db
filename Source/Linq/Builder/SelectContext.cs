@@ -10,6 +10,7 @@ namespace LinqToDB.Linq.Builder
 	using Extensions;
 
 	using LinqToDB.SqlQuery.QueryElements.Conditions;
+	using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements;
 	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -492,16 +493,14 @@ namespace LinqToDB.Linq.Builder
 						case ConvertFlags.All   :
 							{
 								var p = Expression.Parameter(Body.Type, "p");
-								var q =
-									from m in Members.Keys
-									where !(m is MethodInfo)
-									select new SqlData
-									{
-										Sql    = ConvertToIndex(Expression.MakeMemberAccess(p, m), 1, flags),
-										Member = m
-									} into mm
-									from m in mm.Sql.Select(s => s.Clone(mm.Member))
-									select m;
+								var q = Members.Keys
+                                    .Where(m => !(m is MethodInfo))
+                                    .Select(m => new SqlData
+								         {
+								             Sql = ConvertToIndex(Expression.MakeMemberAccess(p, m), 1, flags),
+								             Member = m
+								         })
+                                    .SelectMany(mm => mm.Sql.Select(s => s.Clone(mm.Member)));
 
 								return q.ToArray();
 							}
