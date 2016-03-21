@@ -1,9 +1,9 @@
 ﻿namespace LinqToDB.Expressions
 {
-	using Mapping;
+    using Mapping;
 
-	public interface IGenericInfoProvider
-	{
-		void SetInfo(MappingSchema mappingSchema);
-	}
+    public interface IGenericInfoProvider
+    {
+        void SetInfo(MappingSchema mappingSchema);
+    }
 }

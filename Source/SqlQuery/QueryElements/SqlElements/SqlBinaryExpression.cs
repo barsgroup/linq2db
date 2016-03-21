@@ -12,25 +12,25 @@
     using LinqToDB.SqlQuery.Search;
 
     [Serializable, DebuggerDisplay("SQL = {SqlText}")]
-	public class SqlBinaryExpression : BaseQueryElement,
-	                                   ISqlBinaryExpression
+    public class SqlBinaryExpression : BaseQueryElement,
+                                       ISqlBinaryExpression
     {
-		public SqlBinaryExpression(Type systemType, IQueryExpression expr1, string operation, IQueryExpression expr2, int precedence = SqlQuery.Precedence.Unknown)
-		{
-			if (expr1     == null) throw new ArgumentNullException(nameof(expr1));
-			if (operation == null) throw new ArgumentNullException(nameof(operation));
-			if (expr2     == null) throw new ArgumentNullException(nameof(expr2));
+        public SqlBinaryExpression(Type systemType, IQueryExpression expr1, string operation, IQueryExpression expr2, int precedence = SqlQuery.Precedence.Unknown)
+        {
+            if (expr1     == null) throw new ArgumentNullException(nameof(expr1));
+            if (operation == null) throw new ArgumentNullException(nameof(operation));
+            if (expr2     == null) throw new ArgumentNullException(nameof(expr2));
 
-			Expr1      = expr1;
-			Operation  = operation;
-			Expr2      = expr2;
-			SystemType = systemType;
-			Precedence = precedence;
-		}
+            Expr1      = expr1;
+            Operation  = operation;
+            Expr2      = expr2;
+            SystemType = systemType;
+            Precedence = precedence;
+        }
 
         public IQueryExpression Expr1 { get; set; }
 
-		public string         Operation  { get; private set;  }
+        public string         Operation  { get; private set;  }
 
         public IQueryExpression Expr2      { get; set; }
 
@@ -38,86 +38,86 @@
 
         public int            Precedence { get; private set;  }
 
-		#region Overrides
+        #region Overrides
 
 #if OVERRIDETOSTRING
 
-		public override string ToString()
-		{
-			return ((IQueryElement)this).ToString(new StringBuilder(), new Dictionary<IQueryElement,IQueryElement>()).ToString();
-		}
+        public override string ToString()
+        {
+            return ((IQueryElement)this).ToString(new StringBuilder(), new Dictionary<IQueryElement,IQueryElement>()).ToString();
+        }
 
 #endif
 
-		#endregion
+        #endregion
 
-		#region ISqlExpressionWalkable Members
+        #region ISqlExpressionWalkable Members
 
-		IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
-		{
-			Expr1 = Expr1.Walk(skipColumns, func);
-			Expr2 = Expr2.Walk(skipColumns, func);
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
+        {
+            Expr1 = Expr1.Walk(skipColumns, func);
+            Expr2 = Expr2.Walk(skipColumns, func);
 
-			return func(this);
-		}
+            return func(this);
+        }
 
-		#endregion
+        #endregion
 
-		#region IEquatable<ISqlExpression> Members
+        #region IEquatable<ISqlExpression> Members
 
-		bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
-		{
-			return Equals(other, SqlExpression.DefaultComparer);
-		}
+        bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
+        {
+            return Equals(other, SqlExpression.DefaultComparer);
+        }
 
-		#endregion
+        #endregion
 
-		#region ISqlExpression Members
+        #region ISqlExpression Members
 
-		public bool CanBeNull()
-		{
-			return Expr1.CanBeNull() || Expr2.CanBeNull();
-		}
+        public bool CanBeNull()
+        {
+            return Expr1.CanBeNull() || Expr2.CanBeNull();
+        }
 
-		public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
-		{
-			if (this == other)
-				return true;
+        public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
+        {
+            if (this == other)
+                return true;
 
-			var expr = other as ISqlBinaryExpression;
+            var expr = other as ISqlBinaryExpression;
 
-			return
-				expr        != null                &&
-				Operation  == expr.Operation       &&
-				SystemType == expr.SystemType      &&
-				Expr1.Equals(expr.Expr1, comparer) &&
-				Expr2.Equals(expr.Expr2, comparer) &&
-				comparer(this, other);
-		}
+            return
+                expr        != null                &&
+                Operation  == expr.Operation       &&
+                SystemType == expr.SystemType      &&
+                Expr1.Equals(expr.Expr1, comparer) &&
+                Expr2.Equals(expr.Expr2, comparer) &&
+                comparer(this, other);
+        }
 
-		#endregion
+        #endregion
 
-		#region ICloneableElement Members
+        #region ICloneableElement Members
 
-		public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
-		{
-			if (!doClone(this))
-				return this;
+        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        {
+            if (!doClone(this))
+                return this;
 
-			ICloneableElement clone;
+            ICloneableElement clone;
 
-			if (!objectTree.TryGetValue(this, out clone))
-			{
-				objectTree.Add(this, clone = new SqlBinaryExpression(
-					SystemType,
-					(IQueryExpression)Expr1.Clone(objectTree, doClone),
-					Operation,
-					(IQueryExpression)Expr2.Clone(objectTree, doClone),
-					Precedence));
-			}
+            if (!objectTree.TryGetValue(this, out clone))
+            {
+                objectTree.Add(this, clone = new SqlBinaryExpression(
+                    SystemType,
+                    (IQueryExpression)Expr1.Clone(objectTree, doClone),
+                    Operation,
+                    (IQueryExpression)Expr2.Clone(objectTree, doClone),
+                    Precedence));
+            }
 
-			return clone;
-		}
+            return clone;
+        }
 
         #endregion
 
@@ -126,16 +126,16 @@
         public override EQueryElementType ElementType => EQueryElementType.SqlBinaryExpression;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
-		{
-			Expr1
-				.ToString(sb, dic)
-				.Append(' ')
-				.Append(Operation)
-				.Append(' ');
+        {
+            Expr1
+                .ToString(sb, dic)
+                .Append(' ')
+                .Append(Operation)
+                .Append(' ');
 
-			return Expr2.ToString(sb, dic);
-		}
+            return Expr2.ToString(sb, dic);
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

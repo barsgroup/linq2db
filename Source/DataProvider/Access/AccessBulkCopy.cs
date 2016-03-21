@@ -2,15 +2,15 @@
 
 namespace LinqToDB.DataProvider.Access
 {
-	using Data;
+    using Data;
 
-	class AccessBulkCopy : BasicBulkCopy
-	{
-		protected override BulkCopyRowsCopied MultipleRowsCopy<T>(
-			DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
-		{
-			return base.MultipleRowsCopy(dataConnection, options, source);
-			//return MultipleRowsCopy2(dataConnection, options, source, "");
-		}
-	}
+    class AccessBulkCopy : BasicBulkCopy
+    {
+        protected override BulkCopyRowsCopied MultipleRowsCopy<T>(
+            DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+        {
+            return base.MultipleRowsCopy(dataConnection, options, source);
+            //return MultipleRowsCopy2(dataConnection, options, source, "");
+        }
+    }
 }

@@ -5,34 +5,34 @@ namespace LinqToDB.Data
     using LinqToDB.Properties;
 
     public class DataConnectionTransaction : IDisposable
-	{
-		public DataConnectionTransaction([NotNull] DataConnection dataConnection)
-		{
-			if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
+    {
+        public DataConnectionTransaction([NotNull] DataConnection dataConnection)
+        {
+            if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
 
-			DataConnection = dataConnection;
-		}
+            DataConnection = dataConnection;
+        }
 
-		public DataConnection DataConnection { get; private set; }
+        public DataConnection DataConnection { get; private set; }
 
-		bool _disposeTransaction = true;
+        bool _disposeTransaction = true;
 
-		public void Commit()
-		{
-			DataConnection.CommitTransaction();
-			_disposeTransaction = false;
-		}
+        public void Commit()
+        {
+            DataConnection.CommitTransaction();
+            _disposeTransaction = false;
+        }
 
-		public void Rollback()
-		{
-			DataConnection.RollbackTransaction();
-			_disposeTransaction = false;
-		}
+        public void Rollback()
+        {
+            DataConnection.RollbackTransaction();
+            _disposeTransaction = false;
+        }
 
-		public void Dispose()
-		{
-			if (_disposeTransaction)
-				DataConnection.RollbackTransaction();
-		}
-	}
+        public void Dispose()
+        {
+            if (_disposeTransaction)
+                DataConnection.RollbackTransaction();
+        }
+    }
 }

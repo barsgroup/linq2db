@@ -1,6 +1,6 @@
 ﻿namespace LinqToDB.Linq
 {
-	public interface IValueInsertable<T>
-	{
-	}
+    public interface IValueInsertable<T>
+    {
+    }
 }

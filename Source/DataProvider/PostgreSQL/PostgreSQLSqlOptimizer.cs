@@ -1,93 +1,93 @@
 ﻿namespace LinqToDB.DataProvider.PostgreSQL
 {
-	using Extensions;
+    using Extensions;
 
-	using LinqToDB.SqlQuery.QueryElements.Enums;
-	using LinqToDB.SqlQuery.QueryElements.Interfaces;
-	using LinqToDB.SqlQuery.QueryElements.SqlElements;
-	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	using SqlProvider;
-	using SqlQuery;
+    using SqlProvider;
+    using SqlQuery;
 
-	class PostgreSQLSqlOptimizer : BasicSqlOptimizer
-	{
-		public PostgreSQLSqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
-		{
-		}
+    class PostgreSQLSqlOptimizer : BasicSqlOptimizer
+    {
+        public PostgreSQLSqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
+        {
+        }
 
-		public override ISelectQuery Finalize(ISelectQuery selectQuery)
-		{
-			CheckAliases(selectQuery, int.MaxValue);
+        public override ISelectQuery Finalize(ISelectQuery selectQuery)
+        {
+            CheckAliases(selectQuery, int.MaxValue);
 
-			selectQuery = base.Finalize(selectQuery);
+            selectQuery = base.Finalize(selectQuery);
 
-			switch (selectQuery.EQueryType)
-			{
-				case EQueryType.Delete : return GetAlternativeDelete(selectQuery);
-				case EQueryType.Update : return GetAlternativeUpdate(selectQuery);
-				default               : return selectQuery;
-			}
-		}
+            switch (selectQuery.EQueryType)
+            {
+                case EQueryType.Delete : return GetAlternativeDelete(selectQuery);
+                case EQueryType.Update : return GetAlternativeUpdate(selectQuery);
+                default               : return selectQuery;
+            }
+        }
 
-		public override IQueryExpression ConvertExpression(IQueryExpression expr)
-		{
-			expr = base.ConvertExpression(expr);
+        public override IQueryExpression ConvertExpression(IQueryExpression expr)
+        {
+            expr = base.ConvertExpression(expr);
 
-		    var sqlBinaryExpression = expr as ISqlBinaryExpression;
-		    if (sqlBinaryExpression != null)
-			{
-				switch (sqlBinaryExpression.Operation)
-				{
-					case "^": return new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "#", sqlBinaryExpression.Expr2);
-					case "+": return sqlBinaryExpression.SystemType == typeof(string)? new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "||", sqlBinaryExpression.Expr2, sqlBinaryExpression.Precedence): expr;
-				}
-			}
-			else
-		    {
-		        var sqlFunction = expr as ISqlFunction;
-		        if (sqlFunction != null)
-		        {
-		            switch (sqlFunction.Name)
-		            {
-		                case "Convert"   :
-		                    if (sqlFunction.SystemType.ToUnderlying() == typeof(bool))
-		                    {
-		                        var ex = AlternativeConvertToBoolean(sqlFunction, 1);
-		                        if (ex != null)
-		                            return ex;
-		                    }
+            var sqlBinaryExpression = expr as ISqlBinaryExpression;
+            if (sqlBinaryExpression != null)
+            {
+                switch (sqlBinaryExpression.Operation)
+                {
+                    case "^": return new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "#", sqlBinaryExpression.Expr2);
+                    case "+": return sqlBinaryExpression.SystemType == typeof(string)? new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "||", sqlBinaryExpression.Expr2, sqlBinaryExpression.Precedence): expr;
+                }
+            }
+            else
+            {
+                var sqlFunction = expr as ISqlFunction;
+                if (sqlFunction != null)
+                {
+                    switch (sqlFunction.Name)
+                    {
+                        case "Convert"   :
+                            if (sqlFunction.SystemType.ToUnderlying() == typeof(bool))
+                            {
+                                var ex = AlternativeConvertToBoolean(sqlFunction, 1);
+                                if (ex != null)
+                                    return ex;
+                            }
 
-		                    return new SqlExpression(sqlFunction.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(sqlFunction), sqlFunction.Parameters[0]);
+                            return new SqlExpression(sqlFunction.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(sqlFunction), sqlFunction.Parameters[0]);
 
-		                case "CharIndex" :
-		                    return sqlFunction.Parameters.Length == 2?
-		                               new SqlExpression(sqlFunction.SystemType, "Position({0} in {1})", Precedence.Primary, sqlFunction.Parameters[0], sqlFunction.Parameters[1]):
-		                               Add<int>(
-		                                   new SqlExpression(sqlFunction.SystemType, "Position({0} in {1})", Precedence.Primary, sqlFunction.Parameters[0],
-		                                   ConvertExpression(new SqlFunction(typeof(string), "Substring",
-		                                   sqlFunction.Parameters[1],
-		                                   sqlFunction.Parameters[2],
-		                                   Sub<int>(ConvertExpression(new SqlFunction(typeof(int), "Length", sqlFunction.Parameters[1])), sqlFunction.Parameters[2])))),
-		                                   Sub(sqlFunction.Parameters[2], 1));
-		            }
-		        }
-		        else
-		        {
-		            var sqlExpression = expr as ISqlExpression;
-		            if (sqlExpression != null)
-		            {
-		                if (sqlExpression.Expr.StartsWith("Extract(DOW"))
-		                    return Inc(new SqlExpression(sqlExpression.SystemType, sqlExpression.Expr.Replace("Extract(DOW", "Extract(Dow"), sqlExpression.Parameters));
+                        case "CharIndex" :
+                            return sqlFunction.Parameters.Length == 2?
+                                       new SqlExpression(sqlFunction.SystemType, "Position({0} in {1})", Precedence.Primary, sqlFunction.Parameters[0], sqlFunction.Parameters[1]):
+                                       Add<int>(
+                                           new SqlExpression(sqlFunction.SystemType, "Position({0} in {1})", Precedence.Primary, sqlFunction.Parameters[0],
+                                           ConvertExpression(new SqlFunction(typeof(string), "Substring",
+                                           sqlFunction.Parameters[1],
+                                           sqlFunction.Parameters[2],
+                                           Sub<int>(ConvertExpression(new SqlFunction(typeof(int), "Length", sqlFunction.Parameters[1])), sqlFunction.Parameters[2])))),
+                                           Sub(sqlFunction.Parameters[2], 1));
+                    }
+                }
+                else
+                {
+                    var sqlExpression = expr as ISqlExpression;
+                    if (sqlExpression != null)
+                    {
+                        if (sqlExpression.Expr.StartsWith("Extract(DOW"))
+                            return Inc(new SqlExpression(sqlExpression.SystemType, sqlExpression.Expr.Replace("Extract(DOW", "Extract(Dow"), sqlExpression.Parameters));
 
-		                if (sqlExpression.Expr.StartsWith("Extract(Millisecond"))
-		                    return new SqlExpression(sqlExpression.SystemType, "Cast(To_Char({0}, 'MS') as int)", sqlExpression.Parameters);
-		            }
-		        }
-		    }
+                        if (sqlExpression.Expr.StartsWith("Extract(Millisecond"))
+                            return new SqlExpression(sqlExpression.SystemType, "Cast(To_Char({0}, 'MS') as int)", sqlExpression.Parameters);
+                    }
+                }
+            }
 
-		    return expr;
-		}
+            return expr;
+        }
 
-	}
+    }
 }

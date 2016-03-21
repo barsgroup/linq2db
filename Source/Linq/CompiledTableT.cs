@@ -4,92 +4,92 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq
 {
-	using Builder;
-	using Mapping;
+    using Builder;
+    using Mapping;
 
-	class CompiledTable<T>
-	{
-		public CompiledTable(LambdaExpression lambda, Expression expression)
-		{
-			_lambda     = lambda;
-			_expression = expression;
-		}
+    class CompiledTable<T>
+    {
+        public CompiledTable(LambdaExpression lambda, Expression expression)
+        {
+            _lambda     = lambda;
+            _expression = expression;
+        }
 
-		readonly LambdaExpression _lambda;
-		readonly Expression       _expression;
-		readonly object           _sync = new object();
+        readonly LambdaExpression _lambda;
+        readonly Expression       _expression;
+        readonly object           _sync = new object();
 
-		string        _lastContextID;
-		MappingSchema _lastMappingSchema;
-		Query<T>      _lastQuery;
+        string        _lastContextID;
+        MappingSchema _lastMappingSchema;
+        Query<T>      _lastQuery;
 
-		readonly Dictionary<object,Query<T>> _infos = new Dictionary<object, Query<T>>();
+        readonly Dictionary<object,Query<T>> _infos = new Dictionary<object, Query<T>>();
 
-		Query<T> GetInfo(IDataContext dataContext)
-		{
-			var dataContextInfo = DataContextInfo.Create(dataContext);
+        Query<T> GetInfo(IDataContext dataContext)
+        {
+            var dataContextInfo = DataContextInfo.Create(dataContext);
 
-			string        lastContextID;
-			MappingSchema lastMappingSchema;
-			Query<T>      query;
+            string        lastContextID;
+            MappingSchema lastMappingSchema;
+            Query<T>      query;
 
-			lock (_sync)
-			{
-				lastContextID     = _lastContextID;
-				lastMappingSchema = _lastMappingSchema;
-				query             = _lastQuery;
-			}
+            lock (_sync)
+            {
+                lastContextID     = _lastContextID;
+                lastMappingSchema = _lastMappingSchema;
+                query             = _lastQuery;
+            }
 
-			var contextID     = dataContextInfo.ContextID;
-			var mappingSchema = dataContextInfo.MappingSchema;
+            var contextID     = dataContextInfo.ContextID;
+            var mappingSchema = dataContextInfo.MappingSchema;
 
-			if (lastContextID != contextID || lastMappingSchema != mappingSchema)
-				query = null;
+            if (lastContextID != contextID || lastMappingSchema != mappingSchema)
+                query = null;
 
-			if (query == null)
-			{
-				var key = new { contextID, mappingSchema };
+            if (query == null)
+            {
+                var key = new { contextID, mappingSchema };
 
-				lock (_sync)
-					_infos.TryGetValue(key, out query);
+                lock (_sync)
+                    _infos.TryGetValue(key, out query);
 
-				if (query == null)
-				{
-					lock (_sync)
-					{
-						_infos.TryGetValue(key, out query);
+                if (query == null)
+                {
+                    lock (_sync)
+                    {
+                        _infos.TryGetValue(key, out query);
 
-						if (query == null)
-						{
-							query = new ExpressionBuilder(new Query<T>(), dataContextInfo, _expression, _lambda.Parameters.ToArray())
-								.Build<T>();
+                        if (query == null)
+                        {
+                            query = new ExpressionBuilder(new Query<T>(), dataContextInfo, _expression, _lambda.Parameters.ToArray())
+                                .Build<T>();
 
-							_infos.Add(key, query);
+                            _infos.Add(key, query);
 
-							_lastContextID     = contextID;
-							_lastMappingSchema = mappingSchema;
-							_lastQuery         = query;
-						}
-					}
-				}
-			}
+                            _lastContextID     = contextID;
+                            _lastMappingSchema = mappingSchema;
+                            _lastQuery         = query;
+                        }
+                    }
+                }
+            }
 
-			return query;
-		}
+            return query;
+        }
 
-		public IQueryable<T> Create(object[] parameters)
-		{
-			var db = (IDataContext)parameters[0];
-			return new Table<T>(db, _expression) { Info = GetInfo(db), Parameters = parameters };
-		}
+        public IQueryable<T> Create(object[] parameters)
+        {
+            var db = (IDataContext)parameters[0];
+            return new Table<T>(db, _expression) { Info = GetInfo(db), Parameters = parameters };
+        }
 
-		public T Execute(object[] parameters)
-		{
-			var db    = (IDataContext)parameters[0];
-			var ctx   = DataContextInfo.Create(db);
-			var query = GetInfo(db);
+        public T Execute(object[] parameters)
+        {
+            var db    = (IDataContext)parameters[0];
+            var ctx   = DataContextInfo.Create(db);
+            var query = GetInfo(db);
 
-			return (T)query.GetElement(null, ctx, _expression, parameters);
-		}
-	}
+            return (T)query.GetElement(null, ctx, _expression, parameters);
+        }
+    }
 }

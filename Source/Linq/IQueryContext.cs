@@ -7,10 +7,10 @@ namespace LinqToDB.Linq
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public interface IQueryContext
-	{
+    {
         ISelectQuery   SelectQuery { get; }
-		object         Context     { get; set; }
-		List<string>   QueryHints  { get; }
+        object         Context     { get; set; }
+        List<string>   QueryHints  { get; }
         ISqlParameter[] GetParameters();
-	}
+    }
 }

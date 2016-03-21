@@ -50,12 +50,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             {
                 return "<@";
             }
-					
+                    
             if (!string.IsNullOrEmpty(_start) && string.IsNullOrEmpty(_end))
             {
                 return "@>";
             }
-					
+                    
             return "@";
         }
     }

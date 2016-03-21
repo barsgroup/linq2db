@@ -2,8 +2,8 @@
 
 namespace LinqToDB.DataProvider
 {
-	public interface IDataProviderFactory
-	{
-		IDataProvider GetDataProvider (NameValueCollection attributes);
-	}
+    public interface IDataProviderFactory
+    {
+        IDataProvider GetDataProvider (NameValueCollection attributes);
+    }
 }

@@ -1,18 +1,18 @@
 ﻿namespace LinqToDB.Linq
 {
-	using Mapping;
-	using SqlProvider;
+    using Mapping;
+    using SqlProvider;
 
-	public interface IDataContextInfo
-	{
-		IDataContext     DataContext      { get; }
-		string           ContextID        { get; }
-		MappingSchema    MappingSchema    { get; }
-		bool             DisposeContext   { get; }
-		SqlProviderFlags SqlProviderFlags { get; }
+    public interface IDataContextInfo
+    {
+        IDataContext     DataContext      { get; }
+        string           ContextID        { get; }
+        MappingSchema    MappingSchema    { get; }
+        bool             DisposeContext   { get; }
+        SqlProviderFlags SqlProviderFlags { get; }
 
-		ISqlBuilder      CreateSqlBuilder ();
-		ISqlOptimizer    GetSqlOptimizer  ();
-		IDataContextInfo Clone(bool forNestedQuery);
-	}
+        ISqlBuilder      CreateSqlBuilder ();
+        ISqlOptimizer    GetSqlOptimizer  ();
+        IDataContextInfo Clone(bool forNestedQuery);
+    }
 }

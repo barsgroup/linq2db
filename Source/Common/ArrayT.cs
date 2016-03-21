@@ -3,8 +3,8 @@
     using LinqToDB.Properties;
 
     public static class Array<T>
-	{
-		[NotNull]
-		public static readonly T[] Empty = new T[0];
-	}
+    {
+        [NotNull]
+        public static readonly T[] Empty = new T[0];
+    }
 }

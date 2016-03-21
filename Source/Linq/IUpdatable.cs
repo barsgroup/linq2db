@@ -1,6 +1,6 @@
 ﻿namespace LinqToDB.Linq
 {
-	public interface IUpdatable<T>
-	{
-	}
+    public interface IUpdatable<T>
+    {
+    }
 }

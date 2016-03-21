@@ -5,11 +5,11 @@ namespace LinqToDB.DataProvider.PostgreSQL
     using LinqToDB.Properties;
 
     [UsedImplicitly]
-	class PostgreSQLFactory: IDataProviderFactory
-	{
-		IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)
-		{
-			return new PostgreSQLDataProvider();
-		}
-	}
+    class PostgreSQLFactory: IDataProviderFactory
+    {
+        IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)
+        {
+            return new PostgreSQLDataProvider();
+        }
+    }
 }

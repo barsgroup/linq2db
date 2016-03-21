@@ -6,416 +6,416 @@ using System.Text;
 
 namespace LinqToDB.DataProvider
 {
-	using Common;
-	using Data;
-	using Linq;
+    using Common;
+    using Data;
+    using Linq;
 
-	using LinqToDB.Extensions;
-	using LinqToDB.SqlQuery.QueryElements.Enums;
-	using LinqToDB.SqlQuery.QueryElements.Interfaces;
-	using LinqToDB.SqlQuery.QueryElements.SqlElements;
-	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.Extensions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	using Mapping;
-	using SqlQuery;
-	using SqlProvider;
+    using Mapping;
+    using SqlQuery;
+    using SqlProvider;
 
-	class BasicMerge
-	{
-		protected class ColumnInfo
-		{
-			public string           Name;
-			public ColumnDescriptor Column;
-		}
+    class BasicMerge
+    {
+        protected class ColumnInfo
+        {
+            public string           Name;
+            public ColumnDescriptor Column;
+        }
 
-		protected string ByTargetText;
+        protected string ByTargetText;
 
-		protected StringBuilder       StringBuilder = new StringBuilder();
-		protected List<DataParameter> Parameters    = new List<DataParameter>();
-		protected List<ColumnInfo>    Columns;
+        protected StringBuilder       StringBuilder = new StringBuilder();
+        protected List<DataParameter> Parameters    = new List<DataParameter>();
+        protected List<ColumnInfo>    Columns;
 
-		protected virtual bool IsIdentitySupported => false;
+        protected virtual bool IsIdentitySupported => false;
 
-	    public virtual int Merge<T>(DataConnection dataConnection, Expression<Func<T,bool>> predicate, bool delete, IEnumerable<T> source,
-			string tableName, string databaseName, string schemaName)
-			where T : class
-		{
-			if (!BuildCommand(dataConnection, predicate, delete, source, tableName, databaseName, schemaName))
-				return 0;
+        public virtual int Merge<T>(DataConnection dataConnection, Expression<Func<T,bool>> predicate, bool delete, IEnumerable<T> source,
+            string tableName, string databaseName, string schemaName)
+            where T : class
+        {
+            if (!BuildCommand(dataConnection, predicate, delete, source, tableName, databaseName, schemaName))
+                return 0;
 
-			return Execute(dataConnection);
-		}
+            return Execute(dataConnection);
+        }
 
-		protected virtual bool BuildCommand<T>(
-			DataConnection dataConnection, Expression<Func<T,bool>> deletePredicate, bool delete, IEnumerable<T> source,
-			string tableName, string databaseName, string schemaName)
-			where T : class
-		{
-			var table      = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
-			var sqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
+        protected virtual bool BuildCommand<T>(
+            DataConnection dataConnection, Expression<Func<T,bool>> deletePredicate, bool delete, IEnumerable<T> source,
+            string tableName, string databaseName, string schemaName)
+            where T : class
+        {
+            var table      = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
+            var sqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
 
-			Columns = table.Columns
-				.Select(c => new ColumnInfo
-				{
-					Column = c,
-					Name   = (string)sqlBuilder.Convert(c.ColumnName, ConvertType.NameToQueryField)
-				})
-				.ToList();
+            Columns = table.Columns
+                .Select(c => new ColumnInfo
+                {
+                    Column = c,
+                    Name   = (string)sqlBuilder.Convert(c.ColumnName, ConvertType.NameToQueryField)
+                })
+                .ToList();
 
-			StringBuilder.Append("MERGE INTO ");
-			sqlBuilder.BuildTableName(StringBuilder,
-				(string)sqlBuilder.Convert(databaseName ?? table.DatabaseName, ConvertType.NameToDatabase),
-				(string)sqlBuilder.Convert(schemaName   ?? table.SchemaName,   ConvertType.NameToOwner),
-				(string)sqlBuilder.Convert(tableName    ?? table.TableName,    ConvertType.NameToQueryTable));
+            StringBuilder.Append("MERGE INTO ");
+            sqlBuilder.BuildTableName(StringBuilder,
+                (string)sqlBuilder.Convert(databaseName ?? table.DatabaseName, ConvertType.NameToDatabase),
+                (string)sqlBuilder.Convert(schemaName   ?? table.SchemaName,   ConvertType.NameToOwner),
+                (string)sqlBuilder.Convert(tableName    ?? table.TableName,    ConvertType.NameToQueryTable));
 
-			StringBuilder
-				.AppendLine(" Target")
-				;
+            StringBuilder
+                .AppendLine(" Target")
+                ;
 
-			if (!BuildUsing(dataConnection, source))
-				return false;
+            if (!BuildUsing(dataConnection, source))
+                return false;
 
-			StringBuilder
-				.AppendLine("ON")
-				.AppendLine("(")
-				;
+            StringBuilder
+                .AppendLine("ON")
+                .AppendLine("(")
+                ;
 
-			foreach (var column in Columns.Where(c => c.Column.IsPrimaryKey))
-			{
-				StringBuilder
-					.AppendFormat("\tTarget.{0} = Source.{0} AND", column.Name)
-					.AppendLine()
-					;
-			}
+            foreach (var column in Columns.Where(c => c.Column.IsPrimaryKey))
+            {
+                StringBuilder
+                    .AppendFormat("\tTarget.{0} = Source.{0} AND", column.Name)
+                    .AppendLine()
+                    ;
+            }
 
-			StringBuilder.Length -= 4 + Environment.NewLine.Length;
+            StringBuilder.Length -= 4 + Environment.NewLine.Length;
 
-			StringBuilder
-				.AppendLine()
-				.AppendLine(")")
-				;
+            StringBuilder
+                .AppendLine()
+                .AppendLine(")")
+                ;
 
-			var updateColumns = Columns.Where(c => !c.Column.IsPrimaryKey && (IsIdentitySupported && c.Column.IsIdentity || !c.Column.SkipOnUpdate)).ToList();
+            var updateColumns = Columns.Where(c => !c.Column.IsPrimaryKey && (IsIdentitySupported && c.Column.IsIdentity || !c.Column.SkipOnUpdate)).ToList();
 
-			if (updateColumns.Count > 0)
-			{
-				StringBuilder
-					.AppendLine("-- update matched rows")
-					.AppendLine("WHEN MATCHED THEN")
-					.AppendLine("\tUPDATE")
-					.AppendLine("\tSET")
-					;
+            if (updateColumns.Count > 0)
+            {
+                StringBuilder
+                    .AppendLine("-- update matched rows")
+                    .AppendLine("WHEN MATCHED THEN")
+                    .AppendLine("\tUPDATE")
+                    .AppendLine("\tSET")
+                    ;
 
-				var maxLen = updateColumns.Max(c => c.Name.Length);
+                var maxLen = updateColumns.Max(c => c.Name.Length);
 
-				foreach (var column in updateColumns)
-				{
-					StringBuilder
-						.AppendFormat("\t\t{0} ", column.Name)
-						;
+                foreach (var column in updateColumns)
+                {
+                    StringBuilder
+                        .AppendFormat("\t\t{0} ", column.Name)
+                        ;
 
-					StringBuilder.Append(' ', maxLen - column.Name.Length);
+                    StringBuilder.Append(' ', maxLen - column.Name.Length);
 
-					StringBuilder
-						.AppendFormat("= Source.{0},", column.Name)
-						.AppendLine()
-						;
-				}
+                    StringBuilder
+                        .AppendFormat("= Source.{0},", column.Name)
+                        .AppendLine()
+                        ;
+                }
 
-				StringBuilder.Length -= 1 + Environment.NewLine.Length;
-			}
+                StringBuilder.Length -= 1 + Environment.NewLine.Length;
+            }
 
-			var insertColumns = Columns.Where(c => IsIdentitySupported && c.Column.IsIdentity || !c.Column.SkipOnInsert).ToList();
+            var insertColumns = Columns.Where(c => IsIdentitySupported && c.Column.IsIdentity || !c.Column.SkipOnInsert).ToList();
 
-			StringBuilder
-				.AppendLine()
-				.AppendLine("-- insert new rows")
-				.Append("WHEN NOT MATCHED ").Append(ByTargetText).AppendLine("THEN")
-				.AppendLine("\tINSERT")
-				.AppendLine("\t(")
-				;
+            StringBuilder
+                .AppendLine()
+                .AppendLine("-- insert new rows")
+                .Append("WHEN NOT MATCHED ").Append(ByTargetText).AppendLine("THEN")
+                .AppendLine("\tINSERT")
+                .AppendLine("\t(")
+                ;
 
-			foreach (var column in insertColumns)
-				StringBuilder.AppendFormat("\t\t{0},", column.Name).AppendLine();
+            foreach (var column in insertColumns)
+                StringBuilder.AppendFormat("\t\t{0},", column.Name).AppendLine();
 
-			StringBuilder.Length -= 1 + Environment.NewLine.Length;
+            StringBuilder.Length -= 1 + Environment.NewLine.Length;
 
-			StringBuilder
-				.AppendLine()
-				.AppendLine("\t)")
-				.AppendLine("\tVALUES")
-				.AppendLine("\t(")
-				;
+            StringBuilder
+                .AppendLine()
+                .AppendLine("\t)")
+                .AppendLine("\tVALUES")
+                .AppendLine("\t(")
+                ;
 
-			foreach (var column in insertColumns)
-				StringBuilder.AppendFormat("\t\tSource.{0},", column.Name).AppendLine();
+            foreach (var column in insertColumns)
+                StringBuilder.AppendFormat("\t\tSource.{0},", column.Name).AppendLine();
 
-			StringBuilder.Length -= 1 + Environment.NewLine.Length;
+            StringBuilder.Length -= 1 + Environment.NewLine.Length;
 
-			StringBuilder
-				.AppendLine()
-				.AppendLine("\t)")
-				;
+            StringBuilder
+                .AppendLine()
+                .AppendLine("\t)")
+                ;
 
-			if (delete)
-			{
-				var predicate = "";
+            if (delete)
+            {
+                var predicate = "";
 
-				if (deletePredicate != null)
-				{
-					var inlineParameters = dataConnection.InlineParameters;
+                if (deletePredicate != null)
+                {
+                    var inlineParameters = dataConnection.InlineParameters;
 
-					try
-					{
-						dataConnection.InlineParameters = true;
+                    try
+                    {
+                        dataConnection.InlineParameters = true;
 
-						var q   = dataConnection.GetTable<T>().Where(deletePredicate);
-						var ctx = q.GetContext();
-						var sql = ctx.Select;
+                        var q   = dataConnection.GetTable<T>().Where(deletePredicate);
+                        var ctx = q.GetContext();
+                        var sql = ctx.Select;
 
-						var tableSet  = new HashSet<ISqlTable>();
-						var tables    = new List<ISqlTable>();
+                        var tableSet  = new HashSet<ISqlTable>();
+                        var tables    = new List<ISqlTable>();
 
-						var fromTable = (ISqlTable)sql.From.Tables.First.Value.Source;
+                        var fromTable = (ISqlTable)sql.From.Tables.First.Value.Source;
 
-					    foreach (var tableSource in QueryVisitor.FindOnce<ITableSource>(sql.From))
-					    {
+                        foreach (var tableSource in QueryVisitor.FindOnce<ITableSource>(sql.From))
+                        {
                             tableSet.Add((ISqlTable)tableSource.Source);
                             tables.Add((ISqlTable)tableSource.Source);
                         }
 
-						var whereClause = new QueryVisitor().Convert(sql.Where, e =>
-						{
-							if (e.ElementType == EQueryElementType.SqlQuery)
-							{
-								
-							}
+                        var whereClause = new QueryVisitor().Convert(sql.Where, e =>
+                        {
+                            if (e.ElementType == EQueryElementType.SqlQuery)
+                            {
+                                
+                            }
 
-							if (e.ElementType == EQueryElementType.SqlField)
-							{
-								var fld = (ISqlField)e;
-								var tbl = (ISqlTable)fld.Table;
+                            if (e.ElementType == EQueryElementType.SqlField)
+                            {
+                                var fld = (ISqlField)e;
+                                var tbl = (ISqlTable)fld.Table;
 
-								if (tbl != fromTable && tableSet.Contains(tbl))
-								{
-									var tempCopy   = sql.Clone();
-									var tempTables = new List<ITableSource>();
+                                if (tbl != fromTable && tableSet.Contains(tbl))
+                                {
+                                    var tempCopy   = sql.Clone();
+                                    var tempTables = new List<ITableSource>();
 
                                     tempTables.AddRange(QueryVisitor.FindOnce<ITableSource>(tempCopy.From));
 
-									var tt = tempTables[tables.IndexOf(tbl)];
+                                    var tt = tempTables[tables.IndexOf(tbl)];
 
-									tempCopy.Select.Columns.Clear();
-									tempCopy.Select.Add(((SqlTable)tt.Source).Fields[fld.Name]);
+                                    tempCopy.Select.Columns.Clear();
+                                    tempCopy.Select.Add(((SqlTable)tt.Source).Fields[fld.Name]);
 
-									tempCopy.Where.Search.Conditions.Clear();
+                                    tempCopy.Where.Search.Conditions.Clear();
 
-									var keys = tempCopy.From.Tables.First.Value.Source.GetKeys(true);
+                                    var keys = tempCopy.From.Tables.First.Value.Source.GetKeys(true);
 
-									foreach (ISqlField key in keys)
-										tempCopy.Where.Field(key).Equal.Field(fromTable.Fields[key.Name]);
+                                    foreach (ISqlField key in keys)
+                                        tempCopy.Where.Field(key).Equal.Field(fromTable.Fields[key.Name]);
 
-									tempCopy.ParentSelect = sql;
+                                    tempCopy.ParentSelect = sql;
 
-									return tempCopy;
-								}
-							}
+                                    return tempCopy;
+                                }
+                            }
 
-							return e;
-						}).Search.Conditions.ToList();
+                            return e;
+                        }).Search.Conditions.ToList();
 
-						sql.Where.Search.Conditions.Clear();
-						sql.Where.Search.Conditions.AddRange(whereClause);
+                        sql.Where.Search.Conditions.Clear();
+                        sql.Where.Search.Conditions.AddRange(whereClause);
 
-						sql.From.Tables.First.Value.Alias = "Target";
+                        sql.From.Tables.First.Value.Alias = "Target";
 
-						ctx.SetParameters();
+                        ctx.SetParameters();
 
-						var pq = (DataConnection.PreparedQuery)((IDataContext)dataConnection).SetQuery(new QueryContext
-						{
-							SelectQuery   = sql,
-							SqlParameters = sql.Parameters.ToArray(),
-						});
+                        var pq = (DataConnection.PreparedQuery)((IDataContext)dataConnection).SetQuery(new QueryContext
+                        {
+                            SelectQuery   = sql,
+                            SqlParameters = sql.Parameters.ToArray(),
+                        });
 
-						var cmd = pq.Commands[0];
+                        var cmd = pq.Commands[0];
 
-						predicate = "AND " + cmd.Substring(cmd.IndexOf("WHERE") + "WHERE".Length);
-					}
-					finally
-					{
-						dataConnection.InlineParameters = inlineParameters;
-					}
-				}
+                        predicate = "AND " + cmd.Substring(cmd.IndexOf("WHERE") + "WHERE".Length);
+                    }
+                    finally
+                    {
+                        dataConnection.InlineParameters = inlineParameters;
+                    }
+                }
 
-				StringBuilder
-					.AppendLine("-- delete rows that are in the target but not in the sourse")
-					.AppendLine("WHEN NOT MATCHED BY Source {0}THEN".Args(predicate))
-					.AppendLine("\tDELETE")
-					;
-			}
+                StringBuilder
+                    .AppendLine("-- delete rows that are in the target but not in the sourse")
+                    .AppendLine("WHEN NOT MATCHED BY Source {0}THEN".Args(predicate))
+                    .AppendLine("\tDELETE")
+                    ;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		class QueryContext : IQueryContext
-		{
-			public ISelectQuery SelectQuery { get; set; }
-			public object         Context     { get; set; }
-			public ISqlParameter[] SqlParameters;
-			public List<string>   QueryHints  { get; set; }
+        class QueryContext : IQueryContext
+        {
+            public ISelectQuery SelectQuery { get; set; }
+            public object         Context     { get; set; }
+            public ISqlParameter[] SqlParameters;
+            public List<string>   QueryHints  { get; set; }
 
-			public ISqlParameter[] GetParameters()
-			{
-				return SqlParameters;
-			}
-		}
+            public ISqlParameter[] GetParameters()
+            {
+                return SqlParameters;
+            }
+        }
 
-		protected virtual bool BuildUsing<T>(DataConnection dataConnection, IEnumerable<T> source)
-		{
-			var table          = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
-			var sqlBuilder     = dataConnection.DataProvider.CreateSqlBuilder();
-			var pname          = sqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
-			var valueConverter = dataConnection.MappingSchema.ValueToSqlConverter;
+        protected virtual bool BuildUsing<T>(DataConnection dataConnection, IEnumerable<T> source)
+        {
+            var table          = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
+            var sqlBuilder     = dataConnection.DataProvider.CreateSqlBuilder();
+            var pname          = sqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
+            var valueConverter = dataConnection.MappingSchema.ValueToSqlConverter;
 
-			StringBuilder
-				.AppendLine("USING")
-				.AppendLine("(")
-				.AppendLine("\tVALUES")
-				;
+            StringBuilder
+                .AppendLine("USING")
+                .AppendLine("(")
+                .AppendLine("\tVALUES")
+                ;
 
-			var pidx  = 0;
+            var pidx  = 0;
 
-			var hasData     = false;
-			var columnTypes = table.Columns
-				.Select(c => new SqlDataType(c.DataType, c.MemberType, c.Length, c.Precision, c.Scale))
-				.ToArray();
+            var hasData     = false;
+            var columnTypes = table.Columns
+                .Select(c => new SqlDataType(c.DataType, c.MemberType, c.Length, c.Precision, c.Scale))
+                .ToArray();
 
-			foreach (var item in source)
-			{
-				hasData = true;
+            foreach (var item in source)
+            {
+                hasData = true;
 
-				StringBuilder.Append("\t(");
+                StringBuilder.Append("\t(");
 
-				for (var i = 0; i < table.Columns.Count; i++)
-				{
-					var column = table.Columns[i];
-					var value  = column.GetValue(item);
+                for (var i = 0; i < table.Columns.Count; i++)
+                {
+                    var column = table.Columns[i];
+                    var value  = column.GetValue(item);
 
-					if (!valueConverter.TryConvert(StringBuilder, columnTypes[i], value))
-					{
-						var name = pname == "?" ? pname : pname + ++pidx;
+                    if (!valueConverter.TryConvert(StringBuilder, columnTypes[i], value))
+                    {
+                        var name = pname == "?" ? pname : pname + ++pidx;
 
-						StringBuilder.Append(name);
-						Parameters.Add(new DataParameter(pname == "?" ? pname : "p" + pidx, value,
-							column.DataType));
-					}
+                        StringBuilder.Append(name);
+                        Parameters.Add(new DataParameter(pname == "?" ? pname : "p" + pidx, value,
+                            column.DataType));
+                    }
 
-					StringBuilder.Append(",");
-				}
+                    StringBuilder.Append(",");
+                }
 
-				StringBuilder.Length--;
-				StringBuilder.AppendLine("),");
-			}
+                StringBuilder.Length--;
+                StringBuilder.AppendLine("),");
+            }
 
-			if (hasData)
-			{
-				var idx = StringBuilder.Length;
-				while (StringBuilder[--idx] != ',') {}
-				StringBuilder.Remove(idx, 1);
+            if (hasData)
+            {
+                var idx = StringBuilder.Length;
+                while (StringBuilder[--idx] != ',') {}
+                StringBuilder.Remove(idx, 1);
 
-				StringBuilder
-					.AppendLine(")")
-					.AppendLine("AS Source")
-					.AppendLine("(")
-					;
+                StringBuilder
+                    .AppendLine(")")
+                    .AppendLine("AS Source")
+                    .AppendLine("(")
+                    ;
 
-				foreach (var column in Columns)
-					StringBuilder.AppendFormat("\t{0},", column.Name).AppendLine();
+                foreach (var column in Columns)
+                    StringBuilder.AppendFormat("\t{0},", column.Name).AppendLine();
 
-				StringBuilder.Length -= 1 + Environment.NewLine.Length;
+                StringBuilder.Length -= 1 + Environment.NewLine.Length;
 
-				StringBuilder
-					.AppendLine()
-					.AppendLine(")")
-					;
-			}
+                StringBuilder
+                    .AppendLine()
+                    .AppendLine(")")
+                    ;
+            }
 
-			return hasData;
-		}
+            return hasData;
+        }
 
-		protected bool BuildUsing2<T>(DataConnection dataConnection, IEnumerable<T> source, string top, string fromDummyTable)
-		{
-			var table          = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
-			var sqlBuilder     = dataConnection.DataProvider.CreateSqlBuilder();
-			var pname          = sqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
-			var valueConverter = dataConnection.MappingSchema.ValueToSqlConverter;
+        protected bool BuildUsing2<T>(DataConnection dataConnection, IEnumerable<T> source, string top, string fromDummyTable)
+        {
+            var table          = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
+            var sqlBuilder     = dataConnection.DataProvider.CreateSqlBuilder();
+            var pname          = sqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
+            var valueConverter = dataConnection.MappingSchema.ValueToSqlConverter;
 
-			StringBuilder
-				.AppendLine("USING")
-				.AppendLine("(")
-				;
+            StringBuilder
+                .AppendLine("USING")
+                .AppendLine("(")
+                ;
 
-			var pidx  = 0;
+            var pidx  = 0;
 
-			var hasData     = false;
-			var columnTypes = table.Columns
-				.Select(c => new SqlDataType(c.DataType, c.MemberType, c.Length, c.Precision, c.Scale))
-				.ToArray();
+            var hasData     = false;
+            var columnTypes = table.Columns
+                .Select(c => new SqlDataType(c.DataType, c.MemberType, c.Length, c.Precision, c.Scale))
+                .ToArray();
 
-			foreach (var item in source)
-			{
-				if (hasData)
-					StringBuilder.Append(" UNION ALL").AppendLine();
+            foreach (var item in source)
+            {
+                if (hasData)
+                    StringBuilder.Append(" UNION ALL").AppendLine();
 
-				StringBuilder.Append("\tSELECT ");
+                StringBuilder.Append("\tSELECT ");
 
-				if (top != null)
-					StringBuilder.Append(top);
+                if (top != null)
+                    StringBuilder.Append(top);
 
-				for (var i = 0; i < Columns.Count; i++)
-				{
-					var column = Columns[i];
-					var value  = column.Column.GetValue(item);
+                for (var i = 0; i < Columns.Count; i++)
+                {
+                    var column = Columns[i];
+                    var value  = column.Column.GetValue(item);
 
-					if (!valueConverter.TryConvert(StringBuilder, columnTypes[i], value))
-					{
-						var name = pname == "?" ? pname : pname + ++pidx;
+                    if (!valueConverter.TryConvert(StringBuilder, columnTypes[i], value))
+                    {
+                        var name = pname == "?" ? pname : pname + ++pidx;
 
-						StringBuilder.Append(name);
-						Parameters.Add(new DataParameter(pname == "?" ? pname : "p" + pidx, value,
-							column.Column.DataType));
-					}
+                        StringBuilder.Append(name);
+                        Parameters.Add(new DataParameter(pname == "?" ? pname : "p" + pidx, value,
+                            column.Column.DataType));
+                    }
 
-					if (!hasData)
-						StringBuilder.Append(" as ").Append(column.Name);
+                    if (!hasData)
+                        StringBuilder.Append(" as ").Append(column.Name);
 
-					StringBuilder.Append(",");
-				}
+                    StringBuilder.Append(",");
+                }
 
-				StringBuilder.Length--;
-				StringBuilder.Append(' ').Append(fromDummyTable);
+                StringBuilder.Length--;
+                StringBuilder.Append(' ').Append(fromDummyTable);
 
-				hasData = true;
-			}
+                hasData = true;
+            }
 
-			if (hasData)
-			{
-				StringBuilder.AppendLine();
+            if (hasData)
+            {
+                StringBuilder.AppendLine();
 
-				StringBuilder
-					.AppendLine(")")
-					.AppendLine("Source")
-					;
-			}
+                StringBuilder
+                    .AppendLine(")")
+                    .AppendLine("Source")
+                    ;
+            }
 
-			return hasData;
-		}
+            return hasData;
+        }
 
-		protected virtual int Execute(DataConnection dataConnection)
-		{
-			var cmd = StringBuilder.AppendLine().ToString();
+        protected virtual int Execute(DataConnection dataConnection)
+        {
+            var cmd = StringBuilder.AppendLine().ToString();
 
-			return dataConnection.Execute(cmd, Parameters.ToArray());
-		}
-	}
+            return dataConnection.Execute(cmd, Parameters.ToArray());
+        }
+    }
 }

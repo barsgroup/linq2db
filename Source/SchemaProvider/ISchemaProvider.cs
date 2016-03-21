@@ -1,9 +1,9 @@
 ﻿namespace LinqToDB.SchemaProvider
 {
-	using Data;
+    using Data;
 
-	public interface ISchemaProvider
-	{
-		DatabaseSchema GetSchema(DataConnection dataConnection, GetSchemaOptions options = null);
-	}
+    public interface ISchemaProvider
+    {
+        DatabaseSchema GetSchema(DataConnection dataConnection, GetSchemaOptions options = null);
+    }
 }

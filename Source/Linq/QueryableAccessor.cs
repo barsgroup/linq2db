@@ -4,9 +4,9 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq
 {
-	class QueryableAccessor
-	{
-		public IQueryable                  Queryable;
-		public Func<Expression,IQueryable> Accessor;
-	}
+    class QueryableAccessor
+    {
+        public IQueryable                  Queryable;
+        public Func<Expression,IQueryable> Accessor;
+    }
 }

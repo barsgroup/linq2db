@@ -4,6 +4,6 @@
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public interface ISqlPredicate : IQueryElement, ISqlExpressionWalkable, ICloneableElement,  IOperation
-	{
-	}
+    {
+    }
 }

@@ -3,10 +3,10 @@
     using System;
 
     partial class Sql
-	{
-		[AttributeUsage(AttributeTargets.Enum, AllowMultiple = false, Inherited = false)]
-		public class EnumAttribute : Attribute
-		{
-		}
-	}
+    {
+        [AttributeUsage(AttributeTargets.Enum, AllowMultiple = false, Inherited = false)]
+        public class EnumAttribute : Attribute
+        {
+        }
+    }
 }

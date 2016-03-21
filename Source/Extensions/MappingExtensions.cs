@@ -2,41 +2,41 @@
 
 namespace LinqToDB.Extensions
 {
-	using Common;
+    using Common;
 
-	using LinqToDB.SqlEntities;
-	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlEntities;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
-	using Mapping;
+    using Mapping;
 
     static class MappingExtensions
-	{
-		public static ISqlValue GetSqlValue(this MappingSchema mappingSchema, object value)
-		{
-			if (value == null)
-				throw new InvalidOperationException();
+    {
+        public static ISqlValue GetSqlValue(this MappingSchema mappingSchema, object value)
+        {
+            if (value == null)
+                throw new InvalidOperationException();
 
-			return GetSqlValue(mappingSchema, value.GetType(), value);
-		}
+            return GetSqlValue(mappingSchema, value.GetType(), value);
+        }
 
-		public static ISqlValue GetSqlValue(this MappingSchema mappingSchema, Type systemType, object value)
-		{
-			var underlyingType = systemType.ToNullableUnderlying();
+        public static ISqlValue GetSqlValue(this MappingSchema mappingSchema, Type systemType, object value)
+        {
+            var underlyingType = systemType.ToNullableUnderlying();
 
-			if (underlyingType.IsEnumEx() && mappingSchema.GetAttribute<Sql.EnumAttribute>(underlyingType) == null)
-			{
-				if (value != null || systemType == underlyingType)
-				{
-					var type = Converter.GetDefaultMappingFromEnumType(mappingSchema, systemType);
+            if (underlyingType.IsEnumEx() && mappingSchema.GetAttribute<Sql.EnumAttribute>(underlyingType) == null)
+            {
+                if (value != null || systemType == underlyingType)
+                {
+                    var type = Converter.GetDefaultMappingFromEnumType(mappingSchema, systemType);
 
-					return new SqlValue(type, Converter.ChangeType(value, type, mappingSchema));
-				}
-			}
+                    return new SqlValue(type, Converter.ChangeType(value, type, mappingSchema));
+                }
+            }
 
-			if (systemType == typeof(object) && value != null)
-				systemType = value.GetType();
+            if (systemType == typeof(object) && value != null)
+                systemType = value.GetType();
 
-			return new SqlValue(systemType, value);
-		}
-	}
+            return new SqlValue(systemType, value);
+        }
+    }
 }

@@ -8,57 +8,57 @@ namespace LinqToDB.DataProvider
     using LinqToDB.Properties;
 
     class AssemblyResolver
-	{
-		public AssemblyResolver([NotNull] string path, [NotNull] string resolveName)
-		{
-			if (path        == null) throw new ArgumentNullException(nameof(path));
-			if (resolveName == null) throw new ArgumentNullException(nameof(resolveName));
+    {
+        public AssemblyResolver([NotNull] string path, [NotNull] string resolveName)
+        {
+            if (path        == null) throw new ArgumentNullException(nameof(path));
+            if (resolveName == null) throw new ArgumentNullException(nameof(resolveName));
 
-			_path        = path;
-			_resolveName = resolveName;
+            _path        = path;
+            _resolveName = resolveName;
 
-			if (_path.StartsWith("file:///"))
-				_path = _path.Substring("file:///".Length);
+            if (_path.StartsWith("file:///"))
+                _path = _path.Substring("file:///".Length);
 
-			SetResolver();
-		}
+            SetResolver();
+        }
 
-		public AssemblyResolver([NotNull] Assembly assembly, [NotNull] string resolveName)
-		{
-			if (assembly    == null) throw new ArgumentNullException(nameof(assembly));
-			if (resolveName == null) throw new ArgumentNullException(nameof(resolveName));
+        public AssemblyResolver([NotNull] Assembly assembly, [NotNull] string resolveName)
+        {
+            if (assembly    == null) throw new ArgumentNullException(nameof(assembly));
+            if (resolveName == null) throw new ArgumentNullException(nameof(resolveName));
 
-			_assembly    = assembly;
-			_resolveName = resolveName;
+            _assembly    = assembly;
+            _resolveName = resolveName;
 
-			SetResolver();
-		}
+            SetResolver();
+        }
 
-		void SetResolver()
-		{
-			ResolveEventHandler resolver = Resolver;
+        void SetResolver()
+        {
+            ResolveEventHandler resolver = Resolver;
 
 #if FW4
-			var l = Expression.Lambda<Action>(Expression.Call(
-				Expression.Constant(AppDomain.CurrentDomain),
-				typeof(AppDomain).GetEvent("AssemblyResolve").GetAddMethod(),
-				Expression.Constant(resolver)));
+            var l = Expression.Lambda<Action>(Expression.Call(
+                Expression.Constant(AppDomain.CurrentDomain),
+                typeof(AppDomain).GetEvent("AssemblyResolve").GetAddMethod(),
+                Expression.Constant(resolver)));
 
-			l.Compile()();
+            l.Compile()();
 #else
-			AppDomain.CurrentDomain.AssemblyResolve += resolver;
+            AppDomain.CurrentDomain.AssemblyResolve += resolver;
 #endif
-		}
+        }
 
-		readonly string   _path;
-		readonly string   _resolveName;
-		         Assembly _assembly;
+        readonly string   _path;
+        readonly string   _resolveName;
+                 Assembly _assembly;
 
-		public Assembly Resolver(object sender, ResolveEventArgs args)
-		{
-			if (args.Name == _resolveName)
-				return _assembly ?? (_assembly = Assembly.LoadFile(File.Exists(_path) ? _path : Path.Combine(_path, args.Name, ".dll")));
-			return null;
-		}
-	}
+        public Assembly Resolver(object sender, ResolveEventArgs args)
+        {
+            if (args.Name == _resolveName)
+                return _assembly ?? (_assembly = Assembly.LoadFile(File.Exists(_path) ? _path : Path.Combine(_path, args.Name, ".dll")));
+            return null;
+        }
+    }
 }

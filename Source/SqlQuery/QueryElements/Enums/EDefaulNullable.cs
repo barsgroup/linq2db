@@ -1,9 +1,9 @@
 namespace LinqToDB.SqlQuery.QueryElements.Enums
 {
-	public enum EDefaulNullable
-	{
-		None,
-		Null,
-		NotNull
-	}
+    public enum EDefaulNullable
+    {
+        None,
+        Null,
+        NotNull
+    }
 }

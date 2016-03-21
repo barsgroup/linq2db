@@ -6,9 +6,9 @@
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public interface ISqlOptimizer
-	{
+    {
         ISelectQuery Finalize         (ISelectQuery selectQuery);
-		IQueryExpression ConvertExpression(IQueryExpression expression);
-		ISqlPredicate  ConvertPredicate (ISelectQuery selectQuery, ISqlPredicate  predicate);
-	}
+        IQueryExpression ConvertExpression(IQueryExpression expression);
+        ISqlPredicate  ConvertPredicate (ISelectQuery selectQuery, ISqlPredicate  predicate);
+    }
 }
