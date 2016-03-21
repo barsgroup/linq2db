@@ -7,434 +7,448 @@
     using System.Reflection;
 
     using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
-    public class SearchEngine
+    public class SearchEngine<TBaseSearchInterface>
     {
-        protected readonly Dictionary<Type, SearchVertex> SearchVertices = new Dictionary<Type, SearchVertex>(); 
-        private readonly Dictionary<Type, InterfaceVertex> _interfacesVertices = new Dictionary<Type, InterfaceVertex>(); 
-
-        private readonly Dictionary<Tuple<Type,Type>, LinkedList<Func<IQueryElement, IQueryElement>>> _searchPaths = new Dictionary<Tuple<Type, Type>, LinkedList<Func<IQueryElement, IQueryElement>>>();
+        private TypeGraph<TBaseSearchInterface> _typeGraph;
 
         protected SearchEngine()
         {
             InitSearchVertex();
-            InitInterfaceVertex();
         }
 
-        public static SearchEngine Current { get; } = new SearchEngine();
+        public static SearchEngine<TBaseSearchInterface> Current { get; } = new SearchEngine<TBaseSearchInterface>();
 
-        public void Find<TElement>(IQueryElement source)
+        public void Find<TElement>(TBaseSearchInterface source)
         {
             Find(source, typeof(TElement));
         }
 
-        public void Find(IQueryElement source, Type searchType)
+        public void Find(TBaseSearchInterface source, Type searchType)
         {
-            var sourceType = GetSuitableInterface(source.GetType());
+            var sourceTypes = FindInterfacesWithSelf(source.GetType());
 
-            var paths = GetOrBuildPaths(sourceType, searchType);
+            var paths = GetOrBuildPaths(sourceTypes, searchType);
         }
 
-        private LinkedList<Func<IQueryElement, IQueryElement>> GetOrBuildPaths(Type sourceType, Type searchType)
+        private LinkedList<Func<TBaseSearchInterface, TBaseSearchInterface>> GetOrBuildPaths(IEnumerable<Type> sourceTypes, Type searchType)
         {
-            LinkedList<Func<IQueryElement, IQueryElement>> paths;
+            var resultPaths = new LinkedList<Func<TBaseSearchInterface, TBaseSearchInterface>>();
+            var propertyPaths = new LinkedList<PropertyInfoVertex>();
+            var searchVertex = _typeGraph.SearchVertices[searchType];
+            var allVertex = new Dictionary<TypeVertex, LinkedList<PropertyInfoVertex>>();
 
-            var dictionaryKey = Tuple.Create(sourceType, searchType);
+            foreach (var sourceType in sourceTypes)
+            {
+                var sourceVertex = _typeGraph.SearchVertices[sourceType];
 
-            if (_searchPaths.TryGetValue(dictionaryKey, out paths))
-                return paths;
-            
-            paths = _searchPaths[dictionaryKey] = new LinkedList<Func<IQueryElement, IQueryElement>>();
+                if (!_typeGraph.PathExists(sourceVertex, searchVertex))
+                {
+                    continue;
+                }
 
-            var sourceVertex = SearchVertices[sourceType];
+                var properties = BuildSearchTree(sourceVertex, searchVertex, allVertex, new bool[TypeVertex.Counter]);
 
-            var allVertex = new Dictionary<PropertyInfo, PropertyPath>();
-            var visitedProperties = new HashSet<PropertyInfo>();
-            var properties = GetFindTree(sourceVertex, searchType, sourceType, allVertex, visitedProperties);
+                if (properties.Count == 0)
+                {
+                    throw new InvalidOperationException("Не найден ни один путь");
+                }
 
-            if (properties.Count == 0)
+                properties = Simplify(properties);
+                propertyPaths.AddRange(properties);
+            }
+
+            if (propertyPaths.Count == 0)
             {
                 throw new InvalidOperationException("Не найден ни один путь");
             }
 
-            OptimizePaths(properties);
+            propertyPaths = Simplify(propertyPaths);
 
-            return paths;
+            var optimizePaths = new LinkedList<CompositPropertyVertex>();
+
+            propertyPaths.ForEach(node => optimizePaths.AddLast(OptimizeNode(node.Value)));
+
+            //var linearized = new LinkedList<LinkedList<CompositPropertyVertex>>();
+            //optimizePaths.ForEach(node =>
+            //{
+            //    linearized.AddRange(Linearize(node.Value));
+            //});
+
+            return resultPaths;
         }
 
+        //private LinkedList<LinkedList<CompositPropertyVertex>> Linearize(CompositPropertyVertex node)
+        //{
+        //    var results = new LinkedList<LinkedList<CompositPropertyVertex>>();
+        //
+        //    if (node.Children.Count == 0)
+        //    {
+        //        var list = new LinkedList<CompositPropertyVertex>();
+        //        list.AddLast(node);
+        //        results.AddLast(list);
+        //        return results;
+        //    }
+        //
+        //    node.Children.ForEach(
+        //        child =>
+        //        {
+        //            var childResults = Linearize(child.Value);
+        //            childResults.ForEach(
+        //                childResult =>
+        //                {
+        //                    var list = new LinkedList<CompositPropertyVertex>();
+        //                    list.AddLast(node);
+        //                    list.AddRange(childResult.Value);
+        //                    results.AddLast(list);
+        //
+        //                });
+        //        });
+        //
+        //    return results;
+        //}
 
-        protected Dictionary<PropertyInfo, LinkedList<PropertyInfo>> OptimizePaths(LinkedList<PropertyPath> source)
+        private LinkedList<PropertyInfoVertex> Simplify(LinkedList<PropertyInfoVertex> original)
         {
-            var resultPaths = new LinkedList<LinkedList<PropertyPath>>();
+            var dictionary = new Dictionary<PropertyInfo, LinkedList<PropertyInfoVertex>>();
 
-            Walk(source,
-             (propertyPath, typePath, path) =>
-             {
-                 if (propertyPath.Types.Count == 0 ||  typePath != null && (typePath.PropertyPaths.Count > 1 || typePath.PropertyPaths.Count == 0))
-                 {
-                     resultPaths.AddLast(new LinkedList<PropertyPath>(path));
-                 }
+            original.ForEach(
+                node =>
+                {
+                    var property = node.Value.Property;
+                    if (!dictionary.ContainsKey(property))
+                    {
+                        dictionary[property] = new LinkedList<PropertyInfoVertex>();
+                    }
+                    dictionary[property].AddLast(node.Value);
+                });
 
-                 if (propertyPath.Types.Count == 0 ||  typePath != null && typePath.PropertyPaths.Count > 1)
-                 {
-                     var last = path.Last.Value;
-                     path.Clear();
-                     path.AddLast(last);
-                 }
-             });
+            var result = new LinkedList<PropertyInfoVertex>();
 
-            return null;
-        }
-
-
-        [DebuggerHidden]
-        private void Walk(IEnumerable<PropertyPath> source, Action<PropertyPath, TypePath, LinkedList<PropertyPath>> action, LinkedList<PropertyPath> path = null)
-        {
-            if (path == null)
+            foreach (var sameNodes in dictionary)
             {
-                path = new LinkedList<PropertyPath>();
+                var fullChildList = new LinkedList<PropertyInfoVertex>();
+
+                sameNodes.Value.ForEach(
+                    sameNode =>
+                    {
+                        fullChildList.AddRange(sameNode.Value.Children);
+                    });
+
+                var simplifiedChildList = Simplify(fullChildList);
+
+                var mergedNode = new PropertyInfoVertex(sameNodes.Key);
+
+                mergedNode.Children.AddRange(simplifiedChildList);
+                result.AddLast(mergedNode);
             }
 
-            foreach (var propertyPath in source)
-            {
-                path.AddLast(propertyPath);
-                action(propertyPath, null, path);
-
-                foreach (var typePath in propertyPath.Types)
-                {
-                    action(propertyPath, typePath, path);
-                    Walk(typePath.PropertyPaths, action, path);
-                }
-
-                if (path.First != null)
-                {
-                    path.RemoveLast();
-                }
-            }
+            return result;
         }
 
-        protected LinkedList<PropertyPath> GetFindTree(SearchVertex currentVertex, Type searchType, Type baseType, Dictionary<PropertyInfo, PropertyPath> allProperties, ISet<PropertyInfo> visitedProperties  )
+        private CompositPropertyVertex OptimizeNode(PropertyInfoVertex node)
         {
-            var properties = new LinkedList<PropertyPath>();
+            var composite = new CompositPropertyVertex();
 
-            if (currentVertex.Type == baseType && visitedProperties.Count > 0 || searchType.IsAssignableFrom(currentVertex.Type))
+            composite.PropertyList.AddLast(node.Property);
+
+            var current = node;
+            while (current.Children.Count == 1)
+            {
+                current = current.Children.First.Value;
+
+                composite.PropertyList.AddLast(current.Property);
+            }
+
+            current.Children.ForEach(
+                listNode =>
+                {
+                    composite.Children.AddLast(OptimizeNode(listNode.Value));
+                });
+
+            return composite;
+        }
+
+
+        //protected Dictionary<PropertyInfo, LinkedList<PropertyInfo>> OptimizePaths(LinkedList<PropertyInfoVertex> source)
+        //{
+        //    var resultPaths = new LinkedList<LinkedList<PropertyInfoVertex>>();
+
+        //    Walk(source,
+        //     (propertyPath, typePath, path) =>
+        //     {
+        //         if (propertyPath.Types.Count == 0 ||  typePath != null && (typePath.PropertyPaths.Count > 1 || typePath.PropertyPaths.Count == 0))
+        //         {
+        //             resultPaths.AddLast(new LinkedList<PropertyInfoVertex>(path));
+        //         }
+
+        //         if (propertyPath.Types.Count == 0 ||  typePath != null && typePath.PropertyPaths.Count > 1)
+        //         {
+        //             var last = path.Last.Value;
+        //             path.Clear();
+        //             path.AddLast(last);
+        //         }
+        //     });
+
+        //    return null;
+        //}
+
+
+        //[DebuggerHidden]
+        //private void Walk(IEnumerable<PropertyInfoVertex> source, Action<PropertyInfoVertex, TypePath, LinkedList<PropertyInfoVertex>> action, LinkedList<PropertyInfoVertex> path = null)
+        //{
+        //    if (path == null)
+        //    {
+        //        path = new LinkedList<PropertyInfoVertex>();
+        //    }
+
+        //    foreach (var propertyPath in source)
+        //    {
+        //        path.AddLast(propertyPath);
+        //        action(propertyPath, null, path);
+
+        //        foreach (var typePath in propertyPath.Types)
+        //        {
+        //            action(propertyPath, typePath, path);
+        //            Walk(typePath.PropertyPaths, action, path);
+        //        }
+
+        //        if (path.First != null)
+        //        {
+        //            path.RemoveLast();
+        //        }
+        //    }
+        //}
+
+        private LinkedList<PropertyInfoVertex> BuildSearchTree(TypeVertex currentVertex, TypeVertex searchVertex, Dictionary<TypeVertex, LinkedList<PropertyInfoVertex>> allProperties, bool[] visited)
+        {
+            var properties = new LinkedList<PropertyInfoVertex>();
+            if (visited[currentVertex.Index] || searchVertex.Type.IsAssignableFrom(currentVertex.Type) && visited.Any(v => v))
             {
                 return properties;
             }
 
+            LinkedList<PropertyInfoVertex> cachedProperties;
+            if (allProperties.TryGetValue(currentVertex, out cachedProperties))
+            {
+                return cachedProperties;
+            }
+
+            visited[currentVertex.Index] = true;
+
             currentVertex.Children.ForEach(
                 searchNode =>
                 {
-                    var type = searchNode.Value.Item2.Type;
-
+                    var typeVertex = searchNode.Value.Item2;
                     var propertyInfo = searchNode.Value.Item1;
 
-                    if (visitedProperties.Contains(propertyInfo))
+                    if (!_typeGraph.PathExists(currentVertex, searchVertex))
                     {
                         return;
                     }
 
-                    PropertyPath propPath;
-                    if (allProperties.TryGetValue(propertyInfo, out propPath))
-                    {
-                        properties.AddLast(propPath);
-                        return;
-                    }
+                    var childProperties = BuildSearchTree(_typeGraph.SearchVertices[typeVertex.Type], searchVertex, allProperties, visited);
 
-                    propPath = new PropertyPath(propertyInfo);
-                    allProperties[propPath.Property] = propPath;
-
-                    if (type == baseType || searchType.IsAssignableFrom(type))
-                    {
-                        properties.AddLast(propPath);
-                        return;
-                    }
-
-                    visitedProperties.Add(propertyInfo);
-
-                    var interfaceVertex = _interfacesVertices[type];
-
-                    interfaceVertex.Children.ForEach(
-                        branchNode =>
-                        {
-                            var findedPaths = GetFindTree(SearchVertices[branchNode.Value.Type], searchType, baseType, allProperties, visitedProperties);
-                            var childTypePath = new TypePath(branchNode.Value.Type)
-                                                {
-                                                    PropertyPaths = findedPaths
-                                                };
-
-                            if (childTypePath.PropertyPaths.Count > 0 || branchNode.Value.Type == baseType || searchType.IsAssignableFrom(branchNode.Value.Type))
-                            {
-                                propPath.Types.AddLast(childTypePath);
-                            }
-
-                        });
-
-                    if (propPath.Types.Count > 0)
-                    {
-                        properties.AddLast(propPath);
-                    }
-                    else
-                    {
-                        allProperties.Remove(propPath.Property);
-                    }
+                    var rootProperty = new PropertyInfoVertex(propertyInfo);
+                    rootProperty.Children.AddRange(childProperties);
+                    properties.AddLast(rootProperty);
                 });
 
+            visited[currentVertex.Index] = false;
+
+            allProperties[currentVertex] = properties;
             return properties;
         }
 
         private void InitSearchVertex()
         {
-            var types = typeof(SearchVertex).Assembly.GetTypes().Where(t => typeof(IQueryElement).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract);
-
-            foreach (var type in types)
-            {
-                var intType = GetSuitableInterface(type);
-                var propertyInfos = GetPublicProperties(intType).Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null);
-
-                SearchVertex vertex;
-
-                if (!SearchVertices.TryGetValue(intType, out vertex))
-                {
-                     vertex = SearchVertices[intType] = new SearchVertex(intType);
-                }
-
-                foreach (var info in propertyInfos)
-                {
-                    var propertyType = GetElementType(info.PropertyType);
-                     
-                    if (!typeof(IQueryElement).IsAssignableFrom(propertyType) && !IsCollectionType(info.PropertyType))
-                    {
-                        throw new InvalidCastException();
-                    }
-
-                    SearchVertex childVertex;
-                    if (!SearchVertices.TryGetValue(propertyType, out childVertex)) 
-                    {
-                        childVertex = SearchVertices[propertyType] = new SearchVertex(propertyType);
-                    }
-
-                    vertex.Children.AddLast(Tuple.Create(info, childVertex));
-                }
-
-            }
+            var types = typeof(TypeVertex).Assembly.GetTypes();
+            _typeGraph = new TypeGraph<TBaseSearchInterface>(types);
         }
 
-        private void InitInterfaceVertex()
+        private static IEnumerable<Type> FindInterfaces(Type propertyType)
         {
-            var interfaces = typeof(IQueryElement).Assembly.GetTypes().Where(t => t.IsInterface && typeof(IQueryElement).IsAssignableFrom(t));
-
-            foreach (var inter in interfaces)
-            {
-                InterfaceVertex vertex;
-                if (!_interfacesVertices.TryGetValue(inter, out vertex))
-                {
-                    vertex = _interfacesVertices[inter] = new InterfaceVertex(inter);
-                }
-
-                var childInterfaces = inter.GetInterfaces().Where(typeof(IQueryElement).IsAssignableFrom).Concat(new [] { inter });
-
-                foreach (var childInterface in childInterfaces)
-                {
-                    InterfaceVertex childVertex;
-                    if (!_interfacesVertices.TryGetValue(childInterface, out childVertex))
-                    {
-                        childVertex = _interfacesVertices[childInterface] = new InterfaceVertex(childInterface);
-                    }
-
-                    childVertex.Children.AddLast(vertex);
-                }
-
-
-                var forDeleted = new LinkedList<InterfaceVertex>();
-                vertex.Children.ForEach(
-                    listNode =>
-                    {
-
-                        vertex.Children.ForEach(
-                            node =>
-                            {
-                                if (listNode == node)
-                                {
-                                    return;
-                                }
-
-                                if (listNode.Value.Type.IsAssignableFrom(node.Value.Type))
-                                {
-                                    forDeleted.AddLast(node.Value);
-                                }
-                            });
-
-                    });
-                forDeleted.ForEach(node => vertex.Children.Remove(node.Value));
-            }
+            return propertyType.GetInterfaces().Where(typeof(TBaseSearchInterface).IsAssignableFrom);
         }
 
-
-        private Type GetSuitableInterface(Type type)
+        private static IEnumerable<Type> FindInterfacesWithSelf(Type propertyType)
         {
-            var list = type.GetInterfaces().Where(typeof(IQueryElement).IsAssignableFrom).ToList();
+            var interfaces = FindInterfaces(propertyType);
 
-            Type resultType = null;
-            for (var i = 0; i < list.Count; i++)
-            {
-                var j = 0;
-                while (i == j || j < list.Count && !list[i].IsAssignableFrom(list[j]))
-                {
-                    j++;
-                }
-
-                if (j == list.Count)
-                {
-                    if (resultType == null)
-                    {
-                        resultType = list[i];
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Обнаружено несколько рутовых интерфейсов");
-                    }
-                }
-            }
-
-            if (resultType != null)
-            {
-                return resultType;
-            }
-
-            throw new InvalidOperationException("Все типы зависят друг от друга");
+            return propertyType.IsInterface
+                       ? interfaces.Concat(new[] { propertyType })
+                       : interfaces;
         }
 
+        //private void InitInterfaceVertex()
+        //{
+        //    var interfaces = typeof(TBaseSearchInterface).Assembly.GetTypes().Where(t => t.IsInterface && typeof(TBaseSearchInterface).IsAssignableFrom(t));
 
-        public static PropertyInfo[] GetPublicProperties(Type type)
-        {
-            if (type.IsInterface)
-            {
-                var propertyInfos = new List<PropertyInfo>();
+        //    foreach (var inter in interfaces)
+        //    {
+        //        InterfaceVertex vertex;
+        //        if (!_interfacesVertices.TryGetValue(inter, out vertex))
+        //        {
+        //            vertex = _interfacesVertices[inter] = new InterfaceVertex(inter);
+        //        }
 
-                var considered = new List<Type>();
-                var queue = new Queue<Type>();
-                considered.Add(type);
-                queue.Enqueue(type);
-                while (queue.Count > 0)
-                {
-                    var subType = queue.Dequeue();
-                    foreach (var subInterface in subType.GetInterfaces())
-                    {
-                        if (considered.Contains(subInterface)) continue;
+        //        var childInterfaces = inter.GetInterfaces().Where(typeof(TBaseSearchInterface).IsAssignableFrom).Concat(new [] { inter });
 
-                        considered.Add(subInterface);
-                        queue.Enqueue(subInterface);
-                    }
+        //        foreach (var childInterface in childInterfaces)
+        //        {
+        //            InterfaceVertex childVertex;
+        //            if (!_interfacesVertices.TryGetValue(childInterface, out childVertex))
+        //            {
+        //                childVertex = _interfacesVertices[childInterface] = new InterfaceVertex(childInterface);
+        //            }
 
-                    var typeProperties = subType.GetProperties(
-                        BindingFlags.FlattenHierarchy
-                        | BindingFlags.Public
-                        | BindingFlags.Instance);
+        //            childVertex.Children.AddLast(vertex);
+        //        }
 
-                    var newPropertyInfos = typeProperties
-                        .Where(x => !propertyInfos.Contains(x));
 
-                    propertyInfos.InsertRange(0, newPropertyInfos);
-                }
+        //        var forDeleted = new LinkedList<InterfaceVertex>();
+        //        vertex.Children.ForEach(
+        //            listNode =>
+        //            {
 
-                return propertyInfos.ToArray();
-            }
+        //                vertex.Children.ForEach(
+        //                    node =>
+        //                    {
+        //                        if (listNode == node)
+        //                        {
+        //                            return;
+        //                        }
 
-            return type.GetProperties(BindingFlags.FlattenHierarchy
-                | BindingFlags.Public | BindingFlags.Instance);
-        }
+        //                        if (listNode.Value.Type.IsAssignableFrom(node.Value.Type))
+        //                        {
+        //                            forDeleted.AddLast(node.Value);
+        //                        }
+        //                    });
 
-        private static Type GetElementType(Type sourceType)
-        {
-            if (sourceType.IsArray)
-            {
-                return sourceType.GetElementType();
-            }
+        //            });
+        //        forDeleted.ForEach(node => vertex.Children.Remove(node.Value));
+        //    }
+        //}
 
-            if (!sourceType.IsGenericType)
-            {
-                return sourceType;
-            }
 
-            if (typeof(LinkedList<>).IsAssignableFrom(sourceType.GetGenericTypeDefinition()))
-            {
-                return sourceType.GetGenericArguments()[0];
-            }
+        //private Type GetSuitableInterface(Type type)
+        //{
+        //    var list = type.GetInterfaces().Where(typeof(TBaseSearchInterface).IsAssignableFrom).ToList();
 
-            if (typeof(Dictionary<,>).IsAssignableFrom(sourceType.GetGenericTypeDefinition()))
-            {
-                return sourceType.GetGenericArguments()[1];
-            }
+        //    Type resultType = null;
+        //    for (var i = 0; i < list.Count; i++)
+        //    {
+        //        var j = 0;
+        //        while (i == j || j < list.Count && !list[i].IsAssignableFrom(list[j]))
+        //        {
+        //            j++;
+        //        }
 
-            if (typeof(List<>).IsAssignableFrom(sourceType.GetGenericTypeDefinition()))
-            {
-                return sourceType.GetGenericArguments()[0];
-            }
+        //        if (j == list.Count)
+        //        {
+        //            if (resultType == null)
+        //            {
+        //                resultType = list[i];
+        //            }
+        //            else
+        //            {
+        //                throw new InvalidOperationException("Обнаружено несколько рутовых интерфейсов");
+        //            }
+        //        }
+        //    }
 
-            if (typeof(Array).IsAssignableFrom(sourceType.GetGenericTypeDefinition()))
-            {
-                return sourceType.GetGenericArguments()[0];
-            }
+        //    if (resultType != null)
+        //    {
+        //        return resultType;
+        //    }
 
-            return sourceType;
+        //    throw new InvalidOperationException("Все типы зависят друг от друга");
+        //}
 
-        }
 
-        private static bool IsCollectionType(Type sourceType)
-        {
-            return GetElementType(sourceType) != sourceType;
-        }
+       // public static PropertyInfo[] GetPublicProperties(Type type)
+       // {
+       //     if (type.IsInterface)
+       //     {
+       //         var propertyInfos = new List<PropertyInfo>();
+       //
+       //         var considered = new List<Type>();
+       //         var queue = new Queue<Type>();
+       //         considered.Add(type);
+       //         queue.Enqueue(type);
+       //         while (queue.Count > 0)
+       //         {
+       //             var subType = queue.Dequeue();
+       //             foreach (var subInterface in subType.GetInterfaces())
+       //             {
+       //                 if (considered.Contains(subInterface)) continue;
+       //
+       //                 considered.Add(subInterface);
+       //                 queue.Enqueue(subInterface);
+       //             }
+       //
+       //             var typeProperties = subType.GetProperties(
+       //                 BindingFlags.FlattenHierarchy
+       //                 | BindingFlags.Public
+       //                 | BindingFlags.Instance);
+       //
+       //             var newPropertyInfos = typeProperties
+       //                 .Where(x => !propertyInfos.Contains(x));
+       //
+       //             propertyInfos.InsertRange(0, newPropertyInfos);
+       //         }
+       //
+       //         return propertyInfos.ToArray();
+       //     }
+       //
+       //     return type.GetProperties(BindingFlags.FlattenHierarchy
+       //         | BindingFlags.Public | BindingFlags.Instance);
+       // }
 
-        private class InterfaceVertex
-        {
-            public Type Type { get; }
+        //private class InterfaceVertex
+        //{
+        //    public Type Type { get; }
 
-            public LinkedList<InterfaceVertex> Children { get; } = new LinkedList<InterfaceVertex>();
+        //    public LinkedList<InterfaceVertex> Children { get; } = new LinkedList<InterfaceVertex>();
 
-            public InterfaceVertex(Type type)
-            {
-                Type = type;
-            }
-        }
-
-        protected class SearchVertex
-        {
-            public Type Type { get; }
-
-            public LinkedList<Tuple<PropertyInfo, SearchVertex>> Children { get; } = new LinkedList<Tuple<PropertyInfo, SearchVertex>>();
-
-            public SearchVertex(Type type)
-            {
-                Type = type;
-            }
-        }
+        //    public InterfaceVertex(Type type)
+        //    {
+        //        Type = type;
+        //    }
+        //}
     }
-    [DebuggerDisplay("{Type}")]
-    public class TypePath
-    {
-        public Type Type { get; }
 
-        public LinkedList<PropertyPath> PropertyPaths { get; set; }
+    //[DebuggerDisplay("{Type}")]
+    //public class TypePath
+    //{
+    //    public Type Type { get; }
 
-        public TypePath(Type type)
-        {
-            Type = type;
-        }
+    //    public LinkedList<PropertyPath> PropertyPaths { get; set; }
 
-    }
+    //    public TypePath(Type type)
+    //    {
+    //        Type = type;
+    //    }
+
+    //}
 
     [DebuggerDisplay("{Property}")]
-    public class PropertyPath
+    public class PropertyInfoVertex
     {
         public PropertyInfo Property { get; }
 
-        public LinkedList<TypePath> Types { get;} = new LinkedList<TypePath>();
+        public LinkedList<PropertyInfoVertex> Children { get;} = new LinkedList<PropertyInfoVertex>();
 
-        public PropertyPath(PropertyInfo property)
+        public PropertyInfoVertex(PropertyInfo property)
         {
             Property = property;
         }
+    }
+
+    public class CompositPropertyVertex
+    {
+        public LinkedList<PropertyInfo> PropertyList { get; } = new LinkedList<PropertyInfo>();
+
+        public LinkedList<CompositPropertyVertex> Children { get; } = new LinkedList<CompositPropertyVertex>();
     }
 }
