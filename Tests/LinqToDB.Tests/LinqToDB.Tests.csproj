@@ -44,7 +44,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SearchEngineTest.cs" />
+    <Compile Include="SearchEngine\GraphBuilder\GraphBuilderBaseTest.cs" />
+    <Compile Include="SearchEngine\GraphBuilder\Test1.cs" />
+    <Compile Include="SearchEngine\GraphBuilder\HierarchyPropertyTest.cs" />
+    <Compile Include="SearchEngine\SearchEngineTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Source\LinqToDB.csproj">

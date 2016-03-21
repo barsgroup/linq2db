@@ -33,6 +33,14 @@
             }
         }
 
+        public static void AddRange<TElement1, TElement2>(this LinkedList<TElement1> sourceList, TElement2[] targetList) where TElement2 : TElement1
+        {
+            for (int i = 0; i < targetList.Length; i++)
+            {
+                sourceList.AddLast(targetList[i]);
+            }
+        }
+
         public static TResult FindOnce<TElement, TResult>(this LinkedList<TElement> linkedList, Func<LinkedListNode<TElement>, TResult> action)
         {
             var current = linkedList.First;

@@ -7,13 +7,25 @@
 
     using LinqToDB.Extensions;
 
-    internal class TypeGraph<TBaseSearchInterface>
+    public class TypeGraph<TBaseSearchInterface>
     {
-        internal readonly Dictionary<Type, TypeVertex> SearchVertices = new Dictionary<Type, TypeVertex>();
+        public readonly Dictionary<Type, TypeVertex> SearchVertices = new Dictionary<Type, TypeVertex>();
 
-        internal bool[][] TransitiveClosure;
+        public readonly bool[][] TransitiveClosure;
 
-        internal TypeVertex[] Vertices;
+        public readonly TypeVertex[] Vertices;
+
+        public int VertextCount => Vertices.Length;
+
+        public TypeVertex GetTypeVertex(Type type)
+        {
+            if (!SearchVertices.ContainsKey(type))
+            {
+                throw new ArgumentException("Type is not in graph");
+            }
+
+            return SearchVertices[type];
+        }
 
         public bool PathExists(TypeVertex sourceVertex, TypeVertex searchVertex)
         {
@@ -22,27 +34,30 @@
 
         public TypeGraph(IEnumerable<Type> types)
         {
-            var inter = types.Where(t => typeof(TBaseSearchInterface).IsAssignableFrom(t) && t.IsInterface).SelectMany(FindInterfacesWithSelf).ToList();
+            var inter = types.Where(t => typeof(TBaseSearchInterface).IsAssignableFrom(t) && t.IsInterface).SelectMany(t => t.FindInterfacesWithSelf<TBaseSearchInterface>()).Distinct().ToList();
             var interfaces =
                 inter.SelectMany(t => t.GetProperties())
                      .Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null)
                      .Select(p => p.DeclaringType)
                      .Concat(inter)
                      .Distinct()
+                     //.OrderBy(t => t.FullName)
                      .ToList();
 
             Vertices = new TypeVertex[interfaces.Count];
+
+            var counter = 0;
 
             foreach (var intType in interfaces)
             {
                 TypeVertex vertex;
                 if (!SearchVertices.TryGetValue(intType, out vertex))
                 {
-                    vertex = SearchVertices[intType] = new TypeVertex(intType);
+                    vertex = SearchVertices[intType] = new TypeVertex(intType, counter++);
                     Vertices[vertex.Index] = vertex;
                 }
 
-                var propertyInfos = intType.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null);
+                var propertyInfos = intType.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null);//.OrderBy(p => p.Name);
                 foreach (var info in propertyInfos)
                 {
                     var propertyType = GetElementType(info.PropertyType);
@@ -57,14 +72,14 @@
                         throw new InvalidOperationException("Все свойства интерфейсы");
                     }
 
-                    var castInterfaces = FindInterfacesWithSelf(propertyType);
+                    var castInterfaces = propertyType.FindInterfacesWithSelf<TBaseSearchInterface>();//.OrderBy(t => t.FullName);
 
                     foreach (var castInterface in castInterfaces)
                     {
                         TypeVertex childVertex;
                         if (!SearchVertices.TryGetValue(castInterface, out childVertex))
                         {
-                            childVertex = SearchVertices[castInterface] = new TypeVertex(castInterface);
+                            childVertex = SearchVertices[castInterface] = new TypeVertex(castInterface, counter++);
                             Vertices[childVertex.Index] = childVertex;
                         }
                         vertex.Children.AddLast(Tuple.Create(info, childVertex));
@@ -72,7 +87,7 @@
                 }
             }
 
-            if (TypeVertex.Counter != interfaces.Count)
+            if (counter != interfaces.Count)
             {
                 throw new Exception("Количество интерфейсов не соответствует графу");
             }
@@ -80,7 +95,7 @@
             TransitiveClosure = BuildTransitiveClosure();
         }
 
-        private bool[][] BuildTransitiveClosure()
+        public bool[][] BuildTransitiveClosure()
         {
             var interfacesCount = Vertices.Length;
 
@@ -114,27 +129,13 @@
                     child =>
                     {
                         var node = child.Value.Item2;
-                        var interfaces = FindInterfacesWithSelf(node.Type);
+                        var interfaces = node.Type.FindInterfacesWithSelf<TBaseSearchInterface>();
                         foreach (var inter in interfaces)
                         {
                             matrix[vertex.Index][SearchVertices[inter].Index] = true;
                         }
                     });
             }
-        }
-
-        private static IEnumerable<Type> FindInterfaces(Type propertyType)
-        {
-            return propertyType.GetInterfaces().Where(typeof(TBaseSearchInterface).IsAssignableFrom);
-        }
-
-        private static IEnumerable<Type> FindInterfacesWithSelf(Type propertyType)
-        {
-            var interfaces = FindInterfaces(propertyType);
-
-            return propertyType.IsInterface
-                       ? interfaces.Concat(new[] { propertyType })
-                       : interfaces;
         }
 
         private static Type GetElementType(Type sourceType)
@@ -173,20 +174,18 @@
         }
     }
 
-    internal class TypeVertex
+    public class TypeVertex
     {
-        public static int Counter { get; private set; }
-
         public Type Type { get; }
 
         public int Index { get; }
 
         public LinkedList<Tuple<PropertyInfo, TypeVertex>> Children { get; } = new LinkedList<Tuple<PropertyInfo, TypeVertex>>();
 
-        public TypeVertex(Type type)
+        public TypeVertex(Type type, int index)
         {
             Type = type;
-            Index = Counter++;
+            Index = index;
         }
     }
 }

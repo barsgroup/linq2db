@@ -1,4 +1,4 @@
-﻿namespace LinqToDB.Tests
+﻿namespace LinqToDB.Tests.SearchEngine
 {
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
