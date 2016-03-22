@@ -17,12 +17,14 @@
             _typeGraph = typeGraph;
         }
 
-        public void Find(TBaseSearchInterface source, Type searchType)
+        public LinkedList<CompositPropertyVertex> Find(TBaseSearchInterface source, Type searchType)
         {
             var sourceTypes = source.GetType().FindInterfacesWithSelf<TBaseSearchInterface>();
 
             var paths = GetOrBuildPaths(sourceTypes, searchType);
             var optimized = OptimizePaths(paths);
+
+            return optimized;
         }
 
         public LinkedList<PropertyInfoVertex> GetOrBuildPaths(IEnumerable<Type> sourceTypes, Type searchType)
@@ -40,7 +42,21 @@
                     continue;
                 }
 
-                var properties = BuildSearchTree(sourceVertex, searchVertex, allVertex, new bool[_typeGraph.VertextCount]);
+                var isCycleStartVertex = new bool[_typeGraph.VertextCount];
+
+                var properties = BuildSearchTree(sourceVertex, searchVertex, allVertex, new bool[_typeGraph.VertextCount], isCycleStartVertex);
+
+                var cycleStartIndices = isCycleStartVertex.Select(
+                    (flag, index) => new
+                                         {
+                                             flag,
+                                             index
+                                         }).Where(p => p.flag).Select(p => p.index);
+                foreach (var index in cycleStartIndices)
+                {
+                    var cycleStartProperties = allVertex[_typeGraph.GetTypeVertex(index)];
+                    cycleStartProperties.ForEach(node => node.Value.IsCycleStartVertex = true);
+                }
 
                 if (properties.Count == 0)
                 {
@@ -61,7 +77,7 @@
             return propertyPaths;
         }
 
-        public LinkedList<CompositPropertyVertex> OptimizePaths(LinkedList<PropertyInfoVertex> propertyPaths)
+        public static LinkedList<CompositPropertyVertex> OptimizePaths(LinkedList<PropertyInfoVertex> propertyPaths)
         {
             var optimizePaths = new LinkedList<CompositPropertyVertex>();
 
@@ -70,7 +86,7 @@
             return optimizePaths;
         }
 
-        public LinkedList<PropertyInfoVertex> Simplify(LinkedList<PropertyInfoVertex> original)
+        public static LinkedList<PropertyInfoVertex> Simplify(LinkedList<PropertyInfoVertex> original)
         {
             var dictionary = new Dictionary<PropertyInfo, LinkedList<PropertyInfoVertex>>();
 
@@ -91,15 +107,18 @@
             {
                 var fullChildList = new LinkedList<PropertyInfoVertex>();
 
+                var mergedNode = new PropertyInfoVertex(sameNodes.Key);
+
                 sameNodes.Value.ForEach(
                     sameNode =>
-                    {
-                        fullChildList.AddRange(sameNode.Value.Children);
-                    });
+                        {
+                            mergedNode.IsCycleStartVertex = mergedNode.IsCycleStartVertex || sameNode.Value.IsCycleStartVertex;
+                            mergedNode.IsCycleEndVertex = mergedNode.IsCycleStartVertex || sameNode.Value.IsCycleEndVertex;
+
+                            fullChildList.AddRange(sameNode.Value.Children);
+                        });
 
                 var simplifiedChildList = Simplify(fullChildList);
-
-                var mergedNode = new PropertyInfoVertex(sameNodes.Key);
 
                 mergedNode.Children.AddRange(simplifiedChildList);
                 result.AddLast(mergedNode);
@@ -108,7 +127,7 @@
             return result;
         }
 
-        private CompositPropertyVertex OptimizeNode(PropertyInfoVertex node)
+        private static CompositPropertyVertex OptimizeNode(PropertyInfoVertex node)
         {
             var composite = new CompositPropertyVertex();
 
@@ -119,14 +138,26 @@
             {
                 current = current.Children.First.Value;
 
+                if (current.IsCycleStartVertex)
+                {
+                    break;
+                }
+
                 composite.PropertyList.AddLast(current.Property);
             }
 
-            current.Children.ForEach(
-                listNode =>
-                {
-                    composite.Children.AddLast(OptimizeNode(listNode.Value));
-                });
+            if (current.IsCycleStartVertex)
+            {
+                composite.Children.AddLast(OptimizeNode(current));
+            }
+            else
+            {
+                current.Children.ForEach(
+                    listNode =>
+                        {
+                            composite.Children.AddLast(OptimizeNode(listNode.Value));
+                        });
+            }
 
             return composite;
         }
@@ -135,10 +166,16 @@
             TypeVertex currentVertex,
             TypeVertex searchVertex,
             Dictionary<TypeVertex, LinkedList<PropertyInfoVertex>> allProperties,
-            bool[] visited)
+            bool[] visited, bool[] isCycleStartVertex)
         {
             var properties = new LinkedList<PropertyInfoVertex>();
-            if (visited[currentVertex.Index] || searchVertex.Type.IsAssignableFrom(currentVertex.Type) && visited.Any(v => v))
+            if (visited[currentVertex.Index])
+            {
+                isCycleStartVertex[currentVertex.Index] = true;
+                return properties;
+            }
+            
+            if (searchVertex.Type.IsAssignableFrom(currentVertex.Type) && visited.Any(v => v))
             {
                 return properties;
             }
@@ -154,18 +191,27 @@
             currentVertex.Children.ForEach(
                 searchNode =>
                 {
-                    var typeVertex = searchNode.Value.Item2;
+                    var childVertex = searchNode.Value.Item2;
                     var propertyInfo = searchNode.Value.Item1;
 
-                    if (!_typeGraph.PathExists(currentVertex, searchVertex))
+                    if (!_typeGraph.PathExists(childVertex, searchVertex) && !searchVertex.Type.IsAssignableFrom(childVertex.Type))
                     {
                         return;
                     }
-
-                    var childProperties = BuildSearchTree(_typeGraph.GetTypeVertex(typeVertex.Type), searchVertex, allProperties, visited);
+                    
+                    var childProperties = BuildSearchTree(childVertex, searchVertex, allProperties, visited, isCycleStartVertex);
 
                     var rootProperty = new PropertyInfoVertex(propertyInfo);
-                    rootProperty.Children.AddRange(childProperties);
+
+                    if (childProperties.Count == 0 && isCycleStartVertex[childVertex.Index])
+                    {
+                        rootProperty.IsCycleEndVertex = true;
+                    }
+                    else
+                    {
+                        rootProperty.Children.AddRange(childProperties);
+                    }
+                    
                     properties.AddLast(rootProperty);
                 });
 
@@ -180,7 +226,10 @@
     public class PropertyInfoVertex
     {
         public PropertyInfo Property { get; }
-        
+
+        public bool IsCycleStartVertex { get; set; }
+        public bool IsCycleEndVertex { get; set; }
+
         public LinkedList<PropertyInfoVertex> Children { get; } = new LinkedList<PropertyInfoVertex>();
 
         public PropertyInfoVertex(PropertyInfo property)

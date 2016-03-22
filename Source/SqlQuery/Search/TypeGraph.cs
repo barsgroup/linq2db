@@ -27,6 +27,11 @@
             return SearchVertices[type];
         }
 
+        public TypeVertex GetTypeVertex(int index)
+        {
+            return Vertices[index];
+        }
+
         public bool PathExists(TypeVertex sourceVertex, TypeVertex searchVertex)
         {
             return TransitiveClosure[sourceVertex.Index][searchVertex.Index];
@@ -41,7 +46,6 @@
                      .Select(p => p.DeclaringType)
                      .Concat(inter)
                      .Distinct()
-                     //.OrderBy(t => t.FullName)
                      .ToList();
 
             Vertices = new TypeVertex[interfaces.Count];
@@ -57,7 +61,7 @@
                     Vertices[vertex.Index] = vertex;
                 }
 
-                var propertyInfos = intType.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null);//.OrderBy(p => p.Name);
+                var propertyInfos = intType.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null);
                 foreach (var info in propertyInfos)
                 {
                     var propertyType = GetElementType(info.PropertyType);
@@ -72,7 +76,7 @@
                         throw new InvalidOperationException("Все свойства интерфейсы");
                     }
 
-                    var castInterfaces = propertyType.FindInterfacesWithSelf<TBaseSearchInterface>();//.OrderBy(t => t.FullName);
+                    var castInterfaces = propertyType.FindInterfacesWithSelf<TBaseSearchInterface>();
 
                     foreach (var castInterface in castInterfaces)
                     {

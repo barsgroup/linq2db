@@ -1,12 +1,30 @@
-﻿namespace LinqToDB.Tests.SearchEngine.GraphBuilder
+﻿namespace LinqToDB.Tests.SearchEngine.TypeGraph.Base
 {
+    using System;
     using System.Linq;
 
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search;
 
-    public class GraphBuilderBaseTest
+    public class TypeGraphBaseTest
     {
+        protected static TypeVertex[] GetGraphArray(params TypeVertex[] vertices)
+        {
+            var result = vertices.OrderBy(v => v.Index).ToArray();
+
+            if (result.Where((v, i) => v.Index != i).Any())
+            {
+                throw new Exception("Bad indices");
+            }
+
+            return result;
+        }
+
+        protected static TypeGraph<T> BuildTypeGraph<T>()
+        {
+            return new TypeGraph<T>(typeof(T).Assembly.GetTypes());
+        }
+
         protected static bool IsEqual(TypeVertex[] graph1, TypeVertex[] graph2)
         {
             if (graph1.Length != graph2.Length)
@@ -60,12 +78,13 @@
             graph = graph.OrderBy(v => v.Type.FullName).ToArray();
             foreach (var vertex in graph)
             {
-                var newChildren = vertex.Children
-                    .OrderBy(child => child.Item1.Name)
-                    .ThenBy(child => child.Item1.DeclaringType.FullName)
-                    .ThenBy(child => child.Item1.ReflectedType.FullName)
-                    .ThenBy(child => child.Item1.PropertyType.FullName)
-                    .ThenBy(child => child.Item2.Type.FullName).ToList();
+                var newChildren =
+                    vertex.Children.OrderBy(child => child.Item1.Name)
+                          .ThenBy(child => child.Item1.DeclaringType.FullName)
+                          .ThenBy(child => child.Item1.ReflectedType.FullName)
+                          .ThenBy(child => child.Item1.PropertyType.FullName)
+                          .ThenBy(child => child.Item2.Type.FullName)
+                          .ToList();
                 vertex.Children.Clear();
                 vertex.Children.AddRange(newChildren);
             }

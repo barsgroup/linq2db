@@ -1,14 +1,14 @@
-﻿namespace LinqToDB.Tests.SearchEngine.GraphBuilder
+﻿namespace LinqToDB.Tests.SearchEngine.TypeGraph
 {
     using System;
-    using System.Linq;
 
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search;
+    using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
 
     using Xunit;
 
-    public class Test1 : GraphBuilderBaseTest
+    public class PropertyInChildInterfaceTest : TypeGraphBaseTest
     {
         public interface IBase
         {
@@ -37,12 +37,6 @@
         [Fact]
         public void Test()
         {
-            //// IBase -> []
-            //// IA -> [{IA.C, IBase}, {IA.C, IB}, {IA.C, IC}]
-            //// IB -> []
-            //// IC -> [{IC.D, IBase}, {IC.D, ID}]
-            //// ID -> []
-
             var counter = 0;
             var baseVertex = new TypeVertex(typeof(IBase), counter++);
             var a = new TypeVertex(typeof(IA), counter++);
@@ -50,14 +44,21 @@
             var c = new TypeVertex(typeof(IC), counter++);
             var d = new TypeVertex(typeof(ID), counter++);
 
-            var piC = typeof(IA).GetProperty("C");
-            var piD = typeof(IC).GetProperty("D");
+            var propAC = typeof(IA).GetProperty("C");
+            var propCD = typeof(IC).GetProperty("D");
 
-            var expectedGraph = new[] { baseVertex, a, b, c, d };
-            expectedGraph[1].Children.AddRange(new[] { Tuple.Create(piC, baseVertex), Tuple.Create(piC, b), Tuple.Create(piC, c) });
-            expectedGraph[3].Children.AddRange(new[] { Tuple.Create(piD, baseVertex), Tuple.Create(piD, d) });
+            var expectedGraph = GetGraphArray(baseVertex, a, b, c, d);
 
-            var typeGraph = new TypeGraph<IBase>(GetType().Assembly.GetTypes());
+            //// IBase -> []
+            //// IA -> [{IA.C, IBase}, {IA.C, IB}, {IA.C, IC}]
+            //// IB -> []
+            //// IC -> [{IC.D, IBase}, {IC.D, ID}]
+            //// ID -> []
+            
+            expectedGraph[a.Index].Children.AddRange(new[] { Tuple.Create(propAC, baseVertex), Tuple.Create(propAC, b), Tuple.Create(propAC, c) });
+            expectedGraph[c.Index].Children.AddRange(new[] { Tuple.Create(propCD, baseVertex), Tuple.Create(propCD, d) });
+
+            var typeGraph = BuildTypeGraph<IBase>();
 
             Assert.True(IsEqual(expectedGraph, typeGraph.Vertices));
         }
