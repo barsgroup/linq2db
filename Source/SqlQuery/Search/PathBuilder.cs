@@ -32,6 +32,7 @@
             var propertyPaths = new LinkedList<PropertyInfoVertex>();
             var searchVertex = _typeGraph.GetTypeVertex(searchType);
             var allVertex = new Dictionary<TypeVertex, LinkedList<PropertyInfoVertex>>();
+            var propertyInfoVertexCache = new Dictionary<PropertyInfo, PropertyInfoVertex>();
 
             foreach (var sourceType in sourceTypes)
             {
@@ -44,7 +45,7 @@
 
                 var isCycleStartVertex = new bool[_typeGraph.VertextCount];
 
-                var properties = BuildSearchTree(sourceVertex, searchVertex, allVertex, new bool[_typeGraph.VertextCount], isCycleStartVertex);
+                var properties = BuildSearchTree(sourceVertex, searchVertex, allVertex, new bool[_typeGraph.VertextCount], isCycleStartVertex, propertyInfoVertexCache);
 
                 var cycleStartIndices = isCycleStartVertex.Select(
                     (flag, index) => new
@@ -166,7 +167,8 @@
             TypeVertex currentVertex,
             TypeVertex searchVertex,
             Dictionary<TypeVertex, LinkedList<PropertyInfoVertex>> allProperties,
-            bool[] visited, bool[] isCycleStartVertex)
+            bool[] visited, bool[] isCycleStartVertex,
+            Dictionary<PropertyInfo, PropertyInfoVertex> propertyInfoVertexCache)
         {
             var properties = new LinkedList<PropertyInfoVertex>();
             if (visited[currentVertex.Index])
@@ -199,9 +201,14 @@
                         return;
                     }
                     
-                    var childProperties = BuildSearchTree(childVertex, searchVertex, allProperties, visited, isCycleStartVertex);
+                    var childProperties = BuildSearchTree(childVertex, searchVertex, allProperties, visited, isCycleStartVertex, propertyInfoVertexCache);
 
-                    var rootProperty = new PropertyInfoVertex(propertyInfo);
+                    PropertyInfoVertex rootProperty;
+                    if (!propertyInfoVertexCache.TryGetValue(propertyInfo, out rootProperty))
+                    {
+                        rootProperty = new PropertyInfoVertex(propertyInfo);
+                        propertyInfoVertexCache[propertyInfo] = rootProperty;
+                    }
 
                     if (childProperties.Count == 0 && isCycleStartVertex[childVertex.Index])
                     {
@@ -231,6 +238,7 @@
         public bool IsCycleEndVertex { get; set; }
 
         public LinkedList<PropertyInfoVertex> Children { get; } = new LinkedList<PropertyInfoVertex>();
+        public LinkedList<PropertyInfoVertex> RecurciveChildren { get; } = new LinkedList<PropertyInfoVertex>();
 
         public PropertyInfoVertex(PropertyInfo property)
         {
