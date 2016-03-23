@@ -41,6 +41,9 @@
 
             [SearchContainer]
             IF F { get; set; }
+
+            [SearchContainer]
+            IBase FBase { get; set; }
         }
 
         public interface ID : IBase
@@ -76,12 +79,12 @@
         [Fact]
         public void Test()
         {
-            //var typeGraph = new TypeGraph<IBase>(GetType().Assembly.GetTypes());
-            //
-            //var pathBuilder = new PathBuilder<IBase>(typeGraph);
-            //
-            //var result = pathBuilder.Find(new ClassA(), typeof(IF));
-            //
+            var typeGraph = new TypeGraph<IBase>(GetType().Assembly.GetTypes());
+            
+            var pathBuilder = new PathBuilder<IBase>(typeGraph);
+            
+            var result = pathBuilder.Find(new ClassA(), typeof(IF));
+            
             //var basea = typeof(IBase).GetProperty("A");
             //var baseb = typeof(IBase).GetProperty("B1");
             //var ab = typeof(IA).GetProperty("B2");

@@ -12,12 +12,14 @@
 
         static SearchHelper()
         {
-            var allTypes = GetAllInterfaces().ToList();
+            var baseType = typeof(TBaseInterface);
+            var allTypes = baseType.Assembly.GetTypes().Where(type => baseType.IsAssignableFrom(type)).ToList();
+            var allInterfaces = allTypes.Where(t => t.IsInterface).ToList();
 
             foreach (var type in allTypes)
             {
                 baseInterfaces[type] = type.GetInterfaces().Where(typeof(TBaseInterface).IsAssignableFrom).ToList();
-                derivedInterfaces[type] = allTypes.Where(t => type.IsAssignableFrom(t) && type != t).ToList();
+                derivedInterfaces[type] = allInterfaces.Where(t => type.IsAssignableFrom(t) && type != t).ToList();
             }
         }
 
