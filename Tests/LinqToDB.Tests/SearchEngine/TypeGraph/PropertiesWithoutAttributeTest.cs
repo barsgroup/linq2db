@@ -38,8 +38,8 @@
 
             expectedGraph[baseVertex.Index].Children.AddRange(new[]
                                                                   {
-                                                                      Tuple.Create(propBaseA1, baseVertex),
-                                                                      Tuple.Create(propBaseA1, a)
+                                                                      new Edge(baseVertex, propBaseA1, baseVertex),
+                                                                      new Edge(baseVertex, propBaseA1, a)
                                                                   });
 
             var typeGraph = BuildTypeGraph<IBase>();

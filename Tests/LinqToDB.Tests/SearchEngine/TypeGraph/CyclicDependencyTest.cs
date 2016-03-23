@@ -52,9 +52,9 @@
             //// IB -> [{IB.C, IBase}, {IB.C, IC}]
             //// IC -> [{IC.A, IBase}, {IC.A, IA}]
 
-            expectedGraph[a.Index].Children.AddRange(new[] { Tuple.Create(propAB, baseVertex), Tuple.Create(propAB, b) });
-            expectedGraph[b.Index].Children.AddRange(new[] { Tuple.Create(propBC, baseVertex), Tuple.Create(propBC, c) });
-            expectedGraph[c.Index].Children.AddRange(new[] { Tuple.Create(propCA, baseVertex), Tuple.Create(propCA, a) });
+            expectedGraph[a.Index].Children.AddRange(new[] { new Edge(a, propAB, baseVertex), new Edge(a, propAB, b) });
+            expectedGraph[b.Index].Children.AddRange(new[] { new Edge(b, propBC, baseVertex), new Edge(b, propBC, c) });
+            expectedGraph[c.Index].Children.AddRange(new[] { new Edge(c, propCA, baseVertex), new Edge(c, propCA, a) });
 
             var typeGraph = BuildTypeGraph<IBase>();
 

@@ -74,6 +74,7 @@
     <Compile Include="AsyncExtensions.cs" />
     <Compile Include="Common\LinqToDBConvertException.cs" />
     <Compile Include="Expressions\ExpressionEqualityComparer.cs" />
+    <Compile Include="Extensions\HashSetExtentions.cs" />
     <Compile Include="Extensions\LinkedListExtentions.cs" />
     <Compile Include="Extensions\TypeSwitch.cs" />
     <Compile Include="KeepConnectionAliveScope.cs" />
@@ -480,7 +481,7 @@
     <Compile Include="SqlQuery\QueryElements\Union.cs" />
     <Compile Include="SqlQuery\Search\PathBuilder.cs" />
     <Compile Include="SqlQuery\Search\SearchContainerAttribute.cs" />
-    <Compile Include="SqlQuery\Search\SearchExtensions.cs" />
+    <Compile Include="SqlQuery\Search\SearchHelper.cs" />
     <Compile Include="SqlQuery\Search\TypeGraph.cs" />
     <Compile Include="SqlQuery\Search\SearchEngine.cs" />
     <Compile Include="SqlQuery\SelectQueryOptimizer.cs" />

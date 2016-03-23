@@ -11,7 +11,10 @@
     {
         public readonly Dictionary<Type, TypeVertex> SearchVertices = new Dictionary<Type, TypeVertex>();
 
+        public readonly Dictionary<PropertyInfo, HashSet<Edge>> AllEdges = new Dictionary<PropertyInfo, HashSet<Edge>>();
+
         public readonly bool[][] TransitiveClosure;
+        public readonly bool[][] ExtendedTransitiveClosure;
 
         public readonly TypeVertex[] Vertices;
 
@@ -37,9 +40,43 @@
             return TransitiveClosure[sourceVertex.Index][searchVertex.Index];
         }
 
+        public bool ExtendedPathExists(TypeVertex sourceVertex, TypeVertex searchVertex)
+        {
+            return ExtendedTransitiveClosure[sourceVertex.Index][searchVertex.Index];
+        }
+
+        public bool IsFinalVertex(TypeVertex vertex, Type searchType)
+        {
+            return SearchHelper<TBaseSearchInterface>.FindHierarchy(searchType).Contains(vertex.Type);
+        }
+
+        public Dictionary<PropertyInfo, List<Edge>> GetEdgeSubTree(IEnumerable<Type> sourceTypes, Type searchType)
+        {
+            var sourceTypeVertices = sourceTypes.Select(t => SearchVertices[t]).ToList();
+            var searchVertex = SearchVertices[searchType];
+
+            var dict = new Dictionary<PropertyInfo, List<Edge>>();
+
+            foreach (var propertyInfoGroup in AllEdges)
+            {
+                var edges =
+                    propertyInfoGroup.Value.Where(
+                        e =>
+                        sourceTypeVertices.Any(v => PathExists(v, e.Parent)) && ExtendedPathExists(e.Parent, searchVertex)
+                        && (ExtendedPathExists(e.Child, searchVertex) || IsFinalVertex(e.Child, searchType))).ToList();
+
+                if (edges.Count > 0)
+                {
+                    dict[propertyInfoGroup.Key] = edges;
+                }
+            }
+
+            return dict;
+        }
+
         public TypeGraph(IEnumerable<Type> types)
         {
-            var inter = types.Where(t => typeof(TBaseSearchInterface).IsAssignableFrom(t) && t.IsInterface).SelectMany(t => t.FindInterfacesWithSelf<TBaseSearchInterface>()).Distinct().ToList();
+            var inter = types.Where(t => typeof(TBaseSearchInterface).IsAssignableFrom(t) && t.IsInterface).SelectMany(SearchHelper<TBaseSearchInterface>.FindInterfacesWithSelf).Distinct().ToList();
             var interfaces =
                 inter.SelectMany(t => t.GetProperties())
                      .Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null)
@@ -76,17 +113,27 @@
                         throw new InvalidOperationException("Все свойства интерфейсы");
                     }
 
-                    var castInterfaces = propertyType.FindInterfacesWithSelf<TBaseSearchInterface>();
+                    HashSet<Edge> edgeSet;
+                    if (!AllEdges.TryGetValue(info, out edgeSet))
+                    {
+                        edgeSet = new HashSet<Edge>();
+                        AllEdges[info] = edgeSet;
+                    }
 
-                    foreach (var castInterface in castInterfaces)
+                    var childCastInterfaces = SearchHelper<TBaseSearchInterface>.FindInterfacesWithSelf(propertyType);
+
+                    foreach (var childCastInterface in childCastInterfaces)
                     {
                         TypeVertex childVertex;
-                        if (!SearchVertices.TryGetValue(castInterface, out childVertex))
+                        if (!SearchVertices.TryGetValue(childCastInterface, out childVertex))
                         {
-                            childVertex = SearchVertices[castInterface] = new TypeVertex(castInterface, counter++);
+                            childVertex = SearchVertices[childCastInterface] = new TypeVertex(childCastInterface, counter++);
                             Vertices[childVertex.Index] = childVertex;
                         }
-                        vertex.Children.AddLast(Tuple.Create(info, childVertex));
+                        var edge = new Edge(vertex, info, childVertex);
+                        vertex.Children.AddLast(edge);
+                        childVertex.Parents.AddLast(edge);
+                        edgeSet.Add(edge);
                     }
                 }
             }
@@ -96,10 +143,30 @@
                 throw new Exception("Количество интерфейсов не соответствует графу");
             }
 
-            TransitiveClosure = BuildTransitiveClosure();
+            TransitiveClosure = BuildAdjacencyMatrix();
+            FillTransitiveClosure(TransitiveClosure);
+
+            ExtendedTransitiveClosure = BuildAdjacencyMatrixExtended();
+            FillTransitiveClosure(ExtendedTransitiveClosure);
         }
 
-        public bool[][] BuildTransitiveClosure()
+        public void FillTransitiveClosure(bool[][] adjacencyMatrix)
+        {
+            var interfacesCount = Vertices.Length;
+
+            for (var k = 0; k < interfacesCount; k++)
+            {
+                for (var i = 0; i < interfacesCount; i++)
+                {
+                    for (var j = 0; j < interfacesCount; j++)
+                    {
+                        adjacencyMatrix[i][j] = adjacencyMatrix[i][j] || adjacencyMatrix[i][k] && adjacencyMatrix[k][j];
+                    }
+                }
+            }
+        }
+
+        private bool[][] BuildAdjacencyMatrix()
         {
             var interfacesCount = Vertices.Length;
 
@@ -108,38 +175,47 @@
             {
                 matrix[i] = new bool[interfacesCount];
             }
-            FillAdjacencyMatrix(matrix);
 
-            for (var k = 0; k < interfacesCount; k++)
+            for (var i = 0; i < interfacesCount; i++)
             {
-                for (var i = 0; i < interfacesCount; i++)
-                {
-                    for (var j = 0; j < interfacesCount; j++)
+                var vertex = Vertices[i];
+                vertex.Children.ForEach(
+                    egde =>
                     {
-                        matrix[i][j] = matrix[i][j] || matrix[i][k] && matrix[k][j];
-                    }
-                }
+                        matrix[vertex.Index][egde.Value.Child.Index] = true;
+                    });
             }
 
             return matrix;
         }
 
-        private void FillAdjacencyMatrix(bool[][] matrix)
+        private bool[][] BuildAdjacencyMatrixExtended()
         {
-            for (var i = 0; i < matrix.Length; i++)
+            var interfacesCount = Vertices.Length;
+
+            var matrix = new bool[interfacesCount][];
+            for (var i = 0; i < interfacesCount; i++)
+            {
+                matrix[i] = new bool[interfacesCount];
+            }
+
+            for (var i = 0; i < interfacesCount; i++)
             {
                 var vertex = Vertices[i];
                 vertex.Children.ForEach(
-                    child =>
-                    {
-                        var node = child.Value.Item2;
-                        var interfaces = node.Type.FindInterfacesWithSelf<TBaseSearchInterface>();
-                        foreach (var inter in interfaces)
+                    egde =>
                         {
-                            matrix[vertex.Index][SearchVertices[inter].Index] = true;
-                        }
-                    });
+                            var child = egde.Value.Child;
+
+                            matrix[vertex.Index][child.Index] = true;
+                            foreach (var type in SearchHelper<TBaseSearchInterface>.FindDerived(child.Type))
+                            {
+                                matrix[vertex.Index][SearchVertices[type].Index] = true;
+                            }
+                        });
             }
+
+            return matrix;
         }
 
         private static Type GetElementType(Type sourceType)
@@ -184,12 +260,53 @@
 
         public int Index { get; }
 
-        public LinkedList<Tuple<PropertyInfo, TypeVertex>> Children { get; } = new LinkedList<Tuple<PropertyInfo, TypeVertex>>();
+        public LinkedList<Edge> Children { get; } = new LinkedList<Edge>(); // parent == this
+
+        public LinkedList<Edge> Parents { get; } = new LinkedList<Edge>(); // child == this
 
         public TypeVertex(Type type, int index)
         {
             Type = type;
             Index = index;
+        }
+    }
+
+    public class Edge : IEquatable<Edge>
+    {
+        public TypeVertex Parent { get; }
+
+        public TypeVertex Child { get; }
+
+        public PropertyInfo PropertyInfo { get; }
+
+        public Edge(TypeVertex parent, PropertyInfo property, TypeVertex child)
+        {
+            Parent = parent;
+            PropertyInfo = property;
+            Child = child;
+        }
+        
+        public bool Equals(Edge other)
+        {
+            return Parent.Type == other.Parent.Type && PropertyInfo == other.PropertyInfo && Child.Type == other.Child.Type;
+        }
+        
+        public override bool Equals(object obj)
+        {
+            var edge = obj as Edge;
+
+            return edge != null && Equals(edge);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = Parent?.Type.GetHashCode() ?? 0;
+                hashCode = (hashCode * 397) ^ (Child?.Type.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ (PropertyInfo?.GetHashCode() ?? 0);
+                return hashCode;
+            }
         }
     }
 }
