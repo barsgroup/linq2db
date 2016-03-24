@@ -19,7 +19,7 @@
 
         public readonly TypeVertex[] Vertices;
 
-        public int VertextCount => Vertices.Length;
+        public int VertexCount => Vertices.Length;
 
         public TypeVertex GetTypeVertex(Type type)
         {
@@ -35,26 +35,44 @@
         {
             return Vertices[index];
         }
-
-        public bool PathExists(TypeVertex sourceVertex, TypeVertex searchVertex)
-        {
-            return TransitiveClosure[sourceVertex.Index][searchVertex.Index];
-        }
-
-        public bool ExtendedPathExists(TypeVertex sourceVertex, TypeVertex searchVertex)
-        {
-            return ExtendedTransitiveClosure[sourceVertex.Index][searchVertex.Index];
-        }
-
+        
         public bool IsFinalVertex(TypeVertex vertex, Type searchType)
         {
             return SearchHelper<TBaseSearchInterface>.FindHierarchy(searchType).Contains(vertex.Type);
+        }
+
+        public bool[][] GetExtendedTransitiveClosure(Type searchType)
+        {
+            var transitiveClosureCopy = new bool[VertexCount][];
+            for (var i = 0; i < VertexCount; ++i)
+            {
+                transitiveClosureCopy[i] = new bool[VertexCount];
+                TransitiveClosure[i].CopyTo(transitiveClosureCopy[i], 0);
+            }
+            
+            var allFinalTypes = new HashSet<Type>(SearchHelper<TBaseSearchInterface>.FindHierarchy(searchType));
+            var allFinalIndices = allFinalTypes.Select(t => SearchVertices[t].Index).ToList();
+
+            var allFinalEdges = AllEdges.Keys.Where(e => allFinalTypes.Contains(e.PropertyType));
+
+            foreach (var edge in allFinalEdges)
+            {
+                var startIndex = SearchVertices[edge.DeclaringType].Index;
+                foreach (var index in allFinalIndices)
+                {
+                    transitiveClosureCopy[startIndex][index] = true;
+                }
+            }
+
+            return transitiveClosureCopy;
         }
 
         public Dictionary<PropertyInfo, List<Edge>> GetEdgeSubTree(IEnumerable<Type> sourceTypes, Type searchType)
         {
             var sourceTypeVertices = sourceTypes.Select(t => SearchVertices[t]).ToList();
             var searchVertex = SearchVertices[searchType];
+
+            var pathExists = GetExtendedTransitiveClosure(searchType);
 
             var dict = new Dictionary<PropertyInfo, List<Edge>>();
 
@@ -63,8 +81,8 @@
                 var edges =
                     propertyInfoGroup.Value.Where(
                         e =>
-                        sourceTypeVertices.Any(v => PathExists(v, e.Parent)) && ExtendedPathExists(e.Parent, searchVertex)
-                        && (ExtendedPathExists(e.Child, searchVertex) || IsFinalVertex(e.Child, searchType))).ToList();
+                        sourceTypeVertices.Any(v => pathExists[v.Index][e.Parent.Index]) && pathExists[e.Parent.Index][searchVertex.Index]
+                        && (pathExists[e.Child.Index][searchVertex.Index] || IsFinalVertex(e.Child, searchType))).ToList();
 
                 if (edges.Count > 0)
                 {

@@ -22,7 +22,21 @@
 
         public LinkedList<CompositPropertyVertex> OptimizedPaths { get; set; }
 
-        public PathBuilderSearchCache(Type sourceType, Type searchType)
+        public HashSet<Type> FinalTypes { get; set; }
+
+        public bool[][] ExtendedTransitiveClosure { get; set; }
+
+        public bool IsFinalType(Type type)
+        {
+            return FinalTypes.Contains(type);
+        }
+
+        public bool PathExists(TypeVertex sourceVertex, TypeVertex searchVertex)
+        {
+            return ExtendedTransitiveClosure[sourceVertex.Index][searchVertex.Index];
+        }
+
+    public PathBuilderSearchCache(Type sourceType, Type searchType)
         {
             SourceType = sourceType;
             SearchType = searchType;
@@ -69,6 +83,9 @@
             var propertyPathsSet = new HashSet<PropertyInfoVertex>();
             var searchVertex = _typeGraph.GetTypeVertex(searchType);
 
+            cache.FinalTypes = new HashSet<Type>(SearchHelper<TBaseSearchInterface>.FindHierarchy(searchType));
+            cache.ExtendedTransitiveClosure = _typeGraph.GetExtendedTransitiveClosure(searchType);
+
             foreach (var sourceType in sourceTypes)
             {
                 var sourceVertex = _typeGraph.GetTypeVertex(sourceType);
@@ -79,7 +96,7 @@
                     continue;
                 }
 
-                if (!_typeGraph.ExtendedPathExists(sourceVertex, searchVertex))
+                if (!cache.PathExists(sourceVertex, searchVertex))
                 {
                     continue;
                 }
@@ -124,7 +141,7 @@
             return propertyPathsSet;
         }
 
-        public HashSet<PropertyInfoVertex> GetOrBuildPathsNew(IEnumerable<Type> sourceTypes, Type searchType, PathBuilderSearchCache cache)
+        public HashSet<PropertyInfoVertex> GetOrBuildPathsFromSubtree(IEnumerable<Type> sourceTypes, Type searchType, PathBuilderSearchCache cache)
         {
             cache.EdgeSubTree = _typeGraph.GetEdgeSubTree(sourceTypes, searchType);
 
@@ -243,7 +260,7 @@
                     var childVertex = searchNode.Value.Child;
                     var propertyInfo = searchNode.Value.PropertyInfo;
 
-                    if (!_typeGraph.ExtendedPathExists(childVertex, searchVertex) && !_typeGraph.IsFinalVertex(childVertex, searchVertex.Type))
+                    if (!cache.PathExists(childVertex, searchVertex) && !cache.IsFinalType(propertyInfo.PropertyType))
                     {
                         return;
                     }
