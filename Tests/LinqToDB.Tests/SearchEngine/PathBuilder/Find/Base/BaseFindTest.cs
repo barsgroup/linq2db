@@ -1,15 +1,20 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-
-    using LinqToDB.Extensions;
+    
     using LinqToDB.SqlQuery.Search;
 
     public class BaseFindTest
     {
         protected bool IsEqual(IEnumerable<CompositPropertyVertex> graph1, IEnumerable<CompositPropertyVertex> graph2)
+        {
+            return IsEqualInternal(graph1, graph2, new Dictionary<Tuple<CompositPropertyVertex, CompositPropertyVertex>, bool>());
+        }
+
+        protected bool IsEqualInternal(IEnumerable<CompositPropertyVertex> graph1, IEnumerable<CompositPropertyVertex> graph2, Dictionary<Tuple<CompositPropertyVertex, CompositPropertyVertex>, bool> isEqualCache)
         {
             var array1 = GetOrderedArray(graph1);
             var array2 = GetOrderedArray(graph2);
@@ -23,14 +28,30 @@
             {
                 var node1 = array1[i];
                 var node2 = array2[i];
+                var key = Tuple.Create(node1, node2);
+
+                bool result;
+                if (isEqualCache.TryGetValue(key, out result))
+                {
+                    if (!result)
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                isEqualCache[key] = true;
 
                 if (!IsEqual(node1.PropertyList, node2.PropertyList))
                 {
+                    isEqualCache[key] = false;
                     return false;
                 }
 
-                if (!IsEqual(node1.Children, node2.Children))
+                if (!IsEqualInternal(node1.Children, node2.Children, isEqualCache))
                 {
+                    isEqualCache[key] = false;
                     return false;
                 }
             }
@@ -61,18 +82,7 @@
 
         private CompositPropertyVertex[] GetOrderedArray(IEnumerable<CompositPropertyVertex> vertices)
         {
-            return vertices.OrderBy(
-                v =>
-                    {
-                        var key = string.Empty;
-                        v.PropertyList.ForEach(
-                            node =>
-                                {
-                                    key += node.Value.DeclaringType.FullName + "." + node.Value.Name + "->";
-                                });
-
-                        return key;
-                    }).ToArray();
+            return vertices.OrderBy(v => v.ToString()).ToArray();
         }
     }
 }

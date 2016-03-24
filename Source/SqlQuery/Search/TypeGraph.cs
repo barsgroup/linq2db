@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
 
@@ -253,7 +254,7 @@
             return GetElementType(sourceType) != sourceType;
         }
     }
-
+    
     public class TypeVertex
     {
         public Type Type { get; }
@@ -269,8 +270,13 @@
             Type = type;
             Index = index;
         }
-    }
 
+        public override string ToString()
+        {
+            return $"({Index}) {Type.Name}";
+        }
+    }
+    
     public class Edge : IEquatable<Edge>
     {
         public TypeVertex Parent { get; }
@@ -307,6 +313,11 @@
                 hashCode = (hashCode * 397) ^ (PropertyInfo?.GetHashCode() ?? 0);
                 return hashCode;
             }
+        }
+
+        public override string ToString()
+        {
+            return $"{Parent.Type.Name}.{PropertyInfo.Name} -> {Child.Type.Name} ({PropertyInfo.PropertyType.Name})";
         }
     }
 }
