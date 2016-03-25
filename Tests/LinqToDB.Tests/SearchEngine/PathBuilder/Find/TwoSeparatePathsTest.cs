@@ -70,15 +70,18 @@
             var ac = typeof(IA).GetProperty("C");
             var bc = typeof(IB).GetProperty("C");
             var cf = typeof(IC).GetProperty("F");
+            
+            var pathCommon = new CompositPropertyVertex();
+            pathCommon.PropertyList.AddLast(cf);
 
             var path1 = new CompositPropertyVertex();
             path1.PropertyList.AddLast(ab);
             path1.PropertyList.AddLast(bc);
-            path1.PropertyList.AddLast(cf);
+            path1.Children.AddLast(pathCommon);
 
             var path2 = new CompositPropertyVertex();
             path2.PropertyList.AddLast(ac);
-            path2.PropertyList.AddLast(cf);
+            path2.Children.AddLast(pathCommon);
 
             var expected = new[] { path1, path2 };
 

@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
 
@@ -12,10 +11,10 @@
     {
         public readonly Dictionary<Type, TypeVertex> SearchVertices = new Dictionary<Type, TypeVertex>();
 
-        public readonly Dictionary<PropertyInfo, HashSet<Edge>> AllEdges = new Dictionary<PropertyInfo, HashSet<Edge>>();
+        //public readonly Dictionary<PropertyInfo, HashSet<Edge>> AllEdges = new Dictionary<PropertyInfo, HashSet<Edge>>();
+        public readonly HashSet<PropertyInfo> AllPropertyInfos = new HashSet<PropertyInfo>();
 
         public readonly bool[][] TransitiveClosure;
-        public readonly bool[][] ExtendedTransitiveClosure;
 
         public readonly TypeVertex[] Vertices;
 
@@ -35,11 +34,6 @@
         {
             return Vertices[index];
         }
-        
-        public bool IsFinalVertex(TypeVertex vertex, Type searchType)
-        {
-            return SearchHelper<TBaseSearchInterface>.FindHierarchy(searchType).Contains(vertex.Type);
-        }
 
         public bool[][] GetExtendedTransitiveClosure(Type searchType)
         {
@@ -53,7 +47,8 @@
             var allFinalTypes = new HashSet<Type>(SearchHelper<TBaseSearchInterface>.FindHierarchy(searchType));
             var allFinalIndices = allFinalTypes.Select(t => SearchVertices[t].Index).ToList();
 
-            var allFinalEdges = AllEdges.Keys.Where(e => allFinalTypes.Contains(e.PropertyType));
+            //var allFinalEdges = AllEdges.Keys.Where(e => allFinalTypes.Contains(e.PropertyType));
+            var allFinalEdges = AllPropertyInfos.Where(e => allFinalTypes.Contains(e.PropertyType));
 
             foreach (var edge in allFinalEdges)
             {
@@ -67,31 +62,31 @@
             return transitiveClosureCopy;
         }
 
-        public Dictionary<PropertyInfo, List<Edge>> GetEdgeSubTree(IEnumerable<Type> sourceTypes, Type searchType)
-        {
-            var sourceTypeVertices = sourceTypes.Select(t => SearchVertices[t]).ToList();
-            var searchVertex = SearchVertices[searchType];
-
-            var pathExists = GetExtendedTransitiveClosure(searchType);
-
-            var dict = new Dictionary<PropertyInfo, List<Edge>>();
-
-            foreach (var propertyInfoGroup in AllEdges)
-            {
-                var edges =
-                    propertyInfoGroup.Value.Where(
-                        e =>
-                        sourceTypeVertices.Any(v => pathExists[v.Index][e.Parent.Index]) && pathExists[e.Parent.Index][searchVertex.Index]
-                        && (pathExists[e.Child.Index][searchVertex.Index] || IsFinalVertex(e.Child, searchType))).ToList();
-
-                if (edges.Count > 0)
-                {
-                    dict[propertyInfoGroup.Key] = edges;
-                }
-            }
-
-            return dict;
-        }
+        //public Dictionary<PropertyInfo, List<Edge>> GetEdgeSubTree(IEnumerable<Type> sourceTypes, Type searchType, PathBuilderSearchCache cache)
+        //{
+        //    var sourceTypeVertices = sourceTypes.Select(t => SearchVertices[t]).ToList();
+        //    var searchVertex = SearchVertices[searchType];
+        //
+        //    cache.FinalTypes = new HashSet<Type>(SearchHelper<TBaseSearchInterface>.FindHierarchy(searchType));
+        //    cache.ExtendedTransitiveClosure = GetExtendedTransitiveClosure(searchType);
+        //
+        //    var dict = new Dictionary<PropertyInfo, List<Edge>>();
+        //
+        //    foreach (var propertyInfoGroup in AllEdges)
+        //    {
+        //        var edges =
+        //            propertyInfoGroup.Value.Where(
+        //                e =>
+        //                sourceTypeVertices.Any(v => (v.Type == e.Parent.Type || cache.PathExists(v, e.Parent)) && (cache.PathExists(e.Child, searchVertex) || cache.IsFinalType(e.Child.Type)))).ToList();
+        //
+        //        if (edges.Count > 0)
+        //        {
+        //            dict[propertyInfoGroup.Key] = edges;
+        //        }
+        //    }
+        //
+        //    return dict;
+        //}
 
         public TypeGraph(IEnumerable<Type> types)
         {
@@ -132,12 +127,14 @@
                         throw new InvalidOperationException("Все свойства интерфейсы");
                     }
 
-                    HashSet<Edge> edgeSet;
-                    if (!AllEdges.TryGetValue(info, out edgeSet))
-                    {
-                        edgeSet = new HashSet<Edge>();
-                        AllEdges[info] = edgeSet;
-                    }
+                    //HashSet<Edge> edgeSet;
+                    //if (!AllEdges.TryGetValue(info, out edgeSet))
+                    //{
+                    //    edgeSet = new HashSet<Edge>();
+                    //    AllEdges[info] = edgeSet;
+                    //}
+
+                    AllPropertyInfos.Add(info);
 
                     var childCastInterfaces = SearchHelper<TBaseSearchInterface>.FindInterfacesWithSelf(propertyType);
 
@@ -152,7 +149,7 @@
                         var edge = new Edge(vertex, info, childVertex);
                         vertex.Children.AddLast(edge);
                         childVertex.Parents.AddLast(edge);
-                        edgeSet.Add(edge);
+                        //edgeSet.Add(edge);
                     }
                 }
             }
@@ -164,9 +161,6 @@
 
             TransitiveClosure = BuildAdjacencyMatrix();
             FillTransitiveClosure(TransitiveClosure);
-
-            ExtendedTransitiveClosure = BuildAdjacencyMatrixExtended();
-            FillTransitiveClosure(ExtendedTransitiveClosure);
         }
 
         public void FillTransitiveClosure(bool[][] adjacencyMatrix)
@@ -203,35 +197,6 @@
                     {
                         matrix[vertex.Index][egde.Value.Child.Index] = true;
                     });
-            }
-
-            return matrix;
-        }
-
-        private bool[][] BuildAdjacencyMatrixExtended()
-        {
-            var interfacesCount = Vertices.Length;
-
-            var matrix = new bool[interfacesCount][];
-            for (var i = 0; i < interfacesCount; i++)
-            {
-                matrix[i] = new bool[interfacesCount];
-            }
-
-            for (var i = 0; i < interfacesCount; i++)
-            {
-                var vertex = Vertices[i];
-                vertex.Children.ForEach(
-                    egde =>
-                        {
-                            var child = egde.Value.Child;
-
-                            matrix[vertex.Index][child.Index] = true;
-                            foreach (var type in SearchHelper<TBaseSearchInterface>.FindDerived(child.Type))
-                            {
-                                matrix[vertex.Index][SearchVertices[type].Index] = true;
-                            }
-                        });
             }
 
             return matrix;

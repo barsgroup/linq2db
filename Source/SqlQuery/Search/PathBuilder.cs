@@ -141,54 +141,59 @@
             return propertyPathsSet;
         }
 
-        public HashSet<PropertyInfoVertex> GetOrBuildPathsFromSubtree(IEnumerable<Type> sourceTypes, Type searchType, PathBuilderSearchCache cache)
-        {
-            cache.EdgeSubTree = _typeGraph.GetEdgeSubTree(sourceTypes, searchType);
-
-            var allEdges = cache.EdgeSubTree.Values.SelectMany(v => v).ToList();
-            var edgesGroupedByParent = allEdges.GroupBy(v => v.Parent).ToDictionary(g => g.Key, g => g.ToList());
-            var edgesGroupedByChild = allEdges.GroupBy(v => v.Child).ToDictionary(g => g.Key, g => g.ToList());
-
-            foreach (var edgeGroup in cache.EdgeSubTree)
-            {
-                cache.AllProperties[edgeGroup.Key] = new PropertyInfoVertex(edgeGroup.Key);
-            }
-
-            foreach (var edgeGroup in cache.EdgeSubTree)
-            {
-                var vertex = cache.AllProperties[edgeGroup.Key];
-
-                foreach (var edge in edgeGroup.Value)
-                {
-                    HashSet<PropertyInfoVertex> childEdges;
-                    if (!cache.AllVertices.TryGetValue(edge.Child, out childEdges))
-                    {
-                        var childEdgesList = edgesGroupedByParent[edge.Child].Select(e => cache.AllProperties[e.PropertyInfo]);
-
-                        childEdges = new HashSet<PropertyInfoVertex>(childEdgesList);
-                        cache.AllVertices[edge.Child] = childEdges;
-                    }
-
-                    vertex.Children.UnionWith(childEdges);
-
-                    HashSet<PropertyInfoVertex> parentEdges;
-                    if (!cache.AllVertices.TryGetValue(edge.Parent, out parentEdges))
-                    {
-                        var parentEdgesList = edgesGroupedByChild[edge.Parent].Select(e => cache.AllProperties[e.PropertyInfo]);
-
-                        parentEdges = new HashSet<PropertyInfoVertex>(parentEdgesList);
-                        cache.AllVertices[edge.Parent] = parentEdges;
-                    }
-
-                    vertex.Parents.UnionWith(parentEdges);
-                }
-            }
-            
-            var startEdges = sourceTypes.SelectMany(t => cache.AllVertices[_typeGraph.GetTypeVertex(t)]);
-            var result = new HashSet<PropertyInfoVertex>(startEdges);
-
-            return result;
-        }
+        //public HashSet<PropertyInfoVertex> GetOrBuildPathsFromSubtree(IEnumerable<Type> sourceTypes, Type searchType, PathBuilderSearchCache cache)
+        //{
+        //    cache.EdgeSubTree = _typeGraph.GetEdgeSubTree(sourceTypes, searchType, cache);
+        //    
+        //    foreach (var edgeGroup in cache.EdgeSubTree)
+        //    {
+        //        cache.AllProperties[edgeGroup.Key] = new PropertyInfoVertex(edgeGroup.Key);
+        //    }
+        //
+        //    var allEdges = cache.EdgeSubTree.Values.SelectMany(v => v).ToList();
+        //    var edgesGroupedByParent = allEdges.GroupBy(v => v.Parent).ToDictionary(g => g.Key, g => g.Select(e => cache.AllProperties[e.PropertyInfo]).ToList());
+        //    var edgesGroupedByChild = allEdges.GroupBy(v => v.Child).ToDictionary(g => g.Key, g => g.Select(e => cache.AllProperties[e.PropertyInfo]).ToList());
+        //
+        //    foreach (var edgeGroup in cache.EdgeSubTree)
+        //    {
+        //        var vertex = cache.AllProperties[edgeGroup.Key];
+        //
+        //        foreach (var edge in edgeGroup.Value)
+        //        {
+        //            HashSet<PropertyInfoVertex> childEdges;
+        //            List<PropertyInfoVertex> childEdgesList;
+        //            if (!cache.AllVertices.TryGetValue(edge.Child, out childEdges) && edgesGroupedByParent.TryGetValue(edge.Child, out childEdgesList))
+        //            {
+        //                childEdges = new HashSet<PropertyInfoVertex>(childEdgesList);
+        //                cache.AllVertices[edge.Child] = childEdges;
+        //
+        //            }
+        //
+        //            if (childEdges != null)
+        //            {
+        //                vertex.Children.UnionWith(childEdges);
+        //            }
+        //
+        //            HashSet<PropertyInfoVertex> parentEdges;
+        //            List<PropertyInfoVertex> parentEdgesList;
+        //            if (!cache.AllVertices.TryGetValue(edge.Parent, out parentEdges) && edgesGroupedByChild.TryGetValue(edge.Parent, out parentEdgesList))
+        //            {
+        //                parentEdges = new HashSet<PropertyInfoVertex>(parentEdgesList);
+        //                cache.AllVertices[edge.Parent] = parentEdges;
+        //            }
+        //
+        //            if (parentEdges != null)
+        //            {
+        //                vertex.Parents.UnionWith(parentEdges);
+        //            }
+        //        }
+        //    }
+        //    
+        //    var startEdges = sourceTypes.SelectMany(t => cache.AllVertices[_typeGraph.GetTypeVertex(t)]);
+        //    var result = new HashSet<PropertyInfoVertex>(startEdges);
+        //
+        //    return result;
+        //}
 
         public static LinkedList<CompositPropertyVertex> OptimizePaths(HashSet<PropertyInfoVertex> propertyPaths, PathBuilderSearchCache cache)
         {
