@@ -11,7 +11,7 @@
         public interface IBase
         {
             [SearchContainer]
-            IBase Base { get; set; }
+            IX Base { get; set; }
         }
 
         public interface IA : IBase
@@ -20,7 +20,7 @@
             IB B { get; set; }
 
             [SearchContainer]
-            IBase X { get; set; }
+            IX X { get; set; }
         }
 
         public interface IB : IBase
@@ -29,7 +29,7 @@
             IC C { get; set; }
 
             [SearchContainer]
-            IBase X { get; set; }
+            IX X { get; set; }
         }
 
         public interface IC : IBase
@@ -44,10 +44,14 @@
             ID D3 { get; set; }
 
             [SearchContainer]
-            IBase X { get; set; }
+            IX X { get; set; }
         }
 
         public interface ID : IBase
+        {
+        }
+        
+        public interface IX : IBase
         {
         }
 
@@ -55,11 +59,11 @@
         {
             public IB B { get; set; }
 
-            public IBase X { get; set; }
+            public IX X { get; set; }
 
             public IC C { get; set; }
 
-            public IBase Base { get; set; }
+            public IX Base { get; set; }
         }
 
         [Fact]

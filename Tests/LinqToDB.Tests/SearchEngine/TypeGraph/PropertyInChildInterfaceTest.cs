@@ -55,8 +55,8 @@
             //// IC -> [{IC.D, IBase}, {IC.D, ID}]
             //// ID -> []
             
-            expectedGraph[a.Index].Children.AddRange(new[] { Tuple.Create(propAC, baseVertex), Tuple.Create(propAC, b), Tuple.Create(propAC, c) });
-            expectedGraph[c.Index].Children.AddRange(new[] { Tuple.Create(propCD, baseVertex), Tuple.Create(propCD, d) });
+            expectedGraph[a.Index].Children.AddRange(new[] { new Edge(a, propAC, baseVertex), new Edge(a, propAC, b), new Edge(a, propAC, c) });
+            expectedGraph[c.Index].Children.AddRange(new[] { new Edge(c, propCD, baseVertex), new Edge(c, propCD, d) });
 
             var typeGraph = BuildTypeGraph<IBase>();
 

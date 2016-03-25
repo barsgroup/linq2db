@@ -58,12 +58,12 @@
                     var child1 = children1[j];
                     var child2 = children2[j];
 
-                    if (child1.Item1 != child2.Item1)
+                    if (child1.PropertyInfo != child2.PropertyInfo)
                     {
                         return false;
                     }
 
-                    if (child1.Item2.Type != child2.Item2.Type)
+                    if (child1.Child.Type != child2.Child.Type)
                     {
                         return false;
                     }
@@ -79,11 +79,11 @@
             foreach (var vertex in graph)
             {
                 var newChildren =
-                    vertex.Children.OrderBy(child => child.Item1.Name)
-                          .ThenBy(child => child.Item1.DeclaringType.FullName)
-                          .ThenBy(child => child.Item1.ReflectedType.FullName)
-                          .ThenBy(child => child.Item1.PropertyType.FullName)
-                          .ThenBy(child => child.Item2.Type.FullName)
+                    vertex.Children.OrderBy(child => child.PropertyInfo.Name)
+                          .ThenBy(child => child.PropertyInfo.DeclaringType.FullName)
+                          .ThenBy(child => child.PropertyInfo.ReflectedType.FullName)
+                          .ThenBy(child => child.PropertyInfo.PropertyType.FullName)
+                          .ThenBy(child => child.Child.Type.FullName)
                           .ToList();
                 vertex.Children.Clear();
                 vertex.Children.AddRange(newChildren);
