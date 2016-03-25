@@ -17,7 +17,7 @@ using LinqToDB.Properties;
 [assembly: AssemblyFileVersion     (LinqToDBConstants.FullVersionString)]
 [assembly: CLSCompliant            (true)]
 [assembly: NeutralResourcesLanguage("en-US")]
-[assembly: System.Security.AllowPartiallyTrustedCallers]
+//[assembly: System.Security.AllowPartiallyTrustedCallers]
 
 [assembly: InternalsVisibleTo("linq2db.Tests, PublicKey=" +
 	"00240000048000009400000006020000002400005253413100040000010001006f967cbdfdadb7" +
