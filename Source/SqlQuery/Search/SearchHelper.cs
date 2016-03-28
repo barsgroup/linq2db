@@ -10,16 +10,27 @@
 
         private static Dictionary<Type, List<Type>> derivedInterfaces = new Dictionary<Type, List<Type>>(); 
 
+        private static Dictionary<Type, List<Type>> leafInterfaces = new Dictionary<Type, List<Type>>(); 
+
         static SearchHelper()
         {
             var baseType = typeof(TBaseInterface);
             var allTypes = baseType.Assembly.GetTypes().Where(type => baseType.IsAssignableFrom(type)).ToList();
             var allInterfaces = allTypes.Where(t => t.IsInterface).ToList();
+            var allClasses = allTypes.Where(t => !t.IsInterface).ToList();
 
             foreach (var type in allTypes)
             {
-                baseInterfaces[type] = type.GetInterfaces().Where(typeof(TBaseInterface).IsAssignableFrom).ToList();
+                var interfaces = type.GetInterfaces().Where(typeof(TBaseInterface).IsAssignableFrom).ToList();
+                baseInterfaces[type] = interfaces;
+                leafInterfaces[type] = interfaces.Where(leaf => !interfaces.Any(i => leaf.IsAssignableFrom(i) && leaf != i)).ToList();
                 derivedInterfaces[type] = allInterfaces.Where(t => type.IsAssignableFrom(t) && type != t).ToList();
+            }
+
+            foreach (var type in allClasses)
+            {
+                var interfaces = baseInterfaces[type];
+                leafInterfaces[type] = interfaces.Where(leaf => !interfaces.Any(i => leaf.IsAssignableFrom(i) && leaf != i)).ToList();
             }
         }
 
@@ -29,7 +40,17 @@
             return baseType.Assembly.GetTypes().Where(type => baseType.IsAssignableFrom(type) && type.IsInterface);
         }
 
-        public static IEnumerable<Type> FindInterfaces(Type propertyType)
+        public static IEnumerable<Type> FindLeafInterfaces(Type classType)
+        {
+            if (!leafInterfaces.ContainsKey(classType))
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+
+            return leafInterfaces[classType];
+        }
+
+        public static IEnumerable<Type> FindBase(Type propertyType)
         {
             if (!baseInterfaces.ContainsKey(propertyType))
             {
@@ -51,7 +72,7 @@
 
         public static IEnumerable<Type> FindHierarchy(Type propertyType)
         {
-            var interfaces = FindInterfaces(propertyType);
+            var interfaces = FindBase(propertyType);
 
             if (!propertyType.IsInterface)
             {
@@ -62,9 +83,9 @@
         }
 
 
-        public static IEnumerable<Type> FindInterfacesWithSelf(Type propertyType)
+        public static IEnumerable<Type> FindBaseWithSelf(Type propertyType)
         {
-            var interfaces = FindInterfaces(propertyType);
+            var interfaces = FindBase(propertyType);
 
             return propertyType.IsInterface
                        ? interfaces.Concat(new[] { propertyType })

@@ -50,6 +50,14 @@
     <Compile Include="SearchEngine\PathBuilder\Find\TreeWithCommonPartTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\CyclicTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\TwoSeparatePathsTest.cs" />
+    <Compile Include="SearchEngine\TypeGraphEx\Base\TypeGraphBaseTest.cs" />
+    <Compile Include="SearchEngine\TypeGraphEx\CyclicDependencyTest.cs" />
+    <Compile Include="SearchEngine\TypeGraphEx\CyclicTest.cs" />
+    <Compile Include="SearchEngine\TypeGraphEx\HierarchyPropertyTest.cs" />
+    <Compile Include="SearchEngine\TypeGraphEx\PropertiesWithoutAttributeTest.cs" />
+    <Compile Include="SearchEngine\TypeGraphEx\PropertyInChildInterfaceTest.cs" />
+    <Compile Include="SearchEngine\TypeGraphEx\PropertyInParentInterfaceTest.cs" />
+    <Compile Include="SearchEngine\TypeGraphEx\TwoPropertiesOfOneTypeTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\Base\TypeGraphBaseTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\CyclicTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\PropertiesWithoutAttributeTest.cs" />
