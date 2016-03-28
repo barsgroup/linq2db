@@ -50,7 +50,7 @@
             var deleg = delegateConstructor.CreateResultDelegate(paths);
 
             LinkedList<IB> result = new LinkedList<IB>();
-            deleg(obj, out result);
+            deleg(obj, result);
         }
     }
 }

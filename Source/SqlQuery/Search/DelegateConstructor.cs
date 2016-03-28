@@ -3,101 +3,107 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
-    using System.Reflection.Emit;
 
-    using System.Diagnostics.SymbolStore;
-    using System.Diagnostics;
+    using System.Text;
+
+    using DynamicExpresso;
 
     using LinqToDB.Extensions;
 
     using Seterlund.CodeGuard;
 
-    using Sigil;
-
     public class DelegateConstructor<TSearch>
+        where TSearch : class
     {
-        private static readonly Delegate isInstanseOf = new Func<object, Type, object>(IsInstanseOf);
-
-        public delegate void ResultDelegate(object obj, out LinkedList<TSearch> resultList);
+        public delegate void ResultDelegate(object obj, LinkedList<TSearch> resultList);
 
         public ResultDelegate CreateResultDelegate(LinkedList<CompositPropertyVertex> vertices)
         {
-            var delegateMap = new Dictionary<CompositPropertyVertex, DynamicMethod>();
+            var delegateMap = new Dictionary<CompositPropertyVertex, ProxyDelegate>();
 
-            return CreateDelegate(vertices.First.Value, delegateMap);
+            CreateDelegate(vertices.First.Value, delegateMap);
+
+            return delegateMap[vertices.First.Value].Delegate;
         }
 
-        private ResultDelegate CreateDelegate(CompositPropertyVertex vertex,
-                                    Dictionary<CompositPropertyVertex, DynamicMethod> delegateMap)
+
+        static string GetFullName(Type t)
+        {
+            Func<string, string> namespaseFormat = name => $"{t.Namespace}.{name}";
+
+            if (!t.IsGenericType)
+                return t.Name;
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append(t.Name.Substring(0, t.Name.LastIndexOf("`", StringComparison.Ordinal)));
+            sb.Append(t.GetGenericArguments().Aggregate("<",
+                (aggregate, type) => aggregate + (aggregate == "<"
+                                                      ? ""
+                                                      : ",") + GetFullName(type)));
+            sb.Append(">");
+
+            return sb.ToString();
+        }
+
+        private void CreateDelegate(CompositPropertyVertex vertex,
+                                    Dictionary<CompositPropertyVertex, ProxyDelegate> delegateMap)
         {
             Guard.That(vertex.PropertyList.First).IsNotNull();
 
-            var method = Emit<ResultDelegate>.NewDynamicMethod(doVerify:false);
-            var dynMethod = (DynamicMethod)method.GetType().GetPropertiesEx().Single(p =>p.Name == "DynMethod").GetValue(method);
-            delegateMap[vertex] = dynMethod;
+            var propertyGetters = new List<Func<object, object>>(vertex.PropertyList.Count);
 
-            method.LoadArgument(1);
-            method.NewObject<LinkedList<TSearch>>();
-            method.StoreIndirect<LinkedList<TSearch>>();
-
-            method.LoadArgument(0);
-
+            var propertyGetterInterpretter = new Interpreter();
+            const string PropertyAccessExpr = "obj is {0} ? (({0})obj).{1} : null";
             vertex.PropertyList.ForEach(
                 node =>
                 {
-                    method.LoadConstant(node.Value.DeclaringType);
-                    method.Call(isInstanseOf.Method);
+                    propertyGetterInterpretter = propertyGetterInterpretter.Reference(node.Value.DeclaringType);
+                    var propGet = string.Format(PropertyAccessExpr, GetFullName(node.Value.DeclaringType), node.Value.Name);
 
-                    method.DefineLabel("isInstance");
-                    method.DefineLabel("endIsInstanse");
-
-                    method.BranchIfTrue("isInstance");
-                    method.LoadNull();
-
-                    method.Branch("endIsInstanse");
-
-                    method.MarkLabel("isInstance");
-
-                    method.LoadArgument(0);
-                    method.LoadNull();
-                    method.Call(node.Value.GetGetMethod());
-
-                    method.MarkLabel("endIsInstanse");
+                    var deleg = propertyGetterInterpretter.ParseAsDelegate<Func<object, object>>(propGet, "obj");
+                    propertyGetters.Add(deleg);
                 });
 
-            if (vertex.Children.First == null)
+            ResultDelegate findDelegate = (obj, resultList) => 
             {
-                method.Pop();
-            }
+                var currentObj = obj;
+                for (var i = 0; i < propertyGetters.Count; i++)
+                {
+                    currentObj = propertyGetters[i](currentObj);
+
+                    if (currentObj == null)
+                    {
+                        return;
+                    }
+                }
+
+                var searchObj = currentObj as TSearch;
+                if (searchObj != null)
+                {
+                    resultList.AddLast(searchObj);
+                }
+
+                vertex.Children.ForEach(
+                    node =>
+                    {
+                        delegateMap[node.Value].Delegate(obj, resultList);
+                    });
+            };
+
+            delegateMap[vertex] = new ProxyDelegate {Delegate = findDelegate};
 
             vertex.Children.ForEach(
                 node =>
                 {
-                    DynamicMethod childDynMethod;
-                    if (delegateMap.TryGetValue(vertex, out childDynMethod))
-                    {
-                        method.Call(childDynMethod);
-                    }
-                    else
-                    {
-                        var deleg = CreateDelegate(node.Value, delegateMap);
-                        method.Call(deleg.Method);
-                    }
+                    CreateDelegate(node.Value, delegateMap);
                 });
 
-            method.Return();
-
-            string instructions;
-            return method.CreateDelegate(out instructions, OptimizationOptions.None);
         }
 
-        public static object IsInstanseOf(object obj, Type declaringType)
+        class ProxyDelegate
         {
-            Guard.That(obj).IsNotNull();
-            Guard.That(declaringType).IsNotNull();
-
-            return declaringType.IsInstanceOfType(obj);
+            public ResultDelegate Delegate { get; set; } 
         }
     }
 }
