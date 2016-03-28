@@ -9,6 +9,7 @@
     using DynamicExpresso;
 
     using LinqToDB.Extensions;
+    using LinqToDB.SqlQuery.Search.PathBuilder;
 
     using Seterlund.CodeGuard;
 

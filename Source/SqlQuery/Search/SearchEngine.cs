@@ -2,6 +2,9 @@
 {
     using System;
 
+    using LinqToDB.SqlQuery.Search.PathBuilder;
+    using LinqToDB.SqlQuery.Search.TypeGraph;
+
     public class SearchEngine<TBaseSearchInterface>
     {
         private readonly PathBuilder<TBaseSearchInterface> _pathBuilder;

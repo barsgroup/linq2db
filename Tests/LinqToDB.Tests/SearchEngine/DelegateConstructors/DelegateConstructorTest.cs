@@ -3,6 +3,8 @@
     using System.Collections.Generic;
 
     using LinqToDB.SqlQuery.Search;
+    using LinqToDB.SqlQuery.Search.PathBuilder;
+    using LinqToDB.SqlQuery.Search.TypeGraph;
 
     using Xunit;
 

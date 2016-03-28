@@ -1,6 +1,7 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
 {
     using LinqToDB.SqlQuery.Search;
+    using LinqToDB.SqlQuery.Search.TypeGraph;
     using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
 
     using Xunit;

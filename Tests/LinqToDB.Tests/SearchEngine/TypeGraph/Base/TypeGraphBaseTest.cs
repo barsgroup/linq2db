@@ -5,6 +5,7 @@
 
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search;
+    using LinqToDB.SqlQuery.Search.TypeGraph;
 
     public class TypeGraphBaseTest
     {

@@ -6,6 +6,7 @@
     using System.Reflection;
 
     using LinqToDB.SqlQuery.Search;
+    using LinqToDB.SqlQuery.Search.PathBuilder;
 
     public class BaseFindTest
     {

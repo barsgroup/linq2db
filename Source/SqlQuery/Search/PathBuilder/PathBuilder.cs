@@ -1,31 +1,11 @@
-﻿namespace LinqToDB.SqlQuery.Search
+﻿namespace LinqToDB.SqlQuery.Search.PathBuilder
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
 
     using LinqToDB.Extensions;
-
-    public class PathBuilderSearchCache
-    {
-        public Type SourceType { get; }
-
-        public Type SearchType { get; }
-
-        public Dictionary<TypeVertex, HashSet<PropertyInfoVertex>> AllVertices { get; } = new Dictionary<TypeVertex, HashSet<PropertyInfoVertex>>();
-
-        public Dictionary<PropertyInfo, PropertyInfoVertex> AllProperties { get; } = new Dictionary<PropertyInfo, PropertyInfoVertex>();
-        public Dictionary<PropertyInfo, CompositPropertyVertex> AllCompositProperties { get; } = new Dictionary<PropertyInfo, CompositPropertyVertex>();
-        
-        public LinkedList<CompositPropertyVertex> OptimizedPaths { get; set; }
-        
-        public PathBuilderSearchCache(Type sourceType, Type searchType)
-        {
-            SourceType = sourceType;
-            SearchType = searchType;
-        }
-    }
+    using LinqToDB.SqlQuery.Search.TypeGraph;
 
     public class PathBuilder<TBaseSearchInterface>
     {
@@ -36,6 +16,18 @@
         public PathBuilder(TypeGraph<TBaseSearchInterface> typeGraph)
         {
             _typeGraph = typeGraph;
+        }
+
+        public static LinkedList<CompositPropertyVertex> OptimizePaths(HashSet<PropertyInfoVertex> propertyPaths, PathBuilderSearchCache cache)
+        {
+            var optimizePaths = new LinkedList<CompositPropertyVertex>();
+
+            foreach (var node in propertyPaths)
+            {
+                optimizePaths.AddLast(OptimizeNode(node, cache));
+            }
+
+            return optimizePaths;
         }
 
         public LinkedList<CompositPropertyVertex> Find(TBaseSearchInterface source, Type searchType)
@@ -122,55 +114,6 @@
             return propertyPathsSet;
         }
 
-        public static LinkedList<CompositPropertyVertex> OptimizePaths(HashSet<PropertyInfoVertex> propertyPaths, PathBuilderSearchCache cache)
-        {
-            var optimizePaths = new LinkedList<CompositPropertyVertex>();
-
-            foreach (var node in propertyPaths)
-            {
-                optimizePaths.AddLast(OptimizeNode(node, cache));
-            }
-
-            return optimizePaths;
-        }
-        
-        private static CompositPropertyVertex OptimizeNode(PropertyInfoVertex node, PathBuilderSearchCache cache)
-        {
-            CompositPropertyVertex composite;
-            if (cache.AllCompositProperties.TryGetValue(node.Property, out composite))
-            {
-                return composite;
-            }
-
-            composite = new CompositPropertyVertex();
-            cache.AllCompositProperties[node.Property] = composite;
-
-            composite.PropertyList.AddLast(node.Property);
-
-            var current = node;
-
-            while (current.Children.Count == 1 && !current.IsFinal)
-            {
-                var next = current.Children.First();
-
-                if (next.IsRoot || next.Parents.Count > 1 || cache.AllCompositProperties.ContainsKey(next.Property))
-                {
-                    break;
-                }
-
-                current = next;
-
-                composite.PropertyList.AddLast(current.Property);
-            }
-
-            foreach (var listNode in current.Children)
-            {
-                composite.Children.AddLast(OptimizeNode(listNode, cache));
-            }
-            
-            return composite;
-        }
-
         public HashSet<PropertyInfoVertex> BuildSearchTree(
             TypeVertex currentVertex,
             TypeVertex searchVertex,
@@ -244,38 +187,42 @@
 
             return properties;
         }
-    }
-    
-    public class PropertyInfoVertex
-    {
-        public PropertyInfo Property { get; }
 
-        public bool IsRoot { get; set; }
-        public bool IsFinal { get; set; }
-
-        public HashSet<PropertyInfoVertex> Parents { get; } = new HashSet<PropertyInfoVertex>();
-        public HashSet<PropertyInfoVertex> Children { get; } = new HashSet<PropertyInfoVertex>();
-
-        public PropertyInfoVertex(PropertyInfo property)
+        private static CompositPropertyVertex OptimizeNode(PropertyInfoVertex node, PathBuilderSearchCache cache)
         {
-            Property = property;
-        }
-        
-        public override string ToString()
-        {
-            return $"{Property.DeclaringType.Name}.{Property.Name}";
-        }
-    }
+            CompositPropertyVertex composite;
+            if (cache.AllCompositProperties.TryGetValue(node.Property, out composite))
+            {
+                return composite;
+            }
 
-    public class CompositPropertyVertex
-    {
-        public LinkedList<PropertyInfo> PropertyList { get; } = new LinkedList<PropertyInfo>();
+            composite = new CompositPropertyVertex();
+            cache.AllCompositProperties[node.Property] = composite;
 
-        public LinkedList<CompositPropertyVertex> Children { get; } = new LinkedList<CompositPropertyVertex>();
+            composite.PropertyList.AddLast(node.Property);
 
-        public override string ToString()
-        {
-            return string.Join("->", PropertyList.Select(p => $"{p.DeclaringType.Name}.{p.Name}"));
+            var current = node;
+
+            while (current.Children.Count == 1 && !current.IsFinal)
+            {
+                var next = current.Children.First();
+
+                if (next.IsRoot || next.Parents.Count > 1 || cache.AllCompositProperties.ContainsKey(next.Property))
+                {
+                    break;
+                }
+
+                current = next;
+
+                composite.PropertyList.AddLast(current.Property);
+            }
+
+            foreach (var listNode in current.Children)
+            {
+                composite.Children.AddLast(OptimizeNode(listNode, cache));
+            }
+
+            return composite;
         }
     }
 }
