@@ -2,11 +2,11 @@
 {
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search;
-    using LinqToDB.Tests.SearchEngine.TypeGraphEx.Base;
+    using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
 
     using Xunit;
 
-    public class TwoPropertiesOfOneTypeTest : TypeGraphExBaseTest
+    public class TwoPropertiesOfOneTypeTest : TypeGraphBaseTest
     {
         public interface IBase
         {

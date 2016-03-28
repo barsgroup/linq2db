@@ -1,32 +1,24 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
+﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
 
     using LinqToDB.SqlQuery.Search;
-    using LinqToDB.Tests.SearchEngine.TypeGraphEx.Base;
+    using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
 
     using Xunit;
 
-    public class CyclicTest : TypeGraphExBaseTest
+    public class CyclicTest : BaseFindTest
     {
         public interface IBase
         {
-            [SearchContainer]
-            IA A { get; set; }
-
-            [SearchContainer]
-            IB B1 { get; set; }
         }
 
         public interface IA : IBase
         {
             [SearchContainer]
-            IB B2 { get; set; }
-
-            [SearchContainer]
-            IC C { get; set; }
+            IB B { get; set; }
         }
 
         public interface IB : IBase
@@ -60,24 +52,18 @@
 
         public interface IF : IBase
         {
+            [SearchContainer]
+            IA A { get; set; }
         }
 
         public class ClassA : IA
         {
-            public IB B2 { get; set; }
-
-            public IC C { get; set; }
-
-            public IA A { get; set; }
-
-            public IB B1 { get; set; }
+            public IB B { get; set; }
         }
 
         public class F : IF
         {
             public IA A { get; set; }
-
-            public IB B1 { get; set; }
         }
 
         [Fact]
@@ -85,25 +71,34 @@
         {
             var typeGraph = new TypeGraph<IBase>(GetType().Assembly.GetTypes());
             
-            Assert.True(CheckCyclicGraph(typeGraph.Vertices, new Dictionary<Type, TypeVertex>()));
+            var pathBuilder = new PathBuilder<IBase>(typeGraph);
+            
+            var result = pathBuilder.Find(new ClassA(), typeof(IF));
+            
+            var dictionary = new Dictionary<PropertyInfo, CompositPropertyVertex>();
+
+            Assert.True(CheckCyclicGraph(result, dictionary));
         }
 
-        private bool CheckCyclicGraph(IEnumerable<TypeVertex> graph, Dictionary<Type, TypeVertex> visited)
+        private bool CheckCyclicGraph(IEnumerable<CompositPropertyVertex> graph, Dictionary<PropertyInfo, CompositPropertyVertex> visited)
         {
             foreach (var vertex in graph)
             {
-                var key = vertex.Type;
+                var key = vertex.PropertyList.First.Value;
 
                 if (visited.ContainsKey(key))
                 {
                     return ReferenceEquals(visited[key], vertex);
                 }
 
+                if (vertex.PropertyList.Any(visited.ContainsKey))
+                {
+                    return false;
+                }
+
                 visited[key] = vertex;
 
-                var allChildren = vertex.Children.Select(c => c.Child).Concat(vertex.Casts.Select(c => c.CastTo));
-
-                CheckCyclicGraph(allChildren, visited);
+                CheckCyclicGraph(vertex.Children, visited);
             }
 
             return true;

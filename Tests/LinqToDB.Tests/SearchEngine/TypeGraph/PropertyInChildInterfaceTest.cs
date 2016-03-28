@@ -2,11 +2,11 @@
 {
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search;
-    using LinqToDB.Tests.SearchEngine.TypeGraphEx.Base;
+    using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
 
     using Xunit;
 
-    public class PropertyInParentInterfaceTest : TypeGraphExBaseTest
+    public class PropertyInChildInterfaceTest : TypeGraphBaseTest
     {
         public interface IBase
         {
@@ -15,17 +15,17 @@
         public interface IA : IBase
         {
             [SearchContainer]
-            IB B { get; set; }
+            IC C { get; set; }
         }
 
         public interface IB : IBase
         {
-            [SearchContainer]
-            ID D { get; set; }
         }
 
         public interface IC : IB
         {
+            [SearchContainer]
+            ID D { get; set; }
         }
 
         public interface ID : IBase
@@ -42,24 +42,24 @@
             var c = new TypeVertex(typeof(IC), counter++);
             var d = new TypeVertex(typeof(ID), counter++);
 
-            var propAB = typeof(IA).GetProperty("B");
-            var propBD = typeof(IB).GetProperty("D");
+            var propAC = typeof(IA).GetProperty("C");
+            var propCD = typeof(IC).GetProperty("D");
 
-            var ab = new PropertyEdge(a, propAB, b);
-            var bd = new PropertyEdge(b, propBD, d);
+            var ac = new PropertyEdge(a, propAC, c);
+            var cd = new PropertyEdge(c, propCD, d);
 
             var expectedGraph = GetGraphArray(baseVertex, a, b, c, d);
 
             //// IBase -> []
             ////       ~> [IA, IB, IC, ID]
             //// 
-            ////    IA -> [{IA.C, IB}]
+            ////    IA -> [{IA.C, IC}]
             ////       ~> [IBase]
             //// 
-            ////    IB -> [{IB.D, ID}]
+            ////    IB -> []
             ////       ~> [IBase, IC]
             //// 
-            ////    IC -> []
+            ////    IC -> [{IC.D, ID}]
             ////       ~> [IBase, IB]
             //// 
             ////    ID -> []
@@ -67,18 +67,18 @@
 
             expectedGraph[baseVertex.Index].Casts.AddRange(new[] { new CastEdge(baseVertex, a), new CastEdge(baseVertex, b), new CastEdge(baseVertex, c), new CastEdge(baseVertex, d) });
 
-            expectedGraph[a.Index].Children.AddLast(ab);
+            expectedGraph[a.Index].Children.AddLast(ac);
             expectedGraph[a.Index].Casts.AddLast(new CastEdge(a, baseVertex));
 
-            expectedGraph[b.Index].Parents.AddLast(ab);
-            expectedGraph[b.Index].Children.AddLast(bd);
             expectedGraph[b.Index].Casts.AddLast(new CastEdge(b, baseVertex));
             expectedGraph[b.Index].Casts.AddLast(new CastEdge(b, c));
 
+            expectedGraph[c.Index].Parents.AddLast(ac);
+            expectedGraph[c.Index].Children.AddLast(cd);
             expectedGraph[c.Index].Casts.AddLast(new CastEdge(c, baseVertex));
             expectedGraph[c.Index].Casts.AddLast(new CastEdge(c, b));
 
-            expectedGraph[d.Index].Parents.AddLast(bd);
+            expectedGraph[d.Index].Parents.AddLast(cd);
             expectedGraph[d.Index].Casts.AddLast(new CastEdge(d, baseVertex));
 
             var typeGraph = BuildTypeGraph<IBase>();

@@ -1,11 +1,11 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
 {
     using LinqToDB.SqlQuery.Search;
-    using LinqToDB.Tests.SearchEngine.TypeGraphEx.Base;
+    using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
 
     using Xunit;
 
-    public class PropertiesWithoutAttributeTest : TypeGraphExBaseTest
+    public class PropertiesWithoutAttributeTest : TypeGraphBaseTest
     {
         public interface IBase
         {

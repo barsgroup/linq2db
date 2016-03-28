@@ -1,12 +1,12 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
+﻿namespace LinqToDB.Tests.SearchEngine.TypeGraph
 {
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search;
-    using LinqToDB.Tests.SearchEngine.TypeGraphEx.Base;
+    using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
 
     using Xunit;
 
-    public class HierarchyPropertyTest : TypeGraphExBaseTest
+    public class CyclicDependencyTest : TypeGraphBaseTest
     {
         public interface IBase
         {
@@ -15,15 +15,19 @@
         public interface IA : IBase
         {
             [SearchContainer]
-            IC C { get; set; }
+            IB B { get; set; }
         }
 
         public interface IB : IBase
         {
+            [SearchContainer]
+            IC C { get; set; }
         }
 
-        public interface IC : IB
+        public interface IC : IBase
         {
+            [SearchContainer]
+            IA A { get; set; }
         }
 
         [Fact]
@@ -35,34 +39,41 @@
             var b = new TypeVertex(typeof(IB), counter++);
             var c = new TypeVertex(typeof(IC), counter++);
 
-            var propAC = typeof(IA).GetProperty("C");
-            var ac = new PropertyEdge(a, propAC, c);
+            var propAB = typeof(IA).GetProperty("B");
+            var propBC = typeof(IB).GetProperty("C");
+            var propCA = typeof(IC).GetProperty("A");
+
+            var ab = new PropertyEdge(a, propAB, b);
+            var bc = new PropertyEdge(b, propBC, c);
+            var ca = new PropertyEdge(c, propCA, a);
 
             var expectedGraph = GetGraphArray(baseVertex, a, b, c);
 
             //// IBase -> []
             ////       ~> [IA, IB, IC]
             //// 
-            ////    IA -> [{IA.C, IC}]
+            ////    IA -> [{IA.B, IB}]
             ////       ~> [IBase]
-            //// 
-            ////    IB -> []
-            ////       ~> [IBase, IC]
-            //// 
-            ////    IC -> []
-            ////       ~> [IBase, IB]
+            ////    
+            ////    IB -> [{IB.C, IC}]
+            ////       ~> [IBase]
+            ////    
+            ////    IC -> [{IC.A, IA}]
+            ////       ~> [IBase]
 
             expectedGraph[baseVertex.Index].Casts.AddRange(new[] { new CastEdge(baseVertex, a), new CastEdge(baseVertex, b), new CastEdge(baseVertex, c) });
 
-            expectedGraph[a.Index].Children.AddLast(ac);
+            expectedGraph[a.Index].Parents.AddLast(ca);
+            expectedGraph[a.Index].Children.AddLast(ab);
             expectedGraph[a.Index].Casts.AddLast(new CastEdge(a, baseVertex));
 
+            expectedGraph[b.Index].Parents.AddLast(ab);
+            expectedGraph[b.Index].Children.AddLast(bc);
             expectedGraph[b.Index].Casts.AddLast(new CastEdge(b, baseVertex));
-            expectedGraph[b.Index].Casts.AddLast(new CastEdge(b, c));
 
-            expectedGraph[c.Index].Parents.AddLast(ac);
+            expectedGraph[c.Index].Parents.AddLast(bc);
+            expectedGraph[c.Index].Children.AddLast(ca);
             expectedGraph[c.Index].Casts.AddLast(new CastEdge(c, baseVertex));
-            expectedGraph[c.Index].Casts.AddLast(new CastEdge(c, b));
 
             var typeGraph = BuildTypeGraph<IBase>();
 
