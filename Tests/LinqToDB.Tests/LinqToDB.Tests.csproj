@@ -44,6 +44,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SearchEngine\PathBuilderEx\Find\Base\BaseFindTest.cs" />
+    <Compile Include="SearchEngine\PathBuilderEx\Find\CyclicTest.cs" />
+    <Compile Include="SearchEngine\PathBuilderEx\Find\OptimizeTest.cs" />
+    <Compile Include="SearchEngine\PathBuilderEx\Find\TreeWithCommonPartTest.cs" />
+    <Compile Include="SearchEngine\PathBuilderEx\Find\TwoSeparatePathsTest.cs" />
+    <Compile Include="SearchEngine\PathBuilderEx\Find\CastFromBaseTest.cs" />
+    <Compile Include="SearchEngine\PathBuilderEx\Find\WrongPathsTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\Base\BaseFindTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\WrongPathsTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\OptimizeTest.cs" />
