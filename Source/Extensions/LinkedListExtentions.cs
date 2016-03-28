@@ -68,7 +68,7 @@
         }
 
 
-        public static void Each<TElement>(this LinkedListNode<TElement> node, Action<LinkedListNode<TElement>> action)
+        public static void ForNext<TElement>(this LinkedListNode<TElement> node, Action<LinkedListNode<TElement>> action)
         {
             var current = node;
             while (current != null)
