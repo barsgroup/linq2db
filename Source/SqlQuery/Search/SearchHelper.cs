@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
 
     public static class SearchHelper<TBaseInterface>
     {
@@ -16,14 +17,24 @@
         {
             var baseType = typeof(TBaseInterface);
             var allTypes = baseType.Assembly.GetTypes().Where(type => baseType.IsAssignableFrom(type)).ToList();
+
+            if (allTypes.Any(t => t.IsGenericType && t.GetProperties().Any(p => p.GetCustomAttribute<SearchContainerAttribute>() != null)))
+            {
+                throw new NotSupportedException("SearchContainerAttribute in generic class");
+            }
+
+            allTypes = allTypes.Where(t => !t.IsGenericType).ToList();
+
             var allInterfaces = allTypes.Where(t => t.IsInterface).ToList();
             var allClasses = allTypes.Where(t => !t.IsInterface).ToList();
 
             foreach (var type in allTypes)
             {
-                var interfaces = type.GetInterfaces().Where(typeof(TBaseInterface).IsAssignableFrom).ToList();
+                var interfaces =
+                    type.GetInterfaces().Where(i => baseType.IsAssignableFrom(i) && !i.IsGenericType).ToList();
+
                 baseInterfaces[type] = interfaces;
-                leafInterfaces[type] = interfaces.Where(leaf => !interfaces.Any(i => leaf.IsAssignableFrom(i) && leaf != i)).ToList();
+
                 derivedInterfaces[type] = allInterfaces.Where(t => type.IsAssignableFrom(t) && type != t).ToList();
             }
 
@@ -34,10 +45,14 @@
             }
         }
 
-        public static IEnumerable<Type> GetAllInterfaces()
+        public static IEnumerable<Type> GetAllSearchInterfaces(IEnumerable<Type> types)
         {
             var baseType = typeof(TBaseInterface);
-            return baseType.Assembly.GetTypes().Where(type => baseType.IsAssignableFrom(type) && type.IsInterface);
+            var inter = types.Where(t => baseType.IsAssignableFrom(t) && t.IsInterface && !t.IsGenericType).SelectMany(FindBaseWithSelf).Distinct().ToList();
+            var interfaces =
+                inter.SelectMany(t => t.GetProperties()).Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null).Select(p => p.DeclaringType).Concat(inter).Distinct();
+
+            return interfaces;
         }
 
         public static IEnumerable<Type> FindLeafInterfaces(Type classType)

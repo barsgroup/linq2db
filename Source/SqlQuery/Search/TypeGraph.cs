@@ -128,8 +128,7 @@
 
         public TypeGraph(IEnumerable<Type> types)
         {
-            var inter = types.Where(t => typeof(TBaseSearchInterface).IsAssignableFrom(t) && t.IsInterface).SelectMany(SearchHelper<TBaseSearchInterface>.FindBaseWithSelf).Distinct().ToList();
-            var interfaces = inter.SelectMany(t => t.GetProperties()).Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null).Select(p => p.DeclaringType).Concat(inter).Distinct().ToList();
+            var interfaces = SearchHelper<TBaseSearchInterface>.GetAllSearchInterfaces(types).ToList();
 
             Vertices = new TypeVertex[interfaces.Count];
 
@@ -163,14 +162,19 @@
                 {
                     var propertyType = GetElementType(info.PropertyType);
 
-                    if (!typeof(TBaseSearchInterface).IsAssignableFrom(propertyType) && !IsCollectionType(info.PropertyType))
+                    if (!typeof(TBaseSearchInterface).IsAssignableFrom(propertyType))
                     {
-                        throw new InvalidCastException();
+                        throw new InvalidCastException("Все должно наследоваться от базового интерфейса");
                     }
 
                     if (!propertyType.IsInterface)
                     {
                         throw new InvalidOperationException("Все свойства интерфейсы");
+                    }
+
+                    if (propertyType.IsGenericType)
+                    {
+                        throw new NotSupportedException("Generics are not supported");
                     }
 
                     AllPropertyInfos.Add(info);

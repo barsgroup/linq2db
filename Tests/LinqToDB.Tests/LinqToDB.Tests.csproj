@@ -51,6 +51,7 @@
     <Compile Include="SearchEngine\PathBuilder\Find\TreeWithCommonPartTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\TwoSeparatePathsTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\CastFromBaseTest.cs" />
+    <Compile Include="SearchEngine\PathBuilder\Find\CollectionTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\WrongPathsTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\Base\TypeGraphBaseTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\CyclicDependencyTest.cs" />
