@@ -1,7 +1,5 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TypeGraph
+﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
 {
-    using System;
-
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search;
     using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
@@ -33,18 +31,22 @@
             var propBaseA1 = typeof(IBase).GetProperty("A1");
             var propBaseA2 = typeof(IBase).GetProperty("A2");
 
+            var basea1 = new PropertyEdge(baseVertex, propBaseA1, a);
+            var basea2 = new PropertyEdge(baseVertex, propBaseA2, a);
+
             var expectedGraph = GetGraphArray(baseVertex, a);
 
-            //// IBase -> [{IBase.A1, IBase}, {IBase.A1, IA}, {IBase.A2, IBase}, {IBase.A2, IA}]
-            //// IA -> []
+            //// IBase -> [{IBase.A1, IA}, {IBase.A2, IA}]
+            ////       ~> [IA]
+            //// 
+            ////    IA -> []
+            ////       ~> [IBase]
 
-            expectedGraph[baseVertex.Index].Children.AddRange(new[]
-                                                                  {
-                                                                      new Edge(baseVertex, propBaseA1, baseVertex),
-                                                                      new Edge(baseVertex, propBaseA1, a),
-                                                                      new Edge(baseVertex, propBaseA2, baseVertex),
-                                                                      new Edge(baseVertex, propBaseA2, a)
-                                                                  });
+            expectedGraph[baseVertex.Index].Children.AddRange(new[] { basea1, basea2 });
+            expectedGraph[baseVertex.Index].Casts.AddLast(new CastEdge(baseVertex, a));
+
+            expectedGraph[a.Index].Parents.AddRange(new[] { basea1, basea2 });
+            expectedGraph[a.Index].Casts.AddLast(new CastEdge(a, baseVertex));
 
             var typeGraph = BuildTypeGraph<IBase>();
 

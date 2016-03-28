@@ -1,4 +1,4 @@
-﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base
+﻿namespace LinqToDB.Tests.SearchEngine.PathBuilderEx.Find.Base
 {
     using System;
     using System.Collections.Generic;

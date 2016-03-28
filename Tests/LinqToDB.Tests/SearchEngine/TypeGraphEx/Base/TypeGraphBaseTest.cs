@@ -1,4 +1,4 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TypeGraph.Base
+﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx.Base
 {
     using System;
     using System.Linq;
@@ -6,7 +6,7 @@
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search;
 
-    public class TypeGraphBaseTest
+    public class TypeGraphExBaseTest
     {
         protected static TypeVertex[] GetGraphArray(params TypeVertex[] vertices)
         {

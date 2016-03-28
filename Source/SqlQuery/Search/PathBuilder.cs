@@ -17,26 +17,10 @@
 
         public Dictionary<PropertyInfo, PropertyInfoVertex> AllProperties { get; } = new Dictionary<PropertyInfo, PropertyInfoVertex>();
         public Dictionary<PropertyInfo, CompositPropertyVertex> AllCompositProperties { get; } = new Dictionary<PropertyInfo, CompositPropertyVertex>();
-
-        public Dictionary<PropertyInfo, List<Edge>> EdgeSubTree { get; set; }
-
+        
         public LinkedList<CompositPropertyVertex> OptimizedPaths { get; set; }
-
-        public HashSet<Type> FinalTypes { get; set; }
-
-        public bool[][] ExtendedTransitiveClosure { get; set; }
-
-        public bool IsFinalType(Type type)
-        {
-            return FinalTypes.Contains(type);
-        }
-
-        public bool PathExists(TypeVertex sourceVertex, TypeVertex searchVertex)
-        {
-            return ExtendedTransitiveClosure[sourceVertex.Index][searchVertex.Index];
-        }
-
-    public PathBuilderSearchCache(Type sourceType, Type searchType)
+        
+        public PathBuilderSearchCache(Type sourceType, Type searchType)
         {
             SourceType = sourceType;
             SearchType = searchType;
@@ -68,7 +52,7 @@
             cachedResult = new PathBuilderSearchCache(sourceType, searchType);
             _cache[key] = cachedResult;
 
-            var sourceTypes = SearchHelper<TBaseSearchInterface>.FindInterfacesWithSelf(sourceType);
+            var sourceTypes = SearchHelper<TBaseSearchInterface>.FindLeafInterfaces(sourceType);
 
             var paths = GetOrBuildPaths(sourceTypes, searchType, cachedResult);
             var optimized = OptimizePaths(paths, cachedResult);
@@ -82,10 +66,7 @@
         {
             var propertyPathsSet = new HashSet<PropertyInfoVertex>();
             var searchVertex = _typeGraph.GetTypeVertex(searchType);
-
-            cache.FinalTypes = new HashSet<Type>(SearchHelper<TBaseSearchInterface>.FindHierarchy(searchType));
-            cache.ExtendedTransitiveClosure = _typeGraph.GetExtendedTransitiveClosure(searchType);
-
+            
             foreach (var sourceType in sourceTypes)
             {
                 var sourceVertex = _typeGraph.GetTypeVertex(sourceType);
@@ -96,7 +77,7 @@
                     continue;
                 }
 
-                if (!cache.PathExists(sourceVertex, searchVertex))
+                if (!_typeGraph.PathExists(sourceVertex, searchVertex))
                 {
                     continue;
                 }
@@ -140,60 +121,6 @@
 
             return propertyPathsSet;
         }
-
-        //public HashSet<PropertyInfoVertex> GetOrBuildPathsFromSubtree(IEnumerable<Type> sourceTypes, Type searchType, PathBuilderSearchCache cache)
-        //{
-        //    cache.EdgeSubTree = _typeGraph.GetEdgeSubTree(sourceTypes, searchType, cache);
-        //    
-        //    foreach (var edgeGroup in cache.EdgeSubTree)
-        //    {
-        //        cache.AllProperties[edgeGroup.Key] = new PropertyInfoVertex(edgeGroup.Key);
-        //    }
-        //
-        //    var allEdges = cache.EdgeSubTree.Values.SelectMany(v => v).ToList();
-        //    var edgesGroupedByParent = allEdges.GroupBy(v => v.Parent).ToDictionary(g => g.Key, g => g.Select(e => cache.AllProperties[e.PropertyInfo]).ToList());
-        //    var edgesGroupedByChild = allEdges.GroupBy(v => v.Child).ToDictionary(g => g.Key, g => g.Select(e => cache.AllProperties[e.PropertyInfo]).ToList());
-        //
-        //    foreach (var edgeGroup in cache.EdgeSubTree)
-        //    {
-        //        var vertex = cache.AllProperties[edgeGroup.Key];
-        //
-        //        foreach (var edge in edgeGroup.Value)
-        //        {
-        //            HashSet<PropertyInfoVertex> childEdges;
-        //            List<PropertyInfoVertex> childEdgesList;
-        //            if (!cache.AllVertices.TryGetValue(edge.Child, out childEdges) && edgesGroupedByParent.TryGetValue(edge.Child, out childEdgesList))
-        //            {
-        //                childEdges = new HashSet<PropertyInfoVertex>(childEdgesList);
-        //                cache.AllVertices[edge.Child] = childEdges;
-        //
-        //            }
-        //
-        //            if (childEdges != null)
-        //            {
-        //                vertex.Children.UnionWith(childEdges);
-        //            }
-        //
-        //            HashSet<PropertyInfoVertex> parentEdges;
-        //            List<PropertyInfoVertex> parentEdgesList;
-        //            if (!cache.AllVertices.TryGetValue(edge.Parent, out parentEdges) && edgesGroupedByChild.TryGetValue(edge.Parent, out parentEdgesList))
-        //            {
-        //                parentEdges = new HashSet<PropertyInfoVertex>(parentEdgesList);
-        //                cache.AllVertices[edge.Parent] = parentEdges;
-        //            }
-        //
-        //            if (parentEdges != null)
-        //            {
-        //                vertex.Parents.UnionWith(parentEdges);
-        //            }
-        //        }
-        //    }
-        //    
-        //    var startEdges = sourceTypes.SelectMany(t => cache.AllVertices[_typeGraph.GetTypeVertex(t)]);
-        //    var result = new HashSet<PropertyInfoVertex>(startEdges);
-        //
-        //    return result;
-        //}
 
         public static LinkedList<CompositPropertyVertex> OptimizePaths(HashSet<PropertyInfoVertex> propertyPaths, PathBuilderSearchCache cache)
         {
@@ -259,13 +186,26 @@
 
             cache.AllVertices[currentVertex] = properties;
 
-            currentVertex.Children.ForEach(
+            var allEdges = new LinkedList<PropertyEdge>();
+            allEdges.AddRange(currentVertex.Children);
+            currentVertex.Casts.ForEach(
+                castEdge =>
+                    {
+                        if (!_typeGraph.PathExists(castEdge.Value.CastTo, searchVertex))
+                        {
+                            return;
+                        }
+
+                        allEdges.AddRange(castEdge.Value.CastTo.Children);
+                    });
+
+            allEdges.ForEach(
                 searchNode =>
                 {
                     var childVertex = searchNode.Value.Child;
                     var propertyInfo = searchNode.Value.PropertyInfo;
 
-                    if (!cache.PathExists(childVertex, searchVertex) && !cache.IsFinalType(propertyInfo.PropertyType))
+                    if (!_typeGraph.PathExists(childVertex, searchVertex))
                     {
                         return;
                     }
@@ -280,7 +220,7 @@
                     properties.Add(rootProperty);
                 });
 
-            currentVertex.Children.ForEach(
+            allEdges.ForEach(
                 searchNode =>
                 {
                     var childVertex = searchNode.Value.Child;

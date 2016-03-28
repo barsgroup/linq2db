@@ -1,7 +1,7 @@
-﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
+﻿namespace LinqToDB.Tests.SearchEngine.PathBuilderEx.Find
 {
     using LinqToDB.SqlQuery.Search;
-    using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
+    using LinqToDB.Tests.SearchEngine.PathBuilderEx.Find.Base;
 
     using Xunit;
 

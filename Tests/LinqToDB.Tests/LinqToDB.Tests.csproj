@@ -46,19 +46,20 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchEngine\DelegateConstructors\DelegateConstructorTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\Base\BaseFindTest.cs" />
-    <Compile Include="SearchEngine\PathBuilder\Find\WrongPathsTest.cs" />
+    <Compile Include="SearchEngine\PathBuilder\Find\CyclicTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\OptimizeTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\TreeWithCommonPartTest.cs" />
-    <Compile Include="SearchEngine\PathBuilder\Find\CyclicTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\TwoSeparatePathsTest.cs" />
+    <Compile Include="SearchEngine\PathBuilder\Find\CastFromBaseTest.cs" />
+    <Compile Include="SearchEngine\PathBuilder\Find\WrongPathsTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\Base\TypeGraphBaseTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\CyclicTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\PropertiesWithoutAttributeTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\CyclicDependencyTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\TwoPropertiesOfOneTypeTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\PropertyInParentInterfaceTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\PropertyInChildInterfaceTest.cs" />
+    <Compile Include="SearchEngine\TypeGraph\CyclicTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\HierarchyPropertyTest.cs" />
+    <Compile Include="SearchEngine\TypeGraph\PropertiesWithoutAttributeTest.cs" />
+    <Compile Include="SearchEngine\TypeGraph\PropertyInChildInterfaceTest.cs" />
+    <Compile Include="SearchEngine\TypeGraph\PropertyInParentInterfaceTest.cs" />
+    <Compile Include="SearchEngine\TypeGraph\TwoPropertiesOfOneTypeTest.cs" />
     <Compile Include="SearchEngine\SearchEngineTest.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,7 +1,5 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TypeGraph
+﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
 {
-    using System;
-
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search;
     using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
@@ -47,16 +45,41 @@
             var propAB = typeof(IA).GetProperty("B");
             var propBD = typeof(IB).GetProperty("D");
 
+            var ab = new PropertyEdge(a, propAB, b);
+            var bd = new PropertyEdge(b, propBD, d);
+
             var expectedGraph = GetGraphArray(baseVertex, a, b, c, d);
 
             //// IBase -> []
-            //// IA -> [{IA.C, IBase}, {IA.C, IB}]
-            //// IB -> [{IB.D, IBase}, {IB.D, ID}]
-            //// IC -> []
-            //// ID -> []
+            ////       ~> [IA, IB, IC, ID]
+            //// 
+            ////    IA -> [{IA.C, IB}]
+            ////       ~> [IBase]
+            //// 
+            ////    IB -> [{IB.D, ID}]
+            ////       ~> [IBase, IC]
+            //// 
+            ////    IC -> []
+            ////       ~> [IBase, IB]
+            //// 
+            ////    ID -> []
+            ////       ~> [IBase]
 
-            expectedGraph[a.Index].Children.AddRange(new[] { new Edge(a, propAB, baseVertex), new Edge(a, propAB, b) });
-            expectedGraph[b.Index].Children.AddRange(new[] { new Edge(b, propBD, baseVertex), new Edge(b, propBD, d) });
+            expectedGraph[baseVertex.Index].Casts.AddRange(new[] { new CastEdge(baseVertex, a), new CastEdge(baseVertex, b), new CastEdge(baseVertex, c), new CastEdge(baseVertex, d) });
+
+            expectedGraph[a.Index].Children.AddLast(ab);
+            expectedGraph[a.Index].Casts.AddLast(new CastEdge(a, baseVertex));
+
+            expectedGraph[b.Index].Parents.AddLast(ab);
+            expectedGraph[b.Index].Children.AddLast(bd);
+            expectedGraph[b.Index].Casts.AddLast(new CastEdge(b, baseVertex));
+            expectedGraph[b.Index].Casts.AddLast(new CastEdge(b, c));
+
+            expectedGraph[c.Index].Casts.AddLast(new CastEdge(c, baseVertex));
+            expectedGraph[c.Index].Casts.AddLast(new CastEdge(c, b));
+
+            expectedGraph[d.Index].Parents.AddLast(bd);
+            expectedGraph[d.Index].Casts.AddLast(new CastEdge(d, baseVertex));
 
             var typeGraph = BuildTypeGraph<IBase>();
 
