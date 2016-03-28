@@ -29,12 +29,10 @@
 
         static string GetFullName(Type t)
         {
-            Func<string, string> namespaseFormat = name => $"{t.Namespace}.{name}";
-
             if (!t.IsGenericType)
                 return t.Name;
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             sb.Append(t.Name.Substring(0, t.Name.LastIndexOf("`", StringComparison.Ordinal)));
             sb.Append(t.GetGenericArguments().Aggregate("<",

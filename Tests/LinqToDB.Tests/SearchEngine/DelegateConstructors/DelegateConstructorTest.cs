@@ -51,6 +51,9 @@
 
             LinkedList<IB> result = new LinkedList<IB>();
             deleg(obj, result);
+
+            Assert.Equal(1, result.Count);
+            Assert.Equal(obj.B, result.First.Value);
         }
     }
 }
