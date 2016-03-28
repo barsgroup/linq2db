@@ -4,8 +4,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    
-    using LinqToDB.SqlQuery.Search.SearchEx;
+
+    using LinqToDB.SqlQuery.Search;
 
     public class BaseFindTest
     {

@@ -1,15 +1,9 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
 {
-    using System;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.Search.SearchEx;
-    using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
+    using LinqToDB.SqlQuery.Search;
     using LinqToDB.Tests.SearchEngine.TypeGraphEx.Base;
 
     using Xunit;
-
-    using SearchContainerAttribute = LinqToDB.SqlQuery.Search.SearchContainerAttribute;
 
     public class PropertiesWithoutAttributeTest : TypeGraphExBaseTest
     {

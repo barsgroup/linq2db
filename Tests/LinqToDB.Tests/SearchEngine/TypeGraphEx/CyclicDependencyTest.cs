@@ -1,12 +1,10 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
 {
     using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.Search.SearchEx;
+    using LinqToDB.SqlQuery.Search;
     using LinqToDB.Tests.SearchEngine.TypeGraphEx.Base;
 
     using Xunit;
-
-    using SearchContainerAttribute = LinqToDB.SqlQuery.Search.SearchContainerAttribute;
 
     public class CyclicDependencyTest : TypeGraphExBaseTest
     {

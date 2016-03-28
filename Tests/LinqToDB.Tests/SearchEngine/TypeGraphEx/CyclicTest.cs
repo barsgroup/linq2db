@@ -4,13 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    using LinqToDB.SqlQuery.Search.SearchEx;
-    using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
+    using LinqToDB.SqlQuery.Search;
     using LinqToDB.Tests.SearchEngine.TypeGraphEx.Base;
 
     using Xunit;
-
-    using SearchContainerAttribute = LinqToDB.SqlQuery.Search.SearchContainerAttribute;
 
     public class CyclicTest : TypeGraphExBaseTest
     {
@@ -86,7 +83,7 @@
         [Fact]
         public void Test()
         {
-            var typeGraph = new TypeGraphEx<IBase>(GetType().Assembly.GetTypes());
+            var typeGraph = new TypeGraph<IBase>(GetType().Assembly.GetTypes());
             
             Assert.True(CheckCyclicGraph(typeGraph.Vertices, new Dictionary<Type, TypeVertex>()));
         }

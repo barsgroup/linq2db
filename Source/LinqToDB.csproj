@@ -479,11 +479,9 @@
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlTable.cs" />
     <Compile Include="SqlQuery\QueryElements\TableSource.cs" />
     <Compile Include="SqlQuery\QueryElements\Union.cs" />
-    <Compile Include="SqlQuery\Search\PathBuilder.cs" />
     <Compile Include="SqlQuery\Search\SearchContainerAttribute.cs" />
-    <Compile Include="SqlQuery\Search\SearchEx\PathBuilderEx.cs" />
+    <Compile Include="SqlQuery\Search\PathBuilder.cs" />
     <Compile Include="SqlQuery\Search\SearchHelper.cs" />
-    <Compile Include="SqlQuery\Search\SearchEx\TypeGraphEx.cs" />
     <Compile Include="SqlQuery\Search\TypeGraph.cs" />
     <Compile Include="SqlQuery\Search\SearchEngine.cs" />
     <Compile Include="SqlQuery\SelectQueryOptimizer.cs" />

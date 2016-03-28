@@ -4,7 +4,7 @@
     using System.Linq;
 
     using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.Search.SearchEx;
+    using LinqToDB.SqlQuery.Search;
 
     public class TypeGraphExBaseTest
     {
@@ -20,9 +20,9 @@
             return result;
         }
 
-        protected static TypeGraphEx<T> BuildTypeGraph<T>()
+        protected static TypeGraph<T> BuildTypeGraph<T>()
         {
-            return new TypeGraphEx<T>(typeof(T).Assembly.GetTypes());
+            return new TypeGraph<T>(typeof(T).Assembly.GetTypes());
         }
 
         protected static bool IsEqual(TypeVertex[] graph1, TypeVertex[] graph2)

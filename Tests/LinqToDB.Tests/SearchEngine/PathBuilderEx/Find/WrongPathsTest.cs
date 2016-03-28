@@ -1,11 +1,9 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.PathBuilderEx.Find
 {
-    using LinqToDB.SqlQuery.Search.SearchEx;
+    using LinqToDB.SqlQuery.Search;
     using LinqToDB.Tests.SearchEngine.PathBuilderEx.Find.Base;
 
     using Xunit;
-
-    using SearchContainerAttribute = LinqToDB.SqlQuery.Search.SearchContainerAttribute;
 
     public class WrongPathsTest : BaseFindTest
     {
@@ -52,9 +50,9 @@
         [Fact]
         public void Test()
         {
-            var typeGraph = new TypeGraphEx<IBase>(GetType().Assembly.GetTypes());
+            var typeGraph = new TypeGraph<IBase>(GetType().Assembly.GetTypes());
 
-            var pathBuilder = new PathBuilderEx<IBase>(typeGraph);
+            var pathBuilder = new PathBuilder<IBase>(typeGraph);
 
             var result = pathBuilder.Find(new A(), typeof(IB));
 
