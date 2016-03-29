@@ -484,6 +484,7 @@
     <Compile Include="SqlQuery\Search\PathBuilder\PathBuilder.cs" />
     <Compile Include="SqlQuery\Search\PathBuilder\PathBuilderSearchCache.cs" />
     <Compile Include="SqlQuery\Search\PathBuilder\PropertyInfoVertex.cs" />
+    <Compile Include="SqlQuery\Search\ReflectionSearcher.cs" />
     <Compile Include="SqlQuery\Search\SearchContainerAttribute.cs" />
     <Compile Include="SqlQuery\Search\SearchHelper.cs" />
     <Compile Include="SqlQuery\Search\TypeGraph\CastEdge.cs" />

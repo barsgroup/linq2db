@@ -6,10 +6,11 @@
     using LinqToDB.SqlQuery.Search;
     using LinqToDB.SqlQuery.Search.PathBuilder;
     using LinqToDB.SqlQuery.Search.TypeGraph;
+    using LinqToDB.Tests.SearchEngine.DelegateConstructors.Base;
 
     using Xunit;
 
-    public class CyclicDelegateConstructorTest
+    public class CyclicDelegateConstructorTest : BaseDelegateConstructorTest
     {
         private interface IBase
         {
@@ -61,25 +62,15 @@
         [Fact]
         public void SimpleDelegate()
         {
-            var typeGraph = new TypeGraph<IBase>(GetType().Assembly.GetTypes());
+            CompareWithReflectionSearcher<IBase, IC>();
+        }
 
-            var pathBuilder = new PathBuilder<IBase>(typeGraph);
-
+        protected override object SetupTestObject()
+        {
             var obj = new A();
             obj.B.C.A = new A();
-            var paths = pathBuilder.Find(obj, typeof(IC));
 
-            var delegateConstructor = new DelegateConstructor<IC>();
-            var deleg = delegateConstructor.CreateResultDelegate(paths);
-
-            LinkedList<IC> result = new LinkedList<IC>();
-            deleg(obj, result);
-
-            var resultArray = result.ToArray();
-
-            Assert.Equal(2, resultArray.Length);
-            Assert.Equal(obj.B.C, resultArray[0]);
-            Assert.Equal(obj.B.C.A.B.C, resultArray[1]);
+            return obj;
         }
     }
 }

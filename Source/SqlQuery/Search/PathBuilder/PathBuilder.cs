@@ -30,6 +30,11 @@
             return optimizePaths;
         }
 
+        public LinkedList<CompositPropertyVertex> Find<TSearch>(TBaseSearchInterface source)
+        {
+            return Find(source, typeof(TSearch));
+        }
+
         public LinkedList<CompositPropertyVertex> Find(TBaseSearchInterface source, Type searchType)
         {
             var sourceType = source.GetType();
