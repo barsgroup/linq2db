@@ -1,6 +1,7 @@
 ﻿namespace LinqToDB.SqlQuery.Search
 {
     using System;
+    using System.Collections.Generic;
 
     using LinqToDB.SqlQuery.Search.PathBuilder;
     using LinqToDB.SqlQuery.Search.TypeGraph;
@@ -18,14 +19,17 @@
 
         public static SearchEngine<TBaseSearchInterface> Current { get; } = new SearchEngine<TBaseSearchInterface>();
 
-        public void Find<TElement>(TBaseSearchInterface source)
+        public LinkedList<TElement> Find<TElement>(TBaseSearchInterface source) where TElement : class
         {
-            Find(source, typeof(TElement));
-        }
+            var paths = _pathBuilder.Find<TElement>(source);
+            
+            var delegateConstructor = new DelegateConstructor<TElement>();
+            var deleg = delegateConstructor.CreateResultDelegate(paths);
 
-        public void Find(TBaseSearchInterface source, Type searchType)
-        {
-            _pathBuilder.Find(source, searchType);
+            var result = new LinkedList<TElement>();
+            deleg.Invoke(source, result);
+
+            return result;
         }
     }
 }

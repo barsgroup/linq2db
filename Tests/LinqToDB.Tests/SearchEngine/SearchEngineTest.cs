@@ -15,7 +15,7 @@
 
             var selectQuery = new SelectQuery();
 
-            engine.Find<IColumn>(selectQuery);
+            var result = engine.Find<IColumn>(selectQuery);
         }
     }
 }

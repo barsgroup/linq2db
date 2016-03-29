@@ -55,6 +55,7 @@
     <Compile Include="SearchEngine\PathBuilder\Find\CastFromBaseTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\CollectionTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\WrongPathsTest.cs" />
+    <Compile Include="SearchEngine\TestInterfaces\CyclicDependency\CyclicDependencyInterfaces.cs" />
     <Compile Include="SearchEngine\TypeGraph\Base\TypeGraphBaseTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\CyclicDependencyTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\CyclicTest.cs" />
@@ -71,6 +72,7 @@
       <Name>LinqToDB</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

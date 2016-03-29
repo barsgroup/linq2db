@@ -1,18 +1,13 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.DelegateConstructors
 {
-    using System.Collections.Generic;
-    using System.Linq;
-
     using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.PathBuilder;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
     using LinqToDB.Tests.SearchEngine.DelegateConstructors.Base;
 
     using Xunit;
 
-    public class CyclicDelegateConstructorTest : BaseDelegateConstructorTest
+    public class CyclicDelegateConstructorTest : BaseDelegateConstructorTest<CyclicDelegateConstructorTest.IBase>
     {
-        private interface IBase
+        public interface IBase
         {
         }
 
@@ -62,13 +57,16 @@
         [Fact]
         public void SimpleDelegate()
         {
-            CompareWithReflectionSearcher<IBase, IC>();
+            Assert.True(CompareWithReflectionSearcher<IA>());
+            Assert.True(CompareWithReflectionSearcher<IB>());
+            Assert.True(CompareWithReflectionSearcher<IC>());
         }
 
         protected override object SetupTestObject()
         {
             var obj = new A();
             obj.B.C.A = new A();
+            obj.B.C.A.B.C.A = new A();
 
             return obj;
         }

@@ -10,9 +10,9 @@
 
     using Xunit;
 
-    public abstract class BaseDelegateConstructorTest
+    public abstract class BaseDelegateConstructorTest<TBase>
     {
-        public void CompareWithReflectionSearcher<TBase, TSearch>() where TSearch : class
+        public bool CompareWithReflectionSearcher<TSearch>() where TSearch : class
         {
             var typeGraph = new TypeGraph<TBase>(GetType().Assembly.GetTypes());
             var pathBuilder = new PathBuilder<TBase>(typeGraph);
@@ -33,7 +33,7 @@
 
             var expected = ReflectionSearcher.Find<TSearch>(testObj);
 
-            Assert.True(IsEqual(expected, result));
+            return IsEqual(expected, result);
         }
 
         protected abstract object SetupTestObject();

@@ -3,71 +3,16 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-
-    using LinqToDB.SqlQuery.Search;
+    
     using LinqToDB.SqlQuery.Search.PathBuilder;
     using LinqToDB.SqlQuery.Search.TypeGraph;
     using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
+    using LinqToDB.Tests.SearchEngine.TestInterfaces.CyclicDependency;
 
     using Xunit;
 
     public class CyclicTest : BaseFindTest
     {
-        public interface IBase
-        {
-        }
-
-        public interface IA : IBase
-        {
-            [SearchContainer]
-            IB B { get; set; }
-        }
-
-        public interface IB : IBase
-        {
-            [SearchContainer]
-            IC C { get; set; }
-        }
-
-        public interface IC : IBase
-        {
-            [SearchContainer]
-            ID D { get; set; }
-
-            [SearchContainer]
-            IE E { get; set; }
-
-            [SearchContainer]
-            IF F { get; set; }
-
-            [SearchContainer]
-            IBase FBase { get; set; }
-        }
-
-        public interface ID : IBase
-        {
-        }
-
-        public interface IE : IBase
-        {
-        }
-
-        public interface IF : IBase
-        {
-            [SearchContainer]
-            IA A { get; set; }
-        }
-
-        public class ClassA : IA
-        {
-            public IB B { get; set; }
-        }
-
-        public class F : IF
-        {
-            public IA A { get; set; }
-        }
-
         [Fact]
         public void Test()
         {
