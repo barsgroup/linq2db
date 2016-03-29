@@ -50,6 +50,11 @@
         {
             Guard.That(vertex.PropertyList.First).IsNotNull();
 
+            if (delegateMap.ContainsKey(vertex))
+            {
+                return;
+            }
+
             var propertyGetters = new List<Func<object, object>>(vertex.PropertyList.Count);
 
             var propertyGetterInterpretter = new Interpreter();
