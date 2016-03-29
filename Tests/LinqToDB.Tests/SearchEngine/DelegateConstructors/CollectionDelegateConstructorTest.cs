@@ -1,17 +1,19 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.DelegateConstructors
 {
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Linq;
 
     using LinqToDB.SqlQuery.Search;
     using LinqToDB.SqlQuery.Search.PathBuilder;
     using LinqToDB.SqlQuery.Search.TypeGraph;
+    using LinqToDB.Tests.SearchEngine.DelegateConstructors.Base;
 
     using Xunit;
 
-    public class CollectionDelegateConstructorTest
+    public class CollectionDelegateConstructorTest : BaseDelegateConstructorTest<CollectionDelegateConstructorTest.IBase>
     {
-        private interface IBase
+        public interface IBase
         {
         }
 
@@ -28,6 +30,12 @@
         }
 
         private interface IC : IBase
+        {
+            [SearchContainer]
+            Dictionary<int, ID> D { get; set; }
+        }
+
+        private interface ID : IBase
         {
         }
 
@@ -55,7 +63,16 @@
 
         private class C : IC
         {
-            public IA A { get; set; }
+            public Dictionary<int, ID> D { get; set; }
+
+            public C()
+            {
+                D = new Dictionary<int, ID>();
+            }
+        }
+
+        private class D : ID
+        {
         }
 
         [Fact]
@@ -66,11 +83,13 @@
             IA obj = new A();
 
             var deleg = SetupTest<IBase, IC>(obj);
-            deleg(obj, result);
+            deleg(obj, result, true);
 
             var resultArray = result.ToArray();
 
             Assert.Equal(0, resultArray.Length);
+            Assert.True(CompareWithReflectionSearcher<IB>(obj));
+            Assert.True(CompareWithReflectionSearcher<IC>(obj));
         }
 
         [Fact]
@@ -84,7 +103,7 @@
             obj.B.C.Add(new C());
 
             var deleg = SetupTest<IBase, IC>(obj);
-            deleg(obj, result);
+            deleg(obj, result, true);
 
             var resultArray = result.ToArray();
 
@@ -95,9 +114,57 @@
             {
                 Assert.Equal(c[i], resultArray[i]);
             }
+
+            Assert.True(CompareWithReflectionSearcher<IB>(obj));
+            Assert.True(CompareWithReflectionSearcher<IC>(obj));
         }
 
-        private DelegateConstructor<TSearch>.ResultDelegate SetupTest<TBase, TSearch>(TBase obj) where TSearch : class
+        [Fact]
+        public void MultipleCollectionDelegate()
+        {
+            var result = new LinkedList<ID>();
+
+            var d11 = new D();
+            var d12 = new D();
+            var d13 = new D();
+            var d21 = new D();
+
+            var c1 = new C();
+            c1.D[1] = d11;
+            c1.D[2] = d12;
+            c1.D[3] = d13;
+
+            var c2 = new C();
+            c2.D[1] = d21;
+
+            var c3 = new C();
+
+            var c4 = new C();
+            c4.D = null;
+
+            var b = new B();
+            b.C.Add(c1);
+            b.C.Add(c2);
+            b.C.Add(c3);
+            b.C.Add(c4);
+            
+            IA obj = new A();
+            obj.B = b;
+
+            var deleg = SetupTest<IBase, ID>(obj);
+            deleg(obj, result, true);
+
+            var resultArray = result.ToArray();
+
+            Assert.Equal(4, resultArray.Length);
+            
+            Assert.True(CompareWithReflectionSearcher<IB>(obj));
+            Assert.True(CompareWithReflectionSearcher<IC>(obj));
+            Assert.True(CompareWithReflectionSearcher<ID>(obj));
+
+        }
+
+        private ResultDelegate<TSearch> SetupTest<TBase, TSearch>(TBase obj) where TSearch : class
         {
             var typeGraph = new TypeGraph<TBase>(GetType().Assembly.GetTypes());
 

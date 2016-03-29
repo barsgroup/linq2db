@@ -47,9 +47,33 @@
         IA A { get; set; }
     }
 
-    public class ClassA : IA
+    public class A : IA
     {
         public IB B { get; set; }
+    }
+
+    public class B : IB
+    {
+        public IC C { get; set; }
+    }
+
+    public class C : IC
+    {
+        public ID D { get; set; }
+
+        public IE E { get; set; }
+
+        public IF F { get; set; }
+
+        public IBase FBase { get; set; }
+    }
+
+    public class D : ID
+    {
+    }
+
+    public class E : IE
+    {
     }
 
     public class F : IF

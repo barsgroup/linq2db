@@ -1,45 +1,14 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
 {
-    using LinqToDB.SqlQuery.Search;
     using LinqToDB.SqlQuery.Search.PathBuilder;
     using LinqToDB.SqlQuery.Search.TypeGraph;
     using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
+    using LinqToDB.Tests.SearchEngine.TestInterfaces.CastFromBase;
 
     using Xunit;
 
     public class CastFromBaseTest : BaseFindTest
     {
-        public interface IBase
-        {
-        }
-
-        public interface IA : IBase
-        {
-            [SearchContainer]
-            IBase B { get; set; }
-        }
-
-        public interface IB : IBase
-        {
-            [SearchContainer]
-            IBase C { get; set; }
-        }
-
-        public interface IC : IBase
-        {
-            [SearchContainer]
-            IBase D { get; set; }
-        }
-
-        public interface ID : IBase
-        {
-        }
-
-        public class A : IA
-        {
-            public IBase B { get; set; }
-        }
-
         [Fact]
         public void Test()
         {
@@ -49,9 +18,9 @@
 
             var result = pathBuilder.Find(new A(), typeof(ID));
 
-            var ab = typeof(IA).GetProperty("B");
-            var bc = typeof(IB).GetProperty("C");
-            var cd = typeof(IC).GetProperty("D");
+            var ab = typeof(IA).GetProperty("Base");
+            var bc = typeof(IB).GetProperty("Base");
+            var cd = typeof(IC).GetProperty("Base");
 
             var vertexAB = new CompositPropertyVertex();
             vertexAB.PropertyList.AddLast(ab);

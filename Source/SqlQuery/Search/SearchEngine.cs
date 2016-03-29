@@ -9,6 +9,7 @@
     public class SearchEngine<TBaseSearchInterface>
     {
         private readonly PathBuilder<TBaseSearchInterface> _pathBuilder;
+        private readonly Dictionary<Tuple<Type, Type>, Delegate> _delegateCache = new Dictionary<Tuple<Type, Type>, Delegate>();
 
         private SearchEngine()
         {
@@ -19,17 +20,29 @@
 
         public static SearchEngine<TBaseSearchInterface> Current { get; } = new SearchEngine<TBaseSearchInterface>();
 
-        public LinkedList<TElement> Find<TElement>(TBaseSearchInterface source) where TElement : class
+        public LinkedList<TElement> Find<TElement>(TBaseSearchInterface source, bool stepIntoFound) where TElement : class
         {
-            var paths = _pathBuilder.Find<TElement>(source);
-            
-            var delegateConstructor = new DelegateConstructor<TElement>();
-            var deleg = delegateConstructor.CreateResultDelegate(paths);
-
+            var deleg = GetOrCreateDelegate<TElement>(source);
             var result = new LinkedList<TElement>();
-            deleg.Invoke(source, result);
+            deleg.Invoke(source, result, stepIntoFound);
 
             return result;
+        }
+
+        public ResultDelegate<TElement> GetOrCreateDelegate<TElement>(TBaseSearchInterface source) where TElement : class
+        {
+            var key = Tuple.Create(source.GetType(), typeof(TElement));
+            Delegate cachedDelegate;
+            if (!_delegateCache.TryGetValue(key, out cachedDelegate))
+            {
+                var paths = _pathBuilder.Find<TElement>(source);
+
+                var delegateConstructor = new DelegateConstructor<TElement>();
+                cachedDelegate = delegateConstructor.CreateResultDelegate(paths);
+                _delegateCache[key] = cachedDelegate;
+            }
+
+            return (ResultDelegate<TElement>)cachedDelegate;
         }
     }
 }

@@ -57,12 +57,14 @@
         [Fact]
         public void SimpleDelegate()
         {
-            Assert.True(CompareWithReflectionSearcher<IA>());
-            Assert.True(CompareWithReflectionSearcher<IB>());
-            Assert.True(CompareWithReflectionSearcher<IC>());
+            var obj = SetupTestObject();
+
+            Assert.True(CompareWithReflectionSearcher<IA>(obj));
+            Assert.True(CompareWithReflectionSearcher<IB>(obj));
+            Assert.True(CompareWithReflectionSearcher<IC>(obj));
         }
 
-        protected override object SetupTestObject()
+        protected IBase SetupTestObject()
         {
             var obj = new A();
             obj.B.C.A = new A();

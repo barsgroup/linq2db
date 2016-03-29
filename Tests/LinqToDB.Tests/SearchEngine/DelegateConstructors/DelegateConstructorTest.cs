@@ -83,49 +83,49 @@
         [Fact]
         public void SimpleDelegateB()
         {
-            var obj = (A)SetupTestObject();
+            var obj = new A();
             var deleg = SetupTest<IBase, IB>(obj);
 
             var result = new LinkedList<IB>();
-            deleg(obj, result);
+            deleg(obj, result, true);
 
             Assert.Equal(1, result.Count);
             Assert.Equal(obj.B, result.First.Value);
 
-            Assert.True(CompareWithReflectionSearcher<IB>());
+            Assert.True(CompareWithReflectionSearcher<IB>(obj));
         }
 
         [Fact]
         public void SimpleDelegateC()
         {
-            var obj = (A)SetupTestObject();
+            var obj = new A();
             var deleg = SetupTest<IBase, IC>(obj);
 
             var result = new LinkedList<IC>();
-            deleg(obj, result);
+            deleg(obj, result, true);
 
             Assert.Equal(1, result.Count);
             Assert.Equal(obj.B.C, result.First.Value);
 
-            Assert.True(CompareWithReflectionSearcher<IC>());
+            Assert.True(CompareWithReflectionSearcher<IC>(obj));
         }
 
         [Fact]
         public void BranchDelegateD()
         {
-            var obj = (A)SetupTestObject();
+            var obj = new A();
             var deleg = SetupTest<IBase, ID>(obj);
 
             var result = new LinkedList<ID>();
-            deleg(obj, result);
+            deleg(obj, result, true);
 
             Assert.Equal(2, result.Count);
             //Assert.Equal(obj.B.C, result.First.Value);
 
-            Assert.True(CompareWithReflectionSearcher<ID>());
+            Assert.True(CompareWithReflectionSearcher<ID>(obj));
         }
 
-        private DelegateConstructor<TSearch>.ResultDelegate SetupTest<TBase, TSearch>(TBase obj) where TSearch : class
+        private ResultDelegate<TSearch> SetupTest<TBase, TSearch>(TBase obj) where TSearch : class
         {
             var typeGraph = new TypeGraph<TBase>(GetType().Assembly.GetTypes());
 
@@ -135,11 +135,6 @@
 
             var delegateConstructor = new DelegateConstructor<TSearch>();
             return delegateConstructor.CreateResultDelegate(paths);
-        }
-
-        protected override object SetupTestObject()
-        {
-            return new A();
         }
     }
 }

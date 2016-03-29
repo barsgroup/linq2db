@@ -46,6 +46,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SearchEngine\DelegateConstructors\Base\BaseDelegateConstructorTest.cs" />
     <Compile Include="SearchEngine\DelegateConstructors\CollectionDelegateConstructorTest.cs" />
+    <Compile Include="SearchEngine\DelegateConstructors\CastFromBaseDelegateConstructorTest.cs" />
     <Compile Include="SearchEngine\DelegateConstructors\CyclicDelegateConstructorTest.cs" />
     <Compile Include="SearchEngine\DelegateConstructors\DelegateConstructorTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\Base\BaseFindTest.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="SearchEngine\PathBuilder\Find\CastFromBaseTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\CollectionTest.cs" />
     <Compile Include="SearchEngine\PathBuilder\Find\WrongPathsTest.cs" />
+    <Compile Include="SearchEngine\TestInterfaces\CastFromBase\CastFromBaseInterfaces.cs" />
     <Compile Include="SearchEngine\TestInterfaces\CyclicDependency\CyclicDependencyInterfaces.cs" />
     <Compile Include="SearchEngine\TypeGraph\Base\TypeGraphBaseTest.cs" />
     <Compile Include="SearchEngine\TypeGraph\CyclicDependencyTest.cs" />

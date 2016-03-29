@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.Specialized;
     using System.Linq;
 
     using System.Text;
@@ -15,12 +14,12 @@
 
     using Seterlund.CodeGuard;
 
+    public delegate void ResultDelegate<TSearch>(object obj, LinkedList<TSearch> resultList, bool stepIntoFound);
+
     public class DelegateConstructor<TSearch>
         where TSearch : class
     {
-        public delegate void ResultDelegate(object obj, LinkedList<TSearch> resultList);
-
-        public ResultDelegate CreateResultDelegate(LinkedList<CompositPropertyVertex> vertices)
+        public ResultDelegate<TSearch> CreateResultDelegate(LinkedList<CompositPropertyVertex> vertices)
         {
             var delegateMap = new Dictionary<CompositPropertyVertex, ProxyDelegate>();
 
@@ -71,7 +70,7 @@
                     propertyGetters.AddLast(deleg);
                 });
 
-            ResultDelegate findDelegate = (obj, resultList) => 
+            ResultDelegate<TSearch> findDelegate = (obj, resultList, stepIntoFound) => 
             {
                 if (obj == null)
                 {
@@ -123,17 +122,22 @@
                         if (searchObj != null)
                         {
                             resultList.AddLast(searchObj);
+
+                            if (!stepIntoFound)
+                            {
+                                return;
+                            }
                         }
 
                         vertex.Children.ForEach(
                             childNode =>
                             {
-                                delegateMap[childNode.Value].Delegate(node.Value, resultList);
+                                delegateMap[childNode.Value].Delegate(node.Value, resultList, stepIntoFound);
                             });
                     });
             };
 
-            delegateMap[vertex] = new ProxyDelegate {Delegate = findDelegate};
+            delegateMap[vertex] = new ProxyDelegate { Delegate = findDelegate };
 
             vertex.Children.ForEach(
                 node =>
@@ -145,7 +149,7 @@
 
         class ProxyDelegate
         {
-            public ResultDelegate Delegate { get; set; } 
+            public ResultDelegate<TSearch> Delegate { get; set; } 
         }
     }
 }

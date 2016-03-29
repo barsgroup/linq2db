@@ -20,7 +20,7 @@
             
             var pathBuilder = new PathBuilder<IBase>(typeGraph);
             
-            var result = pathBuilder.Find(new ClassA(), typeof(IF));
+            var result = pathBuilder.Find(new A(), typeof(IF));
             
             var dictionary = new Dictionary<PropertyInfo, CompositPropertyVertex>();
 

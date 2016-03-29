@@ -1,6 +1,5 @@
 ﻿namespace LinqToDB.SqlQuery.Search
 {
-    using System;
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
@@ -8,16 +7,16 @@
 
     public static class ReflectionSearcher
     {
-        public static LinkedList<TSearch> Find<TSearch>(object source) where TSearch : class
+        public static LinkedList<TSearch> Find<TSearch>(object source, bool stepIntoFound) where TSearch : class
         {
             var result = new LinkedList<TSearch>();
 
-            FindInternal(source, result);
+            FindInternal(source, result, stepIntoFound);
 
             return result;
         }
 
-        private static void FindInternal<TSearch>(object obj, LinkedList<TSearch> result) where TSearch : class
+        private static void FindInternal<TSearch>(object obj, LinkedList<TSearch> result, bool stepIntoFound) where TSearch : class
         {
             if (obj == null)
             {
@@ -35,32 +34,47 @@
                     continue;
                 }
 
-                // TODO: dictionary?
+                var dictionary = value as IDictionary;
+                if (dictionary != null)
+                {
+                    HandleCollection(dictionary.Values, result, stepIntoFound);
+                    return;
+                }
+
                 var collection = value as IEnumerable;
                 if (collection != null)
                 {
-                    foreach (var elem in collection)
-                    {
-                        HandleValue(elem, result);
-                    }
+                    HandleCollection(collection, result, stepIntoFound);
+                    return;
                 }
-                else
-                {
-                    HandleValue(value, result);
-                }
+
+                HandleValue(value, result, stepIntoFound);
             }
         }
 
-        private static void HandleValue<TSearch>(object value, LinkedList<TSearch> result) where TSearch : class
+        private static void HandleCollection<TSearch>(IEnumerable collection, LinkedList<TSearch> result, bool stepIntoFound) where TSearch : class
+        {
+            foreach (var elem in collection)
+            {
+                HandleValue(elem, result, stepIntoFound);
+            }
+        }
+
+        private static void HandleValue<TSearch>(object value, LinkedList<TSearch> result, bool stepIntoFound) where TSearch : class
         {
             var searchValue = value as TSearch;
 
             if (searchValue != null)
             {
                 result.AddLast(searchValue);
+
+                if (!stepIntoFound)
+                {
+                    return;
+                }
             }
 
-            FindInternal(value, result);
+            FindInternal(value, result, stepIntoFound);
         }
     }
 }

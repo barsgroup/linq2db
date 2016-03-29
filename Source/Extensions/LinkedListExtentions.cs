@@ -102,5 +102,18 @@
                 current = previous;
             }
         }
+
+        public static LinkedList<TElement> Reverse<TElement>(this LinkedList<TElement> linkedList)
+        {
+            var result = new LinkedList<TElement>();
+
+            linkedList.First.ReverseEach(
+                node =>
+                    {
+                        result.AddLast(node.Value);
+                    });
+
+            return result;
+        }
     }
 }

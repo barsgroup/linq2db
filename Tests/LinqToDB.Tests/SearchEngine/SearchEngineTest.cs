@@ -9,13 +9,16 @@
     public class SearchEngineTest
     {
         [Fact]
-        public void SimpleTest()
+        public void DelegateCacheTest()
         {
             var engine = SearchEngine<IQueryElement>.Current;
 
             var selectQuery = new SelectQuery();
 
-            var result = engine.Find<IColumn>(selectQuery);
+            var deleg1 = engine.GetOrCreateDelegate<IColumn>(selectQuery);
+            var deleg2 = engine.GetOrCreateDelegate<IColumn>(selectQuery);
+
+            Assert.True(ReferenceEquals(deleg1, deleg2));
         }
     }
 }

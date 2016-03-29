@@ -8,35 +8,33 @@
     using SqlQuery.Search.PathBuilder;
     using SqlQuery.Search.TypeGraph;
 
-    using Xunit;
-
     public abstract class BaseDelegateConstructorTest<TBase>
     {
-        public bool CompareWithReflectionSearcher<TSearch>() where TSearch : class
+        public bool CompareWithReflectionSearcher<TSearch>(TBase testObj) where TSearch : class
         {
             var typeGraph = new TypeGraph<TBase>(GetType().Assembly.GetTypes());
             var pathBuilder = new PathBuilder<TBase>(typeGraph);
 
             var delegateConstructor = new DelegateConstructor<TSearch>();
 
-            var testObj = (TBase)SetupTestObject();
-
             var paths = pathBuilder.Find<TSearch>(testObj);
             var deleg = delegateConstructor.CreateResultDelegate(paths);
 
             //// ---
 
-            var result = new LinkedList<TSearch>();
-            deleg(testObj, result);
+            var resultStepInto = new LinkedList<TSearch>();
+            deleg(testObj, resultStepInto, true);
+
+            var resultNoStepInto = new LinkedList<TSearch>();
+            deleg(testObj, resultNoStepInto, false);
 
             //// ---
 
-            var expected = ReflectionSearcher.Find<TSearch>(testObj);
+            var expectedStepInto = ReflectionSearcher.Find<TSearch>(testObj, true);
+            var expectedNoStepInto = ReflectionSearcher.Find<TSearch>(testObj, false);
 
-            return IsEqual(expected, result);
+            return IsEqual(resultStepInto, expectedStepInto) && IsEqual(expectedNoStepInto, resultNoStepInto);
         }
-
-        protected abstract object SetupTestObject();
 
         private bool IsEqual<TSearch>(LinkedList<TSearch> list1, LinkedList<TSearch> list2)
         {

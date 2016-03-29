@@ -7,6 +7,7 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     [DebuggerDisplay("SQL = {SqlText}")]
     public abstract class BaseQueryElement : IQueryElement
@@ -29,6 +30,8 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public LinkedList<TElementType> DeepFindParentLastOnce<TElementType>() where TElementType : class, IQueryElement
         {
+            return SearchEngine<IQueryElement>.Current.Find<TElementType>(this, true).Reverse();
+
             //var returnList = new LinkedList<TElementType>();
             //var list = new LinkedList<IQueryElement>();
 
@@ -57,12 +60,12 @@ namespace LinqToDB.SqlQuery.QueryElements
             //}
 
             //return returnList;
-
-            return null;
         }
 
         public LinkedList<TElementType> DeepFindParentFirst<TElementType>() where TElementType: class, IQueryElement
         {
+            return SearchEngine<IQueryElement>.Current.Find<TElementType>(this, true);
+
             //var returnList = new LinkedList<TElementType>();
             //var processed = new LinkedList<IQueryElement>();
 
@@ -83,11 +86,12 @@ namespace LinqToDB.SqlQuery.QueryElements
             //}
 
             //return returnList;
-            return null;
         }
 
         public LinkedList<TElementType> DeepFindDownTo<TElementType>() where TElementType : class, IQueryElement
         {
+            return SearchEngine<IQueryElement>.Current.Find<TElementType>(this, false);
+
             //var returnList = new LinkedList<TElementType>();
             //var list = new LinkedList<IQueryElement>();
 
@@ -121,9 +125,6 @@ namespace LinqToDB.SqlQuery.QueryElements
             //}
 
             //return returnList;
-
-
-            return null;
         }
 
         //public abstract void GetChildren(LinkedList<IQueryElement> list);
