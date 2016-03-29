@@ -71,6 +71,11 @@
 
             ResultDelegate findDelegate = (obj, resultList) => 
             {
+                if (obj == null)
+                {
+                    return;
+                }
+
                 var currentObj = obj;
                 for (var i = 0; i < propertyGetters.Count; i++)
                 {
@@ -91,7 +96,7 @@
                 vertex.Children.ForEach(
                     node =>
                     {
-                        delegateMap[node.Value].Delegate(obj, resultList);
+                        delegateMap[node.Value].Delegate(currentObj, resultList);
                     });
             };
 

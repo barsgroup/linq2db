@@ -1,6 +1,7 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.DelegateConstructors
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     using LinqToDB.SqlQuery.Search;
     using LinqToDB.SqlQuery.Search.PathBuilder;
@@ -74,9 +75,11 @@
             LinkedList<IC> result = new LinkedList<IC>();
             deleg(obj, result);
 
-            Assert.Equal(2, result.Count);
-            Assert.Equal(obj.B.C, result.First.Value);
-            Assert.Equal(obj.B.C.A.B.C, result.First.Next.Value);
+            var resultArray = result.ToArray();
+
+            Assert.Equal(2, resultArray.Length);
+            Assert.Equal(obj.B.C, resultArray[0]);
+            Assert.Equal(obj.B.C.A.B.C, resultArray[1]);
         }
     }
 }
