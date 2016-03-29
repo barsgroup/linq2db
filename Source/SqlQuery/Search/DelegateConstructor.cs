@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Specialized;
     using System.Linq;
 
     using System.Text;
@@ -10,6 +11,7 @@
 
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search.PathBuilder;
+    using LinqToDB.SqlQuery.Search.Utils;
 
     using Seterlund.CodeGuard;
 
@@ -55,7 +57,7 @@
                 return;
             }
 
-            var propertyGetters = new List<Func<object, object>>(vertex.PropertyList.Count);
+            var propertyGetters = new LinkedList<Func<object, object>>();
 
             var propertyGetterInterpretter = new Interpreter();
             const string PropertyAccessExpr = "obj is {0} ? (({0})obj).{1} : null";
@@ -66,7 +68,7 @@
                     var propGet = string.Format(PropertyAccessExpr, GetFullName(node.Value.DeclaringType), node.Value.Name);
 
                     var deleg = propertyGetterInterpretter.ParseAsDelegate<Func<object, object>>(propGet, "obj");
-                    propertyGetters.Add(deleg);
+                    propertyGetters.AddLast(deleg);
                 });
 
             ResultDelegate findDelegate = (obj, resultList) => 
@@ -76,27 +78,58 @@
                     return;
                 }
 
-                var currentObj = obj;
-                for (var i = 0; i < propertyGetters.Count; i++)
+                LinkedList<object> currentObjects = new LinkedList<object>(new[] { obj });
+                LinkedList<object> nextObjects = new LinkedList<object>();
+                var curDelegateNode = propertyGetters.First;
+
+                do
                 {
-                    currentObj = propertyGetters[i](currentObj);
+                    var delegateNode = curDelegateNode;
 
-                    if (currentObj == null)
-                    {
-                        return;
-                    }
+                    currentObjects.ForEach(
+                        currentNode =>
+                        {
+                            var nextObj = delegateNode.Value(currentNode.Value);
+
+                            if (nextObj == null)
+                            {
+                                currentObjects.Remove(currentNode);
+                                return;
+                            }
+
+                            if (CollectionUtils.IsCollection(nextObj.GetType()))
+                            {
+                                var colItems = CollectionUtils.GetCollectionItem(nextObj);
+                                nextObjects.AddRange(colItems);
+                            }
+                            else
+                            {
+                                nextObjects.AddLast(nextObj);
+                            }
+                        });
+
+                    currentObjects.Clear();
+                    currentObjects.AddRange(nextObjects);
+                    nextObjects.Clear();
+
+                    curDelegateNode = curDelegateNode.Next;
                 }
-
-                var searchObj = currentObj as TSearch;
-                if (searchObj != null)
-                {
-                    resultList.AddLast(searchObj);
-                }
-
-                vertex.Children.ForEach(
+                while (currentObjects.First != null && curDelegateNode != null);
+                
+                currentObjects.ForEach(
                     node =>
                     {
-                        delegateMap[node.Value].Delegate(currentObj, resultList);
+                        var searchObj = node.Value as TSearch;
+                        if (searchObj != null)
+                        {
+                            resultList.AddLast(searchObj);
+                        }
+
+                        vertex.Children.ForEach(
+                            childNode =>
+                            {
+                                delegateMap[childNode.Value].Delegate(node.Value, resultList);
+                            });
                     });
             };
 

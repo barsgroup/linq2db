@@ -494,6 +494,7 @@
     <Compile Include="SqlQuery\Search\TypeGraph\TypeGraph.cs" />
     <Compile Include="SqlQuery\Search\SearchEngine.cs" />
     <Compile Include="SqlQuery\Search\TypeGraph\TypeVertex.cs" />
+    <Compile Include="SqlQuery\Search\Utils\CollectionUtils.cs" />
     <Compile Include="SqlQuery\SelectQueryOptimizer.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\IQueryExpression.cs" />
     <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlExpressionWalkable.cs" />

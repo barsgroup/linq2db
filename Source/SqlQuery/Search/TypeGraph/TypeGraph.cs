@@ -6,6 +6,7 @@
     using System.Reflection;
 
     using LinqToDB.Extensions;
+    using LinqToDB.SqlQuery.Search.Utils;
 
     public class TypeGraph<TBaseSearchInterface>
     {
@@ -63,7 +64,7 @@
                 var propertyInfos = intType.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null);
                 foreach (var info in propertyInfos)
                 {
-                    var propertyType = GetElementType(info.PropertyType);
+                    var propertyType = CollectionUtils.GetElementType(info.PropertyType);
 
                     if (!typeof(TBaseSearchInterface).IsAssignableFrom(propertyType))
                     {
@@ -165,34 +166,6 @@
             return matrix;
         }
 
-        private static Type GetElementType(Type sourceType)
-        {
-            if (sourceType.IsArray)
-            {
-                return sourceType.GetElementType();
-            }
-
-            if (!sourceType.IsGenericType)
-            {
-                return sourceType;
-            }
-
-            if (typeof(LinkedList<>).IsAssignableFrom(sourceType.GetGenericTypeDefinition()))
-            {
-                return sourceType.GetGenericArguments()[0];
-            }
-
-            if (typeof(Dictionary<,>).IsAssignableFrom(sourceType.GetGenericTypeDefinition()))
-            {
-                return sourceType.GetGenericArguments()[1];
-            }
-
-            if (typeof(List<>).IsAssignableFrom(sourceType.GetGenericTypeDefinition()))
-            {
-                return sourceType.GetGenericArguments()[0];
-            }
-
-            return sourceType;
-        }
+       
     }
 }

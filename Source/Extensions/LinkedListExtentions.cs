@@ -1,6 +1,7 @@
 ﻿namespace LinqToDB.Extensions
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Diagnostics;
 
@@ -23,6 +24,14 @@
         public static void AddRange<TElement1, TElement2>(this LinkedList<TElement1> sourceList, LinkedList<TElement2> targetList) where TElement2 : TElement1
         {
             targetList.ForEach(node => sourceList.AddLast(node.Value));
+        }
+
+        public static void AddRange(this LinkedList<object> sourceList, IList targetList)
+        {
+            for (int i = 0; i < targetList.Count; i++)
+            {
+                sourceList.AddLast(targetList[i]);
+            }
         }
 
         public static void AddRange<TElement1, TElement2>(this LinkedList<TElement1> sourceList, List<TElement2> targetList) where TElement2: TElement1
