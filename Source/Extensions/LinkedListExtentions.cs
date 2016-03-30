@@ -107,7 +107,7 @@
         {
             var result = new LinkedList<TElement>();
 
-            linkedList.First.ReverseEach(
+            linkedList.Last.ReverseEach(
                 node =>
                     {
                         result.AddLast(node.Value);

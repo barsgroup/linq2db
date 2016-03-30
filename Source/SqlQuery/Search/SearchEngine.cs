@@ -20,11 +20,37 @@
 
         public static SearchEngine<TBaseSearchInterface> Current { get; } = new SearchEngine<TBaseSearchInterface>();
 
-        public LinkedList<TElement> Find<TElement>(TBaseSearchInterface source, bool stepIntoFound) where TElement : class
+        public LinkedList<TElement> Find<TElement>(TBaseSearchInterface source, bool stepIntoFound) where TElement : class, TBaseSearchInterface
         {
-            var deleg = GetOrCreateDelegate<TElement>(source);
             var result = new LinkedList<TElement>();
+
+            var value = source as TElement;
+            if (value != null)
+            {
+                result.AddLast(value);
+
+                if (!stepIntoFound)
+                {
+                    return result;
+                }
+            }
+
+            var deleg = GetOrCreateDelegate<TElement>(source);
             deleg.Invoke(source, result, stepIntoFound);
+
+# if DEBUG
+            var reflectionResult = ReflectionSearcher.Find<TElement>(source, stepIntoFound);
+
+            if (value != null)
+            {
+                reflectionResult.AddFirst(value);
+            }
+
+            if (reflectionResult.Count != result.Count)
+            {
+                throw new Exception("result not corresponding to reflection");
+            }
+#endif
 
             return result;
         }

@@ -2,19 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-
-    using System.Text;
-
-    using DynamicExpresso;
+    using System.Linq.Expressions;
 
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.Search.PathBuilder;
     using LinqToDB.SqlQuery.Search.Utils;
 
-    using Seterlund.CodeGuard;
-
-    public delegate void ResultDelegate<TSearch>(object obj, LinkedList<TSearch> resultList, bool stepIntoFound);
+    public delegate void ResultDelegate<TSearch>(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null);
 
     public class DelegateConstructor<TSearch>
         where TSearch : class
@@ -23,33 +17,37 @@
         {
             var delegateMap = new Dictionary<CompositPropertyVertex, ProxyDelegate>();
 
-            CreateDelegate(vertices.First.Value, delegateMap);
+            vertices.ForEach(
+                node =>
+                    {
+                        CreateDelegate(node.Value, delegateMap);
+                    });
 
-            return delegateMap[vertices.First.Value].Delegate;
-        }
+            ResultDelegate<TSearch> findDelegate = (obj, resultList, stepIntoFound, visited) =>
+                {
+                    if (visited == null)
+                    {
+                        visited = new HashSet<object>();
+                    }
+
+                    vertices.ForEach(
+                        node =>
+                            {
+                                delegateMap[node.Value].Delegate.Invoke(obj, resultList, stepIntoFound, visited);
+                            });
+                };
 
 
-        static string GetFullName(Type t)
-        {
-            if (!t.IsGenericType)
-                return t.Name;
-
-            var sb = new StringBuilder();
-
-            sb.Append(t.Name.Substring(0, t.Name.LastIndexOf("`", StringComparison.Ordinal)));
-            sb.Append(t.GetGenericArguments().Aggregate("<",
-                (aggregate, type) => aggregate + (aggregate == "<"
-                                                      ? ""
-                                                      : ",") + GetFullName(type)));
-            sb.Append(">");
-
-            return sb.ToString();
+            return findDelegate;
         }
 
         private void CreateDelegate(CompositPropertyVertex vertex,
                                     Dictionary<CompositPropertyVertex, ProxyDelegate> delegateMap)
         {
-            Guard.That(vertex.PropertyList.First).IsNotNull();
+            if (vertex.PropertyList.First == null)
+            {
+                throw new NullReferenceException();
+            }
 
             if (delegateMap.ContainsKey(vertex))
             {
@@ -57,25 +55,36 @@
             }
 
             var propertyGetters = new LinkedList<Func<object, object>>();
+            
+            var parameter = Expression.Parameter(typeof(object), "obj");
+            var nullConst = Expression.Constant(null);
 
-            var propertyGetterInterpretter = new Interpreter();
-            const string PropertyAccessExpr = "obj is {0} ? (({0})obj).{1} : null";
             vertex.PropertyList.ForEach(
                 node =>
                 {
-                    propertyGetterInterpretter = propertyGetterInterpretter.Reference(node.Value.DeclaringType);
-                    var propGet = string.Format(PropertyAccessExpr, GetFullName(node.Value.DeclaringType), node.Value.Name);
+                    var cast = Expression.Convert(parameter, node.Value.DeclaringType);
+                    var memberAccess = Expression.Convert(Expression.Property(cast, node.Value.Name), typeof(object));
+                    var checkType = Expression.TypeIs(parameter, node.Value.DeclaringType);
+                    var conditionalMemberAccess = Expression.Condition(checkType, memberAccess, nullConst);
+                    
+                    var deleg = Expression.Lambda<Func<object, object>>(conditionalMemberAccess, parameter).Compile();
 
-                    var deleg = propertyGetterInterpretter.ParseAsDelegate<Func<object, object>>(propGet, "obj");
                     propertyGetters.AddLast(deleg);
                 });
 
-            ResultDelegate<TSearch> findDelegate = (obj, resultList, stepIntoFound) => 
+            ResultDelegate<TSearch> findDelegate = (obj, resultList, stepIntoFound, visited) => 
             {
                 if (obj == null)
                 {
                     return;
                 }
+
+                if (visited.Contains(obj))
+                {
+                    return;
+                }
+
+                visited.Add(obj);
 
                 LinkedList<object> currentObjects = new LinkedList<object>(new[] { obj });
                 LinkedList<object> nextObjects = new LinkedList<object>();
@@ -132,7 +141,7 @@
                         vertex.Children.ForEach(
                             childNode =>
                             {
-                                delegateMap[childNode.Value].Delegate(node.Value, resultList, stepIntoFound);
+                                delegateMap[childNode.Value].Delegate(node.Value, resultList, stepIntoFound, visited);
                             });
                     });
             };
