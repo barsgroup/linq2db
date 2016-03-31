@@ -20,6 +20,9 @@
         {
             [SearchContainer]
             IB B { get; set; }
+
+            [SearchContainer]
+            IE E { get; set; }
         }
 
         private interface IB : IBase
@@ -29,6 +32,9 @@
 
             [SearchContainer]
             ID D { get; set; }
+
+            [SearchContainer]
+            IE E { get; set; }
         }
 
         private interface IC : IBase
@@ -41,27 +47,36 @@
         {
         }
 
+        private interface IE : IBase
+        {
+        }
+
         private class A : IA
         {
             public IB B { get; set; }
 
+            public IE E { get; set; }
+
             public A()
             {
                 B = new B();
+                E = new E();
             }
         }
 
         private class B : IB
         {
             public IC C { get; set; }
-
-            [SearchContainer]
+            
             public ID D { get; set; }
+
+            public IE E { get; set; }
 
             public B()
             {
                 C = new C();
                 D = new D();
+                E = new E();
             }
         }
 
@@ -77,6 +92,10 @@
         }
 
         private class D : ID
+        {
+        }
+
+        private class E : IE
         {
         }
 
@@ -120,9 +139,22 @@
             deleg(obj, result, true);
 
             Assert.Equal(2, result.Count);
-            //Assert.Equal(obj.B.C, result.First.Value);
 
             Assert.True(CompareWithReflectionSearcher<ID>(obj));
+        }
+
+        [Fact]
+        public void TwoPathsDelegateE()
+        {
+            var obj = new A();
+            var deleg = SetupTest<IBase, IE>(obj);
+
+            var result = new LinkedList<IE>();
+            deleg(obj, result, true);
+
+            Assert.Equal(2, result.Count);
+
+            Assert.True(CompareWithReflectionSearcher<IE>(obj));
         }
 
         private ResultDelegate<TSearch> SetupTest<TBase, TSearch>(TBase obj) where TSearch : class

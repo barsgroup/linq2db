@@ -7,28 +7,39 @@
 
     public static class ReflectionSearcher
     {
-        public static LinkedList<TSearch> Find<TSearch>(object source, bool stepIntoFound) where TSearch : class
+        public static LinkedList<TSearch> Find<TSearch>(object source, bool stepIntoFound, HashSet<object> visited = null) where TSearch : class
         {
             var result = new LinkedList<TSearch>();
 
-            FindInternal(source, result, new HashSet<object>(), stepIntoFound);
+            if (visited == null)
+            {
+                visited = new HashSet<object>();
+            }
+
+            FindInternal(source, result, stepIntoFound, visited);
 
             return result;
         }
 
-        private static void FindInternal<TSearch>(object obj, LinkedList<TSearch> result, HashSet<object> visited, bool stepIntoFound) where TSearch : class
+        private static void FindInternal<TSearch>(object obj, LinkedList<TSearch> result, bool stepIntoFound, HashSet<object> visited) where TSearch : class
         {
-            if (obj == null)
-            {
-                return;
-            }
-
-            if (visited.Contains(obj))
+            if (obj == null || visited.Contains(obj))
             {
                 return;
             }
 
             visited.Add(obj);
+
+            var searchObj = obj as TSearch;
+            if (searchObj != null)
+            {
+                result.AddLast(searchObj);
+
+                if (!stepIntoFound)
+                {
+                    return;
+                }
+            }
 
             var properties = obj.GetType().GetInterfaces().SelectMany(i => i.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null));
 
@@ -46,7 +57,7 @@
                 {
                     foreach (var elem in dictionary.Values)
                     {
-                        HandleValue(elem, result, visited, stepIntoFound);
+                        FindInternal(elem, result, stepIntoFound, visited);
                     }
 
                     return;
@@ -57,31 +68,14 @@
                 {
                     foreach (var elem in collection)
                     {
-                        HandleValue(elem, result, visited, stepIntoFound);
+                        FindInternal(elem, result, stepIntoFound, visited);
                     }
 
                     return;
                 }
 
-                HandleValue(value, result, visited, stepIntoFound);
+                FindInternal(value, result, stepIntoFound, visited);
             }
-        }
-
-        private static void HandleValue<TSearch>(object value, LinkedList<TSearch> result, HashSet<object> visited, bool stepIntoFound) where TSearch : class
-        {
-            var searchValue = value as TSearch;
-
-            if (searchValue != null)
-            {
-                result.AddLast(searchValue);
-
-                if (!stepIntoFound)
-                {
-                    return;
-                }
-            }
-
-            FindInternal(value, result, visited, stepIntoFound);
         }
     }
 }

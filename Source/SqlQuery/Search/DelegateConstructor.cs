@@ -30,6 +30,24 @@
                         visited = new HashSet<object>();
                     }
 
+                    if (obj == null || visited.Contains(obj))
+                    {
+                        return;
+                    }
+
+                    visited.Add(obj);
+
+                    var searchObj = obj as TSearch;
+                    if (searchObj != null)
+                    {
+                        resultList.AddLast(searchObj);
+
+                        if (!stepIntoFound)
+                        {
+                            return;
+                        }
+                    }
+
                     vertices.ForEach(
                         node =>
                             {
@@ -37,12 +55,10 @@
                             });
                 };
 
-
             return findDelegate;
         }
 
-        private void CreateDelegate(CompositPropertyVertex vertex,
-                                    Dictionary<CompositPropertyVertex, ProxyDelegate> delegateMap)
+        private void CreateDelegate(CompositPropertyVertex vertex, Dictionary<CompositPropertyVertex, ProxyDelegate> delegateMap)
         {
             if (vertex.PropertyList.First == null)
             {
@@ -55,110 +71,109 @@
             }
 
             var propertyGetters = new LinkedList<Func<object, object>>();
-            
+
             var parameter = Expression.Parameter(typeof(object), "obj");
             var nullConst = Expression.Constant(null);
 
             vertex.PropertyList.ForEach(
                 node =>
+                    {
+                        var cast = Expression.Convert(parameter, node.Value.DeclaringType);
+                        var memberAccess = Expression.Convert(Expression.Property(cast, node.Value.Name), typeof(object));
+                        var checkType = Expression.TypeIs(parameter, node.Value.DeclaringType);
+                        var conditionalMemberAccess = Expression.Condition(checkType, memberAccess, nullConst);
+
+                        var deleg = Expression.Lambda<Func<object, object>>(conditionalMemberAccess, parameter).Compile();
+
+                        propertyGetters.AddLast(deleg);
+                    });
+
+            ResultDelegate<TSearch> findDelegate = (obj, resultList, stepIntoFound, visited) =>
                 {
-                    var cast = Expression.Convert(parameter, node.Value.DeclaringType);
-                    var memberAccess = Expression.Convert(Expression.Property(cast, node.Value.Name), typeof(object));
-                    var checkType = Expression.TypeIs(parameter, node.Value.DeclaringType);
-                    var conditionalMemberAccess = Expression.Condition(checkType, memberAccess, nullConst);
-                    
-                    var deleg = Expression.Lambda<Func<object, object>>(conditionalMemberAccess, parameter).Compile();
+                    LinkedList<object> currentObjects = new LinkedList<object>(new[] { obj });
+                    LinkedList<object> nextObjects = new LinkedList<object>();
+                    var curDelegateNode = propertyGetters.First;
 
-                    propertyGetters.AddLast(deleg);
-                });
+                    do
+                    {
+                        var delegateNode = curDelegateNode;
 
-            ResultDelegate<TSearch> findDelegate = (obj, resultList, stepIntoFound, visited) => 
-            {
-                if (obj == null)
-                {
-                    return;
-                }
+                        currentObjects.ForEach(
+                            currentNode =>
+                                {
+                                    var nextObj = delegateNode.Value(currentNode.Value);
 
-                if (visited.Contains(obj))
-                {
-                    return;
-                }
+                                    if (nextObj == null)
+                                    {
+                                        currentObjects.Remove(currentNode);
+                                        return;
+                                    }
 
-                visited.Add(obj);
+                                    if (CollectionUtils.IsCollection(nextObj.GetType()))
+                                    {
+                                        var colItems = CollectionUtils.GetCollectionItem(nextObj);
+                                        nextObjects.AddRange(colItems);
+                                    }
+                                    else
+                                    {
+                                        nextObjects.AddLast(nextObj);
+                                    }
+                                });
 
-                LinkedList<object> currentObjects = new LinkedList<object>(new[] { obj });
-                LinkedList<object> nextObjects = new LinkedList<object>();
-                var curDelegateNode = propertyGetters.First;
+                        currentObjects.Clear();
+                        currentObjects.AddRange(nextObjects);
+                        nextObjects.Clear();
 
-                do
-                {
-                    var delegateNode = curDelegateNode;
+                        curDelegateNode = curDelegateNode.Next;
+                    }
+                    while (currentObjects.First != null && curDelegateNode != null);
 
                     currentObjects.ForEach(
-                        currentNode =>
-                        {
-                            var nextObj = delegateNode.Value(currentNode.Value);
-
-                            if (nextObj == null)
+                        node =>
                             {
-                                currentObjects.Remove(currentNode);
-                                return;
-                            }
+                                var value = node.Value;
 
-                            if (CollectionUtils.IsCollection(nextObj.GetType()))
-                            {
-                                var colItems = CollectionUtils.GetCollectionItem(nextObj);
-                                nextObjects.AddRange(colItems);
-                            }
-                            else
-                            {
-                                nextObjects.AddLast(nextObj);
-                            }
-                        });
+                                if (value == null || visited.Contains(value))
+                                {
+                                    return;
+                                }
 
-                    currentObjects.Clear();
-                    currentObjects.AddRange(nextObjects);
-                    nextObjects.Clear();
+                                visited.Add(value);
 
-                    curDelegateNode = curDelegateNode.Next;
-                }
-                while (currentObjects.First != null && curDelegateNode != null);
-                
-                currentObjects.ForEach(
-                    node =>
-                    {
-                        var searchObj = node.Value as TSearch;
-                        if (searchObj != null)
-                        {
-                            resultList.AddLast(searchObj);
+                                var searchValue = value as TSearch;
+                                if (searchValue != null)
+                                {
+                                    resultList.AddLast(searchValue);
 
-                            if (!stepIntoFound)
-                            {
-                                return;
-                            }
-                        }
+                                    if (!stepIntoFound)
+                                    {
+                                        return;
+                                    }
+                                }
 
-                        vertex.Children.ForEach(
-                            childNode =>
-                            {
-                                delegateMap[childNode.Value].Delegate(node.Value, resultList, stepIntoFound, visited);
+                                vertex.Children.ForEach(
+                                    childNode =>
+                                        {
+                                            delegateMap[childNode.Value].Delegate(value, resultList, stepIntoFound, visited);
+                                        });
                             });
-                    });
-            };
+                };
 
-            delegateMap[vertex] = new ProxyDelegate { Delegate = findDelegate };
+            delegateMap[vertex] = new ProxyDelegate
+                                      {
+                                          Delegate = findDelegate
+                                      };
 
             vertex.Children.ForEach(
                 node =>
-                {
-                    CreateDelegate(node.Value, delegateMap);
-                });
-
+                    {
+                        CreateDelegate(node.Value, delegateMap);
+                    });
         }
 
         class ProxyDelegate
         {
-            public ResultDelegate<TSearch> Delegate { get; set; } 
+            public ResultDelegate<TSearch> Delegate { get; set; }
         }
     }
 }
