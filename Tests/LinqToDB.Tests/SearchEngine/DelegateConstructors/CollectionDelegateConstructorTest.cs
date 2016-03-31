@@ -1,7 +1,6 @@
 ﻿namespace LinqToDB.Tests.SearchEngine.DelegateConstructors
 {
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Linq;
 
     using LinqToDB.SqlQuery.Search;
@@ -53,11 +52,15 @@
         {
             public List<IC> C { get; set; }
 
+            public IC C1 { get; set; }
+
             public B()
             {
                 C = new List<IC>
                     {
                     };
+
+                C1 = new C();
             }
         }
 

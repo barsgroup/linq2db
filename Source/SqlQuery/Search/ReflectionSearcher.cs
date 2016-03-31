@@ -40,9 +40,8 @@
                     return;
                 }
             }
-
+            
             var properties = obj.GetType().GetInterfaces().SelectMany(i => i.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null));
-
             foreach (var prop in properties)
             {
                 var value = prop.GetValue(obj);
@@ -60,9 +59,9 @@
                         FindInternal(elem, result, stepIntoFound, visited);
                     }
 
-                    return;
+                    continue;
                 }
-
+                
                 var collection = value as IEnumerable;
                 if (collection != null)
                 {
@@ -71,9 +70,9 @@
                         FindInternal(elem, result, stepIntoFound, visited);
                     }
 
-                    return;
+                    continue;
                 }
-
+                
                 FindInternal(value, result, stepIntoFound, visited);
             }
         }

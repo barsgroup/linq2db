@@ -105,7 +105,6 @@
 
                                     if (nextObj == null)
                                     {
-                                        currentObjects.Remove(currentNode);
                                         return;
                                     }
 
@@ -133,7 +132,7 @@
                             {
                                 var value = node.Value;
 
-                                if (value == null || visited.Contains(value))
+                                if (visited.Contains(value))
                                 {
                                     return;
                                 }
