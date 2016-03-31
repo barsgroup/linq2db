@@ -28,9 +28,9 @@
             deleg.Invoke(source, result, stepIntoFound);
 
 # if DEBUG
-            var reflectionResult = ReflectionSearcher.Find<TElement>(source, stepIntoFound);
+            var isEqualToReflection = ReflectionSearcher.FindAndCompare(source, stepIntoFound, result);
 
-            if (reflectionResult.Count != result.Count)
+            if (!isEqualToReflection)
             {
                 throw new Exception("result not corresponding to reflection");
             }
