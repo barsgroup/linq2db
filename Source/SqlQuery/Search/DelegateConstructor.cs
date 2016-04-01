@@ -159,7 +159,7 @@
                             return;
                         }
 
-                        var nextObj = propertyGetterNode.Value(propertyGetterNode.Value);
+                        var nextObj = propertyGetterNode.Value(currentObj);
 
                         if (nextObj == null)
                         {
@@ -191,44 +191,10 @@
 
                 findDelegate = (obj, resultList, stepIntoFound, visited) =>
                     {
-                        LinkedList<object> currentObjects = new LinkedList<object>(new[] { obj });
-                        LinkedList<object> nextObjects = new LinkedList<object>();
-                        var curDelegateNode = propertyGetters.First;
+                        var nextObjects = new LinkedList<object>();
+                        getter.Invoke(obj, propertyGetters.First, nextObjects);
 
-                        do
-                        {
-                            var delegateNode = curDelegateNode;
-
-                            currentObjects.ForEach(
-                                currentNode =>
-                                    {
-                                        var nextObj = delegateNode.Value(currentNode.Value);
-
-                                        if (nextObj == null)
-                                        {
-                                            return;
-                                        }
-
-                                        if (CollectionUtils.IsCollection(nextObj.GetType()))
-                                        {
-                                            var colItems = CollectionUtils.GetCollectionItem(nextObj);
-                                            nextObjects.AddRange(colItems);
-                                        }
-                                        else
-                                        {
-                                            nextObjects.AddLast(nextObj);
-                                        }
-                                    });
-
-                            currentObjects.Clear();
-                            currentObjects.AddRange(nextObjects);
-                            nextObjects.Clear();
-
-                            curDelegateNode = curDelegateNode.Next;
-                        }
-                        while (currentObjects.First != null && curDelegateNode != null);
-
-                        currentObjects.ForEach(
+                        nextObjects.ForEach(
                             node =>
                                 {
                                     handleValue(node.Value, resultList, stepIntoFound, visited, childDelegates);

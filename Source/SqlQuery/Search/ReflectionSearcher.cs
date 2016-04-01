@@ -140,7 +140,7 @@
             }
         }
 
-        private static bool IsSearchResultEqual<TSearch>(LinkedList<TSearch> list1, LinkedList<TSearch> list2)
+        public static bool IsSearchResultEqual<TSearch>(LinkedList<TSearch> list1, LinkedList<TSearch> list2)
         {
             if (list1.Count != list2.Count)
             {
