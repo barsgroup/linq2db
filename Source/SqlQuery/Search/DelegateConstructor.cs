@@ -98,33 +98,6 @@
             var childDelegates = new LinkedList<ProxyDelegate>();
             ResultDelegate<TSearch> findDelegate;
 
-            Action<object, LinkedList<TSearch>, bool, HashSet<object>, LinkedList<ProxyDelegate>> handleValue = (value, resultList, stepIntoFound, visited, nextDelegates) =>
-            {
-                if (visited.Contains(value))
-                {
-                    return;
-                }
-
-                visited.Add(value);
-
-                var searchValue = value as TSearch;
-                if (searchValue != null)
-                {
-                    resultList.AddLast(searchValue);
-
-                    if (!stepIntoFound)
-                    {
-                        return;
-                    }
-                }
-
-                nextDelegates.ForEach(
-                    childNode =>
-                    {
-                        childNode.Value.Delegate(value, resultList, stepIntoFound, visited);
-                    });
-            };
-
             if (!hasCollection)
             {
                 findDelegate = (obj, resultList, stepIntoFound, visited) =>
@@ -145,7 +118,7 @@
                         }
                         while (curDelegateNode != null);
 
-                        handleValue(currentObj, resultList, stepIntoFound, visited, childDelegates);
+                        HandleValue(currentObj, resultList, stepIntoFound, visited, childDelegates);
                     };
             }
             else
@@ -191,13 +164,13 @@
 
                 findDelegate = (obj, resultList, stepIntoFound, visited) =>
                     {
-                        var nextObjects = new LinkedList<object>();
-                        getter.Invoke(obj, propertyGetters.First, nextObjects);
+                        var values = new LinkedList<object>();
+                        ApplyPropertyGetterList(obj, propertyGetters.First, values);
 
-                        nextObjects.ForEach(
+                        values.ForEach(
                             node =>
                                 {
-                                    handleValue(node.Value, resultList, stepIntoFound, visited, childDelegates);
+                                    HandleValue(node.Value, resultList, stepIntoFound, visited, childDelegates);
                                 });
                     };
             }
@@ -213,6 +186,69 @@
                         CreateDelegate(node.Value, delegateMap);
                         childDelegates.AddLast(delegateMap[node.Value]);
                     });
+        }
+
+        private static void HandleValue(object value, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited, LinkedList<ProxyDelegate> nextDelegates)
+        {
+            if (visited.Contains(value))
+            {
+                return;
+            }
+
+            visited.Add(value);
+
+            var searchValue = value as TSearch;
+            if (searchValue != null)
+            {
+                resultList.AddLast(searchValue);
+
+                if (!stepIntoFound)
+                {
+                    return;
+                }
+            }
+
+            nextDelegates.ForEach(
+                childNode =>
+                {
+                    childNode.Value.Delegate(value, resultList, stepIntoFound, visited);
+                });
+        }
+
+        private static void ApplyPropertyGetterList(object currentObj, LinkedListNode<Func<object, object>> propertyGetterNode, LinkedList<object> resultList)
+        {
+            if (propertyGetterNode == null)
+            {
+                resultList.AddLast(currentObj);
+                return;
+            }
+
+            var nextObj = propertyGetterNode.Value(currentObj);
+
+            if (nextObj == null)
+            {
+                return;
+            }
+
+            var nextGetterNode = propertyGetterNode.Next;
+
+            if (CollectionUtils.IsCollection(nextObj.GetType()))
+            {
+                var colItems = CollectionUtils.GetCollectionItem(nextObj);
+                foreach (var colItem in colItems)
+                {
+                    if (colItem == null)
+                    {
+                        continue;
+                    }
+
+                    ApplyPropertyGetterList(colItem, nextGetterNode, resultList);
+                }
+            }
+            else
+            {
+                ApplyPropertyGetterList(nextObj, nextGetterNode, resultList);
+            }
         }
 
         class ProxyDelegate
