@@ -8,14 +8,12 @@
     using LinqToDB.SqlQuery.Search.PathBuilder;
     using LinqToDB.SqlQuery.Search.Utils;
 
-    public delegate void ResultDelegate<TSearch>(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null);
+    public delegate void ResultDelegateOld<TSearch>(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null);
 
-    public delegate void GetterDelegate(object obj, LinkedListNode<Func<object, object>> getterNode, LinkedList<object> resultList);
-
-    public class DelegateConstructor<TSearch>
+    public class DelegateConstructorOld<TSearch>
         where TSearch : class
     {
-        public ResultDelegate<TSearch> CreateResultDelegate(LinkedList<CompositPropertyVertex> vertices)
+        public ResultDelegateOld<TSearch> CreateResultDelegate(LinkedList<CompositPropertyVertex> vertices)
         {
             var delegateMap = new Dictionary<CompositPropertyVertex, ProxyDelegate>();
 
@@ -28,7 +26,7 @@
                         delegates.AddLast(delegateMap[node.Value]);
                     });
 
-            ResultDelegate<TSearch> findDelegate = (obj, resultList, stepIntoFound, visited) =>
+            ResultDelegateOld<TSearch> findDelegate = (obj, resultList, stepIntoFound, visited) =>
                 {
                     if (visited == null)
                     {
@@ -96,7 +94,7 @@
                     });
 
             var childDelegates = new LinkedList<ProxyDelegate>();
-            ResultDelegate<TSearch> findDelegate;
+            ResultDelegateOld<TSearch> findDelegate;
 
             if (!hasCollection)
             {
@@ -207,12 +205,7 @@
 
         class ProxyDelegate
         {
-            public ResultDelegate<TSearch> Delegate { get; set; }
-        }
-
-        class ProxyGetter
-        {
-            public GetterDelegate Getter { get; set; }
+            public ResultDelegateOld<TSearch> Delegate { get; set; }
         }
     }
 }
