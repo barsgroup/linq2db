@@ -123,55 +123,9 @@
             }
             else
             {
-                var getterProxy = new ProxyGetter();
-                GetterDelegate getter = (currentObj, propertyGetterNode, resultList) =>
-                    {
-                        if (propertyGetterNode == null)
-                        {
-                            resultList.AddLast(currentObj);
-                            return;
-                        }
-
-                        var nextObj = propertyGetterNode.Value(currentObj);
-
-                        if (nextObj == null)
-                        {
-                            return;
-                        }
-
-                        var nextGetterNode = propertyGetterNode.Next;
-
-                        if (CollectionUtils.IsCollection(nextObj.GetType()))
-                        {
-                            var colItems = CollectionUtils.GetCollectionItem(nextObj);
-                            foreach (var colItem in colItems)
-                            {
-                                if (colItem == null)
-                                {
-                                    continue;
-                                }
-
-                                getterProxy.Getter.Invoke(colItem, nextGetterNode, resultList);
-                            }
-                        }
-                        else
-                        {
-                            getterProxy.Getter.Invoke(nextObj, nextGetterNode, resultList);
-                        }
-                    };
-
-                getterProxy.Getter = getter;
-
                 findDelegate = (obj, resultList, stepIntoFound, visited) =>
                     {
-                        var values = new LinkedList<object>();
-                        ApplyPropertyGetterList(obj, propertyGetters.First, values);
-
-                        values.ForEach(
-                            node =>
-                                {
-                                    HandleValue(node.Value, resultList, stepIntoFound, visited, childDelegates);
-                                });
+                        ApplyToFinalPropertyValues(obj, propertyGetters.First, value => HandleValue(value, resultList, stepIntoFound, visited, childDelegates));
                     };
             }
 
@@ -215,15 +169,15 @@
                 });
         }
 
-        private static void ApplyPropertyGetterList(object currentObj, LinkedListNode<Func<object, object>> propertyGetterNode, LinkedList<object> resultList)
+        private static void ApplyToFinalPropertyValues(object source, LinkedListNode<Func<object, object>> propertyGetterNode, Action<object> action)
         {
             if (propertyGetterNode == null)
             {
-                resultList.AddLast(currentObj);
+                action(source);
                 return;
             }
 
-            var nextObj = propertyGetterNode.Value(currentObj);
+            var nextObj = propertyGetterNode.Value(source);
 
             if (nextObj == null)
             {
@@ -242,12 +196,12 @@
                         continue;
                     }
 
-                    ApplyPropertyGetterList(colItem, nextGetterNode, resultList);
+                    ApplyToFinalPropertyValues(colItem, nextGetterNode, action);
                 }
             }
             else
             {
-                ApplyPropertyGetterList(nextObj, nextGetterNode, resultList);
+                ApplyToFinalPropertyValues(nextObj, nextGetterNode, action);
             }
         }
 
