@@ -28,12 +28,12 @@
             deleg.Invoke(source, result, stepIntoFound);
 
 # if DEBUG
-            var isEqualToReflection = ReflectionSearcher.FindAndCompare(source, stepIntoFound, result);
-
-            if (!isEqualToReflection)
-            {
-                throw new Exception("result not corresponding to reflection");
-            }
+            ////var isEqualToReflection = ReflectionSearcher.FindAndCompare(source, stepIntoFound, result);
+            ////
+            ////if (!isEqualToReflection)
+            ////{
+            ////    throw new Exception("result not corresponding to reflection");
+            ////}
 #endif
 
             return result;

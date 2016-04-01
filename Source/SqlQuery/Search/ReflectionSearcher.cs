@@ -18,7 +18,14 @@
                 visited = new HashSet<object>();
             }
 
-            FindInternal(source, result, stepIntoFound, visited);
+            if (stepIntoFound)
+            {
+                FindInternal(source, result, visited);
+            }
+            else
+            {
+                FindDownToInternal(source, source, result, visited);
+            }
 
             return result;
         }
@@ -30,7 +37,7 @@
             return IsSearchResultEqual(result, reflectionResult);
         }
 
-        private static void FindInternal<TSearch>(object obj, LinkedList<TSearch> result, bool stepIntoFound, HashSet<object> visited) where TSearch : class
+        private static void FindInternal<TSearch>(object obj, LinkedList<TSearch> result, HashSet<object> visited) where TSearch : class
         {
             if (obj == null || visited.Contains(obj))
             {
@@ -43,11 +50,6 @@
             if (searchObj != null)
             {
                 result.AddLast(searchObj);
-
-                if (!stepIntoFound)
-                {
-                    return;
-                }
             }
             
             var properties = obj.GetType().GetInterfaces().SelectMany(i => i.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null));
@@ -65,7 +67,7 @@
                 {
                     foreach (var elem in dictionary.Values)
                     {
-                        FindInternal(elem, result, stepIntoFound, visited);
+                        FindInternal(elem, result, visited);
                     }
 
                     continue;
@@ -76,13 +78,65 @@
                 {
                     foreach (var elem in collection)
                     {
-                        FindInternal(elem, result, stepIntoFound, visited);
+                        FindInternal(elem, result, visited);
                     }
 
                     continue;
                 }
                 
-                FindInternal(value, result, stepIntoFound, visited);
+                FindInternal(value, result, visited);
+            }
+        }
+        
+        private static void FindDownToInternal<TSearch>(object root, object obj, LinkedList<TSearch> result, HashSet<object> visited) where TSearch : class
+        {
+            if (obj == null || visited.Contains(obj))
+            {
+                return;
+            }
+
+            visited.Add(obj);
+
+            var searchObj = obj as TSearch;
+            if (searchObj != null && !ReferenceEquals(obj, root))
+            {
+                result.AddLast(searchObj);
+                return;
+            }
+
+            var properties = obj.GetType().GetInterfaces().SelectMany(i => i.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null));
+            foreach (var prop in properties)
+            {
+                var value = prop.GetValue(obj);
+
+                if (value == null)
+                {
+                    continue;
+                }
+
+                var dictionary = value as IDictionary;
+                if (dictionary != null)
+                {
+                    foreach (var elem in dictionary.Values)
+                    {
+                        FindDownToInternal(root, elem, result, visited);
+                    }
+
+                    continue;
+                }
+
+                var collection = value as IEnumerable;
+                if (collection != null)
+                {
+                    foreach (var elem in collection)
+                    {
+                        FindDownToInternal(root, elem, result, visited);
+                    }
+
+                    continue;
+                }
+
+                FindDownToInternal(root, value, result, visited);
             }
         }
 
