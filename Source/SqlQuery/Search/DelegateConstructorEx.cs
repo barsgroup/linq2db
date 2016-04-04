@@ -158,33 +158,28 @@
                         var colItems = CollectionUtils.GetCollectionItem(nextObj);
                         for (var i = 0; i < colItems.Length; i++)
                         {
-                            if (colItems[i] == null)
+                            if (colItems[i] != null)
                             {
-                                continue;
+                                HandleFinalPropertyValues(colItems[i], nextIndex, resultList, stepIntoFound, visited);
                             }
-
-                            HandleFinalPropertyValues(colItems[i], nextIndex, resultList, stepIntoFound, visited);
                         }
-                    }
-                    else
-                    {
-                        source = nextObj;
-                        index = nextIndex;
-                        continue;
+                        break;
                     }
 
-                    break;
+                    source = nextObj;
+                    index = nextIndex;
+
                 }
             }
         }
 
-        public sealed class ScalarProxyDelegate : ProxyDelegate
+        public  class ScalarProxyDelegate : ProxyDelegate
         {
             public ScalarProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children) : base(propertyGetters, children)
             {
             }
 
-            public override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
+            public sealed override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
                 var currentObj = obj;
 
@@ -202,14 +197,14 @@
             }
         }
 
-        public sealed class CollectionProxyDelegate : ProxyDelegate
+        public  class CollectionProxyDelegate : ProxyDelegate
         {
             public CollectionProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children)
                 : base(propertyGetters, children)
             {
             }
 
-            public override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
+            public sealed override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
                 HandleFinalPropertyValues(obj, 0, resultList, stepIntoFound, visited);
             }
