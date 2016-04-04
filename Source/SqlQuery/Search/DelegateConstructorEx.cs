@@ -60,10 +60,10 @@
                             hasCollection = true;
                         }
 
-                        var cast = Expression.Convert(parameter, node.Value.DeclaringType);
-                        var memberAccess = Expression.Convert(Expression.Property(cast, node.Value.Name), typeof(object));
-                        var checkType = Expression.TypeIs(parameter, node.Value.DeclaringType);
-                        var conditionalMemberAccess = Expression.Condition(checkType, memberAccess, nullConst);
+                        var castAs = Expression.TypeAs(parameter, node.Value.DeclaringType);
+                        var checkNotNull = Expression.NotEqual(castAs, nullConst);
+                        var memberAccess = Expression.Convert(Expression.Property(castAs, node.Value.Name), typeof(object));
+                        var conditionalMemberAccess = Expression.Condition(checkNotNull, memberAccess, nullConst);
 
                         var deleg = Expression.Lambda<Func<object, object>>(conditionalMemberAccess, parameter).Compile();
 
