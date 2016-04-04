@@ -6,11 +6,6 @@
 
     public static class CollectionUtils
     {
-        public static bool IsCollection(Type sourceType)
-        {
-            return sourceType != GetElementType(sourceType);
-        }
-
         public static Type GetElementType(Type sourceType)
         {
             if (sourceType.IsArray)

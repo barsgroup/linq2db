@@ -1,6 +1,7 @@
 ﻿namespace LinqToDB.SqlQuery.Search
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq.Expressions;
 
@@ -55,7 +56,7 @@
             vertex.PropertyList.ForEach(
                 node =>
                     {
-                        if (CollectionUtils.IsCollection(node.Value.PropertyType))
+                        if (typeof(ICollection).IsAssignableFrom(node.Value.PropertyType))
                         {
                             hasCollection = true;
                         }
@@ -152,17 +153,17 @@
 
                     var nextIndex = index + 1;
 
-                    if (CollectionUtils.IsCollection(nextObj.GetType()))
+                    if (nextObj is ICollection)
                     {
-                        var colItems = CollectionUtils.GetCollectionIEnumerable(nextObj);
-                        foreach (var colItem in colItems)
+                        var colItems = CollectionUtils.GetCollectionItem(nextObj);
+                        for (var i = 0; i < colItems.Length; i++)
                         {
-                            if (colItem == null)
+                            if (colItems[i] == null)
                             {
                                 continue;
                             }
 
-                            HandleFinalPropertyValues(colItem, nextIndex, resultList, stepIntoFound, visited);
+                            HandleFinalPropertyValues(colItems[i], nextIndex, resultList, stepIntoFound, visited);
                         }
                     }
                     else
