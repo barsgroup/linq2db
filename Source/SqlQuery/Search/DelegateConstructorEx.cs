@@ -63,7 +63,7 @@
 
                         var castAs = Expression.TypeAs(parameter, node.Value.DeclaringType);
                         var checkNotNull = Expression.NotEqual(castAs, nullConst);
-                        var memberAccess = Expression.Convert(Expression.Property(castAs, node.Value.Name), typeof(object));
+                        var memberAccess = Expression.Convert(Expression.MakeMemberAccess(castAs, node.Value), typeof(object));
                         var conditionalMemberAccess = Expression.Condition(checkNotNull, memberAccess, nullConst);
 
                         var deleg = Expression.Lambda<Func<object, object>>(conditionalMemberAccess, parameter).Compile();
@@ -178,7 +178,7 @@
             }
         }
 
-        public class ScalarProxyDelegate : ProxyDelegate
+        public sealed class ScalarProxyDelegate : ProxyDelegate
         {
             public ScalarProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children) : base(propertyGetters, children)
             {
@@ -202,7 +202,7 @@
             }
         }
 
-        public class CollectionProxyDelegate : ProxyDelegate
+        public sealed class CollectionProxyDelegate : ProxyDelegate
         {
             public CollectionProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children)
                 : base(propertyGetters, children)
@@ -222,7 +222,7 @@
             {
             }
 
-            public override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
+            public sealed override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
                 if (visited == null)
                 {

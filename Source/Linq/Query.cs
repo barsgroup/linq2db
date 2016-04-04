@@ -282,14 +282,12 @@ namespace LinqToDB.Linq
 
         void FinalizeQuery()
         {
-            foreach (var sql in Queries)
+            for (int index = 0; index < Queries.Count; index++)
             {
+                var sql = Queries[index];
+
                 sql.SelectQuery = SqlOptimizer.Finalize(sql.SelectQuery);
-                sql.Parameters  = sql.Parameters
-                    .Select (p => new { p, idx = sql.SelectQuery.Parameters.IndexOf(p.SqlParameter) })
-                    .OrderBy(p => p.idx)
-                    .Select (p => p.p)
-                    .ToList();
+                sql.Parameters = sql.Parameters.OrderBy(p => sql.SelectQuery.Parameters.IndexOf(p.SqlParameter)).ToList();
             }
         }
 
