@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Linq.Expressions;
 
     using LinqToDB.Extensions;
@@ -28,33 +27,9 @@
                         delegates[index++] = delegateMap[node.Value];
                     });
 
-            ResultDelegate<TSearch> findDelegate = (obj, resultList, stepIntoFound, visited) =>
-                {
-                    if (visited == null)
-                    {
-                        visited = new HashSet<object>();
-                    }
-            
-                    if (obj == null || visited.Contains(obj))
-                    {
-                        return;
-                    }
-            
-                    visited.Add(obj);
-            
-                    var searchObj = obj as TSearch;
-                    if (searchObj != null && stepIntoFound)
-                    {
-                        resultList.AddLast(searchObj);
-                    }
+            var rootDelegate = new RootProxyDelegate(delegates);
 
-                    for (var i = 0; i < delegates.Length; ++i)
-                    {
-                        delegates[i].Execute(obj, resultList, stepIntoFound, visited);
-                    }
-                };
-
-            return findDelegate;
+            return rootDelegate.Execute;
         }
 
         private void CreateDelegate(CompositPropertyVertex vertex, Dictionary<CompositPropertyVertex, ProxyDelegate> delegateMap)
@@ -158,44 +133,46 @@
                 }
             }
 
-            protected void HandleFinalPropertyValues(
-                object source,
-                int index,
-                LinkedList<TSearch> resultList,
-                bool stepIntoFound,
-                HashSet<object> visited)
+            protected void HandleFinalPropertyValues(object source, int index, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
             {
-                if (index == PropertyGetters.Length)
+                while (true)
                 {
-                    HandleValue(source, resultList, stepIntoFound, visited);
-                    return;
-                }
-
-                var nextObj = PropertyGetters[index](source);
-
-                if (nextObj == null)
-                {
-                    return;
-                }
-
-                var nextIndex = index + 1;
-
-                if (CollectionUtils.IsCollection(nextObj.GetType()))
-                {
-                    var colItems = CollectionUtils.GetCollectionItem(nextObj);
-                    foreach (var colItem in colItems)
+                    if (index == PropertyGetters.Length)
                     {
-                        if (colItem == null)
-                        {
-                            continue;
-                        }
-
-                        HandleFinalPropertyValues(colItem, nextIndex, resultList, stepIntoFound, visited);
+                        HandleValue(source, resultList, stepIntoFound, visited);
+                        return;
                     }
-                }
-                else
-                {
-                    HandleFinalPropertyValues(nextObj, nextIndex, resultList, stepIntoFound, visited);
+
+                    var nextObj = PropertyGetters[index](source);
+
+                    if (nextObj == null)
+                    {
+                        return;
+                    }
+
+                    var nextIndex = index + 1;
+
+                    if (CollectionUtils.IsCollection(nextObj.GetType()))
+                    {
+                        var colItems = CollectionUtils.GetCollectionIEnumerable(nextObj);
+                        foreach (var colItem in colItems)
+                        {
+                            if (colItem == null)
+                            {
+                                continue;
+                            }
+
+                            HandleFinalPropertyValues(colItem, nextIndex, resultList, stepIntoFound, visited);
+                        }
+                    }
+                    else
+                    {
+                        source = nextObj;
+                        index = nextIndex;
+                        continue;
+                    }
+
+                    break;
                 }
             }
         }
@@ -234,6 +211,40 @@
             public override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
                 HandleFinalPropertyValues(obj, 0, resultList, stepIntoFound, visited);
+            }
+        }
+
+        public class RootProxyDelegate : ProxyDelegate
+        {
+            public RootProxyDelegate(ProxyDelegate[] children)
+                : base(null, children)
+            {
+            }
+
+            public override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
+            {
+                if (visited == null)
+                {
+                    visited = new HashSet<object>();
+                }
+
+                if (obj == null || visited.Contains(obj))
+                {
+                    return;
+                }
+
+                visited.Add(obj);
+
+                var searchObj = obj as TSearch;
+                if (searchObj != null && stepIntoFound)
+                {
+                    resultList.AddLast(searchObj);
+                }
+
+                for (var i = 0; i < Children.Length; ++i)
+                {
+                    Children[i].Execute(obj, resultList, stepIntoFound, visited);
+                }
             }
         }
     }
