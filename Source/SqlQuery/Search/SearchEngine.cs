@@ -9,7 +9,7 @@
     public class SearchEngine<TBaseSearchInterface>
     {
         private readonly PathBuilder<TBaseSearchInterface> _pathBuilder;
-        private readonly Dictionary<Tuple<Type, Type>, Delegate> _delegateCache = new Dictionary<Tuple<Type, Type>, Delegate>();
+        private readonly Dictionary<TypeKey, Delegate> _delegateCache = new Dictionary<TypeKey, Delegate>();
 
         private SearchEngine()
         {
@@ -41,7 +41,7 @@
 
         public ResultDelegate<TElement> GetOrCreateDelegate<TElement>(TBaseSearchInterface source) where TElement : class
         {
-            var key = Tuple.Create(source.GetType(), typeof(TElement));
+            var key = new TypeKey(source.GetType(), typeof(TElement));
             Delegate cachedDelegate;
             if (!_delegateCache.TryGetValue(key, out cachedDelegate))
             {

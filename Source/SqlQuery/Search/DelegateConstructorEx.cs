@@ -85,17 +85,15 @@
 
         public abstract class ProxyDelegate
         {
-            public Func<object, object>[] PropertyGetters { get; }
+            protected readonly Func<object, object>[] PropertyGetters;
 
-            public ProxyDelegate[] Children { get; }
+            protected readonly ProxyDelegate[] Children;
 
-            public ProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children)
+            protected ProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children)
             {
                 PropertyGetters = propertyGetters;
                 Children = children;
             }
-
-            public abstract void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null);
 
             public static ProxyDelegate Create(Func<object, object>[] propertyGetters, ProxyDelegate[] children, bool hasCollection)
             {
@@ -106,6 +104,8 @@
 
                 return new ScalarProxyDelegate(propertyGetters, children);
             }
+
+            public abstract void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null);
 
             protected void HandleValue(object value, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
             {
