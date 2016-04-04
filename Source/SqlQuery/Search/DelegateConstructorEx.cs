@@ -73,7 +73,7 @@
 
             var childDelegates = new ProxyDelegate[vertex.Children.Count];
 
-            delegateMap[vertex] = ProxyDelegate.Create(propertyGetters, childDelegates, hasCollection);
+            delegateMap[vertex] = new ProxyDelegate(propertyGetters, childDelegates, hasCollection);
 
             index = 0;
             vertex.Children.ForEach(
@@ -84,31 +84,35 @@
                     });
         }
 
-        public abstract class ProxyDelegate
+        public sealed class ProxyDelegate
         {
-            protected readonly Func<object, object>[] PropertyGetters;
+            private readonly Func<object, object>[] _propertyGetters;
 
-            protected readonly ProxyDelegate[] Children;
+            private readonly ProxyDelegate[] _children;
 
-            protected ProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children)
+            private readonly bool _isCollection;
+
+            public ProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children, bool isCollection)
             {
-                PropertyGetters = propertyGetters;
-                Children = children;
+                _isCollection = isCollection;
+
+                _propertyGetters = propertyGetters;
+                _children = children;
             }
 
-            public static ProxyDelegate Create(Func<object, object>[] propertyGetters, ProxyDelegate[] children, bool hasCollection)
+            public void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
-                if (hasCollection)
+                if (_isCollection)
                 {
-                    return new CollectionProxyDelegate(propertyGetters, children);
+                    CollectionExecute(obj, resultList, stepIntoFound, visited);
                 }
-
-                return new ScalarProxyDelegate(propertyGetters, children);
+                else
+                {
+                    ScalarExecute(obj, resultList, stepIntoFound, visited);
+                }
             }
 
-            public abstract void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null);
-
-            protected void HandleValue(object value, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
+            private void HandleValue(object value, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
             {
                 if (visited.Contains(value))
                 {
@@ -128,23 +132,23 @@
                     }
                 }
 
-                for (var i = 0; i < Children.Length; ++i)
+                for (var i = 0; i < _children.Length; ++i)
                 {
-                    Children[i].Execute(value, resultList, stepIntoFound, visited);
+                    _children[i].Execute(value, resultList, stepIntoFound, visited);
                 }
             }
 
-            protected void HandleFinalPropertyValues(object source, int index, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
+            private void HandleFinalPropertyValues(object source, int index, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
             {
                 while (true)
                 {
-                    if (index == PropertyGetters.Length)
+                    if (index == _propertyGetters.Length)
                     {
                         HandleValue(source, resultList, stepIntoFound, visited);
                         return;
                     }
 
-                    var nextObj = PropertyGetters[index](source);
+                    var nextObj = _propertyGetters[index](source);
 
                     if (nextObj == null)
                     {
@@ -171,21 +175,14 @@
 
                 }
             }
-        }
 
-        public  class ScalarProxyDelegate : ProxyDelegate
-        {
-            public ScalarProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children) : base(propertyGetters, children)
-            {
-            }
-
-            public sealed override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
+            public void ScalarExecute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
                 var currentObj = obj;
 
-                for (var i = 0; i < PropertyGetters.Length; ++i)
+                for (var i = 0; i < _propertyGetters.Length; ++i)
                 {
-                    currentObj = PropertyGetters[i](currentObj);
+                    currentObj = _propertyGetters[i](currentObj);
 
                     if (currentObj == null)
                     {
@@ -195,29 +192,23 @@
 
                 HandleValue(currentObj, resultList, stepIntoFound, visited);
             }
-        }
 
-        public  class CollectionProxyDelegate : ProxyDelegate
-        {
-            public CollectionProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children)
-                : base(propertyGetters, children)
-            {
-            }
-
-            public sealed override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
+            public void CollectionExecute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
                 HandleFinalPropertyValues(obj, 0, resultList, stepIntoFound, visited);
             }
         }
-
-        public class RootProxyDelegate : ProxyDelegate
+      
+        public sealed class RootProxyDelegate
         {
+            private readonly ProxyDelegate[] _children;
+
             public RootProxyDelegate(ProxyDelegate[] children)
-                : base(null, children)
             {
+                _children = children;
             }
 
-            public sealed override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
+            public void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
                 if (visited == null)
                 {
@@ -237,9 +228,9 @@
                     resultList.AddLast(searchObj);
                 }
 
-                for (var i = 0; i < Children.Length; ++i)
+                for (var i = 0; i < _children.Length; ++i)
                 {
-                    Children[i].Execute(obj, resultList, stepIntoFound, visited);
+                    _children[i].Execute(obj, resultList, stepIntoFound, visited);
                 }
             }
         }
