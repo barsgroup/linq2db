@@ -156,11 +156,16 @@
                     });
             }
 
-            protected static void ApplyToFinalPropertyValues(object source, LinkedListNode<Func<object, object>> propertyGetterNode, Action<object> action)
+            protected void HandleFinalPropertyValues(
+                object source,
+                LinkedListNode<Func<object, object>> propertyGetterNode,
+                LinkedList<TSearch> resultList,
+                bool stepIntoFound,
+                HashSet<object> visited)
             {
                 if (propertyGetterNode == null)
                 {
-                    action(source);
+                    HandleValue(source, resultList, stepIntoFound, visited);
                     return;
                 }
 
@@ -183,12 +188,12 @@
                             continue;
                         }
 
-                        ApplyToFinalPropertyValues(colItem, nextGetterNode, action);
+                        HandleFinalPropertyValues(colItem, nextGetterNode, resultList, stepIntoFound, visited);
                     }
                 }
                 else
                 {
-                    ApplyToFinalPropertyValues(nextObj, nextGetterNode, action);
+                    HandleFinalPropertyValues(nextObj, nextGetterNode, resultList, stepIntoFound, visited);
                 }
             }
         }
@@ -230,7 +235,7 @@
 
             public override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
-                ApplyToFinalPropertyValues(obj, PropertyGetters.First, value => HandleValue(value, resultList, stepIntoFound, visited));
+                HandleFinalPropertyValues(obj, PropertyGetters.First, resultList, stepIntoFound, visited);
             }
         }
     }
