@@ -13,7 +13,6 @@ NUGET
     NuGet.CommandLine (3.3.0)
     NUnit (2.6.4) - framework: >= net45
     odp.net.x86 (112.3.20) - framework: >= net40
-    Seterlund.CodeGuard (2.3.4) - framework: >= net45
     System.Data.SQLite.Core (1.0.97) - framework: >= net45
     xunit (1.9.1) - framework: >= net45
     xunit.extensions (1.9.1) - framework: >= net45
