@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Linq.Expressions;
 
     using LinqToDB.Extensions;
@@ -17,13 +18,14 @@
         {
             var delegateMap = new Dictionary<CompositPropertyVertex, ProxyDelegate>();
 
-            var delegates = new LinkedList<ProxyDelegate>();
+            var delegates = new ProxyDelegate[vertices.Count];
 
+            var index = 0;
             vertices.ForEach(
                 node =>
                     {
                         CreateDelegate(node.Value, delegateMap);
-                        delegates.AddLast(delegateMap[node.Value]);
+                        delegates[index++] = delegateMap[node.Value];
                     });
 
             ResultDelegate<TSearch> findDelegate = (obj, resultList, stepIntoFound, visited) =>
@@ -46,11 +48,10 @@
                         resultList.AddLast(searchObj);
                     }
 
-                    delegates.ForEach(
-                        node =>
-                            {
-                                node.Value.Execute(obj, resultList, stepIntoFound, visited);
-                            });
+                    for (var i = 0; i < delegates.Length; ++i)
+                    {
+                        delegates[i].Execute(obj, resultList, stepIntoFound, visited);
+                    }
                 };
 
             return findDelegate;
@@ -68,13 +69,14 @@
                 return;
             }
 
-            var propertyGetters = new LinkedList<Func<object, object>>();
+            var propertyGetters = new Func<object, object>[vertex.PropertyList.Count];
 
             var parameter = Expression.Parameter(typeof(object), "obj");
             var nullConst = Expression.Constant(null);
 
             var hasCollection = false;
 
+            var index = 0;
             vertex.PropertyList.ForEach(
                 node =>
                     {
@@ -90,28 +92,29 @@
 
                         var deleg = Expression.Lambda<Func<object, object>>(conditionalMemberAccess, parameter).Compile();
 
-                        propertyGetters.AddLast(deleg);
+                        propertyGetters[index++] = deleg;
                     });
 
-            var childDelegates = new LinkedList<ProxyDelegate>();
+            var childDelegates = new ProxyDelegate[vertex.Children.Count];
 
             delegateMap[vertex] = ProxyDelegate.Create(propertyGetters, childDelegates, hasCollection);
 
+            index = 0;
             vertex.Children.ForEach(
                 node =>
                     {
                         CreateDelegate(node.Value, delegateMap);
-                        childDelegates.AddLast(delegateMap[node.Value]);
+                        childDelegates[index++] = delegateMap[node.Value];
                     });
         }
 
-        abstract class ProxyDelegate
+        public abstract class ProxyDelegate
         {
-            public LinkedList<Func<object, object>> PropertyGetters { get; }
+            public Func<object, object>[] PropertyGetters { get; }
 
-            public LinkedList<ProxyDelegate> Children { get; }
+            public ProxyDelegate[] Children { get; }
 
-            public ProxyDelegate(LinkedList<Func<object, object>> propertyGetters, LinkedList<ProxyDelegate> children)
+            public ProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children)
             {
                 PropertyGetters = propertyGetters;
                 Children = children;
@@ -119,7 +122,7 @@
 
             public abstract void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null);
 
-            public static ProxyDelegate Create(LinkedList<Func<object, object>> propertyGetters, LinkedList<ProxyDelegate> children, bool hasCollection)
+            public static ProxyDelegate Create(Func<object, object>[] propertyGetters, ProxyDelegate[] children, bool hasCollection)
             {
                 if (hasCollection)
                 {
@@ -149,34 +152,33 @@
                     }
                 }
 
-                Children.ForEach(
-                    childNode =>
-                    {
-                        childNode.Value.Execute(value, resultList, stepIntoFound, visited);
-                    });
+                for (var i = 0; i < Children.Length; ++i)
+                {
+                    Children[i].Execute(value, resultList, stepIntoFound, visited);
+                }
             }
 
             protected void HandleFinalPropertyValues(
                 object source,
-                LinkedListNode<Func<object, object>> propertyGetterNode,
+                int index,
                 LinkedList<TSearch> resultList,
                 bool stepIntoFound,
                 HashSet<object> visited)
             {
-                if (propertyGetterNode == null)
+                if (index == PropertyGetters.Length)
                 {
                     HandleValue(source, resultList, stepIntoFound, visited);
                     return;
                 }
 
-                var nextObj = propertyGetterNode.Value(source);
+                var nextObj = PropertyGetters[index](source);
 
                 if (nextObj == null)
                 {
                     return;
                 }
 
-                var nextGetterNode = propertyGetterNode.Next;
+                var nextIndex = index + 1;
 
                 if (CollectionUtils.IsCollection(nextObj.GetType()))
                 {
@@ -188,54 +190,50 @@
                             continue;
                         }
 
-                        HandleFinalPropertyValues(colItem, nextGetterNode, resultList, stepIntoFound, visited);
+                        HandleFinalPropertyValues(colItem, nextIndex, resultList, stepIntoFound, visited);
                     }
                 }
                 else
                 {
-                    HandleFinalPropertyValues(nextObj, nextGetterNode, resultList, stepIntoFound, visited);
+                    HandleFinalPropertyValues(nextObj, nextIndex, resultList, stepIntoFound, visited);
                 }
             }
         }
 
-        class ScalarProxyDelegate : ProxyDelegate
+        public class ScalarProxyDelegate : ProxyDelegate
         {
-            public ScalarProxyDelegate(LinkedList<Func<object, object>> propertyGetters, LinkedList<ProxyDelegate> children) : base(propertyGetters, children)
+            public ScalarProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children) : base(propertyGetters, children)
             {
             }
 
             public override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
                 var currentObj = obj;
-                var curDelegateNode = PropertyGetters.First;
 
-                do
+                for (var i = 0; i < PropertyGetters.Length; ++i)
                 {
-                    currentObj = curDelegateNode.Value(currentObj);
+                    currentObj = PropertyGetters[i](currentObj);
 
                     if (currentObj == null)
                     {
                         return;
                     }
-
-                    curDelegateNode = curDelegateNode.Next;
                 }
-                while (curDelegateNode != null);
 
                 HandleValue(currentObj, resultList, stepIntoFound, visited);
             }
         }
 
-        class CollectionProxyDelegate : ProxyDelegate
+        public class CollectionProxyDelegate : ProxyDelegate
         {
-            public CollectionProxyDelegate(LinkedList<Func<object, object>> propertyGetters, LinkedList<ProxyDelegate> children)
+            public CollectionProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children)
                 : base(propertyGetters, children)
             {
             }
 
             public override void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
-                HandleFinalPropertyValues(obj, PropertyGetters.First, resultList, stepIntoFound, visited);
+                HandleFinalPropertyValues(obj, 0, resultList, stepIntoFound, visited);
             }
         }
     }
