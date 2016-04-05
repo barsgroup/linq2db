@@ -281,7 +281,7 @@
 
             query.Parameters.Clear();
 
-            foreach (var parameter in QueryVisitor.FindAll<ISqlParameter>(query).Where(p => p.IsQueryParameter))
+            foreach (var parameter in QueryVisitor.FindOnce<ISqlParameter>(query).Where(p => p.IsQueryParameter))
             {
                 query.Parameters.Add(parameter);
             }

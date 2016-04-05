@@ -9,52 +9,28 @@
     using LinqToDB.SqlQuery.Search.PathBuilder;
     using LinqToDB.SqlQuery.Search.Utils;
 
-    public delegate void ResultDelegateOld<TSearch>(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null);
+    public delegate void ResultDelegate<TSearch>(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited);
 
-    public class DelegateConstructorOld<TSearch>
+    public class DelegateConstructor<TSearch>
         where TSearch : class
     {
-        public ResultDelegateOld<TSearch> CreateResultDelegate(LinkedList<CompositPropertyVertex> vertices)
+        public ResultDelegate<TSearch> CreateResultDelegate(LinkedList<CompositPropertyVertex> vertices)
         {
             var delegateMap = new Dictionary<CompositPropertyVertex, ProxyDelegate>();
 
-            var delegates = new LinkedList<ProxyDelegate>();
+            var delegates = new ProxyDelegate[vertices.Count];
 
+            var index = 0;
             vertices.ForEach(
                 node =>
                     {
                         CreateDelegate(node.Value, delegateMap);
-                        delegates.AddLast(delegateMap[node.Value]);
+                        delegates[index++] = delegateMap[node.Value];
                     });
 
-            ResultDelegateOld<TSearch> findDelegate = (obj, resultList, stepIntoFound, visited) =>
-                {
-                    if (visited == null)
-                    {
-                        visited = new HashSet<object>();
-                    }
-            
-                    if (obj == null || visited.Contains(obj))
-                    {
-                        return;
-                    }
-            
-                    visited.Add(obj);
-            
-                    var searchObj = obj as TSearch;
-                    if (searchObj != null && stepIntoFound)
-                    {
-                        resultList.AddLast(searchObj);
-                    }
+            var rootDelegate = new RootProxyDelegate(delegates);
 
-                    delegates.ForEach(
-                        node =>
-                            {
-                                node.Value.Delegate.Invoke(obj, resultList, stepIntoFound, visited);
-                            });
-                };
-
-            return findDelegate;
+            return rootDelegate.Execute;
         }
 
         private void CreateDelegate(CompositPropertyVertex vertex, Dictionary<CompositPropertyVertex, ProxyDelegate> delegateMap)
@@ -69,13 +45,14 @@
                 return;
             }
 
-            var propertyGetters = new LinkedList<Func<object, object>>();
+            var propertyGetters = new Func<object, object>[vertex.PropertyList.Count];
 
             var parameter = Expression.Parameter(typeof(object), "obj");
             var nullConst = Expression.Constant(null);
 
             var hasCollection = false;
 
+            var index = 0;
             vertex.PropertyList.ForEach(
                 node =>
                     {
@@ -84,129 +61,173 @@
                             hasCollection = true;
                         }
 
-                        var cast = Expression.Convert(parameter, node.Value.DeclaringType);
-                        var memberAccess = Expression.Convert(Expression.Property(cast, node.Value.Name), typeof(object));
-                        var checkType = Expression.TypeIs(parameter, node.Value.DeclaringType);
-                        var conditionalMemberAccess = Expression.Condition(checkType, memberAccess, nullConst);
+                        var castAs = Expression.TypeAs(parameter, node.Value.DeclaringType);
+                        var checkNotNull = Expression.NotEqual(castAs, nullConst);
+                        var memberAccess = Expression.Convert(Expression.MakeMemberAccess(castAs, node.Value), typeof(object));
+                        var conditionalMemberAccess = Expression.Condition(checkNotNull, memberAccess, nullConst);
 
                         var deleg = Expression.Lambda<Func<object, object>>(conditionalMemberAccess, parameter).Compile();
 
-                        propertyGetters.AddLast(deleg);
+                        propertyGetters[index++] = deleg;
                     });
 
-            var childDelegates = new LinkedList<ProxyDelegate>();
-            ResultDelegateOld<TSearch> findDelegate;
+            var childDelegates = new ProxyDelegate[vertex.Children.Count];
 
-            if (!hasCollection)
-            {
-                findDelegate = (obj, resultList, stepIntoFound, visited) =>
-                    {
-                        var currentObj = obj;
-                        var curDelegateNode = propertyGetters.First;
+            delegateMap[vertex] = new ProxyDelegate(propertyGetters, childDelegates, hasCollection);
 
-                        do
-                        {
-                            currentObj = curDelegateNode.Value(currentObj);
-
-                            if (currentObj == null)
-                            {
-                                return;
-                            }
-
-                            curDelegateNode = curDelegateNode.Next;
-                        }
-                        while (curDelegateNode != null);
-
-                        HandleValue(currentObj, resultList, stepIntoFound, visited, childDelegates);
-                    };
-            }
-            else
-            {
-                findDelegate = (obj, resultList, stepIntoFound, visited) =>
-                    {
-                        ApplyToFinalPropertyValues(obj, propertyGetters.First, value => HandleValue(value, resultList, stepIntoFound, visited, childDelegates));
-                    };
-            }
-
-            delegateMap[vertex] = new ProxyDelegate
-                                      {
-                                          Delegate = findDelegate
-                                      };
-
+            index = 0;
             vertex.Children.ForEach(
                 node =>
                     {
                         CreateDelegate(node.Value, delegateMap);
-                        childDelegates.AddLast(delegateMap[node.Value]);
+                        childDelegates[index++] = delegateMap[node.Value];
                     });
         }
 
-        private static void HandleValue(object value, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited, LinkedList<ProxyDelegate> nextDelegates)
+        public sealed class ProxyDelegate
         {
-            if (visited.Contains(value))
+            private readonly Func<object, object>[] _propertyGetters;
+
+            private readonly ProxyDelegate[] _children;
+
+            private readonly bool _isCollection;
+
+            public ProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate[] children, bool isCollection)
             {
-                return;
+                _isCollection = isCollection;
+
+                _propertyGetters = propertyGetters;
+                _children = children;
             }
 
-            visited.Add(value);
-
-            var searchValue = value as TSearch;
-            if (searchValue != null)
+            public void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited = null)
             {
-                resultList.AddLast(searchValue);
+                if (_isCollection)
+                {
+                    CollectionExecute(obj, resultList, stepIntoFound, visited);
+                }
+                else
+                {
+                    ScalarExecute(obj, resultList, stepIntoFound, visited);
+                }
+            }
 
-                if (!stepIntoFound)
+            private void HandleValue(object value, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
+            {
+                if (visited.Contains(value))
                 {
                     return;
                 }
-            }
 
-            nextDelegates.ForEach(
-                childNode =>
+                visited.Add(value);
+
+                var searchValue = value as TSearch;
+                if (searchValue != null)
                 {
-                    childNode.Value.Delegate(value, resultList, stepIntoFound, visited);
-                });
-        }
+                    resultList.AddFirst(searchValue);
 
-        private static void ApplyToFinalPropertyValues(object source, LinkedListNode<Func<object, object>> propertyGetterNode, Action<object> action)
-        {
-            if (propertyGetterNode == null)
-            {
-                action(source);
-                return;
-            }
-
-            var nextObj = propertyGetterNode.Value(source);
-
-            if (nextObj == null)
-            {
-                return;
-            }
-
-            var nextGetterNode = propertyGetterNode.Next;
-
-            if (nextObj is ICollection)
-            {
-                var colItems = CollectionUtils.GetCollectionItem(nextObj);
-                foreach (var colItem in colItems)
-                {
-                    if (colItem == null)
+                    if (!stepIntoFound)
                     {
-                        continue;
+                        return;
                     }
+                }
 
-                    ApplyToFinalPropertyValues(colItem, nextGetterNode, action);
+                for (var i = 0; i < _children.Length; ++i)
+                {
+                    _children[i].Execute(value, resultList, stepIntoFound, visited);
                 }
             }
-            else
+
+            private void HandleFinalPropertyValues(object source, int index, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
             {
-                ApplyToFinalPropertyValues(nextObj, nextGetterNode, action);
+                while (true)
+                {
+                    if (index == _propertyGetters.Length)
+                    {
+                        HandleValue(source, resultList, stepIntoFound, visited);
+                        return;
+                    }
+
+                    var nextObj = _propertyGetters[index](source);
+
+                    if (nextObj == null)
+                    {
+                        return;
+                    }
+
+                    var nextIndex = index + 1;
+
+                    if (nextObj is ICollection)
+                    {
+                        var colItems = CollectionUtils.GetCollectionItem(nextObj);
+                        for (var i = 0; i < colItems.Length; i++)
+                        {
+                            if (colItems[i] != null)
+                            {
+                                HandleFinalPropertyValues(colItems[i], nextIndex, resultList, stepIntoFound, visited);
+                            }
+                        }
+                        break;
+                    }
+
+                    source = nextObj;
+                    index = nextIndex;
+
+                }
+            }
+
+            private void ScalarExecute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
+            {
+                var currentObj = obj;
+
+                for (var i = 0; i < _propertyGetters.Length; ++i)
+                {
+                    currentObj = _propertyGetters[i](currentObj);
+
+                    if (currentObj == null)
+                    {
+                        return;
+                    }
+                }
+
+                HandleValue(currentObj, resultList, stepIntoFound, visited);
+            }
+
+            private void CollectionExecute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
+            {
+                HandleFinalPropertyValues(obj, 0, resultList, stepIntoFound, visited);
             }
         }
 
-        class ProxyDelegate
+        private sealed class RootProxyDelegate
         {
-            public ResultDelegateOld<TSearch> Delegate { get; set; }
+            private readonly ProxyDelegate[] _children;
+
+            public RootProxyDelegate(ProxyDelegate[] children)
+            {
+                _children = children;
+            }
+
+            public void Execute(object obj, LinkedList<TSearch> resultList, bool stepIntoFound, HashSet<object> visited)
+            {
+                if (obj == null || visited.Contains(obj))
+                {
+                    return;
+                }
+
+                visited.Add(obj);
+
+                var searchObj = obj as TSearch;
+                if (searchObj != null && stepIntoFound)
+                {
+                    resultList.AddLast(searchObj);
+                }
+
+                for (var i = 0; i < _children.Length; ++i)
+                {
+                    _children[i].Execute(obj, resultList, stepIntoFound, visited);
+                }
+            }
         }
     }
 }

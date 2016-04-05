@@ -163,7 +163,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         IColumn AddOrGetColumn(IColumn col)
         {
-            if (Columns.All(c => !c.Equals(col)))
+            if (_columns.All(c => !c.Equals(col)))
             {
                 _columns.Add(col);
             }

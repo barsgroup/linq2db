@@ -15,6 +15,7 @@ namespace LinqToDB.SqlQuery
     using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     // The casts to object in the below code are an unfortunate necessity due to
     // C#'s restriction against a where T : Enum constraint. (There are ways around
@@ -24,40 +25,50 @@ namespace LinqToDB.SqlQuery
     {
         #region Visit
 
-       
-
         readonly Dictionary<IQueryElement,IQueryElement> _visitedElements = new Dictionary<IQueryElement, IQueryElement>();
 
         public void FindParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
         {
-            element.DeepFindParentFirst<IQueryElement>().FindOnce(node => action(node.Value));
+            var resultList = new LinkedList<IQueryElement>();
+            var visited = new HashSet<object>();
+
+            SearchEngine<IQueryElement>.Current.Find(element, resultList, true, visited);
+
+            resultList.Reverse().FindOnce(node => action(node.Value));
         }
 
-        public static LinkedList<TElementType> FindOnce<TElementType>(IQueryElement element) where TElementType : class, IQueryElement
+        public static LinkedList<TElementType> FindOnce<TElementType>(params IQueryElement[] elements) where TElementType : class, IQueryElement
         {
-            return element.DeepFindParentLastOnce<TElementType>();
-        }
+            var resultList = new LinkedList<TElementType>();
+            var visited = new HashSet<object>();
 
-        public static LinkedList<TElementType> FindDownTo<TElementType>(IQueryElement element)
-            where TElementType : class, IQueryElement
-        {
-            return element.DeepFindDownTo<TElementType>();
-        }
-
-        public static IEnumerable<TElementType> FindAll<TElementType>(params IQueryElement[] elements) where TElementType : class, IQueryElement
-        {
-            var returnList = new LinkedList<TElementType>();
             for (int i = 0; i < elements.Length; i++)
             {
                 if (elements[i] != null)
                 {
-                    elements[i].DeepFindParentLastOnce<TElementType>().ForEach(node => returnList.AddLast(node.Value));
+                    SearchEngine<IQueryElement>.Current.Find(elements[i], resultList, true, visited);
                 }
             }
 
-            return returnList;
+            return resultList;
         }
 
+        public static LinkedList<TElementType> FindDownTo<TElementType>(params IQueryElement[] elements)
+            where TElementType : class, IQueryElement
+        {
+            var resultList = new LinkedList<TElementType>();
+            var visited = new HashSet<object>();
+
+            for (int i = 0; i < elements.Length; i++)
+            {
+                if (elements[i] != null)
+                {
+                    SearchEngine<IQueryElement>.Current.Find(elements[i], resultList, false, visited);
+                }
+            }
+
+            return resultList;
+        }
         #endregion
 
         #region Find

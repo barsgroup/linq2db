@@ -4,10 +4,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     public interface IBaseQueryElement
     {
-        LinkedList<TElementType> DeepFindParentFirst<TElementType>() where TElementType : class, IQueryElement;
+        //void DeepFindParentFirst<TElementType>(LinkedList<TElementType> resultList, HashSet<object> visited) where TElementType : class, IQueryElement;
 
-        LinkedList<TElementType> DeepFindParentLastOnce<TElementType>() where TElementType : class, IQueryElement;
+        //void DeepFindParentLastOnce<TElementType>(LinkedList<TElementType> resultList, HashSet<object> visited) where TElementType : class, IQueryElement;
 
-        LinkedList<TElementType> DeepFindDownTo<TElementType>() where TElementType : class, IQueryElement;
+        //void DeepFindDownTo<TElementType>(LinkedList<TElementType> resultList, HashSet<object> visited) where TElementType : class, IQueryElement;
     }
 }

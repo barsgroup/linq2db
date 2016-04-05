@@ -250,9 +250,9 @@
                                                 : null
                                         };
 
-                            var tableArguments = QueryVisitor.FindAll<ISqlTable>(_selectQuery.From).Where(t => t.TableArguments != null).SelectMany(t => t.TableArguments);
+                            var tableArguments = QueryVisitor.FindOnce<ISqlTable>(_selectQuery.From).Where(t => t.TableArguments != null).SelectMany(t => t.TableArguments);
 
-                            var newFileds = QueryVisitor.FindAll<ISqlField>(items.Union(tableArguments).ToArray()).Where(field => !tables.Contains(field.Table));
+                            var newFileds = QueryVisitor.FindOnce<ISqlField>(items.Union(tableArguments).ToArray()).Where(field => !tables.Contains(field.Table));
 
                             tables.AddRange(newFileds.Select(f => f.Table));
                         }
@@ -302,7 +302,7 @@
             if (optimizeColumns && visitor.Find(expr, e => e is ISelectQuery || IsAggregationFunction(e)) == null)
             {
                 var q = query.ParentSelect ?? query;
-                var count = QueryVisitor.FindAll<IColumn>(q).Count(e => e == column);
+                var count = QueryVisitor.FindOnce<IColumn>(q).Count(e => e == column);
 
                 return count > 2;
             }
@@ -381,7 +381,7 @@
             OptimizeSubQueries(isApplySupported, optimizeColumns);
             OptimizeApplies(isApplySupported, optimizeColumns);
 
-            foreach (var item in QueryVisitor.FindAll<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
+            foreach (var item in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
             {
                 RemoveOrderBy(item);
             }
@@ -612,7 +612,7 @@
 
                     if (query != null && query.From.Tables.Count == 0 && query.Select.Columns.Count == 1)
                     {
-                        foreach (var q in QueryVisitor.FindAll<ISelectQuery>(query.Select.Columns[0].Expression).Where(q => q.ParentSelect == query))
+                        foreach (var q in QueryVisitor.FindOnce<ISelectQuery>(query.Select.Columns[0].Expression).Where(q => q.ParentSelect == query))
                         {
                             q.ParentSelect = query.ParentSelect;
                         }

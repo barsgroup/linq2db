@@ -54,9 +54,13 @@
 
 			if (selectQuery.EQueryType == EQueryType.InsertOrUpdate)
 			{
-			    var param = selectQuery.Insert.Items.Union(selectQuery.Update.Items).Union(selectQuery.Update.Keys).Select(i => i.Expression).ToArray();
+			    var param = selectQuery.Insert.Items
+                    .Union(selectQuery.Update.Items)
+                    .Union(selectQuery.Update.Keys)
+                    .Select(i => i.Expression)
+                    .ToArray();
 
-			    foreach (var parameter in QueryVisitor.FindAll<ISqlParameter>(param))
+			    foreach (var parameter in QueryVisitor.FindOnce<ISqlParameter>(param))
 			    {
                     parameter.IsQueryParameter = false;
                 }

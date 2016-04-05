@@ -20,12 +20,10 @@
 
         public static SearchEngine<TBaseSearchInterface> Current { get; } = new SearchEngine<TBaseSearchInterface>();
 
-        public LinkedList<TElement> Find<TElement>(TBaseSearchInterface source, bool stepIntoFound) where TElement : class, TBaseSearchInterface
+        public void Find<TElement>(TBaseSearchInterface source, LinkedList<TElement> resultList,  bool stepIntoFound, HashSet<object> visited) where TElement : class, TBaseSearchInterface
         {
-            var result = new LinkedList<TElement>();
-            
             var deleg = GetOrCreateDelegate<TElement>(source);
-            deleg.Invoke(source, result, stepIntoFound);
+            deleg.Invoke(source, resultList, stepIntoFound, visited);
 
 # if DEBUG
             ////var isEqualToReflection = ReflectionSearcher.FindAndCompare(source, stepIntoFound, result);
@@ -35,8 +33,6 @@
             ////    throw new Exception("result not corresponding to reflection");
             ////}
 #endif
-
-            return result;
         }
 
         public ResultDelegate<TElement> GetOrCreateDelegate<TElement>(TBaseSearchInterface source) where TElement : class
