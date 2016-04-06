@@ -34,9 +34,14 @@
             OptimizeUnions();
 
             FinalizeAndValidateInternal(isApplySupported, optimizeColumns, new List<ISqlTableSource>());
+            foreach (var item in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
+            {
+                RemoveOrderBy(item);
+            }
 
             ResolveFields();
             _selectQuery.SetAliases();
+
 
             //#if DEBUG
             //			sqlText = _selectQuery.SqlText;
@@ -381,10 +386,6 @@
             OptimizeSubQueries(isApplySupported, optimizeColumns);
             OptimizeApplies(isApplySupported, optimizeColumns);
 
-            foreach (var item in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
-            {
-                RemoveOrderBy(item);
-            }
         }
 
         private static ITableSource FindField(ISqlField field, ITableSource table)
@@ -808,28 +809,24 @@
                 return childSource;
             }
 
-            var map = new Dictionary<IQueryExpression, IQueryExpression>(query.Select.Columns.Count);
-
-            foreach (var c in query.Select.Columns)
-            {
-                map.Add(c, c.Expression);
-            }
-
             var top = _selectQuery;
-
             while (top.ParentSelect != null)
             {
                 top = top.ParentSelect;
             }
 
+            var columns = new HashSet<IColumn>(query.Select.Columns);
             top.Walk(
                 false,
                 expr =>
                 {
-                    IQueryExpression fld;
-                    return map.TryGetValue(expr, out fld)
-                               ? fld
-                               : expr;
+                    var col = expr as IColumn;
+                    if (col == null || !columns.Contains(col))
+                    {
+                        return expr;
+                    }
+
+                    return col.Expression;
                 });
 
             QueryVisitor.FindOnce<IInList>(top).ForEach(

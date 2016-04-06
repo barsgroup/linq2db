@@ -424,7 +424,6 @@
     <Compile Include="SqlQuery\QueryElements\Enums\EQueryType.cs" />
     <Compile Include="SqlQuery\QueryElements\Enums\EJoinType.cs" />
     <Compile Include="SqlQuery\QueryElements\Enums\EOperator.cs" />
-    <Compile Include="SqlQuery\QueryElements\Interfaces\IBaseQueryElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Clauses\Interfaces\IClauseBase.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\ICloneableElement.cs" />
     <Compile Include="SqlQuery\QueryElements\Interfaces\IColumn.cs" />

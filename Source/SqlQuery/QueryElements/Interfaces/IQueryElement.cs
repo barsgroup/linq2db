@@ -5,7 +5,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
     using LinqToDB.SqlQuery.QueryElements.Enums;
 
-    public interface IQueryElement : IBaseQueryElement //: ICloneableElement
+    public interface IQueryElement //: ICloneableElement
     {
         EQueryElementType ElementType { get; }
 
