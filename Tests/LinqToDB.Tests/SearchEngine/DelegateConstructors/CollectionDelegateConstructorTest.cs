@@ -86,7 +86,7 @@
             IA obj = new A();
 
             var deleg = SetupTest<IBase, IC>(obj);
-            deleg(obj, result, true);
+            deleg(obj, result, true, new HashSet<object>());
 
             var resultArray = result.ToArray();
 
@@ -106,7 +106,7 @@
             obj.B.C.Add(new C());
 
             var deleg = SetupTest<IBase, IC>(obj);
-            deleg(obj, result, true);
+            deleg(obj, result, true, new HashSet<object>());
 
             var resultArray = result.ToArray();
 
@@ -115,7 +115,7 @@
             var c = obj.B.C;
             for (var i = 0; i < resultArray.Length; i++)
             {
-                Assert.Equal(c[i], resultArray[i]);
+                Assert.True(resultArray.Contains(c[i]));
             }
 
             Assert.True(CompareWithReflectionSearcher<IB>(obj));
@@ -155,7 +155,7 @@
             obj.B = b;
 
             var deleg = SetupTest<IBase, ID>(obj);
-            deleg(obj, result, true);
+            deleg(obj, result, true, new HashSet<object>());
 
             var resultArray = result.ToArray();
 

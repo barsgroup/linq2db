@@ -23,10 +23,10 @@
             //// ---
 
             var resultStepInto = new LinkedList<TSearch>();
-            deleg(testObj, resultStepInto, true);
+            deleg(testObj, resultStepInto, true, new HashSet<object>());
 
             var resultNoStepInto = new LinkedList<TSearch>();
-            deleg(testObj, resultNoStepInto, false);
+            deleg(testObj, resultNoStepInto, false, new HashSet<object>());
 
             //// ---
 

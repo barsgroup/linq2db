@@ -106,7 +106,7 @@
             var deleg = SetupTest<IBase, IB>(obj);
 
             var result = new LinkedList<IB>();
-            deleg(obj, result, true);
+            deleg(obj, result, true, new HashSet<object>());
 
             Assert.Equal(1, result.Count);
             Assert.Equal(obj.B, result.First.Value);
@@ -121,7 +121,7 @@
             var deleg = SetupTest<IBase, IC>(obj);
 
             var result = new LinkedList<IC>();
-            deleg(obj, result, true);
+            deleg(obj, result, true, new HashSet<object>());
 
             Assert.Equal(1, result.Count);
             Assert.Equal(obj.B.C, result.First.Value);
@@ -136,7 +136,7 @@
             var deleg = SetupTest<IBase, ID>(obj);
 
             var result = new LinkedList<ID>();
-            deleg(obj, result, true);
+            deleg(obj, result, true, new HashSet<object>());
 
             Assert.Equal(2, result.Count);
 
@@ -150,7 +150,7 @@
             var deleg = SetupTest<IBase, IE>(obj);
 
             var result = new LinkedList<IE>();
-            deleg(obj, result, true);
+            deleg(obj, result, true, new HashSet<object>());
 
             Assert.Equal(2, result.Count);
 
