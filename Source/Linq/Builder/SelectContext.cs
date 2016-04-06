@@ -445,7 +445,7 @@ namespace LinqToDB.Linq.Builder
 
         SqlInfo[] ConvertToIndexInternal(Expression expression, int level, ConvertFlags flags)
         {
-            if (IsScalar)
+			if (IsScalar && (flags == ConvertFlags.Key && expression == null || flags != ConvertFlags.Key))
             {
                 if (Body.NodeType == ExpressionType.Parameter)
                     for (var i = 0; i < Sequence.Length; i++)
