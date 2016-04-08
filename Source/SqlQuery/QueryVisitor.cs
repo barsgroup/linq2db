@@ -34,7 +34,7 @@ namespace LinqToDB.SqlQuery
 
             SearchEngine<IQueryElement>.Current.Find(element, resultList, true, visited);
 
-            resultList.Reverse().FindOnce(node => action(node.Value));
+            resultList.ReverseList().ApplyUntilNonDefaultResult(node => action(node.Value));
         }
 
         public static LinkedList<TElementType> FindOnce<TElementType>(LinkedList<IQueryElement> elements) where TElementType : class, IQueryElement

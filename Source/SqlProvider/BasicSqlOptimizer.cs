@@ -92,17 +92,17 @@
 
                     var allAnd = true;
 
-                    subQuery.Where.Search.Conditions.FindOnce(
+                    subQuery.Where.Search.Conditions.ApplyUntilNonDefaultResult(
                         node =>
-                        {
-                            if (node.Value.IsOr)
                             {
-                                allAnd = false;
-                                return false;
-                            }
+                                if (node.Value.IsOr)
+                                {
+                                    allAnd = false;
+                                    return false;
+                                }
 
-                            return true;
-                        });
+                                return true;
+                            });
 
 
                     if (!allAnd || !ConvertCountSubQuery(subQuery))

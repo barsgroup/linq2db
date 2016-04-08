@@ -58,7 +58,7 @@
             }
         }
 
-        public static TResult FindOnce<TElement, TResult>(this LinkedList<TElement> linkedList, Func<LinkedListNode<TElement>, TResult> action)
+        public static TResult ApplyUntilNonDefaultResult<TElement, TResult>(this LinkedList<TElement> linkedList, Func<LinkedListNode<TElement>, TResult> action)
         {
             var current = linkedList.First;
             while (current != null)
@@ -103,7 +103,7 @@
             }
         }
 
-        public static LinkedList<TElement> Reverse<TElement>(this LinkedList<TElement> linkedList)
+        public static LinkedList<TElement> ReverseList<TElement>(this LinkedList<TElement> linkedList)
         {
             var result = new LinkedList<TElement>();
 

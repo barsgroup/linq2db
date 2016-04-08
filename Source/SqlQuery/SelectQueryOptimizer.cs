@@ -6,7 +6,6 @@
 
     using LinqToDB.Extensions;
     using LinqToDB.SqlProvider;
-    using LinqToDB.SqlQuery.QueryElements.Clauses;
     using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
@@ -153,45 +152,45 @@
                 }
             }
 
-            searchCondition.Conditions.FindOnce(
+            searchCondition.Conditions.ApplyUntilNonDefaultResult(
                 node =>
-                {
-                    var cond = node.Value;
-
-                    if (cond.Predicate.ElementType == EQueryElementType.ExprPredicate)
                     {
-                        var expr = (IExpr)cond.Predicate;
+                        var cond = node.Value;
 
-                        var sqlValue = expr.Expr1 as ISqlValue;
-
-                        if (sqlValue?.Value is bool)
+                        if (cond.Predicate.ElementType == EQueryElementType.ExprPredicate)
                         {
-                            if (cond.IsNot
-                                    ? !(bool)sqlValue.Value
-                                    : (bool)sqlValue.Value)
+                            var expr = (IExpr)cond.Predicate;
+
+                            var sqlValue = expr.Expr1 as ISqlValue;
+
+                            if (sqlValue?.Value is bool)
                             {
-                                if (node.Previous != null && node.Previous.Value.IsOr)
+                                if (cond.IsNot
+                                        ? !(bool)sqlValue.Value
+                                        : (bool)sqlValue.Value)
                                 {
-                                    node.ReverseEach(listNode => searchCondition.Conditions.Remove(listNode));
+                                    if (node.Previous != null && node.Previous.Value.IsOr)
+                                    {
+                                        node.ReverseEach(listNode => searchCondition.Conditions.Remove(listNode));
 
-                                    OptimizeSearchCondition(searchCondition);
+                                        OptimizeSearchCondition(searchCondition);
 
-                                    return false;
+                                        return false;
+                                    }
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        var condition = cond.Predicate as ISearchCondition;
-                        if (condition != null)
+                        else
                         {
-                            OptimizeSearchCondition(condition);
+                            var condition = cond.Predicate as ISearchCondition;
+                            if (condition != null)
+                            {
+                                OptimizeSearchCondition(condition);
+                            }
                         }
-                    }
 
-                    return true;
-                });
+                        return true;
+                    });
         }
 
         internal void ResolveWeakJoins(HashSet<ISqlTableSource> tables)
@@ -204,17 +203,17 @@
                     return true;
                 }
 
-                var result = table.Joins.FindOnce(
+                var result = table.Joins.ApplyUntilNonDefaultResult(
                     node =>
-                    {
-                        if (findTable(node.Value.Table))
                         {
-                            node.Value.IsWeak = false;
-                            return true;
-                        }
+                            if (findTable(node.Value.Table))
+                            {
+                                node.Value.IsWeak = false;
+                                return true;
+                            }
 
-                        return false;
-                    });
+                            return false;
+                        });
 
                 if (result)
                 {
@@ -226,8 +225,7 @@
             };
 
             var areTablesCollected = false;
-
-            //foreach (var table in QueryVisitor.FindOnce<ITableSource>(_selectQuery))
+            
             QueryVisitor.FindOnce<ITableSource>(_selectQuery).ForEach(
                 item =>
                     {
@@ -264,32 +262,7 @@
                                         {
                                             items.AddLast(_selectQuery.Delete);
                                         }
-
-                                        ////var items = new IQueryElement[]
-                                        ////                {
-                                        ////                    _selectQuery.Select,
-                                        ////                    _selectQuery.Where,
-                                        ////                    _selectQuery.GroupBy,
-                                        ////                    _selectQuery.Having,
-                                        ////                    _selectQuery.OrderBy,
-                                        ////                    _selectQuery.IsInsert
-                                        ////                        ? _selectQuery.Insert
-                                        ////                        : null,
-                                        ////                    _selectQuery.IsUpdate
-                                        ////                        ? _selectQuery.Update
-                                        ////                        : null,
-                                        ////                    _selectQuery.IsDelete
-                                        ////                        ? _selectQuery.Delete
-                                        ////                        : null
-                                        ////                };
-
-                                        ////var tableArguments =
-                                        ////    QueryVisitor.FindOnce<ISqlTable>(_selectQuery.From).Where(t => t.TableArguments != null).SelectMany(t => t.TableArguments);
-                                        ////
-                                        ////var newFileds = QueryVisitor.FindOnce<ISqlField>(items.Union(tableArguments).ToArray()).Where(field => !tables.Contains(field.Table));
-                                        ////
-                                        ////tables.AddRange(newFileds.Select(f => f.Table));
-
+                                        
                                         QueryVisitor.FindOnce<ISqlTable>(_selectQuery.From).ForEach(
                                             fromTable =>
                                                 {
@@ -306,7 +279,7 @@
                                         QueryVisitor.FindOnce<ISqlField>(items).ForEach(
                                             field =>
                                                 {
-                                                    tables.Add(field.Value.Table); // при добавлении в set можно не проверять contains
+                                                    tables.Add(field.Value.Table);
                                                 });
                                     }
 
@@ -411,22 +384,48 @@
             OptimizeSearchCondition(_selectQuery.Where.Search);
             OptimizeSearchCondition(_selectQuery.Having.Search);
 
-            foreach (var joinTable in QueryVisitor.FindOnce<IJoinedTable>(_selectQuery))
-            {
-                OptimizeSearchCondition(joinTable.Condition);
-            }
+            ////foreach (var joinTable in QueryVisitor.FindOnce<IJoinedTable>(_selectQuery))
+            ////{
+            ////    OptimizeSearchCondition(joinTable.Condition);
+            ////}
 
-            foreach (var query in QueryVisitor.FindDownTo<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
-            {
-                query.ParentSelect = _selectQuery;
+            QueryVisitor.FindOnce<IJoinedTable>(_selectQuery).ForEach(
+                joinTable =>
+                    {
+                        OptimizeSearchCondition(joinTable.Value.Condition);
+                    });
 
-                new SelectQueryOptimizer(_flags, query).FinalizeAndValidateInternal(isApplySupported, optimizeColumns, tables);
+            ////foreach (var query in QueryVisitor.FindDownTo<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
+            ////{
+            ////    query.ParentSelect = _selectQuery;
+            ////
+            ////    new SelectQueryOptimizer(_flags, query).FinalizeAndValidateInternal(isApplySupported, optimizeColumns, tables);
+            ////
+            ////    if (query.IsParameterDependent)
+            ////    {
+            ////        _selectQuery.IsParameterDependent = true;
+            ////    }
+            ////}
 
-                if (query.IsParameterDependent)
-                {
-                    _selectQuery.IsParameterDependent = true;
-                }
-            }
+            QueryVisitor.FindDownTo<ISelectQuery>(_selectQuery).ForEach(
+                node =>
+                    {
+                        var query = node.Value;
+
+                        if (query == _selectQuery)
+                        {
+                            return;
+                        }
+
+                        query.ParentSelect = _selectQuery;
+
+                        new SelectQueryOptimizer(_flags, query).FinalizeAndValidateInternal(isApplySupported, optimizeColumns, tables);
+
+                        if (query.IsParameterDependent)
+                        {
+                            _selectQuery.IsParameterDependent = true;
+                        }
+                    });
 
             ResolveWeakJoins(tables);
             OptimizeColumns();
@@ -443,15 +442,15 @@
                 return table;
             }
 
-            return table.Joins.FindOnce(
+            return table.Joins.ApplyUntilNonDefaultResult(
                 node =>
-                {
-                    var t = FindField(field, node.Value.Table);
+                    {
+                        var t = FindField(field, node.Value.Table);
 
-                    return t != null
-                               ? node.Value.Table
-                               : null;
-                });
+                        return t != null
+                                   ? node.Value.Table
+                                   : null;
+                    });
 
         }
 

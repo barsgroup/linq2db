@@ -145,13 +145,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             if (source.Source == table)
                 return source;
 
-            source.Joins.FindOnce(
+            source.Joins.ApplyUntilNonDefaultResult(
                 node =>
-                {
-                    var join = node.Value;
-                    var ts = FindTableSource(join.Table, table);
-                    return ts;
-                });
+                    {
+                        var join = node.Value;
+                        var ts = FindTableSource(@join.Table, table);
+                        return ts;
+                    });
 
             return null;
         }
