@@ -77,7 +77,7 @@ namespace LinqToDB.Linq.Builder
 
                             sequence.ConvertToIndex(null, 0, ConvertFlags.All);
                             new SelectQueryOptimizer(builder.DataContextInfo.SqlProviderFlags, sequence.Select)
-                                .ResolveWeakJoins(new List<ISqlTableSource>());
+                                .ResolveWeakJoins(new HashSet<ISqlTableSource>());
                             sequence.Select.Select.Columns.Clear();
 
                             BuildSetter(

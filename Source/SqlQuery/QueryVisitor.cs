@@ -37,6 +37,23 @@ namespace LinqToDB.SqlQuery
             resultList.Reverse().FindOnce(node => action(node.Value));
         }
 
+        public static LinkedList<TElementType> FindOnce<TElementType>(LinkedList<IQueryElement> elements) where TElementType : class, IQueryElement
+        {
+            var resultList = new LinkedList<TElementType>();
+            var visited = new HashSet<object>();
+
+            elements.ForEach(
+                elem =>
+                    {
+                        if (elem.Value != null)
+                        {
+                            SearchEngine<IQueryElement>.Current.Find(elem.Value, resultList, true, visited);
+                        }
+                    });
+
+            return resultList;
+        }
+
         public static LinkedList<TElementType> FindOnce<TElementType>(params IQueryElement[] elements) where TElementType : class, IQueryElement
         {
             var resultList = new LinkedList<TElementType>();

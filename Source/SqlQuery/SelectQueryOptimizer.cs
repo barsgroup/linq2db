@@ -33,11 +33,17 @@
         {
             OptimizeUnions();
 
-            FinalizeAndValidateInternal(isApplySupported, optimizeColumns, new List<ISqlTableSource>());
-            foreach (var item in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
-            {
-                RemoveOrderBy(item);
-            }
+            FinalizeAndValidateInternal(isApplySupported, optimizeColumns, new HashSet<ISqlTableSource>());
+
+            QueryVisitor.FindOnce<ISelectQuery>(_selectQuery).ForEach(
+                node =>
+                    {
+                        var item = node.Value;
+                        if (item != _selectQuery)
+                        {
+                            RemoveOrderBy(item);
+                        }
+                    });
 
             ResolveFields();
             _selectQuery.SetAliases();
@@ -188,7 +194,7 @@
                 });
         }
 
-        internal void ResolveWeakJoins(List<ISqlTableSource> tables)
+        internal void ResolveWeakJoins(HashSet<ISqlTableSource> tables)
         {
             Func<ITableSource, bool> findTable = null;
             findTable = table =>
@@ -221,57 +227,99 @@
 
             var areTablesCollected = false;
 
-            foreach (var table in QueryVisitor.FindOnce<ITableSource>(_selectQuery))
-            {
-                table.Joins.ForEach(
-                    node =>
+            //foreach (var table in QueryVisitor.FindOnce<ITableSource>(_selectQuery))
+            QueryVisitor.FindOnce<ITableSource>(_selectQuery).ForEach(
+                item =>
                     {
-                        var join = node.Value;
+                        var table = item.Value;
+                        table.Joins.ForEach(
+                            node =>
+                                {
+                                    var join = node.Value;
 
-                        if (!join.IsWeak)
-                        {
-                            return;
-                        }
+                                    if (!join.IsWeak)
+                                    {
+                                        return;
+                                    }
 
-                        if (!areTablesCollected)
-                        {
-                            areTablesCollected = true;
+                                    if (!areTablesCollected)
+                                    {
+                                        areTablesCollected = true;
 
-                            var items = new IQueryElement[]
+                                        var items = new LinkedList<IQueryElement>();
+                                        items.AddLast(_selectQuery.Select);
+                                        items.AddLast(_selectQuery.Where);
+                                        items.AddLast(_selectQuery.GroupBy);
+                                        items.AddLast(_selectQuery.Having);
+                                        items.AddLast(_selectQuery.OrderBy);
+                                        if (_selectQuery.IsInsert)
                                         {
-                                            _selectQuery.Select,
-                                            _selectQuery.Where,
-                                            _selectQuery.GroupBy,
-                                            _selectQuery.Having,
-                                            _selectQuery.OrderBy,
-                                            _selectQuery.IsInsert
-                                                ? _selectQuery.Insert
-                                                : null,
-                                            _selectQuery.IsUpdate
-                                                ? _selectQuery.Update
-                                                : null,
-                                            _selectQuery.IsDelete
-                                                ? _selectQuery.Delete
-                                                : null
-                                        };
+                                            items.AddLast(_selectQuery.Insert);
+                                        }
+                                        if (_selectQuery.IsUpdate)
+                                        {
+                                            items.AddLast(_selectQuery.Update);
+                                        }
+                                        if (_selectQuery.IsDelete)
+                                        {
+                                            items.AddLast(_selectQuery.Delete);
+                                        }
 
-                            var tableArguments = QueryVisitor.FindOnce<ISqlTable>(_selectQuery.From).Where(t => t.TableArguments != null).SelectMany(t => t.TableArguments);
+                                        ////var items = new IQueryElement[]
+                                        ////                {
+                                        ////                    _selectQuery.Select,
+                                        ////                    _selectQuery.Where,
+                                        ////                    _selectQuery.GroupBy,
+                                        ////                    _selectQuery.Having,
+                                        ////                    _selectQuery.OrderBy,
+                                        ////                    _selectQuery.IsInsert
+                                        ////                        ? _selectQuery.Insert
+                                        ////                        : null,
+                                        ////                    _selectQuery.IsUpdate
+                                        ////                        ? _selectQuery.Update
+                                        ////                        : null,
+                                        ////                    _selectQuery.IsDelete
+                                        ////                        ? _selectQuery.Delete
+                                        ////                        : null
+                                        ////                };
 
-                            var newFileds = QueryVisitor.FindOnce<ISqlField>(items.Union(tableArguments).ToArray()).Where(field => !tables.Contains(field.Table));
+                                        ////var tableArguments =
+                                        ////    QueryVisitor.FindOnce<ISqlTable>(_selectQuery.From).Where(t => t.TableArguments != null).SelectMany(t => t.TableArguments);
+                                        ////
+                                        ////var newFileds = QueryVisitor.FindOnce<ISqlField>(items.Union(tableArguments).ToArray()).Where(field => !tables.Contains(field.Table));
+                                        ////
+                                        ////tables.AddRange(newFileds.Select(f => f.Table));
 
-                            tables.AddRange(newFileds.Select(f => f.Table));
-                        }
+                                        QueryVisitor.FindOnce<ISqlTable>(_selectQuery.From).ForEach(
+                                            fromTable =>
+                                                {
+                                                    var tableArguments = fromTable.Value.TableArguments;
 
-                        if (findTable(join.Table))
-                        {
-                            join.IsWeak = false;
-                        }
-                        else
-                        {
-                            table.Joins.Remove(join);
-                        }
+                                                    if (tableArguments == null)
+                                                    {
+                                                        return;
+                                                    }
+
+                                                    items.AddRange(tableArguments);
+                                                });
+
+                                        QueryVisitor.FindOnce<ISqlField>(items).ForEach(
+                                            field =>
+                                                {
+                                                    tables.Add(field.Value.Table); // при добавлении в set можно не проверять contains
+                                                });
+                                    }
+
+                                    if (findTable(join.Table))
+                                    {
+                                        join.IsWeak = false;
+                                    }
+                                    else
+                                    {
+                                        table.Joins.Remove(join);
+                                    }
+                                });
                     });
-            }
         }
 
         private static bool CheckColumn(IColumn column, IQueryExpression expr, ISelectQuery query, bool optimizeValues, bool optimizeColumns)
@@ -358,7 +406,7 @@
                        e.ElementType == EQueryElementType.Column && table == ((IColumn)e).Parent);
         }
 
-        private void FinalizeAndValidateInternal(bool isApplySupported, bool optimizeColumns, List<ISqlTableSource> tables)
+        private void FinalizeAndValidateInternal(bool isApplySupported, bool optimizeColumns, HashSet<ISqlTableSource> tables)
         {
             OptimizeSearchCondition(_selectQuery.Where.Search);
             OptimizeSearchCondition(_selectQuery.Having.Search);
