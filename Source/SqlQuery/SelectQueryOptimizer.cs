@@ -660,10 +660,20 @@
 
                     if (query != null && query.From.Tables.Count == 0 && query.Select.Columns.Count == 1)
                     {
-                        foreach (var q in QueryVisitor.FindOnce<ISelectQuery>(query.Select.Columns[0].Expression).Where(q => q.ParentSelect == query))
-                        {
-                            q.ParentSelect = query.ParentSelect;
-                        }
+                        ////foreach (var q in QueryVisitor.FindOnce<ISelectQuery>(query.Select.Columns[0].Expression).Where(q => q.ParentSelect == query))
+                        ////{
+                        ////    q.ParentSelect = query.ParentSelect;
+                        ////}
+
+                        QueryVisitor.FindOnce<ISelectQuery>(query.Select.Columns[0].Expression).ForEach(
+                            node =>
+                                {
+                                    if (node.Value.ParentSelect == query)
+                                    {
+                                        node.Value.ParentSelect = query.ParentSelect;
+                                    }
+                                });
+
 
                         return query.Select.Columns[0].Expression;
                     }
@@ -742,73 +752,79 @@
         {
             var exprs = new Dictionary<IQueryExpression, IQueryExpression>();
 
-            foreach (var element in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery) )
-            {
-                if (element.From.Tables.Count != 1 || !element.IsSimple || element.IsInsert || element.IsUpdate || element.IsDelete)
-                {
-                    continue;
-                }
-
-                var table = element.From.Tables.First.Value;
-
-                var selectQuery = table.Source as ISelectQuery;
-                if (table.Joins.Count != 0 || selectQuery == null)
-                {
-                    continue;
-                }
-
-                if (!selectQuery.HasUnion)
-                {
-                    continue;
-                }
-
-                bool isContinue = false;
-                for (var i = 0; i < element.Select.Columns.Count; i++)
-                {
-                    var scol = element.Select.Columns[i];
-                    var ucol = selectQuery.Select.Columns[i];
-
-                    if (scol.Expression != ucol)
+            //foreach (var element in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery) )
+            QueryVisitor.FindOnce<ISelectQuery>(_selectQuery).ForEach(
+                elem =>
                     {
-                        isContinue = true;
-                        break;
-                    }
-                }
+                        var element = elem.Value;
 
-                if (isContinue)
-                    continue;
+                        if (element.From.Tables.Count != 1 || !element.IsSimple || element.IsInsert || element.IsUpdate || element.IsDelete)
+                        {
+                            return;
+                        }
 
-                exprs.Add(selectQuery, element);
+                        var table = element.From.Tables.First.Value;
 
-                for (var i = 0; i < element.Select.Columns.Count; i++)
-                {
-                    var scol = element.Select.Columns[i];
-                    var ucol = selectQuery.Select.Columns[i];
+                        var selectQuery = table.Source as ISelectQuery;
+                        if (table.Joins.Count != 0 || selectQuery == null)
+                        {
+                            return;
+                        }
 
-                    scol.Expression = ucol.Expression;
-                    scol.Alias = ucol.Alias;
+                        if (!selectQuery.HasUnion)
+                        {
+                            return;
+                        }
 
-                    exprs.Add(ucol, scol);
-                }
+                        bool isContinue = false;
+                        for (var i = 0; i < element.Select.Columns.Count; i++)
+                        {
+                            var scol = element.Select.Columns[i];
+                            var ucol = selectQuery.Select.Columns[i];
 
-                for (var i = element.Select.Columns.Count; i < selectQuery.Select.Columns.Count; i++)
-                {
-                    element.Select.Expr(selectQuery.Select.Columns[i].Expression);
-                }
+                            if (scol.Expression != ucol)
+                            {
+                                isContinue = true;
+                                break;
+                            }
+                        }
 
-                element.From.Tables.Clear();
+                        if (isContinue)
+                        {
+                            return;
+                        }
 
-                selectQuery.From.Tables.ForEach(node => element.From.Tables.AddLast(node.Value));
+                        exprs.Add(selectQuery, element);
 
-                element.Where.Search.Conditions.AddRange(selectQuery.Where.Search.Conditions);
-                element.Having.Search.Conditions.AddRange(selectQuery.Having.Search.Conditions);
+                        for (var i = 0; i < element.Select.Columns.Count; i++)
+                        {
+                            var scol = element.Select.Columns[i];
+                            var ucol = selectQuery.Select.Columns[i];
 
-                selectQuery.GroupBy.Items.ForEach(node => element.GroupBy.Items.AddLast(node.Value));
+                            scol.Expression = ucol.Expression;
+                            scol.Alias = ucol.Alias;
 
-                element.OrderBy.Items.AddRange(selectQuery.OrderBy.Items);
+                            exprs.Add(ucol, scol);
+                        }
 
-                selectQuery.Unions.Last.ReverseEach(node => element.Unions.AddFirst(node.Value));
-            }
+                        for (var i = element.Select.Columns.Count; i < selectQuery.Select.Columns.Count; i++)
+                        {
+                            element.Select.Expr(selectQuery.Select.Columns[i].Expression);
+                        }
+
+                        element.From.Tables.Clear();
+
+                        selectQuery.From.Tables.ForEach(node => element.From.Tables.AddLast(node.Value));
+
+                        element.Where.Search.Conditions.AddRange(selectQuery.Where.Search.Conditions);
+                        element.Having.Search.Conditions.AddRange(selectQuery.Having.Search.Conditions);
+
+                        selectQuery.GroupBy.Items.ForEach(node => element.GroupBy.Items.AddLast(node.Value));
+
+                        element.OrderBy.Items.AddRange(selectQuery.OrderBy.Items);
+
+                        selectQuery.Unions.Last.ReverseEach(node => element.Unions.AddFirst(node.Value));
+                    });
 
             _selectQuery.Walk(
                 false,
