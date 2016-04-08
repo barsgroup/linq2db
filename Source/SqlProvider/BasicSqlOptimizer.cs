@@ -146,7 +146,7 @@
                     subQuery.Where.Search.Conditions.ForEach(
                         node =>
                         {
-                            if (new QueryVisitor().Find(node.Value, checkTable) == null)
+                            if (QueryVisitor.Find(node.Value, checkTable) == null)
                                 return;
 
                             var replaced = new Dictionary<IQueryElement, IQueryElement>();
@@ -264,7 +264,7 @@
                                         }
                                     });
 
-                            if (SqlProviderFlags.IsSubQueryColumnSupported && new QueryVisitor().Find(subQuery, checkTable) == null)
+                            if (SqlProviderFlags.IsSubQueryColumnSupported && QueryVisitor.Find(subQuery, checkTable) == null)
                                 continue;
 
                             var join = SelectQuery.LeftJoin(subQuery);
@@ -318,7 +318,7 @@
                             subQuery.Where.Search.Conditions.ForEach(
                                 node =>
                                     {
-                                        if (new QueryVisitor().Find(node.Value, checkTable) == null)
+                                        if (QueryVisitor.Find(node.Value, checkTable) == null)
                                             return;
 
                                         var replaced = new Dictionary<IQueryElement, IQueryElement>();
@@ -1226,8 +1226,8 @@
                     var table = selectQuery.Update.Table ?? (ISqlTable)selectQuery.From.Tables.First.Value.Source;
 
                     if (selectQuery.Update.Table != null)
-                        if (new QueryVisitor().Find(selectQuery.From, t => t == table) == null)
-                            table = (ISqlTable)new QueryVisitor().Find(selectQuery.From,
+                        if (QueryVisitor.Find(selectQuery.From, t => t == table) == null)
+                            table = (ISqlTable)QueryVisitor.Find(selectQuery.From,
                                 ex =>
                                 {
                                     var sqlTable = ex as ISqlTable;

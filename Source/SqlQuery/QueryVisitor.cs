@@ -27,7 +27,7 @@ namespace LinqToDB.SqlQuery
 
         readonly Dictionary<IQueryElement,IQueryElement> _visitedElements = new Dictionary<IQueryElement, IQueryElement>();
 
-        public void FindParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
+        public static void FindParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
         {
             var resultList = new LinkedList<IQueryElement>();
             var visited = new HashSet<object>();
@@ -90,7 +90,7 @@ namespace LinqToDB.SqlQuery
 
         #region Find
 
-        IQueryElement Find<T>(IEnumerable<T> arr, Func<IQueryElement, bool> find)
+        private static IQueryElement Find<T>(IEnumerable<T> arr, Func<IQueryElement, bool> find)
             where T : class, IQueryElement
         {
             if (arr == null)
@@ -106,7 +106,7 @@ namespace LinqToDB.SqlQuery
             return null;
         }
 
-        public IQueryElement Find(IQueryElement element, Func<IQueryElement, bool> find)
+        public static IQueryElement Find(IQueryElement element, Func<IQueryElement, bool> find)
         {
             if (element == null || find(element))
                 return element;

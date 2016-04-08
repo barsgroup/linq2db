@@ -24,7 +24,7 @@
 		{
 			if (element.ElementType != EQueryElementType.SelectClause) return true;
 
-			new QueryVisitor().FindParentFirst(element, SetNonQueryParameterInSelectClause);
+			QueryVisitor.FindParentFirst(element, SetNonQueryParameterInSelectClause);
 
 			return false;
 		}
@@ -39,7 +39,7 @@
 
 			if (element.ElementType == EQueryElementType.SqlQuery)
 			{
-				new QueryVisitor().FindParentFirst(element, SearchSelectClause);
+				QueryVisitor.FindParentFirst(element, SearchSelectClause);
 				return false;
 			}
 
@@ -50,7 +50,7 @@
 		{
 			CheckAliases(selectQuery, int.MaxValue);
 
-			new QueryVisitor().FindParentFirst(selectQuery, SearchSelectClause);
+			QueryVisitor.FindParentFirst(selectQuery, SearchSelectClause);
 
 			if (selectQuery.EQueryType == EQueryType.InsertOrUpdate)
 			{
