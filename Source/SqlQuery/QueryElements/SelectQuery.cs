@@ -281,11 +281,6 @@
 
             query.Parameters.Clear();
 
-            ////foreach (var parameter in QueryVisitor.FindOnce<ISqlParameter>(query).Where(p => p.IsQueryParameter))
-            ////{
-            ////    query.Parameters.Add(parameter);
-            ////}
-
             QueryVisitor.FindOnce<ISqlParameter>(query).ForEach(
                 node =>
                     {
@@ -475,11 +470,6 @@
             Parameters.AddRange(clone.Parameters.Select(p => (ISqlParameter)p.Clone(objectTree, doClone)));
             IsParameterDependent = clone.IsParameterDependent;
 
-            ////foreach (var query in QueryVisitor.FindOnce<ISelectQuery>(this).Where(sq => sq.ParentSelect == clone))
-            ////{
-            ////    query.ParentSelect = this;
-            ////}
-
             QueryVisitor.FindOnce<ISelectQuery>(this).ForEach(
                 node =>
                     {
@@ -582,8 +572,7 @@
             var objs = new Dictionary<object, object>();
 
             Parameters.Clear();
-
-            //foreach (var element in QueryVisitor.FindOnce<IQueryElement>(this))
+            
             QueryVisitor.FindOnce<IQueryElement>(this).ForEach(
                 elem =>
                     {

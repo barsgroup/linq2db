@@ -384,28 +384,11 @@
             OptimizeSearchCondition(_selectQuery.Where.Search);
             OptimizeSearchCondition(_selectQuery.Having.Search);
 
-            ////foreach (var joinTable in QueryVisitor.FindOnce<IJoinedTable>(_selectQuery))
-            ////{
-            ////    OptimizeSearchCondition(joinTable.Condition);
-            ////}
-
             QueryVisitor.FindOnce<IJoinedTable>(_selectQuery).ForEach(
                 joinTable =>
                     {
                         OptimizeSearchCondition(joinTable.Value.Condition);
                     });
-
-            ////foreach (var query in QueryVisitor.FindDownTo<ISelectQuery>(_selectQuery).Where(item => item != _selectQuery))
-            ////{
-            ////    query.ParentSelect = _selectQuery;
-            ////
-            ////    new SelectQueryOptimizer(_flags, query).FinalizeAndValidateInternal(isApplySupported, optimizeColumns, tables);
-            ////
-            ////    if (query.IsParameterDependent)
-            ////    {
-            ////        _selectQuery.IsParameterDependent = true;
-            ////    }
-            ////}
 
             QueryVisitor.FindDownTo<ISelectQuery>(_selectQuery).ForEach(
                 node =>
@@ -660,11 +643,6 @@
 
                     if (query != null && query.From.Tables.Count == 0 && query.Select.Columns.Count == 1)
                     {
-                        ////foreach (var q in QueryVisitor.FindOnce<ISelectQuery>(query.Select.Columns[0].Expression).Where(q => q.ParentSelect == query))
-                        ////{
-                        ////    q.ParentSelect = query.ParentSelect;
-                        ////}
-
                         QueryVisitor.FindOnce<ISelectQuery>(query.Select.Columns[0].Expression).ForEach(
                             node =>
                                 {
@@ -751,8 +729,7 @@
         private void OptimizeUnions()
         {
             var exprs = new Dictionary<IQueryExpression, IQueryExpression>();
-
-            //foreach (var element in QueryVisitor.FindOnce<ISelectQuery>(_selectQuery) )
+            
             QueryVisitor.FindOnce<ISelectQuery>(_selectQuery).ForEach(
                 elem =>
                     {
@@ -923,8 +900,7 @@
             {
                 ConcatSearchCondition(_selectQuery.Having, query.Having);
             }
-
-
+            
             QueryVisitor.FindOnce<ISelectQuery>(top).ForEach(
                 node =>
                 {
