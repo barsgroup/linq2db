@@ -71,6 +71,7 @@ namespace LinqToDB.SqlQuery
             }
 
             var child = current.Children;
+
             for (var i = 0; i < child.Length; ++i)
             {
                 child[i].Execute(obj, resultList, DownToStrategy, visited);

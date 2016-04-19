@@ -35,7 +35,7 @@
             return rootDelegate.Execute;
         }
 
-        private void CreateDelegate(CompositPropertyVertex vertex, Dictionary<CompositPropertyVertex, ProxyDelegate<TSearch>> delegateMap)
+        private static void CreateDelegate(CompositPropertyVertex vertex, Dictionary<CompositPropertyVertex, ProxyDelegate<TSearch>> delegateMap)
         {
             if (vertex.PropertyList.First == null)
             {
@@ -120,7 +120,7 @@
             {
                 if (index == _propertyGetters.Length)
                 {
-                    HandleValue(source, resultList, strategyDelegate, visited);
+                    HandleValue(this, source, resultList, strategyDelegate, visited);
                     return;
                 }
 
@@ -166,7 +166,7 @@
                 }
             }
 
-            HandleValue(currentObj, resultList, strategyDelegate, visited);
+            HandleValue(this, currentObj, resultList, strategyDelegate, visited);
         }
 
         private void CollectionExecute(object obj, LinkedList<TSearch> resultList, StrategyDelegate<TSearch> strategyDelegate, HashSet<object> visited)
@@ -190,7 +190,7 @@
                 return;
             }
 
-            HandleValue(obj, resultList, strategyDelegate,  visited);
+            HandleValue(this, obj, resultList, strategyDelegate,  visited);
 
             //var searchObj = obj as TSearch;
             //if (searchObj != null && strategyDelegate)
@@ -212,7 +212,7 @@
 
         public bool IsRoot = false;
 
-        protected void HandleValue(object value, LinkedList<TSearch> resultList, StrategyDelegate<TSearch> strategyDelegate, HashSet<object> visited)
+        protected static void HandleValue(BaseProxyDelegate<TSearch> current, object value, LinkedList<TSearch> resultList, StrategyDelegate<TSearch> strategyDelegate, HashSet<object> visited)
         {
             if (visited.Contains(value))
             {
@@ -221,23 +221,7 @@
 
             visited.Add(value);
 
-            strategyDelegate(this, value, resultList, visited);
-
-            //var searchValue = value as TSearch;
-            //if (searchValue != null)
-            //{
-            //    resultList.AddFirst(searchValue);
-
-            //    if (!strategyDelegate)
-            //    {
-            //        return;
-            //    }
-            //}
-
-            //for (var i = 0; i < Children.Length; ++i)
-            //{
-            //    Children[i].Execute(value, resultList, strategyDelegate, visited);
-            //}
+            strategyDelegate(current, value, resultList, visited);
         }
 
 
