@@ -20,10 +20,10 @@
 
         public static SearchEngine<TBaseSearchInterface> Current { get; } = new SearchEngine<TBaseSearchInterface>();
 
-        public void Find<TElement>(TBaseSearchInterface source, LinkedList<TElement> resultList,  bool stepIntoFound, HashSet<object> visited) where TElement : class, TBaseSearchInterface
+        public void Find<TElement>(TBaseSearchInterface source, LinkedList<TElement> resultList,  StrategyDelegate<TElement> strategyDelegate, HashSet<object> visited) where TElement : class, TBaseSearchInterface
         {
             var deleg = GetOrCreateDelegate<TElement>(source);
-            deleg.Invoke(source, resultList, stepIntoFound, visited);
+            deleg.Invoke(source, resultList, strategyDelegate, visited);
 
 # if DEBUG
             ////var isEqualToReflection = ReflectionSearcher.FindAndCompare(source, stepIntoFound, result);

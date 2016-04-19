@@ -27,14 +27,65 @@ namespace LinqToDB.SqlQuery
 
         readonly Dictionary<IQueryElement,IQueryElement> _visitedElements = new Dictionary<IQueryElement, IQueryElement>();
 
+
+        private static void ParentFirstStrategy<TSearch>(BaseProxyDelegate<TSearch> current, object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class
+        {
+            var searchValue = obj as TSearch;
+            if (searchValue != null)
+            {
+                resultList.AddLast(searchValue);
+            }
+
+            var child = current.Children;
+            for (var i = 0; i < child.Length; ++i)
+            {
+                child[i].Execute(obj, resultList, ParentFirstStrategy, visited);
+            }
+        }
+
+        private static void ChildrenFirstStrategy<TSearch>(BaseProxyDelegate<TSearch> current, object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class
+        {
+            var searchValue = obj as TSearch;
+            if (searchValue != null)
+            {
+                resultList.AddFirst(searchValue);
+            }
+
+            var child = current.Children;
+            for (var i = 0; i < child.Length; ++i)
+            {
+                child[i].Execute(obj, resultList, ChildrenFirstStrategy, visited);
+            }
+        }
+
+        private static void DownToStrategy<TSearch>(BaseProxyDelegate<TSearch> current, object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class
+        {
+            var searchValue = obj as TSearch;
+            if (searchValue != null)
+            {
+                if (!current.IsRoot)
+                {
+                    resultList.AddFirst(searchValue);
+                    return;
+                }
+            }
+
+            var child = current.Children;
+            for (var i = 0; i < child.Length; ++i)
+            {
+                child[i].Execute(obj, resultList, DownToStrategy, visited);
+            }
+        }
+
         public static void FindParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
         {
             var resultList = new LinkedList<IQueryElement>();
             var visited = new HashSet<object>();
 
-            SearchEngine<IQueryElement>.Current.Find(element, resultList, true, visited);
 
-            resultList.ReverseList().ApplyUntilNonDefaultResult(node => action(node.Value));
+            SearchEngine<IQueryElement>.Current.Find(element, resultList, ParentFirstStrategy, visited);
+
+            resultList.ApplyUntilNonDefaultResult(node => action(node.Value));
         }
 
         public static LinkedList<TElementType> FindOnce<TElementType>(LinkedList<IQueryElement> elements) where TElementType : class, IQueryElement
@@ -47,7 +98,7 @@ namespace LinqToDB.SqlQuery
                     {
                         if (elem.Value != null)
                         {
-                            SearchEngine<IQueryElement>.Current.Find(elem.Value, resultList, true, visited);
+                            SearchEngine<IQueryElement>.Current.Find(elem.Value, resultList, ChildrenFirstStrategy, visited);
                         }
                     });
 
@@ -63,7 +114,7 @@ namespace LinqToDB.SqlQuery
             {
                 if (elements[i] != null)
                 {
-                    SearchEngine<IQueryElement>.Current.Find(elements[i], resultList, true, visited);
+                    SearchEngine<IQueryElement>.Current.Find(elements[i], resultList, ChildrenFirstStrategy, visited);
                 }
             }
 
@@ -80,7 +131,7 @@ namespace LinqToDB.SqlQuery
             {
                 if (elements[i] != null)
                 {
-                    SearchEngine<IQueryElement>.Current.Find(elements[i], resultList, false, visited);
+                    SearchEngine<IQueryElement>.Current.Find(elements[i], resultList, DownToStrategy, visited);
                 }
             }
 
