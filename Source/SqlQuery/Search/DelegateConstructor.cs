@@ -3,6 +3,7 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Linq.Expressions;
 
     using LinqToDB.Extensions;
@@ -31,6 +32,7 @@
                     });
 
             var rootDelegate = new RootProxyDelegate<TSearch>(delegates);
+            rootDelegate.BuildExecuteChildrenDelegate();
 
             return rootDelegate.Execute;
         }
@@ -191,17 +193,6 @@
             }
 
             HandleValue(this, obj, resultList, strategyDelegate,  visited);
-
-            //var searchObj = obj as TSearch;
-            //if (searchObj != null && strategyDelegate)
-            //{
-            //    resultList.AddLast(searchObj);
-            //}
-
-            //for (var i = 0; i < Children.Length; ++i)
-            //{
-            //    Children[i].Execute(obj, resultList, strategyDelegate, visited);
-            //}
         }
     }
 
@@ -209,6 +200,8 @@
         where TSearch : class
     {
         public readonly ProxyDelegate<TSearch>[] Children;
+
+        public ResultDelegate<TSearch> ExecuteChildrenDelegate; 
 
         public bool IsRoot = false;
 
@@ -224,6 +217,42 @@
             strategyDelegate(current, value, resultList, visited);
         }
 
+        public void BuildExecuteChildrenDelegate()
+        {
+            if (ExecuteChildrenDelegate != null)
+            {
+                return;
+            }
+
+            if (Children.Length == 0)
+            {
+                ExecuteChildrenDelegate = (obj, resultList, strategy, visited) => {};
+
+                return;
+            }
+
+            var executeMethodInfo = typeof(ProxyDelegate<TSearch>).GetMethod("Execute");
+
+            var objParam = Expression.Parameter(typeof(object), "obj");
+            var resultListParam = Expression.Parameter(typeof(LinkedList<TSearch>), "resultList");
+            var strategyParam = Expression.Parameter(typeof(StrategyDelegate<TSearch>), "strategy");
+            var visitedParam = Expression.Parameter(typeof(HashSet<object>), "visited");
+
+            var paramArray = new[] { objParam, resultListParam, strategyParam, visitedParam };
+
+            var callChildrenExpressions = Children.Select(Expression.Constant).Select(childExpr => Expression.Call(childExpr, executeMethodInfo, paramArray));
+
+            var callChildrenBlock = Expression.Block(callChildrenExpressions);
+
+            var lambda = Expression.Lambda<ResultDelegate<TSearch>>(callChildrenBlock, paramArray);
+
+            ExecuteChildrenDelegate = lambda.Compile();
+
+            for (var i = 0; i < Children.Length; ++i)
+            {
+                Children[i].BuildExecuteChildrenDelegate();
+            }
+        }
 
         protected BaseProxyDelegate(ProxyDelegate<TSearch>[] children)
         {

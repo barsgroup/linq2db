@@ -36,11 +36,7 @@ namespace LinqToDB.SqlQuery
                 resultList.AddLast(searchValue);
             }
 
-            var child = current.Children;
-            for (var i = 0; i < child.Length; ++i)
-            {
-                child[i].Execute(obj, resultList, ParentFirstStrategy, visited);
-            }
+            current.ExecuteChildrenDelegate(obj, resultList, ParentFirstStrategy, visited);
         }
 
         private static void ChildrenFirstStrategy<TSearch>(BaseProxyDelegate<TSearch> current, object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class
@@ -51,11 +47,7 @@ namespace LinqToDB.SqlQuery
                 resultList.AddFirst(searchValue);
             }
 
-            var child = current.Children;
-            for (var i = 0; i < child.Length; ++i)
-            {
-                child[i].Execute(obj, resultList, ChildrenFirstStrategy, visited);
-            }
+            current.ExecuteChildrenDelegate(obj, resultList, ChildrenFirstStrategy, visited);
         }
 
         private static void DownToStrategy<TSearch>(BaseProxyDelegate<TSearch> current, object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class
@@ -70,12 +62,7 @@ namespace LinqToDB.SqlQuery
                 }
             }
 
-            var child = current.Children;
-
-            for (var i = 0; i < child.Length; ++i)
-            {
-                child[i].Execute(obj, resultList, DownToStrategy, visited);
-            }
+            current.ExecuteChildrenDelegate(obj, resultList, DownToStrategy, visited);
         }
 
         public static void FindParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
