@@ -128,19 +128,9 @@ namespace LinqToDB.Linq.Builder
             return base.IsExpression(expression, level, testFlag);
         }
 
-        internal protected readonly Dictionary<IQueryExpression,int> ColumnIndexes = new Dictionary<IQueryExpression,int>();
-
-        protected virtual int GetIndex(IColumn column)
+        private int GetIndex(IColumn column)
         {
-            int idx;
-
-            if (!ColumnIndexes.TryGetValue(column, out idx))
-            {
-                idx = Select.Select.Add(column);
-                ColumnIndexes.Add(column, idx);
-            }
-
-            return idx;
+            return Select.Select.Add(column);
         }
 
         public override int ConvertToParentIndex(int index, IBuildContext context)

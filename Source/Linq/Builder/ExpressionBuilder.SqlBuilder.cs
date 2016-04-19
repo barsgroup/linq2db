@@ -31,8 +31,6 @@ namespace LinqToDB.Linq.Builder
 
     public partial class ExpressionBuilder
     {
-        ExpressionEqualityComparer _expressionComparer = new ExpressionEqualityComparer();
-
         #region Build Where
 
         public IBuildContext BuildWhere(IBuildContext parent, IBuildContext sequence, LambdaExpression condition, bool checkForSubQuery, bool enforceHaving = false)
@@ -375,7 +373,7 @@ namespace LinqToDB.Linq.Builder
         }
 
         class ConvertHelper<T> : IConvertHelper
-            where T : struct 
+            where T : struct
         {
             public Expression ConvertNull(MemberExpression expression)
             {
@@ -1146,7 +1144,7 @@ namespace LinqToDB.Linq.Builder
         {
             ISqlValue value;
 
-            if (_constants.TryGetValue(expr, out value))
+            if ( _constants.TryGetValue(expr, out value))
                 return value;
 
             var lambda = Expression.Lambda<Func<object>>(Expression.Convert(expr, typeof(object)));
@@ -1162,7 +1160,10 @@ namespace LinqToDB.Linq.Builder
 
             value = MappingSchema.GetSqlValue(expr.Type, v);
 
-            _constants.Add(expr, value);
+            if (value.Value != null || value.Value != string.Empty)
+            {
+                _constants.Add(expr, value);
+            }
 
             return value;
         }
@@ -1188,7 +1189,7 @@ namespace LinqToDB.Linq.Builder
             var constant = memberAccess?.Expression as ConstantExpression;
             var field = memberAccess?.Member as FieldInfo;
 
-            object value = null; 
+            object value = null;
 
             if (constant != null && field != null)
             {
@@ -1205,7 +1206,7 @@ namespace LinqToDB.Linq.Builder
                             return parametersValue.Item3;
                         }
                     }
-                        
+
                 }
             }
 
@@ -1239,7 +1240,7 @@ namespace LinqToDB.Linq.Builder
                     if (!expr.Type.IsConstantable() || AsParameters.Contains(c))
                     {
                         Expression val;
-                        
+
                         if (expressionAccessors.TryGetValue(expr, out val))
                         {
                             expr = Expression.Convert(val, expr.Type);
@@ -1311,7 +1312,7 @@ namespace LinqToDB.Linq.Builder
                                 .MakeGenericMethod(args[1]);
 
                             var expr = Expression.Call(
-                                minf, 
+                                minf,
                                 Expression.PropertyOrField(e.Object, "Values"),
                                 e.Arguments[0]);
 
@@ -1325,7 +1326,7 @@ namespace LinqToDB.Linq.Builder
                                 .MakeGenericMethod(args[0]);
 
                             var expr = Expression.Call(
-                                minf, 
+                                minf,
                                 Expression.PropertyOrField(e.Object, "Keys"),
                                 e.Arguments[0]);
 
@@ -1355,8 +1356,8 @@ namespace LinqToDB.Linq.Builder
                     {
                         var e = (MemberExpression)expression;
 
-                        if (e.Member.Name == "HasValue" && 
-                            e.Member.DeclaringType.IsGenericTypeEx() && 
+                        if (e.Member.Name == "HasValue" &&
+                            e.Member.DeclaringType.IsGenericTypeEx() &&
                             e.Member.DeclaringType.GetGenericTypeDefinition() == typeof(Nullable<>))
                         {
                             var expr = ConvertToSql(context, e.Expression);
@@ -1625,7 +1626,7 @@ namespace LinqToDB.Linq.Builder
                 {
                     var ctx = GetContext(context, left);
 
-                    if (ctx != null && 
+                    if (ctx != null &&
                         (ctx.IsExpression(left, 0, RequestFor.Object).Result ||
                          left.NodeType == ExpressionType.Parameter && ctx.IsExpression(left, 0, RequestFor.Field).Result))
                     {
@@ -1734,7 +1735,7 @@ namespace LinqToDB.Linq.Builder
 
                     if (info == null)
                         break;
-                    
+
                     for (int i = 1; i < lcol.Members.Count; i++)
                     {
                         if (info  == lcol.Members[i])
@@ -1750,7 +1751,7 @@ namespace LinqToDB.Linq.Builder
 
                             find = true;
                             break;
-                            
+
                         }
 
                         if (find)
@@ -1790,7 +1791,7 @@ namespace LinqToDB.Linq.Builder
                     condition.Conditions.AddLast(new Condition(false, predicate));
                 }
             }
-            
+
 
             if (nodeType == ExpressionType.NotEqual)
                 foreach (var c in condition.Conditions)
@@ -2136,7 +2137,7 @@ namespace LinqToDB.Linq.Builder
                             {
                                 cond.Conditions.AddLast(
                                     new Condition(
-                                        false, 
+                                        false,
                                         Convert(context,
                                             new ExprExpr(
                                                 getSql(m.DiscriminatorName),

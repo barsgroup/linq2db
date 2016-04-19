@@ -281,15 +281,10 @@
 
             query.Parameters.Clear();
 
-            QueryVisitor.FindOnce<ISqlParameter>(query).ForEach(
-                node =>
-                    {
-                        var parameter = node.Value;
-                        if (parameter.IsQueryParameter)
-                        {
-                            query.Parameters.Add(parameter);
-                        }
-                    });
+            foreach (var parameter in QueryVisitor.FindOnce<ISqlParameter>(query).Where(p => p.IsQueryParameter))
+            {
+                query.Parameters.Add(parameter);
+            }
 
             return query;
         }
@@ -470,15 +465,10 @@
             Parameters.AddRange(clone.Parameters.Select(p => (ISqlParameter)p.Clone(objectTree, doClone)));
             IsParameterDependent = clone.IsParameterDependent;
 
-            QueryVisitor.FindOnce<ISelectQuery>(this).ForEach(
-                node =>
-                    {
-                        var query = node.Value;
-                        if (query.ParentSelect == clone)
-                        {
-                            query.ParentSelect = this;
-                        }
-                    });
+            foreach (var query in QueryVisitor.FindOnce<ISelectQuery>(this).Where(sq => sq.ParentSelect == clone))
+            {
+                query.ParentSelect = this;
+            }
         }
 
         public ISelectQuery Clone()
@@ -569,93 +559,90 @@
         {
             _aliases = null;
 
-            var objs = new Dictionary<object, object>();
+            var objs = new HashSet<IQueryElement>();
 
             Parameters.Clear();
-            
-            QueryVisitor.FindOnce<IQueryElement>(this).ForEach(
-                elem =>
+
+            foreach (var element in QueryVisitor.FindOnce<IQueryElement>(this))
+            {
+                switch (element.ElementType)
+                {
+                    case EQueryElementType.SqlParameter:
                     {
-                        var element = elem.Value;
+                        var p = (ISqlParameter)element;
 
-                        switch (element.ElementType)
+                        if (p.IsQueryParameter)
                         {
-                            case EQueryElementType.SqlParameter:
-                                {
-                                    var p = (ISqlParameter)element;
+                            if (!objs.Contains(element))
+                            {
+                                objs.Add(element);
+                                p.Name = GetAlias(p.Name, "p");
+                            }
 
-                                    if (p.IsQueryParameter)
-                                    {
-                                        if (!objs.ContainsKey(element))
-                                        {
-                                            objs.Add(element, element);
-                                            p.Name = GetAlias(p.Name, "p");
-                                        }
-
-                                        Parameters.Add(p);
-                                    }
-                                    else
-                                        IsParameterDependent = true;
-                                }
-
-                                break;
-
-                            case EQueryElementType.Column:
-                                {
-                                    if (!objs.ContainsKey(element))
-                                    {
-                                        objs.Add(element, element);
-
-                                        var c = (IColumn)element;
-
-                                        if (c.Alias != "*")
-                                            c.Alias = GetAlias(c.Alias, "c");
-                                    }
-                                }
-
-                                break;
-
-                            case EQueryElementType.TableSource:
-                                {
-                                    var table = (ITableSource)element;
-
-                                    if (!objs.ContainsKey(table))
-                                    {
-                                        objs.Add(table, table);
-                                        table.Alias = GetAlias(table.Alias, "t");
-                                    }
-                                }
-
-                                break;
-
-                            case EQueryElementType.SqlQuery:
-                                {
-                                    var sql = (ISelectQuery)element;
-
-                                    if (sql.HasUnion)
-                                    {
-                                        for (var i = 0; i < sql.Select.Columns.Count; i++)
-                                        {
-                                            var col = sql.Select.Columns[i];
-
-                                            var index = i;
-                                            sql.Unions.ForEach(
-                                                node =>
-                                                    {
-                                                        var union = node.Value.SelectQuery.Select;
-
-                                                        objs.Remove(union.Columns[index].Alias);
-
-                                                        union.Columns[index].Alias = col.Alias;
-                                                    });
-
-                                        }
-                                    }
-
-                                    break;
-                                }
+                            Parameters.Add(p);
                         }
-                    });
+                        else
+                            IsParameterDependent = true;
+                    }
+
+                        break;
+
+                    case EQueryElementType.Column:
+                    {
+                        if (!objs.Contains(element))
+                        {
+                            objs.Add(element);
+
+                            var c = (IColumn)element;
+
+                            if (c.Alias != "*")
+                                c.Alias = GetAlias(c.Alias, "c");
+                        }
+                    }
+
+                        break;
+
+                    case EQueryElementType.TableSource:
+                    {
+                        var table = (ITableSource)element;
+
+                        if (!objs.Contains(table))
+                        {
+                            objs.Add(table);
+                            table.Alias = GetAlias(table.Alias, "t");
+                        }
+                    }
+
+                        break;
+
+                    case EQueryElementType.SqlQuery:
+                    {
+                        var sql = (ISelectQuery)element;
+
+                        if (sql.HasUnion)
+                        {
+                            for (var i = 0; i < sql.Select.Columns.Count; i++)
+                            {
+                                var col = sql.Select.Columns[i];
+
+                                var index = i;
+                                sql.Unions.ForEach(
+                                    node =>
+                                    {
+                                        var union = node.Value.SelectQuery.Select;
+
+                                        objs.Remove(union.Columns[index]);
+
+                                        union.Columns[index].Alias = col.Alias;
+                                    });
+
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
         }
 
         public ISqlTableSource GetTableSource(ISqlTableSource table)

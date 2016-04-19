@@ -173,11 +173,11 @@ namespace LinqToDB.Linq.Builder
                     _members[member.Member.MemberExpression.Member] = member.Member;
                 }
 
-                foreach (var key in _sequence1.ColumnIndexes.Keys.ToList())
-                    _sequence1.ColumnIndexes[key] = _sequence1.Select.Select.Add(key);
+                //foreach (var key in _sequence1.ColumnIndexes.Keys.ToList())
+                //    _sequence1.ColumnIndexes[key] = _sequence1.Select.Select.Add(key);
 
-                foreach (var key in _sequence2.ColumnIndexes.Keys.ToList())
-                    _sequence2.ColumnIndexes[key] = _sequence2.Select.Select.Add(key);
+                //foreach (var key in _sequence2.ColumnIndexes.Keys.ToList())
+                //    _sequence2.ColumnIndexes[key] = _sequence2.Select.Select.Add(key);
             }
 
             public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
@@ -224,8 +224,7 @@ namespace LinqToDB.Linq.Builder
                             expr = Expression.New(
                                 nctor.Constructor,
                                 members
-                                    .Select(m => Expression.PropertyOrField(_unionParameter, m.Name))
-                                    .Cast<Expression>(),
+                                    .Select(m => Expression.PropertyOrField(_unionParameter, m.Name)),
                                 members);
                         }
                         else
@@ -235,8 +234,7 @@ namespace LinqToDB.Linq.Builder
                             expr = Expression.MemberInit(
                                 Expression.New(ta.Type),
                                 _members
-                                    .Select(m => Expression.Bind(m.Value.MemberExpression.Member, m.Value.MemberExpression))
-                                    .Cast<MemberBinding>());
+                                    .Select(m => Expression.Bind(m.Value.MemberExpression.Member, m.Value.MemberExpression)));
                         }
 
                         var ex = Builder.BuildExpression(this, expr);
