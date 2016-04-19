@@ -1,131 +1,132 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using LinqToDB.Expressions;
-	using SqlQuery;
+    using LinqToDB.Expressions;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
-	class DefaultIfEmptyBuilder : MethodCallBuilder
-	{
-		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			return methodCall.IsQueryable("DefaultIfEmpty");
-		}
+    class DefaultIfEmptyBuilder : MethodCallBuilder
+    {
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            return methodCall.IsQueryable("DefaultIfEmpty");
+        }
 
-		protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			var sequence     = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-			var defaultValue = methodCall.Arguments.Count == 1 ? null : methodCall.Arguments[1].Unwrap();
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            var sequence     = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+            var defaultValue = methodCall.Arguments.Count == 1 ? null : methodCall.Arguments[1].Unwrap();
 
-			if (buildInfo.Parent is SelectManyBuilder.SelectManyContext)
-			{
-				var groupJoin = ((SelectManyBuilder.SelectManyContext)buildInfo.Parent).Sequence[0] as JoinBuilder.GroupJoinContext;
+            var selectManyContext = buildInfo.Parent as SelectManyBuilder.SelectManyContext;
+            var groupJoin = selectManyContext?.Sequence[0] as JoinBuilder.GroupJoinContext;
 
-				if (groupJoin != null)
-				{
-					groupJoin.SelectQuery.From.Tables[0].Joins[0].JoinType = SelectQuery.JoinType.Left;
-					groupJoin.SelectQuery.From.Tables[0].Joins[0].IsWeak   = false;
-				}
-			}
+            if (groupJoin != null)
+            {
+                var joinedTable = groupJoin.Select.From.Tables.First.Value.Joins.First.Value;
 
-			return new DefaultIfEmptyContext(buildInfo.Parent, sequence, defaultValue);
-		}
+                joinedTable.JoinType = EJoinType.Left;
+                joinedTable.IsWeak = false;
+            }
 
-		protected override SequenceConvertInfo Convert(
-			ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
-		{
-			return null;
-		}
+            return new DefaultIfEmptyContext(buildInfo.Parent, sequence, defaultValue);
+        }
 
-		public class DefaultIfEmptyContext : SequenceContextBase
-		{
-			public DefaultIfEmptyContext(IBuildContext parent, IBuildContext sequence, Expression defaultValue) 
-				: base(parent, sequence, null)
-			{
-				_defaultValue = defaultValue;
-			}
+        protected override SequenceConvertInfo Convert(
+            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+        {
+            return null;
+        }
 
-			private readonly Expression _defaultValue;
+        public class DefaultIfEmptyContext : SequenceContextBase
+        {
+            public DefaultIfEmptyContext(IBuildContext parent, IBuildContext sequence, Expression defaultValue) 
+                : base(parent, sequence, null)
+            {
+                _defaultValue = defaultValue;
+            }
 
-			public override Expression BuildExpression(Expression expression, int level)
-			{
-				var expr = Sequence.BuildExpression(expression, level);
+            private readonly Expression _defaultValue;
 
-				if (expression == null)
-				{
-					var q =
-						from col in SelectQuery.Select.Columns
-						where !col.CanBeNull()
-						select SelectQuery.Select.Columns.IndexOf(col);
+            public override Expression BuildExpression(Expression expression, int level)
+            {
+                var expr = Sequence.BuildExpression(expression, level);
 
-					var idx = q.DefaultIfEmpty(-1).First();
+                if (expression == null)
+                {
+                    var q =
+                        from col in Select.Select.Columns
+                        where !col.CanBeNull()
+                        select Select.Select.Columns.IndexOf(col);
 
-					if (idx == -1)
-						idx = SelectQuery.Select.Add(new SqlValue((int?)1));
+                    var idx = q.DefaultIfEmpty(-1).First();
 
-					var n = ConvertToParentIndex(idx, this);
+                    if (idx == -1)
+                        idx = Select.Select.Add(new SqlValue((int?)1));
 
-					Expression e = Expression.Call(
-						ExpressionBuilder.DataReaderParam,
-						ReflectionHelper.DataReader.IsDBNull,
-						Expression.Constant(n));
+                    var n = ConvertToParentIndex(idx, this);
 
-					var defaultValue = _defaultValue ?? Expression.Constant(null, expr.Type);
+                    Expression e = Expression.Call(
+                        ExpressionBuilder.DataReaderParam,
+                        ReflectionHelper.DataReader.IsDBNull,
+                        Expression.Constant(n));
 
-					if (expr.NodeType == ExpressionType.Parameter)
-					{
-						var par  = (ParameterExpression)expr;
-						var pidx = Builder.BlockVariables.IndexOf(par);
+                    var defaultValue = _defaultValue ?? Expression.Constant(null, expr.Type);
 
-						if (pidx >= 0)
-						{
-							var ex = Builder.BlockExpressions[pidx];
+                    if (expr.NodeType == ExpressionType.Parameter)
+                    {
+                        var par  = (ParameterExpression)expr;
+                        var pidx = Builder.BlockVariables.IndexOf(par);
 
-							if (ex.NodeType == ExpressionType.Assign)
-							{
-								var bex = (BinaryExpression)ex;
+                        if (pidx >= 0)
+                        {
+                            var ex = Builder.BlockExpressions[pidx];
 
-								if (bex.Left == expr)
-								{
-									if (bex.Right.NodeType != ExpressionType.Conditional)
-									{
-										Builder.BlockExpressions[pidx] =
-											Expression.Assign(
-												bex.Left,
-												Expression.Condition(e, defaultValue, bex.Right));
-									}
-								}
-							}
-						}
-					}
+                            if (ex.NodeType == ExpressionType.Assign)
+                            {
+                                var bex = (BinaryExpression)ex;
 
-					expr = Expression.Condition(e, defaultValue, expr);
-				}
+                                if (bex.Left == expr)
+                                {
+                                    if (bex.Right.NodeType != ExpressionType.Conditional)
+                                    {
+                                        Builder.BlockExpressions[pidx] =
+                                            Expression.Assign(
+                                                bex.Left,
+                                                Expression.Condition(e, defaultValue, bex.Right));
+                                    }
+                                }
+                            }
+                        }
+                    }
 
-				return expr;
-			}
+                    expr = Expression.Condition(e, defaultValue, expr);
+                }
 
-			public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
-			{
-				return Sequence.ConvertToSql(expression, level, flags);
-			}
+                return expr;
+            }
 
-			public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
-			{
-				return Sequence.ConvertToIndex(expression, level, flags);
-			}
+            public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
+            {
+                return Sequence.ConvertToSql(expression, level, flags);
+            }
 
-			public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor requestFlag)
-			{
-				return Sequence.IsExpression(expression, level, requestFlag);
-			}
+            public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
+            {
+                return Sequence.ConvertToIndex(expression, level, flags);
+            }
 
-			public override IBuildContext GetContext(Expression expression, int level, BuildInfo buildInfo)
-			{
-				return Sequence.GetContext(expression, level, buildInfo);
-			}
-		}
-	}
+            public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor requestFlag)
+            {
+                return Sequence.IsExpression(expression, level, requestFlag);
+            }
+
+            public override IBuildContext GetContext(Expression expression, int level, BuildInfo buildInfo)
+            {
+                return Sequence.GetContext(expression, level, buildInfo);
+            }
+        }
+    }
 }

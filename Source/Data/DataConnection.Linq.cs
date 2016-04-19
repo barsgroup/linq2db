@@ -10,8 +10,13 @@ namespace LinqToDB.Data
 {
 	using DataProvider;
 	using Linq;
+
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
 	using Mapping;
-	using SqlQuery;
+
 	using SqlProvider;
 
 	public partial class DataConnection : IDataContext
@@ -37,9 +42,9 @@ namespace LinqToDB.Data
 		internal class PreparedQuery
 		{
 			public string[]           Commands;
-			public List<SqlParameter> SqlParameters;
+			public List<ISqlParameter> SqlParameters;
 			public IDbDataParameter[] Parameters;
-			public SelectQuery        SelectQuery;
+			public ISelectQuery SelectQuery;
 			public ISqlBuilder        SqlProvider;
 			public List<string>       QueryHints;
 		}
@@ -96,7 +101,7 @@ namespace LinqToDB.Data
 			};
 		}
 
-		protected virtual SelectQuery ProcessQuery(SelectQuery selectQuery)
+		protected virtual ISelectQuery ProcessQuery(ISelectQuery selectQuery)
 		{
 			return selectQuery;
 		}
@@ -137,7 +142,7 @@ namespace LinqToDB.Data
 			pq.Parameters = parms.ToArray();
 		}
 
-		void AddParameter(ICollection<IDbDataParameter> parms, string name, SqlParameter parm)
+		void AddParameter(ICollection<IDbDataParameter> parms, string name, ISqlParameter parm)
 		{
 			var p = Command.CreateParameter();
 
@@ -321,10 +326,11 @@ namespace LinqToDB.Data
 
 		#region IDataContext Members
 
-		SqlProviderFlags IDataContext.SqlProviderFlags { get { return DataProvider.SqlProviderFlags; } }
-		Type             IDataContext.DataReaderType   { get { return DataProvider.DataReaderType;   } }
+		SqlProviderFlags IDataContext.SqlProviderFlags => DataProvider.SqlProviderFlags;
 
-		Expression IDataContext.GetReaderExpression(MappingSchema mappingSchema, IDataReader reader, int idx, Expression readerExpression, Type toType)
+	    Type             IDataContext.DataReaderType => DataProvider.DataReaderType;
+
+	    Expression IDataContext.GetReaderExpression(MappingSchema mappingSchema, IDataReader reader, int idx, Expression readerExpression, Type toType)
 		{
 			return DataProvider.GetReaderExpression(mappingSchema, reader, idx, readerExpression, toType);
 		}
@@ -354,31 +360,22 @@ namespace LinqToDB.Data
 			return (DataConnection)Clone();
 		}
 
-		string IDataContext.ContextID
-		{
-			get { return DataProvider.Name; }
-		}
+		string IDataContext.ContextID => DataProvider.Name;
 
-		static Func<ISqlBuilder> GetCreateSqlProvider(IDataProvider dp)
+	    static Func<ISqlBuilder> GetCreateSqlProvider(IDataProvider dp)
 		{
 			return dp.CreateSqlBuilder;
 		}
 
-		Func<ISqlBuilder> IDataContext.CreateSqlProvider
-		{
-			get { return GetCreateSqlProvider(DataProvider); }
-		}
+		Func<ISqlBuilder> IDataContext.CreateSqlProvider => GetCreateSqlProvider(DataProvider);
 
-		static Func<ISqlOptimizer> GetGetSqlOptimizer(IDataProvider dp)
+	    static Func<ISqlOptimizer> GetGetSqlOptimizer(IDataProvider dp)
 		{
 			return dp.GetSqlOptimizer;
 		}
 
-		Func<ISqlOptimizer> IDataContext.GetSqlOptimizer
-		{
-			get { return GetGetSqlOptimizer(DataProvider); }
-		}
+		Func<ISqlOptimizer> IDataContext.GetSqlOptimizer => GetGetSqlOptimizer(DataProvider);
 
-		#endregion
+	    #endregion
 	}
 }

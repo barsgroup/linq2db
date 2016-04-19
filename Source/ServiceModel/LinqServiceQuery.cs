@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace LinqToDB.ServiceModel
+﻿namespace LinqToDB.ServiceModel
 {
-	using SqlQuery;
+    using System.Collections.Generic;
 
-	public class LinqServiceQuery
-	{
-		public SelectQuery    Query      { get; set; }
-		public SqlParameter[] Parameters { get; set; }
-		public List<string>   QueryHints { get; set; }
-	}
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    public class LinqServiceQuery
+    {
+        public ISelectQuery  Query      { get; set; }
+        public ISqlParameter[] Parameters { get; set; }
+        public List<string>   QueryHints { get; set; }
+    }
 }

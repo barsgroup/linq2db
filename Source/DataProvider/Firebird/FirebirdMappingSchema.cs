@@ -1,11 +1,10 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.Firebird
+﻿namespace LinqToDB.DataProvider.Firebird
 {
-	using Mapping;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
-	public class FirebirdMappingSchema : MappingSchema
+    using Mapping;
+
+    public class FirebirdMappingSchema : MappingSchema
 	{
 		public FirebirdMappingSchema() : this(ProviderName.Firebird)
 		{

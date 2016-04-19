@@ -1,13 +1,14 @@
-﻿using System;
-
-namespace LinqToDB.SqlProvider
+﻿namespace LinqToDB.SqlProvider
 {
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	public interface ISqlOptimizer
-	{
-		SelectQuery    Finalize         (SelectQuery selectQuery);
-		ISqlExpression ConvertExpression(ISqlExpression expression);
-		ISqlPredicate  ConvertPredicate (SelectQuery selectQuery, ISqlPredicate  predicate);
-	}
+    public interface ISqlOptimizer
+    {
+        ISelectQuery Finalize         (ISelectQuery selectQuery);
+        IQueryExpression ConvertExpression(IQueryExpression expression);
+        ISqlPredicate  ConvertPredicate (ISelectQuery selectQuery, ISqlPredicate  predicate);
+    }
 }

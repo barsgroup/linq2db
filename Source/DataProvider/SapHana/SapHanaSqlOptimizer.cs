@@ -1,8 +1,12 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.SapHana
+﻿namespace LinqToDB.DataProvider.SapHana
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.QueryElements.Enums;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 
@@ -13,16 +17,16 @@ namespace LinqToDB.DataProvider.SapHana
 
 		}
 
-		public override SelectQuery Finalize(SelectQuery selectQuery)
+		public override ISelectQuery Finalize(ISelectQuery selectQuery)
 		{
 			selectQuery = base.Finalize(selectQuery);
 
-			switch (selectQuery.QueryType)
+			switch (selectQuery.EQueryType)
 			{
-				case QueryType.Delete:
+				case EQueryType.Delete:
 					selectQuery = GetAlternativeDelete(selectQuery);
 					break;
-				case QueryType.Update:
+				case EQueryType.Update:
 					selectQuery = GetAlternativeUpdate(selectQuery);
 					break;
 			}
@@ -30,54 +34,56 @@ namespace LinqToDB.DataProvider.SapHana
 			return selectQuery;
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlFunction)
+		    var function = expr as ISqlFunction;
+		    if (function != null)
 			{
-				var func = expr as SqlFunction;
-				if (func.Name == "Convert")
+			    if (function.Name == "Convert")
 				{
-					var ftype = func.SystemType.ToUnderlying();
+					var ftype = function.SystemType.ToUnderlying();
 
 					if (ftype == typeof(bool))
 					{
-						var ex = AlternativeConvertToBoolean(func, 1);
+						var ex = AlternativeConvertToBoolean(function, 1);
 						if (ex != null)
 							return ex;
 					}
-					return new SqlExpression(func.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(func), func.Parameters[0]);
+					return new SqlExpression(function.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(function), function.Parameters[0]);
 				}
 			}
-			else if (expr is SqlBinaryExpression)
+			else
 			{
-				var be = expr as SqlBinaryExpression;
-
-				switch (be.Operation)
-				{
-					case "%":
-						return new SqlFunction(be.SystemType, "MOD", be.Expr1, be.Expr2);
-					case "&": 
-						return new SqlFunction(be.SystemType, "BITAND", be.Expr1, be.Expr2);
-					case "|":
-						return Sub(
-							Add(be.Expr1, be.Expr2, be.SystemType),
-							new SqlFunction(be.SystemType, "BITAND", be.Expr1, be.Expr2),
-							be.SystemType);
-					case "^": // (a + b) - BITAND(a, b) * 2
-						return Sub(
-							Add(be.Expr1, be.Expr2, be.SystemType),
-							Mul(new SqlFunction(be.SystemType, "BITAND", be.Expr1, be.Expr2), 2),
-							be.SystemType);
-					case "+": 
-						return be.SystemType == typeof(string) ? 
-							new SqlBinaryExpression(be.SystemType, be.Expr1, "||", be.Expr2, be.Precedence) : 
-							expr;
-				}
+			    var sqlBinaryExpression = expr as ISqlBinaryExpression;
+			    if (sqlBinaryExpression != null)
+			    {
+			        switch (sqlBinaryExpression.Operation)
+			        {
+			            case "%":
+			                return new SqlFunction(sqlBinaryExpression.SystemType, "MOD", sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2);
+			            case "&": 
+			                return new SqlFunction(sqlBinaryExpression.SystemType, "BITAND", sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2);
+			            case "|":
+			                return Sub(
+			                    Add(sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2, sqlBinaryExpression.SystemType),
+			                    new SqlFunction(sqlBinaryExpression.SystemType, "BITAND", sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2),
+			                    sqlBinaryExpression.SystemType);
+			            case "^": // (a + b) - BITAND(a, b) * 2
+			                return Sub(
+			                    Add(sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2, sqlBinaryExpression.SystemType),
+			                    Mul(new SqlFunction(sqlBinaryExpression.SystemType, "BITAND", sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2), 2),
+			                    sqlBinaryExpression.SystemType);
+			            case "+": 
+			                return sqlBinaryExpression.SystemType == typeof(string) ? 
+			                           new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "||", sqlBinaryExpression.Expr2, sqlBinaryExpression.Precedence) : 
+			                           expr;
+			        }
+			    }
 			}
 
-			return expr;
+		    return expr;
 		}
 	}
 }

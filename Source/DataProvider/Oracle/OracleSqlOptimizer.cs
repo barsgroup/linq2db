@@ -3,6 +3,12 @@
 namespace LinqToDB.DataProvider.Oracle
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.QueryElements.Enums;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 
@@ -12,124 +18,126 @@ namespace LinqToDB.DataProvider.Oracle
 		{
 		}
 
-		public override SelectQuery Finalize(SelectQuery selectQuery)
+		public override ISelectQuery Finalize(ISelectQuery selectQuery)
 		{
 			CheckAliases(selectQuery, 30);
 
-			new QueryVisitor().Visit(selectQuery.Select, element =>
-			{
-				if (element.ElementType == QueryElementType.SqlParameter)
-					((SqlParameter)element).IsQueryParameter = false;
-			});
+		    foreach (var parameter in QueryVisitor.FindOnce<ISqlParameter>(selectQuery.Select))
+		    {
+		        parameter.IsQueryParameter = false;
+		    }
 
-			selectQuery = base.Finalize(selectQuery);
+		    selectQuery = base.Finalize(selectQuery);
 
-			switch (selectQuery.QueryType)
+			switch (selectQuery.EQueryType)
 			{
-				case QueryType.Delete : return GetAlternativeDelete(selectQuery);
-				case QueryType.Update : return GetAlternativeUpdate(selectQuery);
+				case EQueryType.Delete : return GetAlternativeDelete(selectQuery);
+				case EQueryType.Update : return GetAlternativeUpdate(selectQuery);
 				default               : return selectQuery;
 			}
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+		    var sqlBinaryExpression = expr as ISqlBinaryExpression;
+		    if (sqlBinaryExpression != null)
 			{
-				var be = (SqlBinaryExpression)expr;
-
-				switch (be.Operation)
+				switch (sqlBinaryExpression.Operation)
 				{
-					case "%": return new SqlFunction(be.SystemType, "MOD",    be.Expr1, be.Expr2);
-					case "&": return new SqlFunction(be.SystemType, "BITAND", be.Expr1, be.Expr2);
+					case "%": return new SqlFunction(sqlBinaryExpression.SystemType, "MOD",    sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2);
+					case "&": return new SqlFunction(sqlBinaryExpression.SystemType, "BITAND", sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2);
 					case "|": // (a + b) - BITAND(a, b)
 						return Sub(
-							Add(be.Expr1, be.Expr2, be.SystemType),
-							new SqlFunction(be.SystemType, "BITAND", be.Expr1, be.Expr2),
-							be.SystemType);
+							Add(sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2, sqlBinaryExpression.SystemType),
+							new SqlFunction(sqlBinaryExpression.SystemType, "BITAND", sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2),
+							sqlBinaryExpression.SystemType);
 
 					case "^": // (a + b) - BITAND(a, b) * 2
 						return Sub(
-							Add(be.Expr1, be.Expr2, be.SystemType),
-							Mul(new SqlFunction(be.SystemType, "BITAND", be.Expr1, be.Expr2), 2),
-							be.SystemType);
-					case "+": return be.SystemType == typeof(string)? new SqlBinaryExpression(be.SystemType, be.Expr1, "||", be.Expr2, be.Precedence): expr;
+							Add(sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2, sqlBinaryExpression.SystemType),
+							Mul(new SqlFunction(sqlBinaryExpression.SystemType, "BITAND", sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2), 2),
+							sqlBinaryExpression.SystemType);
+					case "+": return sqlBinaryExpression.SystemType == typeof(string)? new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "||", sqlBinaryExpression.Expr2, sqlBinaryExpression.Precedence): expr;
 				}
 			}
-			else if (expr is SqlFunction)
-			{
-				var func = (SqlFunction) expr;
+			else
+		    {
+		        var sqlFunction = expr as ISqlFunction;
+		        if (sqlFunction != null)
+		        {
+		            switch (sqlFunction.Name)
+		            {
+		                case "Coalesce"       : return new SqlFunction(sqlFunction.SystemType, "Nvl", sqlFunction.Parameters);
+		                case "Convert"        :
+		                {
+		                    var ftype = sqlFunction.SystemType.ToUnderlying();
 
-				switch (func.Name)
-				{
-					case "Coalesce"       : return new SqlFunction(func.SystemType, "Nvl", func.Parameters);
-					case "Convert"        :
-						{
-							var ftype = func.SystemType.ToUnderlying();
+		                    if (ftype == typeof(bool))
+		                    {
+		                        var ex = AlternativeConvertToBoolean(sqlFunction, 1);
+		                        if (ex != null)
+		                            return ex;
+		                    }
 
-							if (ftype == typeof(bool))
-							{
-								var ex = AlternativeConvertToBoolean(func, 1);
-								if (ex != null)
-									return ex;
-							}
+		                    if (ftype == typeof(DateTime) || ftype == typeof(DateTimeOffset))
+		                    {
+		                        if (IsTimeDataType(sqlFunction.Parameters[0]))
+		                        {
+		                            if (sqlFunction.Parameters[1].SystemType == typeof(string))
+		                                return sqlFunction.Parameters[1];
 
-							if (ftype == typeof(DateTime) || ftype == typeof(DateTimeOffset))
-							{
-								if (IsTimeDataType(func.Parameters[0]))
-								{
-									if (func.Parameters[1].SystemType == typeof(string))
-										return func.Parameters[1];
+		                            return new SqlFunction(sqlFunction.SystemType, "To_Char", sqlFunction.Parameters[1], new SqlValue("HH24:MI:SS"));
+		                        }
 
-									return new SqlFunction(func.SystemType, "To_Char", func.Parameters[1], new SqlValue("HH24:MI:SS"));
-								}
+		                        if (sqlFunction.Parameters[1].SystemType.ToUnderlying() == typeof(DateTime) &&
+		                            IsDateDataType(sqlFunction.Parameters[0], "Date"))
+		                        {
+		                            return new SqlFunction(sqlFunction.SystemType, "Trunc", sqlFunction.Parameters[1], new SqlValue("DD"));
+		                        }
 
-								if (func.Parameters[1].SystemType.ToUnderlying() == typeof(DateTime) &&
-									IsDateDataType(func.Parameters[0], "Date"))
-								{
-									return new SqlFunction(func.SystemType, "Trunc", func.Parameters[1], new SqlValue("DD"));
-								}
+		                        return new SqlFunction(sqlFunction.SystemType, "To_Timestamp", sqlFunction.Parameters[1], new SqlValue("YYYY-MM-DD HH24:MI:SS"));
+		                    }
 
-								return new SqlFunction(func.SystemType, "To_Timestamp", func.Parameters[1], new SqlValue("YYYY-MM-DD HH24:MI:SS"));
-							}
+		                    return new SqlExpression(sqlFunction.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(sqlFunction), sqlFunction.Parameters[0]);
+		                }
 
-							return new SqlExpression(func.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(func), func.Parameters[0]);
-						}
+		                case "CharIndex"      :
+		                    return sqlFunction.Parameters.Length == 2?
+		                               new SqlFunction(sqlFunction.SystemType, "InStr", sqlFunction.Parameters[1], sqlFunction.Parameters[0]):
+		                               new SqlFunction(sqlFunction.SystemType, "InStr", sqlFunction.Parameters[1], sqlFunction.Parameters[0], sqlFunction.Parameters[2]);
+		                case "AddYear"        : return new SqlFunction(sqlFunction.SystemType, "Add_Months", sqlFunction.Parameters[0], Mul(sqlFunction.Parameters[1], 12));
+		                case "AddQuarter"     : return new SqlFunction(sqlFunction.SystemType, "Add_Months", sqlFunction.Parameters[0], Mul(sqlFunction.Parameters[1],  3));
+		                case "AddMonth"       : return new SqlFunction(sqlFunction.SystemType, "Add_Months", sqlFunction.Parameters[0],     sqlFunction.Parameters[1]);
+		                case "AddDayOfYear"   :
+		                case "AddWeekDay"     :
+		                case "AddDay"         : return Add<DateTime>(sqlFunction.Parameters[0],     sqlFunction.Parameters[1]);
+		                case "AddWeek"        : return Add<DateTime>(sqlFunction.Parameters[0], Mul(sqlFunction.Parameters[1], 7));
+		                case "AddHour"        : return Add<DateTime>(sqlFunction.Parameters[0], Div(sqlFunction.Parameters[1],                  24));
+		                case "AddMinute"      : return Add<DateTime>(sqlFunction.Parameters[0], Div(sqlFunction.Parameters[1],             60 * 24));
+		                case "AddSecond"      : return Add<DateTime>(sqlFunction.Parameters[0], Div(sqlFunction.Parameters[1],        60 * 60 * 24));
+		                case "AddMillisecond" : return Add<DateTime>(sqlFunction.Parameters[0], Div(sqlFunction.Parameters[1], 1000 * 60 * 60 * 24));
+		                case "Avg"            : 
+		                    return new SqlFunction(
+		                        sqlFunction.SystemType,
+		                        "Round",
+		                        new SqlFunction(sqlFunction.SystemType, "AVG", sqlFunction.Parameters[0]),
+		                        new SqlValue(27));
+		            }
+		        }
+		        else
+		        {
+		            var sqlExpression = expr as ISqlExpression;
+		            if (sqlExpression != null)
+		            {
+		                if (sqlExpression.Expr.StartsWith("To_Number(To_Char(") && sqlExpression.Expr.EndsWith(", 'FF'))"))
+		                    return Div(new SqlExpression(sqlExpression.SystemType, sqlExpression.Expr.Replace("To_Number(To_Char(", "to_Number(To_Char("), sqlExpression.Parameters), 1000);
+		            }
+		        }
+		    }
 
-					case "CharIndex"      :
-						return func.Parameters.Length == 2?
-							new SqlFunction(func.SystemType, "InStr", func.Parameters[1], func.Parameters[0]):
-							new SqlFunction(func.SystemType, "InStr", func.Parameters[1], func.Parameters[0], func.Parameters[2]);
-					case "AddYear"        : return new SqlFunction(func.SystemType, "Add_Months", func.Parameters[0], Mul(func.Parameters[1], 12));
-					case "AddQuarter"     : return new SqlFunction(func.SystemType, "Add_Months", func.Parameters[0], Mul(func.Parameters[1],  3));
-					case "AddMonth"       : return new SqlFunction(func.SystemType, "Add_Months", func.Parameters[0],     func.Parameters[1]);
-					case "AddDayOfYear"   :
-					case "AddWeekDay"     :
-					case "AddDay"         : return Add<DateTime>(func.Parameters[0],     func.Parameters[1]);
-					case "AddWeek"        : return Add<DateTime>(func.Parameters[0], Mul(func.Parameters[1], 7));
-					case "AddHour"        : return Add<DateTime>(func.Parameters[0], Div(func.Parameters[1],                  24));
-					case "AddMinute"      : return Add<DateTime>(func.Parameters[0], Div(func.Parameters[1],             60 * 24));
-					case "AddSecond"      : return Add<DateTime>(func.Parameters[0], Div(func.Parameters[1],        60 * 60 * 24));
-					case "AddMillisecond" : return Add<DateTime>(func.Parameters[0], Div(func.Parameters[1], 1000 * 60 * 60 * 24));
-					case "Avg"            : 
-						return new SqlFunction(
-							func.SystemType,
-							"Round",
-							new SqlFunction(func.SystemType, "AVG", func.Parameters[0]),
-							new SqlValue(27));
-				}
-			}
-			else if (expr is SqlExpression)
-			{
-				var e = (SqlExpression)expr;
-
-				if (e.Expr.StartsWith("To_Number(To_Char(") && e.Expr.EndsWith(", 'FF'))"))
-					return Div(new SqlExpression(e.SystemType, e.Expr.Replace("To_Number(To_Char(", "to_Number(To_Char("), e.Parameters), 1000);
-			}
-
-			return expr;
+		    return expr;
 		}
 
 	}

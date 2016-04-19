@@ -40,11 +40,13 @@ namespace LinqToDB.DataProvider.Sybase
 			_sqlOptimizer = new SybaseSqlOptimizer(SqlProviderFlags);
 		}
 
-		public    override string ConnectionNamespace { get { return SybaseTools.AssemblyName; } }
-		protected override string ConnectionTypeName  { get { return "{1}, {0}".Args(ConnectionNamespace, "Sybase.Data.AseClient.AseConnection"); } }
-		protected override string DataReaderTypeName  { get { return "{1}, {0}".Args(ConnectionNamespace, "Sybase.Data.AseClient.AseDataReader"); } }
+		public    override string ConnectionNamespace => SybaseTools.AssemblyName;
 
-		static DateTime GetDateTime(IDataReader dr, int idx)
+	    protected override string ConnectionTypeName => "{1}, {0}".Args(ConnectionNamespace, "Sybase.Data.AseClient.AseConnection");
+
+	    protected override string DataReaderTypeName => "{1}, {0}".Args(ConnectionNamespace, "Sybase.Data.AseClient.AseDataReader");
+
+	    static DateTime GetDateTime(IDataReader dr, int idx)
 		{
 			var value = dr.GetDateTime(idx);
 
@@ -127,14 +129,23 @@ namespace LinqToDB.DataProvider.Sybase
 
 				case DataType.Xml        :
 					dataType = DataType.NVarChar;
-					     if (value is XDocument)   value = value.ToString();
-					else if (value is XmlDocument) value = ((XmlDocument)value).InnerXml;
-					break;
+			        if (value is XDocument)
+			        {
+			            value = value.ToString();
+			        }
+					else
+					     {
+					         var xmlDocument = value as XmlDocument;
+					         if (xmlDocument != null)
+					         {
+					             value = xmlDocument.InnerXml;
+					         }
+					     }
+			        break;
 
 				case DataType.Guid       :
-					if (value != null)
-						value = value.ToString();
-					dataType = DataType.Char;
+			        value = value?.ToString();
+			        dataType = DataType.Char;
 					parameter.Size = 36;
 					break;
 
@@ -184,7 +195,7 @@ namespace LinqToDB.DataProvider.Sybase
 		#region BulkCopy
 
 		public override BulkCopyRowsCopied BulkCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+			[Properties.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
 			return new SybaseBulkCopy().BulkCopy(
 				options.BulkCopyType == BulkCopyType.Default ? SybaseTools.DefaultBulkCopyType : options.BulkCopyType,

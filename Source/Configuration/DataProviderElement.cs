@@ -1,4 +1,3 @@
-using System;
 using System.Configuration;
 
 namespace LinqToDB.Configuration
@@ -21,26 +20,17 @@ namespace LinqToDB.Configuration
 		/// <summary>
 		/// Gets or sets an assembly qualified type name of this data provider.
 		/// </summary>
-		public string TypeName
-		{
-			get { return (string)base[_propTypeName]; }
-		}
+		public string TypeName => (string)base[_propTypeName];
 
-		/// <summary>
+	    /// <summary>
 		/// Gets or sets a name of this data provider.
 		/// If not set, <see cref="DataProviderBase.Name"/> is used.
 		/// </summary>
-		public string Name
-		{
-			get { return (string)base[_propName]; }
-		}
+		public string Name => (string)base[_propName];
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether the provider is default.
 		/// </summary>
-		public bool Default
-		{
-			get { return (bool)base[_propDefault]; }
-		}
+		public bool Default => (bool)base[_propDefault];
 	}
 }

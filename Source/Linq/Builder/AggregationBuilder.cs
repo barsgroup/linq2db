@@ -5,165 +5,169 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using Common;
-	using LinqToDB.Expressions;
-	using Extensions;
-	using SqlQuery;
+    using Common;
+    using LinqToDB.Expressions;
+    using Extensions;
 
-	class AggregationBuilder : MethodCallBuilder
-	{
-		public static string[] MethodNames = new[] { "Average", "Min", "Max", "Sum" };
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			return methodCall.IsQueryable(MethodNames);
-		}
+    class AggregationBuilder : MethodCallBuilder
+    {
+        public static string[] MethodNames = new[] { "Average", "Min", "Max", "Sum" };
 
-		protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            return methodCall.IsQueryable(MethodNames);
+        }
 
-			if (sequence.SelectQuery.Select.IsDistinct        ||
-			    sequence.SelectQuery.Select.TakeValue != null ||
-			    sequence.SelectQuery.Select.SkipValue != null ||
-			   !sequence.SelectQuery.GroupBy.IsEmpty)
-			{
-				sequence = new SubQueryContext(sequence);
-			}
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
-			if (sequence.SelectQuery.OrderBy.Items.Count > 0)
-			{
-				if (sequence.SelectQuery.Select.TakeValue == null && sequence.SelectQuery.Select.SkipValue == null)
-					sequence.SelectQuery.OrderBy.Items.Clear();
-				else
-					sequence = new SubQueryContext(sequence);
-			}
+            if (sequence.Select.Select.IsDistinct        ||
+                sequence.Select.Select.TakeValue != null ||
+                sequence.Select.Select.SkipValue != null ||
+               !sequence.Select.GroupBy.IsEmpty)
+            {
+                sequence = new SubQueryContext(sequence);
+            }
 
-			var context = new AggregationContext(buildInfo.Parent, sequence, methodCall);
-			var sql     = sequence.ConvertToSql(null, 0, ConvertFlags.Field).Select(_ => _.Sql).ToArray();
+            if (sequence.Select.OrderBy.Items.Count > 0)
+            {
+                if (sequence.Select.Select.TakeValue == null && sequence.Select.Select.SkipValue == null)
+                    sequence.Select.OrderBy.Items.Clear();
+                else
+                    sequence = new SubQueryContext(sequence);
+            }
 
-			if (sql.Length == 1 && sql[0] is SelectQuery)
-			{
-				var query = (SelectQuery)sql[0];
+            var context = new AggregationContext(buildInfo.Parent, sequence, methodCall);
+            var sql     = sequence.ConvertToSql(null, 0, ConvertFlags.Field).Select(_ => _.Sql).ToArray();
 
-				if (query.Select.Columns.Count == 1)
-				{
-					var join = SelectQuery.OuterApply(query);
-					context.SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
-					sql[0] = query.Select.Columns[0];
-				}
-			}
+            if (sql.Length == 1 && sql[0] is ISelectQuery)
+            {
+                var query = (ISelectQuery)sql[0];
 
-			context.Sql        = context.SelectQuery;
-			context.FieldIndex = context.SelectQuery.Select.Add(
-				new SqlFunction(methodCall.Type, methodCall.Method.Name, sql));
+                if (query.Select.Columns.Count == 1)
+                {
+                    var join = SelectQuery.OuterApply(query);
+                    context.Select.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
+                    sql[0] = query.Select.Columns[0];
+                }
+            }
 
-			return context;
-		}
+            context.Sql        = context.Select;
+            context.FieldIndex = context.Select.Select.Add(
+                new SqlFunction(methodCall.Type, methodCall.Method.Name, sql));
 
-		protected override SequenceConvertInfo Convert(
-			ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
-		{
-			return null;
-		}
+            return context;
+        }
 
-		class AggregationContext : SequenceContextBase
-		{
-			public AggregationContext(IBuildContext parent, IBuildContext sequence, MethodCallExpression methodCall)
-				: base(parent, sequence, null)
-			{
-				_returnType = methodCall.Method.ReturnType;
-				_methodName = methodCall.Method.Name;
-			}
+        protected override SequenceConvertInfo Convert(
+            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+        {
+            return null;
+        }
 
-			readonly string _methodName;
-			readonly Type   _returnType;
-			private  SqlInfo[] _index;
+        class AggregationContext : SequenceContextBase
+        {
+            public AggregationContext(IBuildContext parent, IBuildContext sequence, MethodCallExpression methodCall)
+                : base(parent, sequence, null)
+            {
+                _returnType = methodCall.Method.ReturnType;
+                _methodName = methodCall.Method.Name;
+            }
 
-			public int            FieldIndex;
-			public ISqlExpression Sql;
+            readonly string _methodName;
+            readonly Type   _returnType;
+            private  SqlInfo[] _index;
 
-			static int CheckNullValue(IDataRecord reader, object context)
-			{
-				if (reader.IsDBNull(0))
-					throw new InvalidOperationException(
-						"Function {0} returns non-nullable value, but result is NULL. Use nullable version of the function instead."
-						.Args(context));
-				return 0;
-			}
+            public int            FieldIndex;
+            public IQueryExpression Sql;
 
-			public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
-			{
-				var expr   = BuildExpression(FieldIndex);
-				var mapper = Builder.BuildMapper<object>(expr);
+            static int CheckNullValue(IDataRecord reader, object context)
+            {
+                if (reader.IsDBNull(0))
+                    throw new InvalidOperationException(
+                        "Function {0} returns non-nullable value, but result is NULL. Use nullable version of the function instead."
+                        .Args(context));
+                return 0;
+            }
 
-				query.SetElementQuery(mapper.Compile());
-			}
+            public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
+            {
+                var expr   = BuildExpression(FieldIndex);
+                var mapper = Builder.BuildMapper<object>(expr);
 
-			public override Expression BuildExpression(Expression expression, int level)
-			{
-				return BuildExpression(ConvertToIndex(expression, level, ConvertFlags.Field)[0].Index);
-			}
+                query.SetElementQuery(mapper.Compile());
+            }
 
-			Expression BuildExpression(int fieldIndex)
-			{
-				Expression expr;
+            public override Expression BuildExpression(Expression expression, int level)
+            {
+                return BuildExpression(ConvertToIndex(expression, level, ConvertFlags.Field)[0].Index);
+            }
 
-				if (_returnType.IsClassEx() || _methodName == "Sum" || _returnType.IsNullable())
-				{
-					expr = Builder.BuildSql(_returnType, fieldIndex);
-				}
-				else
-				{
-					expr = Expression.Block(
-						Expression.Call(null, MemberHelper.MethodOf(() => CheckNullValue(null, null)), ExpressionBuilder.DataReaderParam, Expression.Constant(_methodName)),
-						Builder.BuildSql(_returnType, fieldIndex));
-				}
+            Expression BuildExpression(int fieldIndex)
+            {
+                Expression expr;
 
-				return expr;
-			}
+                if (_returnType.IsClassEx() || _methodName == "Sum" || _returnType.IsNullable())
+                {
+                    expr = Builder.BuildSql(_returnType, fieldIndex);
+                }
+                else
+                {
+                    expr = Expression.Block(
+                        Expression.Call(null, MemberHelper.MethodOf(() => CheckNullValue(null, null)), ExpressionBuilder.DataReaderParam, Expression.Constant(_methodName)),
+                        Builder.BuildSql(_returnType, fieldIndex));
+                }
 
-			public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
-			{
-				switch (flags)
-				{
-					case ConvertFlags.All   :
-					case ConvertFlags.Key   :
-					case ConvertFlags.Field : return Sequence.ConvertToSql(expression, level + 1, flags);
-				}
+                return expr;
+            }
 
-				throw new InvalidOperationException();
-			}
+            public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
+            {
+                switch (flags)
+                {
+                    case ConvertFlags.All   :
+                    case ConvertFlags.Key   :
+                    case ConvertFlags.Field : return Sequence.ConvertToSql(expression, level + 1, flags);
+                }
 
-			public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
-			{
-				switch (flags)
-				{
-					case ConvertFlags.Field :
-						return _index ?? (_index = new[]
-						{
-							new SqlInfo { Query = Parent.SelectQuery, Index = Parent.SelectQuery.Select.Add(Sql), Sql = Sql, }
-						});
-				}
+                throw new InvalidOperationException();
+            }
 
-				throw new InvalidOperationException();
-			}
+            public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
+            {
+                switch (flags)
+                {
+                    case ConvertFlags.Field :
+                        return _index ?? (_index = new[]
+                        {
+                            new SqlInfo { Query = Parent.Select, Index = Parent.Select.Select.Add(Sql), Sql = Sql, }
+                        });
+                }
 
-			public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor requestFlag)
-			{
-				switch (requestFlag)
-				{
-					case RequestFor.Root       : return new IsExpressionResult(Lambda != null && expression == Lambda.Parameters[0]);
-					case RequestFor.Expression : return IsExpressionResult.True;
-				}
+                throw new InvalidOperationException();
+            }
 
-				return IsExpressionResult.False;
-			}
+            public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor requestFlag)
+            {
+                switch (requestFlag)
+                {
+                    case RequestFor.Root       : return new IsExpressionResult(Lambda != null && expression == Lambda.Parameters[0]);
+                    case RequestFor.Expression : return IsExpressionResult.True;
+                }
 
-			public override IBuildContext GetContext(Expression expression, int level, BuildInfo buildInfo)
-			{
-				throw new NotImplementedException();
-			}
-		}
-	}
+                return IsExpressionResult.False;
+            }
+
+            public override IBuildContext GetContext(Expression expression, int level, BuildInfo buildInfo)
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
 }

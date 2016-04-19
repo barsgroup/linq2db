@@ -1,11 +1,10 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.SapHana
+﻿namespace LinqToDB.DataProvider.SapHana
 {
-	using Mapping;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
-	public class SapHanaMappingSchema : MappingSchema
+    using Mapping;
+
+    public class SapHanaMappingSchema : MappingSchema
 	{
 		public SapHanaMappingSchema() : this(ProviderName.SapHana)
 		{

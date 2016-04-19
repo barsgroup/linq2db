@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Specialized;
-
-using JetBrains.Annotations;
+﻿using System.Collections.Specialized;
 
 namespace LinqToDB.DataProvider.SqlServer
 {
-	[UsedImplicitly]
+    using LinqToDB.Properties;
+
+    [UsedImplicitly]
 	class SqlServerFactory : IDataProviderFactory
 	{
 		#region IDataProviderFactory Implementation

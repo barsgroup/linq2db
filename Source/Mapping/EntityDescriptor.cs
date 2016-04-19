@@ -52,9 +52,9 @@ namespace LinqToDB.Mapping
 			}
 		}
 
-		public Type ObjectType { get { return TypeAccessor.Type; } }
+		public Type ObjectType => TypeAccessor.Type;
 
-		void Init()
+	    void Init()
 		{
 			var ta = _mappingSchema.GetAttribute<TableAttribute>(TypeAccessor.Type, a => a.Configuration);
 

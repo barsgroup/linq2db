@@ -1,11 +1,9 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.DB2
+﻿namespace LinqToDB.DataProvider.DB2
 {
-	public enum DB2IdentifierQuoteMode
-	{
-		None,
-		Quote,
-		Auto
-	}
+    public enum DB2IdentifierQuoteMode
+    {
+        None,
+        Quote,
+        Auto
+    }
 }

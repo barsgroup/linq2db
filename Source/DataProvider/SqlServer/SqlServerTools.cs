@@ -5,13 +5,13 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Reflection;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.DataProvider.SqlServer
 {
 	using Data;
 
-	public static class SqlServerTools
+	using LinqToDB.Properties;
+
+    public static class SqlServerTools
 	{
 		#region Init
 
@@ -143,7 +143,7 @@ namespace LinqToDB.DataProvider.SqlServer
 
 		public static void ResolveSqlTypes([NotNull] string path)
 		{
-			if (path == null) throw new ArgumentNullException("path");
+			if (path == null) throw new ArgumentNullException(nameof(path));
 			new AssemblyResolver(path, "Microsoft.SqlServer.Types");
 		}
 

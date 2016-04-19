@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
 namespace LinqToDB.DataProvider.SqlServer
 {
-	using Mapping;
+    using LinqToDB.SqlEntities;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    using Mapping;
 	using SqlQuery;
 
 	public class FreeTextTableExpressionAttribute : Sql.TableExpressionAttribute
@@ -23,10 +27,10 @@ namespace LinqToDB.DataProvider.SqlServer
 			return value;
 		}
 
-		public override void SetTable(MappingSchema mappingSchema, SqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<ISqlExpression> sqlArgs)
+		public override void SetTable(MappingSchema mappingSchema, ISqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<IQueryExpression> sqlArgs)
 		{
 			var aargs  = sqlArgs.ToArray();
-			var arr    = ConvertArgs(member, aargs).ToList();
+			var list    = ConvertArgs(member, aargs).ToList();
 			var method = (MethodInfo)member;
 
 			{
@@ -46,7 +50,7 @@ namespace LinqToDB.DataProvider.SqlServer
 
 				name += physicalName;
 
-				arr.Add(new SqlExpression(name, Precedence.Primary));
+				list.Add(new SqlExpression(name, Precedence.Primary));
 			}
 
 			{
@@ -54,27 +58,34 @@ namespace LinqToDB.DataProvider.SqlServer
 
 				if (field is string)
 				{
-					arr[0] = new SqlExpression(field.ToString(), Precedence.Primary);
+					list[0] = new SqlExpression(field.ToString(), Precedence.Primary);
 				}
-				else if (field is LambdaExpression)
+				else
 				{
-					var body = ((LambdaExpression)field).Body;
+				    var body = (field as LambdaExpression)?.Body;
 
-					if (body is MemberExpression)
-					{
-						var name = ((MemberExpression)body).Member.Name;
+				    var memberExpression = body as MemberExpression;
+				    if (memberExpression != null)
+				    {
+				        var name = memberExpression.Member.Name;
 
-						if (name.Length > 0 && name[0] != '[')
-							name = "[" + name + "]";
+				        if (name.Length > 0 && name[0] != '[')
+				            name = "[" + name + "]";
 
-						arr[0] = new SqlExpression(name, Precedence.Primary);
-					}
+				        list[0] = new SqlExpression(name, Precedence.Primary);
+				    }
 				}
 			}
 
-			table.SqlTableType   = SqlTableType.Expression;
+			table.SqlTableType   = ESqlTableType.Expression;
 			table.Name           = "FREETEXTTABLE({6}, {2}, {3}) {1}";
-			table.TableArguments = arr.ToArray();
-		}
+
+            table.TableArguments.Clear();
+            for (var i = 0; i < list.Count; i++)
+            {
+                table.TableArguments.AddLast(list[i]);
+
+            }
+        }
 	}
 }

@@ -10,10 +10,13 @@ namespace LinqToDB.DataProvider.SqlServer
 {
 	using Common;
 	using Expressions;
-	using Mapping;
-	using SqlQuery;
 
-	public class SqlServerMappingSchema : MappingSchema
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+	using Mapping;
+
+    public class SqlServerMappingSchema : MappingSchema
 	{
 		public SqlServerMappingSchema()
 			: base(ProviderName.SqlServer)
@@ -68,8 +71,8 @@ namespace LinqToDB.DataProvider.SqlServer
 			{
 			}
 
-			SetValueToSqlConverter(typeof(String),         (sb,dt,v) => ConvertStringToSql        (sb, dt, v.ToString()));
-			SetValueToSqlConverter(typeof(Char),           (sb,dt,v) => ConvertCharToSql          (sb, dt, (char)v));
+			SetValueToSqlConverter(typeof(string),         (sb,dt,v) => ConvertStringToSql        (sb, dt, v.ToString()));
+			SetValueToSqlConverter(typeof(char),           (sb,dt,v) => ConvertCharToSql          (sb, dt, (char)v));
 			SetValueToSqlConverter(typeof(DateTime),       (sb,dt,v) => ConvertDateTimeToSql      (sb, (DateTime)v));
 			SetValueToSqlConverter(typeof(TimeSpan),       (sb,dt,v) => ConvertTimeSpanToSql      (sb, dt, (TimeSpan)v));
 			SetValueToSqlConverter(typeof(DateTimeOffset), (sb,dt,v) => ConvertDateTimeOffsetToSql(sb, dt, (DateTimeOffset)v));
@@ -112,7 +115,7 @@ namespace LinqToDB.DataProvider.SqlServer
 				;
 		}
 
-		static void ConvertStringToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, string value)
+		static void ConvertStringToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, string value)
 		{
 			string start;
 
@@ -131,7 +134,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			DataTools.ConvertStringToSql(stringBuilder, "+", start, AppendConversion, value);
 		}
 
-		static void ConvertCharToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, char value)
+		static void ConvertCharToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, char value)
 		{
 			string start;
 
@@ -166,7 +169,7 @@ namespace LinqToDB.DataProvider.SqlServer
 				;
 		}
 
-		static void ConvertTimeSpanToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, TimeSpan value)
+		static void ConvertTimeSpanToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, TimeSpan value)
 		{
 			if (sqlDataType.DataType == DataType.Int64)
 			{
@@ -190,7 +193,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			}
 		}
 
-		static void ConvertDateTimeOffsetToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, DateTimeOffset value)
+		static void ConvertDateTimeOffsetToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, DateTimeOffset value)
 		{
 			var format = "'{0:yyyy-MM-dd HH:mm:ss.fffffff zzz}'";
 

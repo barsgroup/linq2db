@@ -3,12 +3,12 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq
 {
-	public interface IExpressionQuery<
+    public interface IExpressionQuery<
 #if !SL4
-		out
+        out
 #endif
  T> : IOrderedQueryable<T>, IExpressionQuery, IQueryProvider
-	{
-		new Expression Expression { get; set; }
-	}
+    {
+        new Expression Expression { get; set; }
+    }
 }

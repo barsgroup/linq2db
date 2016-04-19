@@ -1,26 +1,25 @@
-﻿using System;
-using System.Collections;
-
-using JetBrains.Annotations;
+﻿using System.Collections;
 
 namespace LinqToDB.Common
 {
-	public static class Tools
-	{
-		[StringFormatMethod("format")]
-		public static string Args(this string format, params object[] args)
-		{
-			return string.Format(format, args);
-		}
+    using LinqToDB.Properties;
 
-		public static bool IsNullOrEmpty(this ICollection array)
-		{
-			return array == null || array.Count == 0;
-		}
+    public static class Tools
+    {
+        [StringFormatMethod("format")]
+        public static string Args(this string format, params object[] args)
+        {
+            return string.Format(format, args);
+        }
 
-		public static bool IsNullOrEmpty(this string str)
-		{
-			return string.IsNullOrEmpty(str);
-		}
-	}
+        public static bool IsNullOrEmpty(this ICollection array)
+        {
+            return array == null || array.Count == 0;
+        }
+
+        public static bool IsNullOrEmpty(this string str)
+        {
+            return string.IsNullOrEmpty(str);
+        }
+    }
 }

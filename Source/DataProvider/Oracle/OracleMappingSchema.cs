@@ -6,10 +6,13 @@ namespace LinqToDB.DataProvider.Oracle
 {
 	using Common;
 	using Expressions;
-	using Mapping;
-	using SqlQuery;
 
-	public class OracleMappingSchema : MappingSchema
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+	using Mapping;
+
+    public class OracleMappingSchema : MappingSchema
 	{
 		public OracleMappingSchema() : this(ProviderName.Oracle)
 		{
@@ -27,8 +30,8 @@ namespace LinqToDB.DataProvider.Oracle
 			SetValueToSqlConverter(typeof(Guid),     (sb,dt,v) => ConvertGuidToSql    (sb,     (Guid)    v));
 			SetValueToSqlConverter(typeof(DateTime), (sb,dt,v) => ConvertDateTimeToSql(sb, dt, (DateTime)v));
 
-			SetValueToSqlConverter(typeof(String),   (sb,dt,v) => ConvertStringToSql  (sb, v.ToString()));
-			SetValueToSqlConverter(typeof(Char),     (sb,dt,v) => ConvertCharToSql    (sb, (char)v));
+			SetValueToSqlConverter(typeof(string),   (sb,dt,v) => ConvertStringToSql  (sb, v.ToString()));
+			SetValueToSqlConverter(typeof(char),     (sb,dt,v) => ConvertCharToSql    (sb, (char)v));
 		}
 
 		static void AppendConversion(StringBuilder stringBuilder, int value)
@@ -89,7 +92,7 @@ namespace LinqToDB.DataProvider.Oracle
 				;
 		}
 
-		static void ConvertDateTimeToSql(StringBuilder stringBuilder, SqlDataType dataType, DateTime value)
+		static void ConvertDateTimeToSql(StringBuilder stringBuilder, ISqlDataType dataType, DateTime value)
 		{
 			var format =
 				dataType.DataType == DataType.DateTime ?

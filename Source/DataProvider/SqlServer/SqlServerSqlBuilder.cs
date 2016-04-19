@@ -1,12 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
 namespace LinqToDB.DataProvider.SqlServer
 {
-	using SqlQuery;
-	using SqlProvider;
+    using System;
+
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	abstract class SqlServerSqlBuilder : BasicSqlBuilder
 	{
@@ -15,14 +24,11 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 		}
 
-		protected virtual  bool BuildAlternativeSql { get { return true; } }
+		protected virtual  bool BuildAlternativeSql => true;
 
-		protected override string FirstFormat
-		{
-			get { return SelectQuery.Select.SkipValue == null ? "TOP ({0})" : null; }
-		}
+	    protected override string FirstFormat => SelectQuery.Select.SkipValue == null ? "TOP ({0})" : null;
 
-		protected override void BuildSql()
+	    protected override void BuildSql()
 		{
 			if (BuildAlternativeSql)
 				AlternativeBuildSql(true, base.BuildSql);
@@ -59,7 +65,7 @@ namespace LinqToDB.DataProvider.SqlServer
 				base.BuildOrderByClause();
 		}
 
-		protected override IEnumerable<SelectQuery.Column> GetSelectedColumns()
+		protected override IEnumerable<IColumn> GetSelectedColumns()
 		{
 			if (BuildAlternativeSql && NeedSkip && !SelectQuery.OrderBy.IsEmpty)
 				return AlternativeGetSelectedColumns(base.GetSelectedColumns);
@@ -70,7 +76,7 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 			var table = SelectQuery.Delete.Table != null ?
 				(SelectQuery.From.FindTableSource(SelectQuery.Delete.Table) ?? SelectQuery.Delete.Table) :
-				SelectQuery.From.Tables[0];
+				SelectQuery.From.Tables.First.Value;
 
 			AppendIndent()
 				.Append("DELETE");
@@ -87,26 +93,26 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 			var table = SelectQuery.Update.Table != null ?
 				(SelectQuery.From.FindTableSource(SelectQuery.Update.Table) ?? SelectQuery.Update.Table) :
-				SelectQuery.From.Tables[0];
+				SelectQuery.From.Tables.First.Value;
 
-			if (table is SqlTable)
+			if (table is ISqlTable)
 				BuildPhysicalTable(table, null);
 			else
 				StringBuilder.Append(Convert(GetTableAlias(table), ConvertType.NameToQueryTableAlias));
 		}
 
-		protected override void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = false;
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SelectQuery.SearchCondition)
+				if (expr is ISearchCondition)
 					wrap = true;
 				else
 				{
-					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SelectQuery.SearchCondition;
+					var ex = expr as ISqlExpression;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
 
@@ -115,28 +121,32 @@ namespace LinqToDB.DataProvider.SqlServer
 			if (wrap) StringBuilder.Append(" THEN 1 ELSE 0 END");
 		}
 
-		protected override void BuildLikePredicate(SelectQuery.Predicate.Like predicate)
+		protected override void BuildLikePredicate(ILike predicate)
 		{
-			if (predicate.Expr2 is SqlValue)
+		    var sqlValue = predicate.Expr2 as ISqlValue;
+		    if (sqlValue != null)
 			{
-				var value = ((SqlValue)predicate.Expr2).Value;
+				var value = sqlValue.Value;
 
 				if (value != null)
 				{
-					var text  = ((SqlValue)predicate.Expr2).Value.ToString();
+					var text  = value.ToString();
 					var ntext = text.Replace("[", "[[]");
 
 					if (text != ntext)
-						predicate = new SelectQuery.Predicate.Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
+						predicate = new Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
 				}
 			}
-			else if (predicate.Expr2 is SqlParameter)
-			{
-				var p = ((SqlParameter)predicate.Expr2);
-				p.ReplaceLike = true;
-			}
+			else
+		    {
+		        var sqlParameter = predicate.Expr2 as ISqlParameter;
+		        if (sqlParameter != null)
+		        {
+		            sqlParameter.ReplaceLike = true;
+		        }
+		    }
 
-			base.BuildLikePredicate(predicate);
+		    base.BuildLikePredicate(predicate);
 		}
 
 		public override object Convert(object value, ConvertType convertType)
@@ -195,7 +205,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			BuildInsertOrUpdateQueryAsUpdateInsert();
 		}
 
-		protected override void BuildCreateTableIdentityAttribute2(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute2(ISqlField field)
 		{
 			StringBuilder.Append("IDENTITY");
 		}
@@ -234,7 +244,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			}
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{

@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 
 namespace LinqToDB.DataProvider.Oracle
 {
 	using Data;
-	using Mapping;
+
+	using LinqToDB.Properties;
+
 	using SqlProvider;
 
 	class OracleBulkCopy : BasicBulkCopy
@@ -26,11 +27,11 @@ namespace LinqToDB.DataProvider.Oracle
 		Action<object,Action<object>>       _bulkCopySubscriber;
 
 		protected override BulkCopyRowsCopied ProviderSpecificCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection,
+			[NotNull] DataConnection dataConnection,
 			BulkCopyOptions options,
 			IEnumerable<T>  source)
 		{
-			if (dataConnection == null) throw new ArgumentNullException("dataConnection");
+			if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
 
 			var sqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
 			var descriptor = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));

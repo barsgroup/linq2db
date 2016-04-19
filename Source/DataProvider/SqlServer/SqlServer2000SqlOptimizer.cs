@@ -1,24 +1,24 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.SqlServer
+﻿namespace LinqToDB.DataProvider.SqlServer
 {
-	using SqlProvider;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	class SqlServer2000SqlOptimizer : SqlServerSqlOptimizer
+    using SqlProvider;
+
+    class SqlServer2000SqlOptimizer : SqlServerSqlOptimizer
 	{
 		public SqlServer2000SqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
 		{
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlFunction)
-				return ConvertConvertFunction((SqlFunction)expr);
-
-			return expr;
+		    var sqlFunction = expr as ISqlFunction;
+		    return sqlFunction != null
+		               ? ConvertConvertFunction(sqlFunction)
+		               : expr;
 		}
 	}
 }

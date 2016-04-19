@@ -3,6 +3,12 @@
 namespace LinqToDB.DataProvider.SqlCe
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.QueryElements.Enums;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 
@@ -12,27 +18,25 @@ namespace LinqToDB.DataProvider.SqlCe
 		{
 		}
 
-		public override SelectQuery Finalize(SelectQuery selectQuery)
+		public override ISelectQuery Finalize(ISelectQuery selectQuery)
 		{
 			selectQuery = base.Finalize(selectQuery);
 
-			new QueryVisitor().Visit(selectQuery.Select, element =>
-			{
-				if (element.ElementType == QueryElementType.SqlParameter)
-				{
-					((SqlParameter)element).IsQueryParameter = false;
-					selectQuery.IsParameterDependent = true;
-				}
-			});
+            foreach (var parameter in QueryVisitor.FindOnce<ISqlParameter>(selectQuery.Select))
+            {
+                parameter.IsQueryParameter = false;
+                selectQuery.IsParameterDependent = true;
 
-			switch (selectQuery.QueryType)
+            }
+
+			switch (selectQuery.EQueryType)
 			{
-				case QueryType.Delete :
+				case EQueryType.Delete :
 					selectQuery = GetAlternativeDelete(selectQuery);
-					selectQuery.From.Tables[0].Alias = "$";
+					selectQuery.From.Tables.First.Value.Alias = "$";
 					break;
 
-				case QueryType.Update :
+				case EQueryType.Update :
 					selectQuery = GetAlternativeUpdate(selectQuery);
 					break;
 			}
@@ -40,78 +44,79 @@ namespace LinqToDB.DataProvider.SqlCe
 			return selectQuery;
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+		    var sqlBinaryExpression = expr as ISqlBinaryExpression;
+		    if (sqlBinaryExpression != null)
 			{
-				var be = (SqlBinaryExpression)expr;
-
-				switch (be.Operation)
+				switch (sqlBinaryExpression.Operation)
 				{
 					case "%":
-						return be.Expr1.SystemType.IsIntegerType()?
-							be :
+						return sqlBinaryExpression.Expr1.SystemType.IsIntegerType()?
+							sqlBinaryExpression :
 							new SqlBinaryExpression(
 								typeof(int),
-								new SqlFunction(typeof(int), "Convert", SqlDataType.Int32, be.Expr1),
-								be.Operation,
-								be.Expr2,
-								be.Precedence);
+								new SqlFunction(typeof(int), "Convert", SqlDataType.Int32, sqlBinaryExpression.Expr1),
+								sqlBinaryExpression.Operation,
+								sqlBinaryExpression.Expr2,
+								sqlBinaryExpression.Precedence);
 				}
 			}
-			else if (expr is SqlFunction)
-			{
-				var func = (SqlFunction)expr;
+			else
+		    {
+		        var sqlFunction = expr as ISqlFunction;
+		        if (sqlFunction != null)
+		        {
+		            switch (sqlFunction.Name)
+		            {
+		                case "Convert" :
+		                    switch (Type.GetTypeCode(sqlFunction.SystemType.ToUnderlying()))
+		                    {
+		                        case TypeCode.UInt64 :
+		                            if (sqlFunction.Parameters[1].SystemType.IsFloatType())
+		                                return new SqlFunction(
+		                                    sqlFunction.SystemType,
+		                                    sqlFunction.Name,
+		                                    sqlFunction.Precedence,
+		                                    sqlFunction.Parameters[0],
+		                                    new SqlFunction(sqlFunction.SystemType, "Floor", sqlFunction.Parameters[1]));
 
-				switch (func.Name)
-				{
-					case "Convert" :
-						switch (Type.GetTypeCode(func.SystemType.ToUnderlying()))
-						{
-							case TypeCode.UInt64 :
-								if (func.Parameters[1].SystemType.IsFloatType())
-									return new SqlFunction(
-										func.SystemType,
-										func.Name,
-										func.Precedence,
-										func.Parameters[0],
-										new SqlFunction(func.SystemType, "Floor", func.Parameters[1]));
+		                            break;
 
-								break;
+		                        case TypeCode.DateTime :
+		                            var type1 = sqlFunction.Parameters[1].SystemType.ToUnderlying();
 
-							case TypeCode.DateTime :
-								var type1 = func.Parameters[1].SystemType.ToUnderlying();
+		                            if (IsTimeDataType(sqlFunction.Parameters[0]))
+		                            {
+		                                if (type1 == typeof(DateTime) || type1 == typeof(DateTimeOffset))
+		                                    return new SqlExpression(
+		                                        sqlFunction.SystemType, "Cast(Convert(NChar, {0}, 114) as DateTime)", Precedence.Primary, sqlFunction.Parameters[1]);
 
-								if (IsTimeDataType(func.Parameters[0]))
-								{
-									if (type1 == typeof(DateTime) || type1 == typeof(DateTimeOffset))
-										return new SqlExpression(
-											func.SystemType, "Cast(Convert(NChar, {0}, 114) as DateTime)", Precedence.Primary, func.Parameters[1]);
+		                                if (sqlFunction.Parameters[1].SystemType == typeof(string))
+		                                    return sqlFunction.Parameters[1];
 
-									if (func.Parameters[1].SystemType == typeof(string))
-										return func.Parameters[1];
+		                                return new SqlExpression(
+		                                    sqlFunction.SystemType, "Convert(NChar, {0}, 114)", Precedence.Primary, sqlFunction.Parameters[1]);
+		                            }
 
-									return new SqlExpression(
-										func.SystemType, "Convert(NChar, {0}, 114)", Precedence.Primary, func.Parameters[1]);
-								}
+		                            if (type1 == typeof(DateTime) || type1 == typeof(DateTimeOffset))
+		                            {
+		                                if (IsDateDataType(sqlFunction.Parameters[0], "Datetime"))
+		                                    return new SqlExpression(
+		                                        sqlFunction.SystemType, "Cast(Floor(Cast({0} as Float)) as DateTime)", Precedence.Primary, sqlFunction.Parameters[1]);
+		                            }
 
-								if (type1 == typeof(DateTime) || type1 == typeof(DateTimeOffset))
-								{
-									if (IsDateDataType(func.Parameters[0], "Datetime"))
-										return new SqlExpression(
-											func.SystemType, "Cast(Floor(Cast({0} as Float)) as DateTime)", Precedence.Primary, func.Parameters[1]);
-								}
+		                            break;
+		                    }
 
-								break;
-						}
+		                    break;
+		            }
+		        }
+		    }
 
-						break;
-				}
-			}
-
-			return expr;
+		    return expr;
 		}
 
 	}

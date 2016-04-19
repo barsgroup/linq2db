@@ -1,95 +1,95 @@
 ﻿using System;
 using System.Data;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB
 {
-	public class DataContextTransaction : IDisposable
-	{
-		public DataContextTransaction([NotNull] DataContext dataContext)
-		{
-			if (dataContext == null) throw new ArgumentNullException("dataContext");
+    using LinqToDB.Properties;
 
-			DataContext = dataContext;
-		}
+    public class DataContextTransaction : IDisposable
+    {
+        public DataContextTransaction([NotNull] DataContext dataContext)
+        {
+            if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
 
-		public DataContext DataContext { get; set; }
+            DataContext = dataContext;
+        }
 
-		int _transactionCounter;
+        public DataContext DataContext { get; set; }
 
-		public void BeginTransaction()
-		{
-			var db = DataContext.GetDataConnection();
+        int _transactionCounter;
 
-			db.BeginTransaction();
+        public void BeginTransaction()
+        {
+            var db = DataContext.GetDataConnection();
 
-			if (_transactionCounter == 0)
-				DataContext.LockDbManagerCounter++;
+            db.BeginTransaction();
 
-			_transactionCounter++;
-		}
+            if (_transactionCounter == 0)
+                DataContext.LockDbManagerCounter++;
 
-		public void BeginTransaction(IsolationLevel level)
-		{
-			var db = DataContext.GetDataConnection();
+            _transactionCounter++;
+        }
 
-			db.BeginTransaction(level);
+        public void BeginTransaction(IsolationLevel level)
+        {
+            var db = DataContext.GetDataConnection();
 
-			if (_transactionCounter == 0)
-				DataContext.LockDbManagerCounter++;
+            db.BeginTransaction(level);
 
-			_transactionCounter++;
-		}
+            if (_transactionCounter == 0)
+                DataContext.LockDbManagerCounter++;
 
-		public void CommitTransaction()
-		{
-			if (_transactionCounter > 0)
-			{
-				var db = DataContext.GetDataConnection();
+            _transactionCounter++;
+        }
 
-				db.CommitTransaction();
+        public void CommitTransaction()
+        {
+            if (_transactionCounter > 0)
+            {
+                var db = DataContext.GetDataConnection();
 
-				_transactionCounter--;
+                db.CommitTransaction();
 
-				if (_transactionCounter == 0)
-				{
-					DataContext.LockDbManagerCounter--;
-					DataContext.ReleaseQuery();
-				}
-			}
-		}
+                _transactionCounter--;
 
-		public void RollbackTransaction()
-		{
-			if (_transactionCounter > 0)
-			{
-				var db = DataContext.GetDataConnection();
+                if (_transactionCounter == 0)
+                {
+                    DataContext.LockDbManagerCounter--;
+                    DataContext.ReleaseQuery();
+                }
+            }
+        }
 
-				db.RollbackTransaction();
+        public void RollbackTransaction()
+        {
+            if (_transactionCounter > 0)
+            {
+                var db = DataContext.GetDataConnection();
 
-				_transactionCounter--;
+                db.RollbackTransaction();
 
-				if (_transactionCounter == 0)
-				{
-					DataContext.LockDbManagerCounter--;
-					DataContext.ReleaseQuery();
-				}
-			}
-		}
+                _transactionCounter--;
 
-		public void Dispose()
-		{
-			if (_transactionCounter > 0)
-			{
-				var db = DataContext.GetDataConnection();
+                if (_transactionCounter == 0)
+                {
+                    DataContext.LockDbManagerCounter--;
+                    DataContext.ReleaseQuery();
+                }
+            }
+        }
 
-				db.RollbackTransaction();
+        public void Dispose()
+        {
+            if (_transactionCounter > 0)
+            {
+                var db = DataContext.GetDataConnection();
 
-				_transactionCounter = 0;
+                db.RollbackTransaction();
 
-				DataContext.LockDbManagerCounter--;
-			}
-		}
-	}
+                _transactionCounter = 0;
+
+                DataContext.LockDbManagerCounter--;
+            }
+        }
+    }
 }

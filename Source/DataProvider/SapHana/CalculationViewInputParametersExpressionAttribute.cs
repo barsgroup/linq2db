@@ -8,9 +8,13 @@ namespace LinqToDB.DataProvider.SapHana
 	using System.Globalization;
 	using System.Linq.Expressions;
 	using System.Reflection;
-	using SqlQuery;
 
-	public class CalculationViewInputParametersExpressionAttribute : Sql.TableExpressionAttribute
+	using LinqToDB.SqlEntities;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    public class CalculationViewInputParametersExpressionAttribute : Sql.TableExpressionAttribute
 	{
 		public CalculationViewInputParametersExpressionAttribute() :
 			base("")
@@ -20,10 +24,11 @@ namespace LinqToDB.DataProvider.SapHana
 		// we can't use BasicSqlBuilder.GetValueBuilder, because
 		// a) we need to escape with ' every value, 
 		// b) we don't have dataprovider here ether
-		private static String ValueToString(object value)
+		private static string ValueToString(object value)
 		{
-			if (value is String)
-				return value as String;
+		    var valueToString = value as string;
+		    if (valueToString != null)
+				return valueToString;
 			if (value is decimal)
 				return ((decimal)value).ToString(new NumberFormatInfo());
 			if (value is double)
@@ -33,12 +38,12 @@ namespace LinqToDB.DataProvider.SapHana
 			return value.ToString();
 		}
 
-		public override void SetTable(MappingSchema mappingSchema, SqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<ISqlExpression> sqlArgs)
+		public override void SetTable(MappingSchema mappingSchema, ISqlTable table, MemberInfo member, IEnumerable<Expression> expArgs, IEnumerable<IQueryExpression> sqlArgs)
 		{
 			var method = member as MethodInfo;
 
 			if (method == null)
-				throw new ArgumentNullException("member");
+				throw new ArgumentNullException(nameof(member));
 
 			var paramsList = method.GetParameters().ToList();
 			var valuesList = expArgs.Cast<ConstantExpression>().ToList();
@@ -46,7 +51,7 @@ namespace LinqToDB.DataProvider.SapHana
 			if (paramsList.Count != valuesList.Count)
 				throw new TargetParameterCountException("Invalid number of parameters");
 
-			var sqlValues = new List<ISqlExpression>();
+			var sqlValues = new List<IQueryExpression>();
 
 			for(var i = 0; i < paramsList.Count; i++)
 			{
@@ -58,17 +63,23 @@ namespace LinqToDB.DataProvider.SapHana
 				sqlValues.Add(new SqlValue(ValueToString(val)));
 			}
 
-			var arg = new ISqlExpression[1];
+			var arg = new IQueryExpression[1];
 
 			arg[0] = new SqlExpression(
-				String.Join(", ",
+				string.Join(", ",
 					Enumerable.Range(0, sqlValues.Count)
 						.Select(x => "{" + x + "}")),
 				sqlValues.ToArray());
 
-			table.SqlTableType = SqlTableType.Expression;
+			table.SqlTableType = ESqlTableType.Expression;
 			table.Name = "{0}('PLACEHOLDER' = {2}) {1}";
-			table.TableArguments = arg.ToArray();
+
+            table.TableArguments.Clear();
+		    for (var i = 0; i < arg.Length; i++)
+		    {
+		        table.TableArguments.AddLast(arg[i]);
+
+		    }
 		}
 	}
 }

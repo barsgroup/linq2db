@@ -1,12 +1,11 @@
-﻿using System;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 
 namespace LinqToDB.Linq
 {
-	using Mapping;
+    using Mapping;
 
-	public interface IExpressionInfo
-	{
-		LambdaExpression GetExpression(MappingSchema mappingSchema);
-	}
+    public interface IExpressionInfo
+    {
+        LambdaExpression GetExpression(MappingSchema mappingSchema);
+    }
 }

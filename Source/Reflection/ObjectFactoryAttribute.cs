@@ -9,7 +9,7 @@ namespace LinqToDB.Reflection
 	{
 		public ObjectFactoryAttribute(Type type)
 		{
-			if (type == null) throw new ArgumentNullException("type");
+			if (type == null) throw new ArgumentNullException(nameof(type));
 
 			_objectFactory = Activator.CreateInstance(type) as IObjectFactory;
 
@@ -18,9 +18,6 @@ namespace LinqToDB.Reflection
 		}
 
 		private readonly IObjectFactory _objectFactory;
-		public           IObjectFactory  ObjectFactory
-		{
-			get { return _objectFactory; }
-		}
+		public           IObjectFactory  ObjectFactory => _objectFactory;
 	}
 }

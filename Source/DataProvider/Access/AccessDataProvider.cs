@@ -47,10 +47,11 @@ namespace LinqToDB.DataProvider.Access
 			return value;
 		}
 
-		public override string ConnectionNamespace { get { return typeof(OleDbConnection).Namespace; } }
-		public override Type   DataReaderType      { get { return typeof(OleDbDataReader);           } }
-		
-		protected override IDbConnection CreateConnectionInternal(string connectionString)
+		public override string ConnectionNamespace => typeof(OleDbConnection).Namespace;
+
+	    public override Type   DataReaderType => typeof(OleDbDataReader);
+
+	    protected override IDbConnection CreateConnectionInternal(string connectionString)
 		{
 			return new OleDbConnection(connectionString);
 		}
@@ -107,9 +108,9 @@ namespace LinqToDB.DataProvider.Access
 		{
 		}
 
-		public void CreateDatabase([JetBrains.Annotations.NotNull] string databaseName, bool   deleteIfExists = false)
+		public void CreateDatabase([Properties.NotNull] string databaseName, bool   deleteIfExists = false)
 		{
-			if (databaseName == null) throw new ArgumentNullException("databaseName");
+			if (databaseName == null) throw new ArgumentNullException(nameof(databaseName));
 
 			databaseName = databaseName.Trim();
 
@@ -140,16 +141,16 @@ namespace LinqToDB.DataProvider.Access
 				});
 		}
 
-		public void DropDatabase([JetBrains.Annotations.NotNull] string databaseName)
+		public void DropDatabase([Properties.NotNull] string databaseName)
 		{
-			if (databaseName == null) throw new ArgumentNullException("databaseName");
+			if (databaseName == null) throw new ArgumentNullException(nameof(databaseName));
 
 			DropFileDatabase(databaseName, ".mdb");
 		}
 		#region BulkCopy
 
 		public override BulkCopyRowsCopied BulkCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+			[Properties.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
 
 			return new AccessBulkCopy().BulkCopy(

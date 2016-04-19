@@ -9,9 +9,6 @@ namespace LinqToDB.Mapping
 		public Type             Type;
 		public ColumnDescriptor Discriminator;
 
-		public string DiscriminatorName
-		{
-			get { return Discriminator.MemberName; }
-		}
+		public string DiscriminatorName => Discriminator.MemberName;
 	}
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LinqToDB.Linq
+﻿namespace LinqToDB.Linq
 {
 	using Mapping;
 	using SqlProvider;
@@ -21,11 +19,13 @@ namespace LinqToDB.Linq
 
 		public IDataContext     DataContext      { get; private set; }
 		public bool             DisposeContext   { get; private set; }
-		public string           ContextID        { get { return DataContext.ContextID;        } }
-		public MappingSchema    MappingSchema    { get { return DataContext.MappingSchema;    } }
-		public SqlProviderFlags SqlProviderFlags { get { return DataContext.SqlProviderFlags; } }
+		public string           ContextID => DataContext.ContextID;
 
-		public ISqlBuilder CreateSqlBuilder()
+	    public MappingSchema    MappingSchema => DataContext.MappingSchema;
+
+	    public SqlProviderFlags SqlProviderFlags => DataContext.SqlProviderFlags;
+
+	    public ISqlBuilder CreateSqlBuilder()
 		{
 			return DataContext.CreateSqlProvider();
 		}

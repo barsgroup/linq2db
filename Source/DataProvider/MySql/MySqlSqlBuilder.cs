@@ -6,7 +6,12 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.MySql
 {
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    using SqlQuery;
 	using SqlProvider;
 
 	class MySqlSqlBuilder : BasicSqlBuilder
@@ -21,7 +26,7 @@ namespace LinqToDB.DataProvider.MySql
 			ParameterSymbol = '@';
 		}
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}
@@ -36,11 +41,11 @@ namespace LinqToDB.DataProvider.MySql
 			return new MySqlSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override string LimitFormat { get { return "LIMIT {0}"; } }
+		protected override string LimitFormat => "LIMIT {0}";
 
-		public override bool IsNestedJoinParenthesisRequired { get { return true; } }
+	    public override bool IsNestedJoinParenthesisRequired => true;
 
-		protected override void BuildOffsetLimit()
+	    protected override void BuildOffsetLimit()
 		{
 			if (SelectQuery.Select.SkipValue == null)
 				base.BuildOffsetLimit();
@@ -57,7 +62,7 @@ namespace LinqToDB.DataProvider.MySql
 			}
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -93,7 +98,7 @@ namespace LinqToDB.DataProvider.MySql
 		{
 			var table = SelectQuery.Delete.Table != null ?
 				(SelectQuery.From.FindTableSource(SelectQuery.Delete.Table) ?? SelectQuery.Delete.Table) :
-				SelectQuery.From.Tables[0];
+				SelectQuery.From.Tables.First.Value;
 
 			AppendIndent()
 				.Append("DELETE ")
@@ -167,7 +172,7 @@ namespace LinqToDB.DataProvider.MySql
 				case ConvertType.SprocParameterToName:
 					{
 						var str = value.ToString();
-						str = (str.Length > 0 && (str[0] == ParameterSymbol || (TryConvertParameterSymbol && ConvertParameterSymbols.Contains(str[0])))) ? str.Substring(1) : str;
+						str = str.Length > 0 && (str[0] == ParameterSymbol || (TryConvertParameterSymbol && ConvertParameterSymbols.Contains(str[0]))) ? str.Substring(1) : str;
 
 						if (!string.IsNullOrEmpty(SprocParameterPrefix) && str.StartsWith(SprocParameterPrefix))
 							str = str.Substring(SprocParameterPrefix.Length);
@@ -207,7 +212,7 @@ namespace LinqToDB.DataProvider.MySql
 		}
 
 		protected override StringBuilder BuildExpression(
-			ISqlExpression expr,
+			IQueryExpression expr,
 			bool           buildTableName,
 			bool           checkParentheses,
 			string         alias,
@@ -216,7 +221,7 @@ namespace LinqToDB.DataProvider.MySql
 		{
 			return base.BuildExpression(
 				expr,
-				buildTableName && SelectQuery.QueryType != QueryType.InsertOrUpdate,
+				buildTableName && SelectQuery.EQueryType != EQueryType.InsertOrUpdate,
 				checkParentheses,
 				alias,
 				ref addAlias,
@@ -254,7 +259,7 @@ namespace LinqToDB.DataProvider.MySql
 			StringBuilder.AppendLine("() VALUES ()");
 		}
 
-		protected override void BuildCreateTableIdentityAttribute1(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute1(ISqlField field)
 		{
 			StringBuilder.Append("AUTO_INCREMENT");
 		}

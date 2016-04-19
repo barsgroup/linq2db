@@ -291,16 +291,15 @@ namespace LinqToDB.DataProvider.Oracle
 			}
 		}
 
-		public    override string ConnectionNamespace { get { return OracleTools.AssemblyName + ".Client"; } }
-		protected override string ConnectionTypeName  { get { return "{0}.{1}, {0}".Args(OracleTools.AssemblyName, "Client.OracleConnection"); } }
-		protected override string DataReaderTypeName  { get { return "{0}.{1}, {0}".Args(OracleTools.AssemblyName, "Client.OracleDataReader"); } }
+		public    override string ConnectionNamespace => OracleTools.AssemblyName + ".Client";
 
-		public bool IsXmlTypeSupported
-		{
-			get { return _oracleXmlType != null; }
-		}
+	    protected override string ConnectionTypeName => "{0}.{1}, {0}".Args(OracleTools.AssemblyName, "Client.OracleConnection");
 
-		public override ISqlBuilder CreateSqlBuilder()
+	    protected override string DataReaderTypeName => "{0}.{1}, {0}".Args(OracleTools.AssemblyName, "Client.OracleDataReader");
+
+	    public bool IsXmlTypeSupported => _oracleXmlType != null;
+
+	    public override ISqlBuilder CreateSqlBuilder()
 		{
 			return new OracleSqlBuilder(GetSqlOptimizer(), SqlProviderFlags, MappingSchema.ValueToSqlConverter);
 		}
@@ -338,8 +337,8 @@ namespace LinqToDB.DataProvider.Oracle
 //				if (param != null && param.Value != null && param.Value is IDisposable)
 //					((IDisposable)param.Value).Dispose();
 
-				if (param is IDisposable)
-					((IDisposable)param).Dispose();
+				//if (param is IDisposable)
+				//	((IDisposable)param).Dispose();
 			}
 
 			base.DisposeCommand(dataConnection);

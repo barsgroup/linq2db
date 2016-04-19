@@ -1,27 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Text;
-
-namespace LinqToDB.SqlProvider
+﻿namespace LinqToDB.SqlProvider
 {
-	using SqlQuery;
+    using System;
+    using System.Collections.Generic;
+    using System.Data;
+    using System.Text;
 
-	public interface ISqlBuilder
-	{
-		int              CommandCount         (SelectQuery selectQuery);
-		void             BuildSql             (int commandNumber, SelectQuery selectQuery, StringBuilder sb);
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-		StringBuilder    BuildTableName       (StringBuilder sb, string database, string owner, string table);
-		object           Convert              (object value, ConvertType convertType);
-		ISqlExpression   GetIdentityExpression(SqlTable table);
+    public interface ISqlBuilder
+    {
+        int              CommandCount         (ISelectQuery selectQuery);
+        void             BuildSql             (int commandNumber, ISelectQuery selectQuery, StringBuilder sb);
 
-		StringBuilder    PrintParameters      (StringBuilder sb, IDbDataParameter[] parameters);
+        StringBuilder    BuildTableName       (StringBuilder sb, string database, string owner, string table);
+        object           Convert              (object value, ConvertType convertType);
+        IQueryExpression   GetIdentityExpression(ISqlTable table);
 
-		StringBuilder    ReplaceParameters     (StringBuilder sb, IDbDataParameter[] parameters);
+        StringBuilder    PrintParameters      (StringBuilder sb, IDbDataParameter[] parameters);
 
-		string           ApplyQueryHints      (string sqlText, List<string> queryHints);
+        StringBuilder    ReplaceParameters     (StringBuilder sb, IDbDataParameter[] parameters);
 
-		string           Name { get; }
-	}
+        string           ApplyQueryHints      (string sqlText, List<string> queryHints);
+
+        string           Name { get; }
+    }
 }

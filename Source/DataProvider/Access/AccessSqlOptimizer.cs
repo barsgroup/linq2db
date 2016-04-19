@@ -1,30 +1,31 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.Access
+﻿namespace LinqToDB.DataProvider.Access
 {
-	using SqlProvider;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
-	class AccessSqlOptimizer : BasicSqlOptimizer
-	{
-		public AccessSqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
-		{
-		}
+    using SqlProvider;
+    using SqlQuery;
 
-		public override SelectQuery Finalize(SelectQuery selectQuery)
-		{
-			selectQuery = base.Finalize(selectQuery);
+    class AccessSqlOptimizer : BasicSqlOptimizer
+    {
+        public AccessSqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
+        {
+        }
 
-			switch (selectQuery.QueryType)
-			{
-				case QueryType.Delete : return GetAlternativeDelete(selectQuery);
-				default               : return selectQuery;
-			}
-		}
+        public override ISelectQuery Finalize(ISelectQuery selectQuery)
+        {
+            selectQuery = base.Finalize(selectQuery);
 
-		public override bool ConvertCountSubQuery(SelectQuery subQuery)
-		{
-			return !subQuery.Where.IsEmpty;
-		}
-	}
+            switch (selectQuery.EQueryType)
+            {
+                case EQueryType.Delete : return GetAlternativeDelete(selectQuery);
+                default               : return selectQuery;
+            }
+        }
+
+        public override bool ConvertCountSubQuery(ISelectQuery subQuery)
+        {
+            return !subQuery.Where.IsEmpty;
+        }
+    }
 }

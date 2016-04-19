@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace LinqToDB.Data
+﻿namespace LinqToDB.Data
 {
-	public enum BulkCopyType
-	{
-		Default = 0,
-		RowByRow,
-		MultipleRows,
-		ProviderSpecific
-	}
+    public enum BulkCopyType
+    {
+        Default = 0,
+        RowByRow,
+        MultipleRows,
+        ProviderSpecific
+    }
 }

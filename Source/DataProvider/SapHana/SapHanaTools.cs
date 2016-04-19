@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.SapHana
+﻿namespace LinqToDB.DataProvider.SapHana
 {
 	using System.Data;
 	using System.IO;
@@ -29,7 +27,7 @@ namespace LinqToDB.DataProvider.SapHana
 
 				path = Path.GetDirectoryName(path);
 
-				if (!String.IsNullOrEmpty(path))
+				if (!string.IsNullOrEmpty(path))
 				{
 					if (!File.Exists(Path.Combine(path, AssemblyName + ".dll")))
 					{

@@ -1,10 +1,21 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 using System.Linq;
 
 namespace LinqToDB.DataProvider.Oracle
 {
-	using Common;
+    using System;
+
+    using Common;
+
+	using LinqToDB.SqlQuery.QueryElements;
+	using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+	using LinqToDB.SqlQuery.QueryElements.Interfaces;
+	using LinqToDB.SqlQuery.QueryElements.Predicates;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
 	using SqlQuery;
 	using SqlProvider;
 
@@ -40,7 +51,7 @@ namespace LinqToDB.DataProvider.Oracle
 			StringBuilder.AppendLine(" INTO :IDENTITY_PARAMETER");
 		}
 
-		public override ISqlExpression GetIdentityExpression(SqlTable table)
+		public override IQueryExpression GetIdentityExpression(ISqlTable table)
 		{
 			if (!table.SequenceAttributes.IsNullOrEmpty())
 			{
@@ -138,15 +149,15 @@ namespace LinqToDB.DataProvider.Oracle
 			}
 		}
 
-		protected override void BuildWhereSearchCondition(SelectQuery.SearchCondition condition)
+		protected override void BuildWhereSearchCondition(ISearchCondition condition)
 		{
 			if (NeedTake && !NeedSkip && SelectQuery.OrderBy.IsEmpty && SelectQuery.Having.IsEmpty)
 			{
 				BuildPredicate(
 					Precedence.LogicalConjunction,
-					new SelectQuery.Predicate.ExprExpr(
+					new ExprExpr(
 						new SqlExpression(null, "ROWNUM", Precedence.Primary),
-						SelectQuery.Predicate.Operator.LessOrEqual,
+						EOperator.LessOrEqual,
 						SelectQuery.Select.TakeValue));
 
 				if (base.BuildWhere())
@@ -159,13 +170,13 @@ namespace LinqToDB.DataProvider.Oracle
 				BuildSearchCondition(Precedence.Unknown, condition);
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -192,18 +203,18 @@ namespace LinqToDB.DataProvider.Oracle
 				base.BuildFromClause();
 		}
 
-		protected override void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = false;
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SelectQuery.SearchCondition)
+				if (expr is ISearchCondition)
 					wrap = true;
 				else
 				{
-					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SelectQuery.SearchCondition;
+					var ex = expr as ISqlExpression;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
 
@@ -238,9 +249,9 @@ namespace LinqToDB.DataProvider.Oracle
 			StringBuilder.AppendLine();
 		}
 
-		SqlField _identityField;
+        ISqlField _identityField;
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			if (selectQuery.IsCreateTable)
 			{

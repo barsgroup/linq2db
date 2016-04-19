@@ -2,8 +2,14 @@
 
 namespace LinqToDB.DataProvider.SqlServer
 {
-	using SqlQuery;
-	using SqlProvider;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	class SqlServer2012SqlBuilder : SqlServerSqlBuilder
 	{
@@ -12,12 +18,15 @@ namespace LinqToDB.DataProvider.SqlServer
 		{
 		}
 
-		protected override string LimitFormat         { get { return SelectQuery.Select.SkipValue != null ? "FETCH NEXT {0} ROWS ONLY" : null; } }
-		protected override string OffsetFormat        { get { return "OFFSET {0} ROWS"; } }
-		protected override bool   OffsetFirst         { get { return true;              } }
-		protected override bool   BuildAlternativeSql { get { return false;             } }
+		protected override string LimitFormat => SelectQuery.Select.SkipValue != null ? "FETCH NEXT {0} ROWS ONLY" : null;
 
-		protected override ISqlBuilder CreateSqlBuilder()
+	    protected override string OffsetFormat => "OFFSET {0} ROWS";
+
+	    protected override bool   OffsetFirst => true;
+
+	    protected override bool   BuildAlternativeSql => false;
+
+	    protected override ISqlBuilder CreateSqlBuilder()
 		{
 			return new SqlServer2012SqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
@@ -39,12 +48,9 @@ namespace LinqToDB.DataProvider.SqlServer
 			StringBuilder.AppendLine(";");
 		}
 
-		public override string  Name
-		{
-			get { return ProviderName.SqlServer2012; }
-		}
+		public override string  Name => ProviderName.SqlServer2012;
 
-		protected override void BuildFunction(SqlFunction func)
+	    protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 
@@ -61,7 +67,7 @@ namespace LinqToDB.DataProvider.SqlServer
 
 					if (func.Parameters.Length > 2)
 					{
-						var parms = new ISqlExpression[func.Parameters.Length - 1];
+						var parms = new IQueryExpression[func.Parameters.Length - 1];
 
 						Array.Copy(func.Parameters, 1, parms, 0, parms.Length);
 						BuildFunction(new SqlFunction(func.SystemType, func.Name, func.Parameters[0],
@@ -69,9 +75,9 @@ namespace LinqToDB.DataProvider.SqlServer
 						return;
 					}
 
-					var sc = new SelectQuery.SearchCondition();
+					var sc = new SearchCondition();
 
-					sc.Conditions.Add(new SelectQuery.Condition(false, new SelectQuery.Predicate.IsNull(func.Parameters[0], false)));
+					sc.Conditions.AddLast(new Condition(false, new IsNull(func.Parameters[0], false)));
 
 					func = new SqlFunction(func.SystemType, "IIF", sc, func.Parameters[1], func.Parameters[0]);
 
@@ -81,7 +87,7 @@ namespace LinqToDB.DataProvider.SqlServer
 			base.BuildFunction(func);
 		}
 
-		static SqlFunction ConvertCase(Type systemType, ISqlExpression[] parameters, int start)
+		static ISqlFunction ConvertCase(Type systemType, IQueryExpression[] parameters, int start)
 		{
 			var len  = parameters.Length - start;
 			var name = start == 0 ? "IIF" : "CASE";
@@ -89,10 +95,10 @@ namespace LinqToDB.DataProvider.SqlServer
 
 			if (start == 0 && SqlExpression.NeedsEqual(cond))
 			{
-				cond = new SelectQuery.SearchCondition(
-					new SelectQuery.Condition(
+				cond = new SearchCondition(
+					new Condition(
 						false,
-						new SelectQuery.Predicate.ExprExpr(cond, SelectQuery.Predicate.Operator.Equal, new SqlValue(1))));
+						new ExprExpr(cond, EOperator.Equal, new SqlValue(1))));
 			}
 
 			if (len == 3)

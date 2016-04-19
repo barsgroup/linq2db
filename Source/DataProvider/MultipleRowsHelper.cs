@@ -5,99 +5,102 @@ using System.Text;
 
 namespace LinqToDB.DataProvider
 {
-	using Data;
-	using Mapping;
-	using SqlProvider;
-	using SqlQuery;
+    using Data;
 
-	class MultipleRowsHelper<T>
-	{
-		public MultipleRowsHelper(DataConnection dataConnection, BulkCopyOptions options, bool enforceKeepIdentity)
-		{
-			DataConnection = dataConnection;
-			Options        = options;
-			SqlBuilder     = dataConnection.DataProvider.CreateSqlBuilder();
-			ValueConverter = dataConnection.MappingSchema.ValueToSqlConverter;
-			Descriptor     = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
-			Columns        = Descriptor.Columns
-				.Where(c => !c.SkipOnInsert || enforceKeepIdentity && options.KeepIdentity == true && c.IsIdentity)
-				.ToArray();
-			ColumnTypes    = Columns.Select(c => new SqlDataType(c.DataType, c.MemberType, c.Length, c.Precision, c.Scale)).ToArray();
-			ParameterName  = SqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
-			TableName      = BasicBulkCopy.GetTableName(SqlBuilder, options, Descriptor);
-			BatchSize      = Math.Max(10, Options.MaxBatchSize ?? 1000);
-		}
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-		public readonly ISqlBuilder         SqlBuilder;
-		public readonly DataConnection      DataConnection;
-		public readonly BulkCopyOptions     Options;
-		public readonly ValueToSqlConverter ValueConverter;
-		public readonly EntityDescriptor    Descriptor;
-		public readonly ColumnDescriptor[]  Columns;
-		public readonly SqlDataType[]       ColumnTypes;
-		public readonly string              TableName;
-		public readonly string              ParameterName;
+    using Mapping;
+    using SqlProvider;
 
-		public readonly List<DataParameter> Parameters    = new List<DataParameter>();
-		public readonly StringBuilder       StringBuilder = new StringBuilder();
-		public readonly BulkCopyRowsCopied  RowsCopied    = new BulkCopyRowsCopied();
+    class MultipleRowsHelper<T>
+    {
+        public MultipleRowsHelper(DataConnection dataConnection, BulkCopyOptions options, bool enforceKeepIdentity)
+        {
+            DataConnection = dataConnection;
+            Options        = options;
+            SqlBuilder     = dataConnection.DataProvider.CreateSqlBuilder();
+            ValueConverter = dataConnection.MappingSchema.ValueToSqlConverter;
+            Descriptor     = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
+            Columns        = Descriptor.Columns
+                .Where(c => !c.SkipOnInsert || enforceKeepIdentity && options.KeepIdentity == true && c.IsIdentity)
+                .ToArray();
+            ColumnTypes    = Columns.Select(c => new SqlDataType(c.DataType, c.MemberType, c.Length, c.Precision, c.Scale)).ToArray();
+            ParameterName  = SqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
+            TableName      = BasicBulkCopy.GetTableName(SqlBuilder, options, Descriptor);
+            BatchSize      = Math.Max(10, Options.MaxBatchSize ?? 1000);
+        }
 
-		public int CurrentCount;
-		public int ParameterIndex;
-		public int HeaderSize;
-		public int BatchSize;
+        public readonly ISqlBuilder         SqlBuilder;
+        public readonly DataConnection      DataConnection;
+        public readonly BulkCopyOptions     Options;
+        public readonly ValueToSqlConverter ValueConverter;
+        public readonly EntityDescriptor    Descriptor;
+        public readonly ColumnDescriptor[]  Columns;
+        public readonly ISqlDataType[]       ColumnTypes;
+        public readonly string              TableName;
+        public readonly string              ParameterName;
 
-		public void SetHeader()
-		{
-			HeaderSize = StringBuilder.Length;
-		}
+        public readonly List<DataParameter> Parameters    = new List<DataParameter>();
+        public readonly StringBuilder       StringBuilder = new StringBuilder();
+        public readonly BulkCopyRowsCopied  RowsCopied    = new BulkCopyRowsCopied();
 
-		public void BuildColumns(object item)
-		{
-			for (var i = 0; i < Columns.Length; i++)
-			{
-				var column = Columns[i];
-				var value  = column.GetValue(item);
+        public int CurrentCount;
+        public int ParameterIndex;
+        public int HeaderSize;
+        public int BatchSize;
 
-				if (!ValueConverter.TryConvert(StringBuilder, ColumnTypes[i], value))
-				{
-					var name = ParameterName == "?" ? ParameterName : ParameterName + ++ParameterIndex;
+        public void SetHeader()
+        {
+            HeaderSize = StringBuilder.Length;
+        }
 
-					StringBuilder.Append(name);
+        public void BuildColumns(object item)
+        {
+            for (var i = 0; i < Columns.Length; i++)
+            {
+                var column = Columns[i];
+                var value  = column.GetValue(item);
 
-					if (value is DataParameter)
-					{
-						value = ((DataParameter)value).Value;
-					}
+                if (!ValueConverter.TryConvert(StringBuilder, ColumnTypes[i], value))
+                {
+                    var name = ParameterName == "?" ? ParameterName : ParameterName + ++ParameterIndex;
 
-					Parameters.Add(new DataParameter(ParameterName == "?" ? ParameterName : "p" + ParameterIndex, value,
-						column.DataType));
-				}
+                    StringBuilder.Append(name);
 
-				StringBuilder.Append(",");
-			}
+                    if (value is DataParameter)
+                    {
+                        value = ((DataParameter)value).Value;
+                    }
 
-			StringBuilder.Length--;
-		}
+                    Parameters.Add(new DataParameter(ParameterName == "?" ? ParameterName : "p" + ParameterIndex, value,
+                        column.DataType));
+                }
 
-		public bool Execute()
-		{
-			DataConnection.Execute(StringBuilder.AppendLine().ToString(), Parameters.ToArray());
+                StringBuilder.Append(",");
+            }
 
-			if (Options.RowsCopiedCallback != null)
-			{
-				Options.RowsCopiedCallback(RowsCopied);
+            StringBuilder.Length--;
+        }
 
-				if (RowsCopied.Abort)
-					return false;
-			}
+        public bool Execute()
+        {
+            DataConnection.Execute(StringBuilder.AppendLine().ToString(), Parameters.ToArray());
 
-			Parameters.Clear();
-			ParameterIndex       = 0;
-			CurrentCount         = 0;
-			StringBuilder.Length = HeaderSize;
+            if (Options.RowsCopiedCallback != null)
+            {
+                Options.RowsCopiedCallback(RowsCopied);
 
-			return true;
-		}
-	}
+                if (RowsCopied.Abort)
+                    return false;
+            }
+
+            Parameters.Clear();
+            ParameterIndex       = 0;
+            CurrentCount         = 0;
+            StringBuilder.Length = HeaderSize;
+
+            return true;
+        }
+    }
 }

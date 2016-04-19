@@ -11,9 +11,9 @@ namespace LinqToDB.Mapping
 	{
 		#region Init
 
-		public EntityMappingBuilder([JetBrains.Annotations.NotNull] FluentMappingBuilder builder, string configuration)
+		public EntityMappingBuilder([Properties.NotNull] FluentMappingBuilder builder, string configuration)
 		{
-			if (builder == null) throw new ArgumentNullException("builder");
+			if (builder == null) throw new ArgumentNullException(nameof(builder));
 
 			_builder      = builder;
 			Configuration = configuration;
@@ -240,9 +240,9 @@ namespace LinqToDB.Mapping
 
 			Action<Expression,bool> setAttr = (e,m) =>
 			{
-				var memberInfo =
-					e is MemberExpression     ? ((MemberExpression)    e).Member :
-					e is MethodCallExpression ? ((MethodCallExpression)e).Method : null;
+			    var memberExpression = e as MemberExpression;
+			    var memberInfo =
+					memberExpression?.Member ?? (e as MethodCallExpression)?.Method;
 
 				if (e is MemberExpression && memberInfo.ReflectedTypeEx() != typeof(T))
 					memberInfo = typeof(T).GetPropertyEx(memberInfo.Name);

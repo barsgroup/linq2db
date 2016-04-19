@@ -5,213 +5,214 @@ using System.Linq;
 
 namespace LinqToDB.Mapping
 {
-	using Common;
-	using Expressions;
-	using Extensions;
-	using Metadata;
-	using SqlQuery;
+    using Common;
+    using Expressions;
+    using Extensions;
 
-	class MappingSchemaInfo
-	{
-		public MappingSchemaInfo(string configuration)
-		{
-			Configuration = configuration;
-		}
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-		public string          Configuration;
-		public IMetadataReader MetadataReader;
+    using Metadata;
 
-		#region Default Values
+    class MappingSchemaInfo
+    {
+        public MappingSchemaInfo(string configuration)
+        {
+            Configuration = configuration;
+        }
 
-		volatile ConcurrentDictionary<Type,object> _defaultValues;
+        public string          Configuration;
+        public IMetadataReader MetadataReader;
 
-		public Option<object> GetDefaultValue(Type type)
-		{
-			if (_defaultValues == null)
-				return Option<object>.None;
+        #region Default Values
 
-			object o;
-			return _defaultValues.TryGetValue(type, out o) ? Option<object>.Some(o) : Option<object>.None;
-		}
+        volatile ConcurrentDictionary<Type,object> _defaultValues;
 
-		public void SetDefaultValue(Type type, object value)
-		{
-			if (_defaultValues == null)
-				lock (this)
-					if (_defaultValues == null)
-						_defaultValues = new ConcurrentDictionary<Type,object>();
+        public Option<object> GetDefaultValue(Type type)
+        {
+            if (_defaultValues == null)
+                return Option<object>.None;
 
-			_defaultValues[type] = value;
-		}
+            object o;
+            return _defaultValues.TryGetValue(type, out o) ? Option<object>.Some(o) : Option<object>.None;
+        }
 
-		#endregion
+        public void SetDefaultValue(Type type, object value)
+        {
+            if (_defaultValues == null)
+                lock (this)
+                    if (_defaultValues == null)
+                        _defaultValues = new ConcurrentDictionary<Type,object>();
 
-		#region CanBeNull
+            _defaultValues[type] = value;
+        }
 
-		volatile ConcurrentDictionary<Type,bool> _canBeNull;
+        #endregion
 
-		public Option<bool> GetCanBeNull(Type type)
-		{
-			if (_canBeNull == null)
-				return Option<bool>.None;
+        #region CanBeNull
 
-			bool o;
-			return _canBeNull.TryGetValue(type, out o) ? Option<bool>.Some(o) : Option<bool>.None;
-		}
+        volatile ConcurrentDictionary<Type,bool> _canBeNull;
 
-		public void SetCanBeNull(Type type, bool value)
-		{
-			if (_canBeNull == null)
-				lock (this)
-					if (_canBeNull == null)
-						_canBeNull = new ConcurrentDictionary<Type,bool>();
+        public Option<bool> GetCanBeNull(Type type)
+        {
+            if (_canBeNull == null)
+                return Option<bool>.None;
 
-			_canBeNull[type] = value;
-		}
+            bool o;
+            return _canBeNull.TryGetValue(type, out o) ? Option<bool>.Some(o) : Option<bool>.None;
+        }
 
-		#endregion
+        public void SetCanBeNull(Type type, bool value)
+        {
+            if (_canBeNull == null)
+                lock (this)
+                    if (_canBeNull == null)
+                        _canBeNull = new ConcurrentDictionary<Type,bool>();
 
-		#region GenericConvertProvider
+            _canBeNull[type] = value;
+        }
 
-		volatile Dictionary<Type,List<Type[]>> _genericConvertProviders;
+        #endregion
 
-		public bool InitGenericConvertProvider(Type[] types, MappingSchema mappingSchema)
-		{
-			var changed = false;
+        #region GenericConvertProvider
 
-			if (_genericConvertProviders != null)
-			{
-				lock (_genericConvertProviders)
-				{
-					foreach (var type in _genericConvertProviders)
-					{
-						var args = type.Key.GetGenericArgumentsEx();
+        volatile Dictionary<Type,List<Type[]>> _genericConvertProviders;
 
-						if (args.Length == types.Length)
-						{
-							if (type.Value.Aggregate(false, (cur,ts) => cur || ts.SequenceEqual(types)))
-								continue;
+        public bool InitGenericConvertProvider(Type[] types, MappingSchema mappingSchema)
+        {
+            var changed = false;
 
-							var gtype    = type.Key.MakeGenericType(types);
-							var provider = (IGenericInfoProvider)Activator.CreateInstance(gtype);
+            if (_genericConvertProviders != null)
+            {
+                lock (_genericConvertProviders)
+                {
+                    foreach (var type in _genericConvertProviders)
+                    {
+                        var args = type.Key.GetGenericArgumentsEx();
 
-							provider.SetInfo(new MappingSchema(this));
+                        if (args.Length == types.Length)
+                        {
+                            if (type.Value.Aggregate(false, (cur,ts) => cur || ts.SequenceEqual(types)))
+                                continue;
 
-							type.Value.Add(types);
+                            var gtype    = type.Key.MakeGenericType(types);
+                            var provider = (IGenericInfoProvider)Activator.CreateInstance(gtype);
 
-							changed = true;
-						}
-					}
-				}
-			}
+                            provider.SetInfo(new MappingSchema(this));
 
-			return changed;
-		}
+                            type.Value.Add(types);
 
-		public void SetGenericConvertProvider(Type type)
-		{
-			if (_genericConvertProviders == null)
-				lock (this)
-					if (_genericConvertProviders == null)
-						_genericConvertProviders = new Dictionary<Type,List<Type[]>>();
+                            changed = true;
+                        }
+                    }
+                }
+            }
 
-			if (!_genericConvertProviders.ContainsKey(type))
-				lock (_genericConvertProviders)
-					if (!_genericConvertProviders.ContainsKey(type))
-						_genericConvertProviders[type] = new List<Type[]>();
-		}
+            return changed;
+        }
 
-		#endregion
+        public void SetGenericConvertProvider(Type type)
+        {
+            if (_genericConvertProviders == null)
+                lock (this)
+                    if (_genericConvertProviders == null)
+                        _genericConvertProviders = new Dictionary<Type,List<Type[]>>();
 
-		#region ConvertInfo
+            if (!_genericConvertProviders.ContainsKey(type))
+                lock (_genericConvertProviders)
+                    if (!_genericConvertProviders.ContainsKey(type))
+                        _genericConvertProviders[type] = new List<Type[]>();
+        }
 
-		ConvertInfo _convertInfo;
+        #endregion
 
-		public void SetConvertInfo(Type from, Type to, ConvertInfo.LambdaInfo expr)
-		{
-			if (_convertInfo == null)
-				_convertInfo = new ConvertInfo();
-			_convertInfo.Set(from, to, expr);
-		}
+        #region ConvertInfo
 
-		public ConvertInfo.LambdaInfo GetConvertInfo(Type from, Type to)
-		{
-			return _convertInfo == null ? null : _convertInfo.Get(@from, to);
-		}
+        ConvertInfo _convertInfo;
 
-		private ConcurrentDictionary<object,Func<object,object>> _converters;
-		public  ConcurrentDictionary<object,Func<object,object>>  Converters
-		{
-			get { return _converters ?? (_converters = new ConcurrentDictionary<object,Func<object,object>>()); }
-		}
+        public void SetConvertInfo(Type from, Type to, ConvertInfo.LambdaInfo expr)
+        {
+            if (_convertInfo == null)
+                _convertInfo = new ConvertInfo();
+            _convertInfo.Set(from, to, expr);
+        }
 
-		#endregion
+        public ConvertInfo.LambdaInfo GetConvertInfo(Type from, Type to)
+        {
+            return _convertInfo == null ? null : _convertInfo.Get(@from, to);
+        }
 
-		#region Scalar Types
+        private ConcurrentDictionary<object,Func<object,object>> _converters;
+        public  ConcurrentDictionary<object,Func<object,object>>  Converters => _converters ?? (_converters = new ConcurrentDictionary<object,Func<object,object>>());
 
-		volatile ConcurrentDictionary<Type,bool> _scalarTypes;
+        #endregion
 
-		public Option<bool> GetScalarType(Type type)
-		{
-			if (_scalarTypes != null)
-			{
-				bool isScalarType;
-				if (_scalarTypes.TryGetValue(type, out isScalarType))
-					return Option<bool>.Some(isScalarType);
-			}
+        #region Scalar Types
 
-			return Option<bool>.None;
-		}
+        volatile ConcurrentDictionary<Type,bool> _scalarTypes;
 
-		public void SetScalarType(Type type, bool isScalarType = true)
-		{
-			if (_scalarTypes == null)
-				lock (this)
-					if (_scalarTypes == null)
-						_scalarTypes = new ConcurrentDictionary<Type,bool>();
+        public Option<bool> GetScalarType(Type type)
+        {
+            if (_scalarTypes != null)
+            {
+                bool isScalarType;
+                if (_scalarTypes.TryGetValue(type, out isScalarType))
+                    return Option<bool>.Some(isScalarType);
+            }
 
-			_scalarTypes[type] = isScalarType;
-		}
+            return Option<bool>.None;
+        }
 
-		#endregion
+        public void SetScalarType(Type type, bool isScalarType = true)
+        {
+            if (_scalarTypes == null)
+                lock (this)
+                    if (_scalarTypes == null)
+                        _scalarTypes = new ConcurrentDictionary<Type,bool>();
 
-		#region DataTypes
+            _scalarTypes[type] = isScalarType;
+        }
 
-		volatile ConcurrentDictionary<Type,SqlDataType> _dataTypes;
+        #endregion
 
-		public Option<SqlDataType> GetDataType(Type type)
-		{
-			if (_dataTypes != null)
-			{
-				SqlDataType dataType;
-				if (_dataTypes.TryGetValue(type, out dataType))
-					return Option<SqlDataType>.Some(dataType);
-			}
+        #region DataTypes
 
-			return Option<SqlDataType>.None;
-		}
+        volatile ConcurrentDictionary<Type,ISqlDataType> _dataTypes;
 
-		public void SetDataType(Type type, DataType dataType)
-		{
-			SetDataType(type, new SqlDataType(dataType, type, null, null, null));
-		}
+        public Option<ISqlDataType> GetDataType(Type type)
+        {
+            if (_dataTypes == null)
+            {
+                return Option<ISqlDataType>.None;
+            }
 
-		public void SetDataType(Type type, SqlDataType dataType)
-		{
-			if (_dataTypes == null)
-				lock (this)
-					if (_dataTypes == null)
-						_dataTypes = new ConcurrentDictionary<Type,SqlDataType>();
+            ISqlDataType dataType;
+            return _dataTypes.TryGetValue(type, out dataType)
+                       ? Option<ISqlDataType>.Some(dataType)
+                       : Option<ISqlDataType>.None;
+        }
 
-			_dataTypes[type] = dataType;
-		}
+        public void SetDataType(Type type, DataType dataType)
+        {
+            SetDataType(type, new SqlDataType(dataType, type, null, null, null));
+        }
 
-		#endregion
+        public void SetDataType(Type type, ISqlDataType dataType)
+        {
+            if (_dataTypes == null)
+                lock (this)
+                    if (_dataTypes == null)
+                        _dataTypes = new ConcurrentDictionary<Type,ISqlDataType>();
 
-		#region Options
+            _dataTypes[type] = dataType;
+        }
 
-		public StringComparison? ColumnComparisonOption;
+        #endregion
 
-		#endregion
-	}
+        #region Options
+
+        public StringComparison? ColumnComparisonOption;
+
+        #endregion
+    }
 }

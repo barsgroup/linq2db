@@ -1,5 +1,4 @@
-﻿using System;
-using System.Data.SqlTypes;
+﻿using System.Data.SqlTypes;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -7,10 +6,13 @@ using System.Xml;
 namespace LinqToDB.DataProvider.SqlCe
 {
 	using Common;
-	using Mapping;
-	using SqlQuery;
 
-	public class SqlCeMappingSchema : MappingSchema
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+	using Mapping;
+
+    public class SqlCeMappingSchema : MappingSchema
 	{
 		public SqlCeMappingSchema() : this(ProviderName.SqlCe)
 		{
@@ -41,8 +43,8 @@ namespace LinqToDB.DataProvider.SqlCe
 
 			SetDataType(typeof(string), new SqlDataType(DataType.NVarChar, typeof(string), 255));
 
-			SetValueToSqlConverter(typeof(String), (sb,dt,v) => ConvertStringToSql(sb, dt, v.ToString()));
-			SetValueToSqlConverter(typeof(Char),   (sb,dt,v) => ConvertCharToSql  (sb, dt, (char)v));
+			SetValueToSqlConverter(typeof(string), (sb,dt,v) => ConvertStringToSql(sb, dt, v.ToString()));
+			SetValueToSqlConverter(typeof(char),   (sb,dt,v) => ConvertCharToSql  (sb, dt, (char)v));
 		}
 
 		static void AppendConversion(StringBuilder stringBuilder, int value)
@@ -54,7 +56,7 @@ namespace LinqToDB.DataProvider.SqlCe
 				;
 		}
 
-		static void ConvertStringToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, string value)
+		static void ConvertStringToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, string value)
 		{
 			string start;
 
@@ -73,7 +75,7 @@ namespace LinqToDB.DataProvider.SqlCe
 			DataTools.ConvertStringToSql(stringBuilder, "+", start, AppendConversion, value);
 		}
 
-		static void ConvertCharToSql(StringBuilder stringBuilder, SqlDataType sqlDataType, char value)
+		static void ConvertCharToSql(StringBuilder stringBuilder, ISqlDataType sqlDataType, char value)
 		{
 			string start;
 

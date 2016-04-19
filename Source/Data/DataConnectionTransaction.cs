@@ -1,38 +1,38 @@
 ﻿using System;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.Data
 {
-	public class DataConnectionTransaction : IDisposable
-	{
-		public DataConnectionTransaction([NotNull] DataConnection dataConnection)
-		{
-			if (dataConnection == null) throw new ArgumentNullException("dataConnection");
+    using LinqToDB.Properties;
 
-			DataConnection = dataConnection;
-		}
+    public class DataConnectionTransaction : IDisposable
+    {
+        public DataConnectionTransaction([NotNull] DataConnection dataConnection)
+        {
+            if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
 
-		public DataConnection DataConnection { get; private set; }
+            DataConnection = dataConnection;
+        }
 
-		bool _disposeTransaction = true;
+        public DataConnection DataConnection { get; private set; }
 
-		public void Commit()
-		{
-			DataConnection.CommitTransaction();
-			_disposeTransaction = false;
-		}
+        bool _disposeTransaction = true;
 
-		public void Rollback()
-		{
-			DataConnection.RollbackTransaction();
-			_disposeTransaction = false;
-		}
+        public void Commit()
+        {
+            DataConnection.CommitTransaction();
+            _disposeTransaction = false;
+        }
 
-		public void Dispose()
-		{
-			if (_disposeTransaction)
-				DataConnection.RollbackTransaction();
-		}
-	}
+        public void Rollback()
+        {
+            DataConnection.RollbackTransaction();
+            _disposeTransaction = false;
+        }
+
+        public void Dispose()
+        {
+            if (_disposeTransaction)
+                DataConnection.RollbackTransaction();
+        }
+    }
 }

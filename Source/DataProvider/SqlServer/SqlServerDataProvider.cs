@@ -75,10 +75,11 @@ namespace LinqToDB.DataProvider.SqlServer
 
 		#region Public Properties
 
-		public override string ConnectionNamespace { get { return typeof(SqlConnection).Namespace; } }
-		public override Type   DataReaderType      { get { return typeof(SqlDataReader);           } }
+		public override string ConnectionNamespace => typeof(SqlConnection).Namespace;
 
-		public SqlServerVersion Version { get; private set; }
+	    public override Type   DataReaderType => typeof(SqlDataReader);
+
+	    public SqlServerVersion Version { get; private set; }
 
 		#endregion
 
@@ -184,23 +185,25 @@ namespace LinqToDB.DataProvider.SqlServer
 
 		public override void SetParameter(IDbDataParameter parameter, string name, DataType dataType, object value)
 		{
-			switch (dataType)
-			{
-				case DataType.Udt        :
-					{
-						string s;
-						if (value != null && _udtTypes.TryGetValue(value.GetType(), out s))
-							if (parameter is SqlParameter)
-								((SqlParameter)parameter).UdtTypeName = s;
-					}
+		    if (dataType != DataType.Udt)
+		    {
+		        return;
+		    }
 
-					break;
-			}
+            string s;
+		    if (value != null && _udtTypes.TryGetValue(value.GetType(), out s))
+		    {
+		        var sqlParameter = parameter as SqlParameter;
+		        if (sqlParameter != null)
+		        {
+		            sqlParameter.UdtTypeName = s;
+		        }
+		    }
 
-			base.SetParameter(parameter, name, dataType, value);
+		    base.SetParameter(parameter, name, dataType, value);
 		}
 
-		protected override void SetParameterType(IDbDataParameter parameter, DataType dataType)
+	    protected override void SetParameterType(IDbDataParameter parameter, DataType dataType)
 		{
 			if (parameter is BulkCopyReader.Parameter)
 				return;

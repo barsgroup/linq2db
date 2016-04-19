@@ -1,14 +1,12 @@
-﻿using System;
-
-namespace LinqToDB
+﻿namespace LinqToDB
 {
-	using Linq;
+    using Linq;
 
-	public interface ITable<
+    public interface ITable<
 #if !SL4
-		out
+        out
 #endif
-		T> : IExpressionQuery<T>
-	{
-	}
+        T> : IExpressionQuery<T>
+    {
+    }
 }

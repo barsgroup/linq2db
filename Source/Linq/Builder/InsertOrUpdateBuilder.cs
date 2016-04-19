@@ -4,134 +4,141 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using LinqToDB.Expressions;
-	using SqlQuery;
+    using LinqToDB.Expressions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	class InsertOrUpdateBuilder : MethodCallBuilder
-	{
-		#region InsertOrUpdateBuilder
+    using SqlQuery;
 
-		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			return methodCall.IsQueryable("InsertOrUpdate");
-		}
+    class InsertOrUpdateBuilder : MethodCallBuilder
+    {
+        #region InsertOrUpdateBuilder
 
-		protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            return methodCall.IsQueryable("InsertOrUpdate");
+        }
 
-			UpdateBuilder.BuildSetter(
-				builder,
-				buildInfo,
-				(LambdaExpression)methodCall.Arguments[1].Unwrap(),
-				sequence,
-				sequence.SelectQuery.Insert.Items,
-				sequence);
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
-			UpdateBuilder.BuildSetter(
-				builder,
-				buildInfo,
-				(LambdaExpression)methodCall.Arguments[2].Unwrap(),
-				sequence,
-				sequence.SelectQuery.Update.Items,
-				sequence);
+            UpdateBuilder.BuildSetter(
+                builder,
+                buildInfo,
+                (LambdaExpression)methodCall.Arguments[1].Unwrap(),
+                sequence,
+                sequence.Select.Insert.Items,
+                sequence);
 
-			sequence.SelectQuery.Insert.Into  = ((TableBuilder.TableContext)sequence).SqlTable;
-			sequence.SelectQuery.Update.Table = ((TableBuilder.TableContext)sequence).SqlTable;
-			sequence.SelectQuery.From.Tables.Clear();
-			sequence.SelectQuery.From.Table(sequence.SelectQuery.Update.Table);
+            UpdateBuilder.BuildSetter(
+                builder,
+                buildInfo,
+                (LambdaExpression)methodCall.Arguments[2].Unwrap(),
+                sequence,
+                sequence.Select.Update.Items,
+                sequence);
 
-			if (methodCall.Arguments.Count == 3)
-			{
-				var table = sequence.SelectQuery.Insert.Into;
-				var keys  = table.GetKeys(false);
+            sequence.Select.Insert.Into  = ((TableBuilder.TableContext)sequence).SqlTable;
+            sequence.Select.Update.Table = ((TableBuilder.TableContext)sequence).SqlTable;
+            sequence.Select.From.Tables.Clear();
+            sequence.Select.From.Table(sequence.Select.Update.Table);
 
-				if (keys.Count == 0)
-					throw new LinqException("InsertOrUpdate method requires the '{0}' table to have a primary key.", table.Name);
+            if (methodCall.Arguments.Count == 3)
+            {
+                var table = sequence.Select.Insert.Into;
+                var keys  = table.GetKeys(false);
 
-				var q =
-				(
-					from k in keys
-					join i in sequence.SelectQuery.Insert.Items on k equals i.Column
-					select new { k, i }
-				).ToList();
+                if (keys.Count == 0)
+                    throw new LinqException("InsertOrUpdate method requires the '{0}' table to have a primary key.", table.Name);
 
-				var missedKey = keys.Except(q.Select(i => i.k)).FirstOrDefault();
+                var q =
+                (
+                    from k in keys
+                    join i in sequence.Select.Insert.Items on k equals i.Column
+                    select new { k, i }
+                ).ToList();
 
-				if (missedKey != null)
-					throw new LinqException("InsertOrUpdate method requires the '{0}.{1}' field to be included in the insert setter.",
-						table.Name,
-						((SqlField)missedKey).Name);
+                var missedKey = keys.Except(q.Select(i => i.k)).FirstOrDefault();
 
-				sequence.SelectQuery.Update.Keys.AddRange(q.Select(i => i.i));
-			}
-			else
-			{
-				UpdateBuilder.BuildSetter(
-					builder,
-					buildInfo,
-					(LambdaExpression)methodCall.Arguments[3].Unwrap(),
-					sequence,
-					sequence.SelectQuery.Update.Keys,
-					sequence);
-			}
+                if (missedKey != null)
+                    throw new LinqException("InsertOrUpdate method requires the '{0}.{1}' field to be included in the insert setter.",
+                        table.Name,
+                        ((ISqlField)missedKey).Name);
 
-			sequence.SelectQuery.QueryType = QueryType.InsertOrUpdate;
+                for (int index = 0; index < q.Count; index++)
+                {
+                    sequence.Select.Update.Keys.AddLast(q[index].i);
+                }
+            }
+            else
+            {
+                UpdateBuilder.BuildSetter(
+                    builder,
+                    buildInfo,
+                    (LambdaExpression)methodCall.Arguments[3].Unwrap(),
+                    sequence,
+                    sequence.Select.Update.Keys,
+                    sequence);
+            }
 
-			return new InsertOrUpdateContext(buildInfo.Parent, sequence);
-		}
+            sequence.Select.EQueryType = EQueryType.InsertOrUpdate;
 
-		protected override SequenceConvertInfo Convert(
-			ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
-		{
-			return null;
-		}
+            return new InsertOrUpdateContext(buildInfo.Parent, sequence);
+        }
 
-		#endregion
+        protected override SequenceConvertInfo Convert(
+            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+        {
+            return null;
+        }
 
-		#region UpdateContext
+        #endregion
 
-		class InsertOrUpdateContext : SequenceContextBase
-		{
-			public InsertOrUpdateContext(IBuildContext parent, IBuildContext sequence)
-				: base(parent, sequence, null)
-			{
-			}
+        #region UpdateContext
 
-			public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
-			{
-				if (Builder.DataContextInfo.SqlProviderFlags.IsInsertOrUpdateSupported)
-					query.SetNonQueryQuery();
-				else
-					query.MakeAlternativeInsertOrUpdate(SelectQuery);
-			}
+        class InsertOrUpdateContext : SequenceContextBase
+        {
+            public InsertOrUpdateContext(IBuildContext parent, IBuildContext sequence)
+                : base(parent, sequence, null)
+            {
+            }
 
-			public override Expression BuildExpression(Expression expression, int level)
-			{
-				throw new NotImplementedException();
-			}
+            public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
+            {
+                if (Builder.DataContextInfo.SqlProviderFlags.IsInsertOrUpdateSupported)
+                    query.SetNonQueryQuery();
+                else
+                    query.MakeAlternativeInsertOrUpdate(Select);
+            }
 
-			public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
-			{
-				throw new NotImplementedException();
-			}
+            public override Expression BuildExpression(Expression expression, int level)
+            {
+                throw new NotImplementedException();
+            }
 
-			public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
-			{
-				throw new NotImplementedException();
-			}
+            public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
+            {
+                throw new NotImplementedException();
+            }
 
-			public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor requestFlag)
-			{
-				throw new NotImplementedException();
-			}
+            public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
+            {
+                throw new NotImplementedException();
+            }
 
-			public override IBuildContext GetContext(Expression expression, int level, BuildInfo buildInfo)
-			{
-				throw new NotImplementedException();
-			}
-		}
+            public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor requestFlag)
+            {
+                throw new NotImplementedException();
+            }
 
-		#endregion
-	}
+            public override IBuildContext GetContext(Expression expression, int level, BuildInfo buildInfo)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        #endregion
+    }
 }

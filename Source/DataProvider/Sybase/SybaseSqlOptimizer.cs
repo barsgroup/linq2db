@@ -1,55 +1,49 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.Sybase
+﻿namespace LinqToDB.DataProvider.Sybase
 {
-	using SqlProvider;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	using SqlQuery;
+    using SqlProvider;
 
-	class SybaseSqlOptimizer : BasicSqlOptimizer
+    class SybaseSqlOptimizer : BasicSqlOptimizer
 	{
 		public SybaseSqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
 		{
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlFunction)
+		    var sqlFunction = expr as ISqlFunction;
+		    if (sqlFunction != null)
 			{
-				var func = (SqlFunction) expr;
-
-				switch (func.Name)
+				switch (sqlFunction.Name)
 				{
 					case "CharIndex" :
-						if (func.Parameters.Length == 3)
+						if (sqlFunction.Parameters.Length == 3)
 							return Add<int>(
-								ConvertExpression(new SqlFunction(func.SystemType, "CharIndex",
-									func.Parameters[0],
+								ConvertExpression(new SqlFunction(sqlFunction.SystemType, "CharIndex",
+									sqlFunction.Parameters[0],
 									ConvertExpression(new SqlFunction(typeof(string), "Substring",
-										func.Parameters[1],
-										func.Parameters[2], new SqlFunction(typeof(int), "Len", func.Parameters[1]))))),
-								Sub(func.Parameters[2], 1));
+										sqlFunction.Parameters[1],
+										sqlFunction.Parameters[2], new SqlFunction(typeof(int), "Len", sqlFunction.Parameters[1]))))),
+								Sub(sqlFunction.Parameters[2], 1));
 						break;
 
 					case "Stuff"     :
-						if (func.Parameters[3] is SqlValue)
-						{
-							var value = (SqlValue)func.Parameters[3];
+				        var sqlValue = sqlFunction.Parameters[3] as ISqlValue;
+				        if (sqlValue?.Value is string && string.IsNullOrEmpty((string)sqlValue.Value))
+				            return new SqlFunction(
+				                sqlFunction.SystemType,
+				                sqlFunction.Name,
+				                sqlFunction.Precedence,
+				                sqlFunction.Parameters[0],
+				                sqlFunction.Parameters[1],
+				                sqlFunction.Parameters[1],
+				                new SqlValue(null));
 
-							if (value.Value is string && string.IsNullOrEmpty((string)value.Value))
-								return new SqlFunction(
-									func.SystemType,
-									func.Name,
-									func.Precedence,
-									func.Parameters[0],
-									func.Parameters[1],
-									func.Parameters[1],
-									new SqlValue(null));
-						}
-
-						break;
+				        break;
 				}
 			}
 

@@ -1,12 +1,12 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace LinqToDB.DataProvider.MySql
 {
-	using Mapping;
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
 
-	public class MySqlMappingSchema : MappingSchema
+    using Mapping;
+
+    public class MySqlMappingSchema : MappingSchema
 	{
 		public MySqlMappingSchema() : this(ProviderName.MySql)
 		{
@@ -14,8 +14,8 @@ namespace LinqToDB.DataProvider.MySql
 
 		protected MySqlMappingSchema(string configuration) : base(configuration)
 		{
-			SetValueToSqlConverter(typeof(String), (sb,dt,v) => ConvertStringToSql(sb, v.ToString()));
-			SetValueToSqlConverter(typeof(Char),   (sb,dt,v) => ConvertCharToSql  (sb, (char)v));
+			SetValueToSqlConverter(typeof(string), (sb,dt,v) => ConvertStringToSql(sb, v.ToString()));
+			SetValueToSqlConverter(typeof(char),   (sb,dt,v) => ConvertCharToSql  (sb, (char)v));
 
 			SetDataType(typeof(string), new SqlDataType(DataType.NVarChar, typeof(string), 255));
 		}

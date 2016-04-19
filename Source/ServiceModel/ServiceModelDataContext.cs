@@ -1,99 +1,96 @@
-﻿using System;
-using System.ServiceModel;
-using System.ServiceModel.Channels;
-
-using JetBrains.Annotations;
-
-namespace LinqToDB.ServiceModel
+﻿namespace LinqToDB.ServiceModel
 {
-	public class ServiceModelDataContext : RemoteDataContextBase
-	{
-		#region Init
+    using System;
+    using System.ServiceModel;
+    using System.ServiceModel.Channels;
 
-		ServiceModelDataContext()
-		{
-		}
+    using LinqToDB.Properties;
 
-		public ServiceModelDataContext([NotNull] string endpointConfigurationName)
-			: this()
-		{
-			if (endpointConfigurationName == null) throw new ArgumentNullException("endpointConfigurationName");
+    public class ServiceModelDataContext : RemoteDataContextBase
+    {
+        #region Init
 
-			_endpointConfigurationName = endpointConfigurationName;
-		}
+        ServiceModelDataContext()
+        {
+        }
 
-		public ServiceModelDataContext([NotNull] string endpointConfigurationName, [NotNull] string remoteAddress)
-			: this()
-		{
-			if (endpointConfigurationName == null) throw new ArgumentNullException("endpointConfigurationName");
-			if (remoteAddress             == null) throw new ArgumentNullException("remoteAddress");
+        public ServiceModelDataContext([NotNull] string endpointConfigurationName)
+            : this()
+        {
+            if (endpointConfigurationName == null) throw new ArgumentNullException(nameof(endpointConfigurationName));
 
-			_endpointConfigurationName = endpointConfigurationName;
-			_remoteAddress             = remoteAddress;
-		}
+            _endpointConfigurationName = endpointConfigurationName;
+        }
 
-		public ServiceModelDataContext([NotNull] string endpointConfigurationName, [NotNull] EndpointAddress endpointAddress)
-			: this()
-		{
-			if (endpointConfigurationName == null) throw new ArgumentNullException("endpointConfigurationName");
-			if (endpointAddress           == null) throw new ArgumentNullException("endpointAddress");
+        public ServiceModelDataContext([NotNull] string endpointConfigurationName, [NotNull] string remoteAddress)
+            : this()
+        {
+            if (endpointConfigurationName == null) throw new ArgumentNullException(nameof(endpointConfigurationName));
+            if (remoteAddress             == null) throw new ArgumentNullException(nameof(remoteAddress));
 
-			_endpointConfigurationName = endpointConfigurationName;
-			_endpointAddress           = endpointAddress;
-		}
+            _endpointConfigurationName = endpointConfigurationName;
+            _remoteAddress             = remoteAddress;
+        }
 
-		public ServiceModelDataContext([NotNull] Binding binding, [NotNull] EndpointAddress endpointAddress)
-			: this()
-		{
-			if (binding         == null) throw new ArgumentNullException("binding");
-			if (endpointAddress == null) throw new ArgumentNullException("endpointAddress");
+        public ServiceModelDataContext([NotNull] string endpointConfigurationName, [NotNull] EndpointAddress endpointAddress)
+            : this()
+        {
+            if (endpointConfigurationName == null) throw new ArgumentNullException(nameof(endpointConfigurationName));
+            if (endpointAddress           == null) throw new ArgumentNullException(nameof(endpointAddress));
 
-			Binding          = binding;
-			_endpointAddress = endpointAddress;
-		}
+            _endpointConfigurationName = endpointConfigurationName;
+            _endpointAddress           = endpointAddress;
+        }
 
-		string          _endpointConfigurationName;
-		string          _remoteAddress;
-		EndpointAddress _endpointAddress;
+        public ServiceModelDataContext([NotNull] Binding binding, [NotNull] EndpointAddress endpointAddress)
+            : this()
+        {
+            if (binding         == null) throw new ArgumentNullException(nameof(binding));
+            if (endpointAddress == null) throw new ArgumentNullException(nameof(endpointAddress));
 
-		public Binding Binding { get; private set; }
+            Binding          = binding;
+            _endpointAddress = endpointAddress;
+        }
 
-		#endregion
+        string          _endpointConfigurationName;
+        string          _remoteAddress;
+        EndpointAddress _endpointAddress;
 
-		#region Overrides
+        public Binding Binding { get; private set; }
 
-		protected override ILinqService GetClient()
-		{
-			if (Binding != null)
-				return new LinqServiceClient(Binding, _endpointAddress);
+        #endregion
 
-			if (_endpointAddress != null)
-				return new LinqServiceClient(_endpointConfigurationName, _endpointAddress);
+        #region Overrides
 
-			if (_remoteAddress != null)
-				return new LinqServiceClient(_endpointConfigurationName, _remoteAddress);
+        protected override ILinqService GetClient()
+        {
+            if (Binding != null)
+                return new LinqServiceClient(Binding, _endpointAddress);
 
-			return new LinqServiceClient(_endpointConfigurationName);
-		}
+            if (_endpointAddress != null)
+                return new LinqServiceClient(_endpointConfigurationName, _endpointAddress);
 
-		protected override IDataContext Clone()
-		{
-			return new ServiceModelDataContext
-			{
-				MappingSchema              = MappingSchema,
-				Configuration              = Configuration,
-				Binding                    = Binding,
-				_endpointConfigurationName = _endpointConfigurationName,
-				_remoteAddress             = _remoteAddress,
-				_endpointAddress           = _endpointAddress,
-			};
-		}
+            if (_remoteAddress != null)
+                return new LinqServiceClient(_endpointConfigurationName, _remoteAddress);
 
-		protected override string ContextIDPrefix
-		{
-			get { return "LinqService"; }
-		}
+            return new LinqServiceClient(_endpointConfigurationName);
+        }
 
-		#endregion
-	}
+        protected override IDataContext Clone()
+        {
+            return new ServiceModelDataContext
+            {
+                MappingSchema              = MappingSchema,
+                Configuration              = Configuration,
+                Binding                    = Binding,
+                _endpointConfigurationName = _endpointConfigurationName,
+                _remoteAddress             = _remoteAddress,
+                _endpointAddress           = _endpointAddress,
+            };
+        }
+
+        protected override string ContextIDPrefix => "LinqService";
+
+        #endregion
+    }
 }

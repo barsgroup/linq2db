@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Xml.Schema;
+﻿using System.Collections.Generic;
 
 namespace LinqToDB.DataProvider.MySql
 {
 	using Extensions;
+
+	using LinqToDB.SqlQuery.QueryElements.SqlElements;
+	using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
 	using SqlProvider;
 	using SqlQuery;
 
@@ -14,94 +16,102 @@ namespace LinqToDB.DataProvider.MySql
 		{
 		}
 
-		public override ISqlExpression ConvertExpression(ISqlExpression expr)
+		public override IQueryExpression ConvertExpression(IQueryExpression expr)
 		{
 			expr = base.ConvertExpression(expr);
 
-			if (expr is SqlBinaryExpression)
+		    var sqlBinaryExpression = expr as ISqlBinaryExpression;
+		    if (sqlBinaryExpression != null)
 			{
-				var be = (SqlBinaryExpression)expr;
-
-				switch (be.Operation)
+				switch (sqlBinaryExpression.Operation)
 				{
 					case "+":
-						if (be.SystemType == typeof(string))
+						if (sqlBinaryExpression.SystemType == typeof(string))
 						{
-							if (be.Expr1 is SqlFunction)
+						    var sqlFunction = sqlBinaryExpression.Expr1 as ISqlFunction;
+						    if (sqlFunction != null)
 							{
-								var func = (SqlFunction)be.Expr1;
-
-								if (func.Name == "Concat")
+								if (sqlFunction.Name == "Concat")
 								{
-									var list = new List<ISqlExpression>(func.Parameters) { be.Expr2 };
-									return new SqlFunction(be.SystemType, "Concat", list.ToArray());
+									var list = new List<IQueryExpression>(sqlFunction.Parameters) { sqlBinaryExpression.Expr2 };
+									return new SqlFunction(sqlBinaryExpression.SystemType, "Concat", list.ToArray());
 								}
 							}
-							else if (be.Expr1 is SqlBinaryExpression && be.Expr1.SystemType == typeof(string) && ((SqlBinaryExpression)be.Expr1).Operation == "+")
-							{
-								var list = new List<ISqlExpression> { be.Expr2 };
-								var ex   = be.Expr1;
+							else
+						    {
+						        var binaryExpression = sqlBinaryExpression.Expr1 as ISqlBinaryExpression;
+						        if (binaryExpression != null && binaryExpression.SystemType == typeof(string) && binaryExpression.Operation == "+")
+						        {
+						            var list = new List<IQueryExpression> { sqlBinaryExpression.Expr2 };
+						            var ex   = sqlBinaryExpression.Expr1;
 
-								while (ex is SqlBinaryExpression && ex.SystemType == typeof(string) && ((SqlBinaryExpression)be.Expr1).Operation == "+")
-								{
-									var bex = (SqlBinaryExpression)ex;
+                                    ISqlBinaryExpression expression;
+						            while ((expression = ex as ISqlBinaryExpression) != null && expression.SystemType == typeof(string) && binaryExpression.Operation == "+")
+						            {
+						                list.Insert(0, expression.Expr2);
+						                ex = expression.Expr1;
+						            }
 
-									list.Insert(0, bex.Expr2);
-									ex = bex.Expr1;
-								}
+						            list.Insert(0, ex);
 
-								list.Insert(0, ex);
+						            return new SqlFunction(sqlBinaryExpression.SystemType, "Concat", list.ToArray());
+						        }
+						    }
 
-								return new SqlFunction(be.SystemType, "Concat", list.ToArray());
-							}
-
-							return new SqlFunction(be.SystemType, "Concat", be.Expr1, be.Expr2);
+						    return new SqlFunction(sqlBinaryExpression.SystemType, "Concat", sqlBinaryExpression.Expr1, sqlBinaryExpression.Expr2);
 						}
 
 						break;
 				}
 			}
-			else if (expr is SqlFunction)
-			{
-				var func = (SqlFunction) expr;
+			else
+		    {
+		        var sqlFunction = expr as ISqlFunction;
+		        if (sqlFunction != null)
+		        {
+		            if (sqlFunction.Name == "Convert")
+		            {
+		                var ftype = sqlFunction.SystemType.ToUnderlying();
 
-				switch (func.Name)
-				{
-					case "Convert" :
-						var ftype = func.SystemType.ToUnderlying();
+		                if (ftype == typeof(bool))
+		                {
+		                    var ex = AlternativeConvertToBoolean(sqlFunction, 1);
+		                    if (ex != null)
+		                    {
+		                        return ex;
+		                    }
+		                }
 
-						if (ftype == typeof(bool))
-						{
-							var ex = AlternativeConvertToBoolean(func, 1);
-							if (ex != null)
-								return ex;
-						}
+		                if ((ftype == typeof(double) || ftype == typeof(float)) && sqlFunction.Parameters[1].SystemType.ToUnderlying() == typeof(decimal))
+		                {
+		                    return sqlFunction.Parameters[1];
+		                }
 
-						if ((ftype == typeof(double) || ftype == typeof(float)) && func.Parameters[1].SystemType.ToUnderlying() == typeof(decimal))
-							return func.Parameters[1];
+		                return new SqlExpression(sqlFunction.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(sqlFunction), sqlFunction.Parameters[0]);
+		            }
+		        }
+		        else
+		        {
+		            var sqlExpression = expr as ISqlExpression;
+		            if (sqlExpression != null)
+		            {
+		                if (sqlExpression.Expr.StartsWith("Extract(DayOfYear"))
+		                    return new SqlFunction(sqlExpression.SystemType, "DayOfYear", sqlExpression.Parameters);
 
-						return new SqlExpression(func.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(func), func.Parameters[0]);
-				}
-			}
-			else if (expr is SqlExpression)
-			{
-				var e = (SqlExpression)expr;
+		                if (sqlExpression.Expr.StartsWith("Extract(WeekDay"))
+		                    return Inc(
+		                        new SqlFunction(sqlExpression.SystemType,
+		                            "WeekDay",
+		                            new SqlFunction(
+		                                null,
+		                                "Date_Add",
+		                                sqlExpression.Parameters[0],
+		                                new SqlExpression(null, "interval 1 day"))));
+		            }
+		        }
+		    }
 
-				if (e.Expr.StartsWith("Extract(DayOfYear"))
-					return new SqlFunction(e.SystemType, "DayOfYear", e.Parameters);
-
-				if (e.Expr.StartsWith("Extract(WeekDay"))
-					return Inc(
-						new SqlFunction(e.SystemType,
-							"WeekDay",
-							new SqlFunction(
-								null,
-								"Date_Add",
-								e.Parameters[0],
-								new SqlExpression(null, "interval 1 day"))));
-			}
-
-			return expr;
+		    return expr;
 		}
 	}
 }

@@ -5,118 +5,119 @@ using System.Linq;
 
 namespace LinqToDB.DataProvider.DB2
 {
-	using Data;
-	using SqlProvider;
+    using Data;
 
-	class DB2BulkCopy : BasicBulkCopy
-	{
-		public DB2BulkCopy(Type connectionType)
-		{
-			_connectionType = connectionType;
-		}
+    using LinqToDB.Properties;
 
-		readonly Type _connectionType;
+    class DB2BulkCopy : BasicBulkCopy
+    {
+        public DB2BulkCopy(Type connectionType)
+        {
+            _connectionType = connectionType;
+        }
 
-		Func<IDbConnection,int,IDisposable> _bulkCopyCreator;
-		Func<int,string,object>             _columnMappingCreator;
-		Action<object,Action<object>>       _bulkCopySubscriber;
+        readonly Type _connectionType;
 
-		protected override BulkCopyRowsCopied ProviderSpecificCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection  dataConnection,
-			BulkCopyOptions options,
-			IEnumerable<T>  source)
-		{
-			if (dataConnection == null) throw new ArgumentNullException("dataConnection");
+        Func<IDbConnection,int,IDisposable> _bulkCopyCreator;
+        Func<int,string,object>             _columnMappingCreator;
+        Action<object,Action<object>>       _bulkCopySubscriber;
 
-			if (dataConnection.Transaction == null)
-			{
-				var sqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
-				var descriptor = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
-				var tableName  = GetTableName(sqlBuilder, options, descriptor);
+        protected override BulkCopyRowsCopied ProviderSpecificCopy<T>(
+            [NotNull] DataConnection  dataConnection,
+            BulkCopyOptions options,
+            IEnumerable<T>  source)
+        {
+            if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
 
-				if (_bulkCopyCreator == null)
-				{
-					var bulkCopyType       = _connectionType.Assembly.GetType("IBM.Data.DB2.DB2BulkCopy",              false);
-					var bulkCopyOptionType = _connectionType.Assembly.GetType("IBM.Data.DB2.DB2BulkCopyOptions",       false);
-					var columnMappingType  = _connectionType.Assembly.GetType("IBM.Data.DB2.DB2BulkCopyColumnMapping", false);
+            if (dataConnection.Transaction == null)
+            {
+                var sqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
+                var descriptor = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
+                var tableName  = GetTableName(sqlBuilder, options, descriptor);
 
-					if (bulkCopyType != null)
-					{
-						_bulkCopyCreator      = CreateBulkCopyCreator(_connectionType, bulkCopyType, bulkCopyOptionType);
-						_columnMappingCreator = CreateColumnMappingCreator(columnMappingType);
-					}
-				}
+                if (_bulkCopyCreator == null)
+                {
+                    var bulkCopyType       = _connectionType.Assembly.GetType("IBM.Data.DB2.DB2BulkCopy",              false);
+                    var bulkCopyOptionType = _connectionType.Assembly.GetType("IBM.Data.DB2.DB2BulkCopyOptions",       false);
+                    var columnMappingType  = _connectionType.Assembly.GetType("IBM.Data.DB2.DB2BulkCopyColumnMapping", false);
 
-				if (_bulkCopyCreator != null)
-				{
-					var columns = descriptor.Columns.Where(c => !c.SkipOnInsert || options.KeepIdentity == true && c.IsIdentity).ToList();
-					var rd      = new BulkCopyReader(dataConnection.DataProvider, columns, source);
-					var rc      = new BulkCopyRowsCopied();
+                    if (bulkCopyType != null)
+                    {
+                        _bulkCopyCreator      = CreateBulkCopyCreator(_connectionType, bulkCopyType, bulkCopyOptionType);
+                        _columnMappingCreator = CreateColumnMappingCreator(columnMappingType);
+                    }
+                }
 
-					var bcOptions = 0; // Default
+                if (_bulkCopyCreator != null)
+                {
+                    var columns = descriptor.Columns.Where(c => !c.SkipOnInsert || options.KeepIdentity == true && c.IsIdentity).ToList();
+                    var rd      = new BulkCopyReader(dataConnection.DataProvider, columns, source);
+                    var rc      = new BulkCopyRowsCopied();
 
-					if (options.KeepIdentity == true) bcOptions |= 1; // KeepIdentity = 1, TableLock = 2, Truncate = 4,
-					if (options.TableLock    == true) bcOptions |= 2;
+                    var bcOptions = 0; // Default
 
-					using (var bc = _bulkCopyCreator(dataConnection.Connection, bcOptions))
-					{
-						dynamic dbc = bc;
+                    if (options.KeepIdentity == true) bcOptions |= 1; // KeepIdentity = 1, TableLock = 2, Truncate = 4,
+                    if (options.TableLock    == true) bcOptions |= 2;
 
-						var notifyAfter = options.NotifyAfter == 0 && options.MaxBatchSize.HasValue ?
-							options.MaxBatchSize.Value : options.NotifyAfter;
+                    using (var bc = _bulkCopyCreator(dataConnection.Connection, bcOptions))
+                    {
+                        dynamic dbc = bc;
 
-						if (notifyAfter != 0 && options.RowsCopiedCallback != null)
-						{
-							if (_bulkCopySubscriber == null)
-								_bulkCopySubscriber = CreateBulkCopySubscriber(bc, "DB2RowsCopied");
+                        var notifyAfter = options.NotifyAfter == 0 && options.MaxBatchSize.HasValue ?
+                            options.MaxBatchSize.Value : options.NotifyAfter;
 
-							dbc.NotifyAfter = notifyAfter;
+                        if (notifyAfter != 0 && options.RowsCopiedCallback != null)
+                        {
+                            if (_bulkCopySubscriber == null)
+                                _bulkCopySubscriber = CreateBulkCopySubscriber(bc, "DB2RowsCopied");
 
-							_bulkCopySubscriber(bc, arg =>
-							{
-								dynamic darg = arg;
-								rc.RowsCopied = darg.RowsCopied;
-								options.RowsCopiedCallback(rc);
-								if (rc.Abort)
-									darg.Abort = true;
-							});
-						}
+                            dbc.NotifyAfter = notifyAfter;
 
-						if (options.BulkCopyTimeout.HasValue)
-							dbc.BulkCopyTimeout = options.BulkCopyTimeout.Value;
+                            _bulkCopySubscriber(bc, arg =>
+                            {
+                                dynamic darg = arg;
+                                rc.RowsCopied = darg.RowsCopied;
+                                options.RowsCopiedCallback(rc);
+                                if (rc.Abort)
+                                    darg.Abort = true;
+                            });
+                        }
 
-						dbc.DestinationTableName = tableName;
+                        if (options.BulkCopyTimeout.HasValue)
+                            dbc.BulkCopyTimeout = options.BulkCopyTimeout.Value;
 
-						for (var i = 0; i < columns.Count; i++)
-							dbc.ColumnMappings.Add((dynamic)_columnMappingCreator(i, columns[i].ColumnName));
+                        dbc.DestinationTableName = tableName;
 
-						TraceAction(
-							dataConnection,
-							"INSERT BULK " + tableName + Environment.NewLine,
-							() => { dbc.WriteToServer(rd); return rd.Count; });
-					}
+                        for (var i = 0; i < columns.Count; i++)
+                            dbc.ColumnMappings.Add((dynamic)_columnMappingCreator(i, columns[i].ColumnName));
 
-					if (rc.RowsCopied != rd.Count)
-					{
-						rc.RowsCopied = rd.Count;
+                        TraceAction(
+                            dataConnection,
+                            "INSERT BULK " + tableName + Environment.NewLine,
+                            () => { dbc.WriteToServer(rd); return rd.Count; });
+                    }
 
-						if (options.NotifyAfter != 0 && options.RowsCopiedCallback != null)
-							options.RowsCopiedCallback(rc);
-					}
+                    if (rc.RowsCopied != rd.Count)
+                    {
+                        rc.RowsCopied = rd.Count;
 
-					return rc;
-				}
-			}
+                        if (options.NotifyAfter != 0 && options.RowsCopiedCallback != null)
+                            options.RowsCopiedCallback(rc);
+                    }
 
-			return MultipleRowsCopy(dataConnection, options, source);
-		}
+                    return rc;
+                }
+            }
 
-		protected override BulkCopyRowsCopied MultipleRowsCopy<T>(DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
-		{
-			if (((DB2DataProvider)dataConnection.DataProvider).Version == DB2Version.zOS)
-				return MultipleRowsCopy2(dataConnection, options, false, source, " FROM SYSIBM.SYSDUMMY1");
+            return MultipleRowsCopy(dataConnection, options, source);
+        }
 
-			return MultipleRowsCopy1(dataConnection, options, false, source);
-		}
-	}
+        protected override BulkCopyRowsCopied MultipleRowsCopy<T>(DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+        {
+            if (((DB2DataProvider)dataConnection.DataProvider).Version == DB2Version.zOS)
+                return MultipleRowsCopy2(dataConnection, options, false, source, " FROM SYSIBM.SYSDUMMY1");
+
+            return MultipleRowsCopy1(dataConnection, options, false, source);
+        }
+    }
 }

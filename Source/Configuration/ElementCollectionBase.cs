@@ -1,4 +1,3 @@
-using System;
 using System.Configuration;
 
 namespace LinqToDB.Configuration
@@ -18,14 +17,8 @@ namespace LinqToDB.Configuration
 			return GetElementKey((T)element);
 		}
 
-		public new T this[string name]
-		{
-			get { return (T)BaseGet(name); }
-		}
+		public new T this[string name] => (T)BaseGet(name);
 
-		public  T this[int index]
-		{
-			get { return (T)BaseGet(index); }
-		}
+	    public  T this[int index] => (T)BaseGet(index);
 	}
 }

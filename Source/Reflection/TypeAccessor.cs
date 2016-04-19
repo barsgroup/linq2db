@@ -3,112 +3,106 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB.Reflection
 {
-	using Common;
+    using Common;
 
-	[DebuggerDisplay("Type = {Type}")]
-	public abstract class TypeAccessor
-	{
-		#region Protected Emit Helpers
+    using LinqToDB.Properties;
 
-		protected void AddMember(MemberAccessor member)
-		{
-			if (member == null) throw new ArgumentNullException("member");
+    [DebuggerDisplay("Type = {Type}")]
+    public abstract class TypeAccessor
+    {
+        #region Protected Emit Helpers
 
-			_members.Add(member);
-			_membersByName[member.MemberInfo.Name] = member;
-		}
+        protected void AddMember(MemberAccessor member)
+        {
+            if (member == null) throw new ArgumentNullException(nameof(member));
 
-		#endregion
+            _members.Add(member);
+            _membersByName[member.MemberInfo.Name] = member;
+        }
 
-		#region CreateInstance
+        #endregion
 
-		[DebuggerStepThrough]
-		public virtual object CreateInstance()
-		{
-			throw new LinqToDBException("The '{0}' type must have public default or init constructor.".Args(Type.Name));
-		}
+        #region CreateInstance
 
-		[DebuggerStepThrough]
-		public object CreateInstanceEx()
-		{
-			return ObjectFactory != null ? ObjectFactory.CreateInstance(this) : CreateInstance();
-		}
+        [DebuggerStepThrough]
+        public virtual object CreateInstance()
+        {
+            throw new LinqToDBException("The '{0}' type must have public default or init constructor.".Args(Type.Name));
+        }
 
-		#endregion
+        [DebuggerStepThrough]
+        public object CreateInstanceEx()
+        {
+            return ObjectFactory != null ? ObjectFactory.CreateInstance(this) : CreateInstance();
+        }
 
-		#region Public Members
+        #endregion
 
-		public IObjectFactory ObjectFactory { get; set; }
-		public abstract Type  Type          { get; }
+        #region Public Members
 
-		#endregion
+        public IObjectFactory ObjectFactory { get; set; }
+        public abstract Type  Type          { get; }
 
-		#region Items
+        #endregion
 
-		readonly List<MemberAccessor> _members = new List<MemberAccessor>();
-		public   List<MemberAccessor>  Members
-		{
-			get { return _members; }
-		}
+        #region Items
 
-		readonly ConcurrentDictionary<string,MemberAccessor> _membersByName = new ConcurrentDictionary<string,MemberAccessor>();
+        readonly List<MemberAccessor> _members = new List<MemberAccessor>();
+        public   List<MemberAccessor>  Members => _members;
 
-		public MemberAccessor this[string memberName]
-		{
-			get
-			{
-				return _membersByName.GetOrAdd(memberName, name =>
-				{
-					var ma = new MemberAccessor(this, name);
-					Members.Add(ma);
-					return ma;
-				});
-			}
-		}
+        readonly ConcurrentDictionary<string,MemberAccessor> _membersByName = new ConcurrentDictionary<string,MemberAccessor>();
 
-		public MemberAccessor this[int index]
-		{
-			get { return _members[index]; }
-		}
+        public MemberAccessor this[string memberName]
+        {
+            get
+            {
+                return _membersByName.GetOrAdd(memberName, name =>
+                {
+                    var ma = new MemberAccessor(this, name);
+                    Members.Add(ma);
+                    return ma;
+                });
+            }
+        }
 
-		#endregion
+        public MemberAccessor this[int index] => _members[index];
 
-		#region Static Members
+        #endregion
 
-		static readonly ConcurrentDictionary<Type,TypeAccessor> _accessors = new ConcurrentDictionary<Type,TypeAccessor>();
+        #region Static Members
 
-		public static TypeAccessor GetAccessor([NotNull] Type type)
-		{
-			if (type == null) throw new ArgumentNullException("type");
+        static readonly ConcurrentDictionary<Type,TypeAccessor> _accessors = new ConcurrentDictionary<Type,TypeAccessor>();
 
-			TypeAccessor accessor;
+        public static TypeAccessor GetAccessor([NotNull] Type type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
-			if (_accessors.TryGetValue(type, out accessor))
-				return accessor;
+            TypeAccessor accessor;
 
-			var accessorType = typeof(TypeAccessor<>).MakeGenericType(type);
+            if (_accessors.TryGetValue(type, out accessor))
+                return accessor;
 
-			accessor = (TypeAccessor)Activator.CreateInstance(accessorType);
+            var accessorType = typeof(TypeAccessor<>).MakeGenericType(type);
 
-			_accessors[type] = accessor;
+            accessor = (TypeAccessor)Activator.CreateInstance(accessorType);
 
-			return accessor;
-		}
+            _accessors[type] = accessor;
 
-		public static TypeAccessor<T> GetAccessor<T>()
-		{
-			TypeAccessor accessor;
+            return accessor;
+        }
 
-			if (_accessors.TryGetValue(typeof(T), out accessor))
-				return (TypeAccessor<T>)accessor;
+        public static TypeAccessor<T> GetAccessor<T>()
+        {
+            TypeAccessor accessor;
 
-			return (TypeAccessor<T>)(_accessors[typeof(T)] = new TypeAccessor<T>());
-		}
+            if (_accessors.TryGetValue(typeof(T), out accessor))
+                return (TypeAccessor<T>)accessor;
 
-		#endregion
-	}
+            return (TypeAccessor<T>)(_accessors[typeof(T)] = new TypeAccessor<T>());
+        }
+
+        #endregion
+    }
 }

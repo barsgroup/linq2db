@@ -1,10 +1,16 @@
-﻿using System;
-using System.Data;
+﻿using System.Data;
 
 namespace LinqToDB.DataProvider.SqlCe
 {
-	using SqlQuery;
-	using SqlProvider;
+    using System;
+
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	class SqlCeSqlBuilder : BasicSqlBuilder
 	{
@@ -13,12 +19,15 @@ namespace LinqToDB.DataProvider.SqlCe
 		{
 		}
 
-		protected override string FirstFormat  { get { return SelectQuery.Select.SkipValue == null ? "TOP ({0})" :                null; } }
-		protected override string LimitFormat  { get { return SelectQuery.Select.SkipValue != null ? "FETCH NEXT {0} ROWS ONLY" : null; } }
-		protected override string OffsetFormat { get { return "OFFSET {0} ROWS"; } }
-		protected override bool   OffsetFirst  { get { return true;              } }
+		protected override string FirstFormat => SelectQuery.Select.SkipValue == null ? "TOP ({0})" :                null;
 
-		public override int CommandCount(SelectQuery selectQuery)
+	    protected override string LimitFormat => SelectQuery.Select.SkipValue != null ? "FETCH NEXT {0} ROWS ONLY" : null;
+
+	    protected override string OffsetFormat => "OFFSET {0} ROWS";
+
+	    protected override bool   OffsetFirst => true;
+
+	    public override int CommandCount(ISelectQuery selectQuery)
 		{
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}
@@ -33,13 +42,13 @@ namespace LinqToDB.DataProvider.SqlCe
 			return new SqlCeSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -81,18 +90,18 @@ namespace LinqToDB.DataProvider.SqlCe
 				base.BuildOrderByClause();
 		}
 
-		protected override void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = false;
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SelectQuery.SearchCondition)
+				if (expr is ISearchCondition)
 					wrap = true;
 				else
 				{
-					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SelectQuery.SearchCondition;
+					var ex = expr as ISqlExpression;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
 
@@ -152,7 +161,7 @@ namespace LinqToDB.DataProvider.SqlCe
 			return value;
 		}
 
-		protected override void BuildCreateTableIdentityAttribute2(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute2(ISqlField field)
 		{
 			StringBuilder.Append("IDENTITY");
 		}

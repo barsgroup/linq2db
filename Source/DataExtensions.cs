@@ -3,314 +3,315 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 
-using JetBrains.Annotations;
-
 namespace LinqToDB
 {
-	using Extensions;
-	using Linq;
+    using Extensions;
+    using Linq;
 
-	using SqlQuery;
+    using LinqToDB.Properties;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
 
-	public static class DataExtensions
-	{
-		#region Table Helpers
+    using SqlQuery;
 
-		static public ITable<T> GetTable<T>(this IDataContext dataContext)
-			where T : class
-		{
-			return new Table<T>(dataContext);
-		}
+    public static class DataExtensions
+    {
+        #region Table Helpers
 
-		static public ITable<T> GetTable<T>(
-			this IDataContext dataContext,
-			object instance,
-			[NotNull] MethodInfo methodInfo,
-			[NotNull] params object[] parameters)
-			where T : class
-		{
-			if (methodInfo == null) throw new ArgumentNullException("methodInfo");
-			if (parameters == null) throw new ArgumentNullException("parameters");
+        static public ITable<T> GetTable<T>(this IDataContext dataContext)
+            where T : class
+        {
+            return new Table<T>(dataContext);
+        }
 
-			if (!typeof(ITable<>).IsSameOrParentOf(methodInfo.ReturnType))
-				throw new LinqException(
-					"Method '{0}.{1}' must return type 'Table<{2}>'",
-					methodInfo.Name, methodInfo.DeclaringType.FullName, typeof(T).FullName);
+        static public ITable<T> GetTable<T>(
+            this IDataContext dataContext,
+            object instance,
+            [NotNull] MethodInfo methodInfo,
+            [NotNull] params object[] parameters)
+            where T : class
+        {
+            if (methodInfo == null) throw new ArgumentNullException(nameof(methodInfo));
+            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
 
-			Expression expr;
+            if (!typeof(ITable<>).IsSameOrParentOf(methodInfo.ReturnType))
+                throw new LinqException(
+                    "Method '{0}.{1}' must return type 'Table<{2}>'",
+                    methodInfo.Name, methodInfo.DeclaringType.FullName, typeof(T).FullName);
 
-			if (parameters.Length > 0)
-			{
-				var pis  = methodInfo.GetParameters(); 
-				var args = new List<Expression>(parameters.Length);
+            Expression expr;
 
-				for (var i = 0; i < parameters.Length; i++)
-				{
-					var type = pis[i].ParameterType;
-					args.Add(Expression.Constant(parameters[i], type.IsByRef ? type.GetElementType() : type));
-				}
+            if (parameters.Length > 0)
+            {
+                var pis  = methodInfo.GetParameters(); 
+                var args = new List<Expression>(parameters.Length);
 
-				expr = Expression.Call(instance == null ? null : Expression.Constant(instance), methodInfo, args);
-			}
-			else
-				expr = Expression.Call(instance == null ? null : Expression.Constant(instance), methodInfo); 
+                for (var i = 0; i < parameters.Length; i++)
+                {
+                    var type = pis[i].ParameterType;
+                    args.Add(Expression.Constant(parameters[i], type.IsByRef ? type.GetElementType() : type));
+                }
 
-			return new Table<T>(dataContext, expr);
-		}
+                expr = Expression.Call(instance == null ? null : Expression.Constant(instance), methodInfo, args);
+            }
+            else
+                expr = Expression.Call(instance == null ? null : Expression.Constant(instance), methodInfo); 
 
-		#endregion
+            return new Table<T>(dataContext, expr);
+        }
 
-		#region Compile
+        #endregion
 
-		/// <summary>
-		/// Compiles the query.
-		/// </summary>
-		/// <returns>
-		/// A generic delegate that represents the compiled query.
-		/// </returns>
-		/// <param name="dataContext"></param>
-		/// <param name="query">
-		/// The query expression to be compiled.
-		/// </param>
-		/// <typeparam name="TDc">
-		/// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
-		/// </typeparam>
-		/// <typeparam name="TResult">
-		/// Returned type of the delegate returned by the method.
-		/// </typeparam>
-		static public Func<TDc,TResult> Compile<TDc,TResult>(
-			[NotNull] this IDataContext dataContext,
-			[NotNull] Expression<Func<TDc,TResult>> query)
-			where TDc : IDataContext
-		{
-			return CompiledQuery.Compile(query);
-		}
+        #region Compile
 
-		/// <summary>
-		/// Compiles the query.
-		/// </summary>
-		/// <returns>
-		/// A generic delegate that represents the compiled query.
-		/// </returns>
-		/// <param name="dataContext"></param>
-		/// <param name="query">
-		/// The query expression to be compiled.
-		/// </param>
-		/// <typeparam name="TDc">
-		/// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
-		/// </typeparam>
-		/// <typeparam name="TArg1">
-		/// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
-		/// </typeparam>
-		/// <typeparam name="TResult">
-		/// Returned type of the delegate returned by the method.
-		/// </typeparam>
-		static public Func<TDc,TArg1,TResult> Compile<TDc,TArg1, TResult>(
-			[NotNull] this IDataContext dataContext,
-			[NotNull] Expression<Func<TDc,TArg1,TResult>> query)
-			where TDc : IDataContext
-		{
-			return CompiledQuery.Compile(query);
-		}
+        /// <summary>
+        /// Compiles the query.
+        /// </summary>
+        /// <returns>
+        /// A generic delegate that represents the compiled query.
+        /// </returns>
+        /// <param name="dataContext"></param>
+        /// <param name="query">
+        /// The query expression to be compiled.
+        /// </param>
+        /// <typeparam name="TDc">
+        /// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
+        /// </typeparam>
+        /// <typeparam name="TResult">
+        /// Returned type of the delegate returned by the method.
+        /// </typeparam>
+        static public Func<TDc,TResult> Compile<TDc,TResult>(
+            [NotNull] this IDataContext dataContext,
+            [NotNull] Expression<Func<TDc,TResult>> query)
+            where TDc : IDataContext
+        {
+            return CompiledQuery.Compile(query);
+        }
 
-		/// <summary>
-		/// Compiles the query.
-		/// </summary>
-		/// <returns>
-		/// A generic delegate that represents the compiled query.
-		/// </returns>
-		/// <param name="dataContext"></param>
-		/// <param name="query">
-		/// The query expression to be compiled.
-		/// </param>
-		/// <typeparam name="TDc">
-		/// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
-		/// </typeparam>
-		/// <typeparam name="TArg1">
-		/// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
-		/// </typeparam>
-		/// <typeparam name="TArg2">
-		/// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
-		/// </typeparam>
-		/// <typeparam name="TResult">
-		/// Returned type of the delegate returned by the method.
-		/// </typeparam>
-		static public Func<TDc,TArg1,TArg2,TResult> Compile<TDc,TArg1,TArg2,TResult>(
-			[NotNull] this IDataContext dataContext,
-			[NotNull] Expression<Func<TDc,TArg1,TArg2,TResult>> query)
-			where TDc : IDataContext
-		{
-			return CompiledQuery.Compile(query);
-		}
+        /// <summary>
+        /// Compiles the query.
+        /// </summary>
+        /// <returns>
+        /// A generic delegate that represents the compiled query.
+        /// </returns>
+        /// <param name="dataContext"></param>
+        /// <param name="query">
+        /// The query expression to be compiled.
+        /// </param>
+        /// <typeparam name="TDc">
+        /// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
+        /// </typeparam>
+        /// <typeparam name="TArg1">
+        /// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
+        /// </typeparam>
+        /// <typeparam name="TResult">
+        /// Returned type of the delegate returned by the method.
+        /// </typeparam>
+        static public Func<TDc,TArg1,TResult> Compile<TDc,TArg1, TResult>(
+            [NotNull] this IDataContext dataContext,
+            [NotNull] Expression<Func<TDc,TArg1,TResult>> query)
+            where TDc : IDataContext
+        {
+            return CompiledQuery.Compile(query);
+        }
 
-		/// <summary>
-		/// Compiles the query.
-		/// </summary>
-		/// <returns>
-		/// A generic delegate that represents the compiled query.
-		/// </returns>
-		/// <param name="dataContext"></param>
-		/// <param name="query">
-		/// The query expression to be compiled.
-		/// </param>
-		/// <typeparam name="TDc">
-		/// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
-		/// </typeparam>
-		/// <typeparam name="TArg1">
-		/// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
-		/// </typeparam>
-		/// <typeparam name="TArg2">
-		/// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
-		/// </typeparam>
-		/// <typeparam name="TArg3">
-		/// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
-		/// </typeparam>
-		/// <typeparam name="TResult">
-		/// Returned type of the delegate returned by the method.
-		/// </typeparam>
-		static public Func<TDc,TArg1,TArg2,TArg3,TResult> Compile<TDc,TArg1,TArg2,TArg3,TResult>(
-			[NotNull] this IDataContext dataContext,
-			[NotNull] Expression<Func<TDc,TArg1,TArg2,TArg3,TResult>> query)
-			where TDc : IDataContext
-		{
-			return CompiledQuery.Compile(query);
-		}
+        /// <summary>
+        /// Compiles the query.
+        /// </summary>
+        /// <returns>
+        /// A generic delegate that represents the compiled query.
+        /// </returns>
+        /// <param name="dataContext"></param>
+        /// <param name="query">
+        /// The query expression to be compiled.
+        /// </param>
+        /// <typeparam name="TDc">
+        /// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
+        /// </typeparam>
+        /// <typeparam name="TArg1">
+        /// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
+        /// </typeparam>
+        /// <typeparam name="TArg2">
+        /// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
+        /// </typeparam>
+        /// <typeparam name="TResult">
+        /// Returned type of the delegate returned by the method.
+        /// </typeparam>
+        static public Func<TDc,TArg1,TArg2,TResult> Compile<TDc,TArg1,TArg2,TResult>(
+            [NotNull] this IDataContext dataContext,
+            [NotNull] Expression<Func<TDc,TArg1,TArg2,TResult>> query)
+            where TDc : IDataContext
+        {
+            return CompiledQuery.Compile(query);
+        }
 
-		#endregion
+        /// <summary>
+        /// Compiles the query.
+        /// </summary>
+        /// <returns>
+        /// A generic delegate that represents the compiled query.
+        /// </returns>
+        /// <param name="dataContext"></param>
+        /// <param name="query">
+        /// The query expression to be compiled.
+        /// </param>
+        /// <typeparam name="TDc">
+        /// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
+        /// </typeparam>
+        /// <typeparam name="TArg1">
+        /// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
+        /// </typeparam>
+        /// <typeparam name="TArg2">
+        /// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
+        /// </typeparam>
+        /// <typeparam name="TArg3">
+        /// Represents the type of the parameter that has to be passed in when executing the delegate returned by the method.
+        /// </typeparam>
+        /// <typeparam name="TResult">
+        /// Returned type of the delegate returned by the method.
+        /// </typeparam>
+        static public Func<TDc,TArg1,TArg2,TArg3,TResult> Compile<TDc,TArg1,TArg2,TArg3,TResult>(
+            [NotNull] this IDataContext dataContext,
+            [NotNull] Expression<Func<TDc,TArg1,TArg2,TArg3,TResult>> query)
+            where TDc : IDataContext
+        {
+            return CompiledQuery.Compile(query);
+        }
 
-		#region Object Operations
+        #endregion
 
-		#region Insert
+        #region Object Operations
 
-		public static int Insert<T>([NotNull] this IDataContextInfo dataContextInfo, T obj,
-			string tableName = null, string databaseName = null, string schemaName = null)
-		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
-			return Query<T>.Insert(dataContextInfo, obj, tableName, databaseName, schemaName);
-		}
+        #region Insert
 
-		public static int Insert<T>(this IDataContext dataContext, T obj,
-			string tableName = null, string databaseName = null, string schemaName = null)
-		{
-			return Query<T>.Insert(DataContextInfo.Create(dataContext), obj, tableName, databaseName, schemaName);
-		}
+        public static int Insert<T>([NotNull] this IDataContextInfo dataContextInfo, T obj,
+            string tableName = null, string databaseName = null, string schemaName = null)
+        {
+            if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
+            return Query<T>.Insert(dataContextInfo, obj, tableName, databaseName, schemaName);
+        }
 
-		#endregion
+        public static int Insert<T>(this IDataContext dataContext, T obj,
+            string tableName = null, string databaseName = null, string schemaName = null)
+        {
+            return Query<T>.Insert(DataContextInfo.Create(dataContext), obj, tableName, databaseName, schemaName);
+        }
 
-		#region InsertOrReplace
+        #endregion
 
-		public static int InsertOrReplace<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
-		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
-			return Query<T>.InsertOrReplace(dataContextInfo, obj);
-		}
+        #region InsertOrReplace
 
-		public static int InsertOrReplace<T>(this IDataContext dataContext, T obj)
-		{
-			return Query<T>.InsertOrReplace(DataContextInfo.Create(dataContext), obj);
-		}
+        public static int InsertOrReplace<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
+        {
+            if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
+            return Query<T>.InsertOrReplace(dataContextInfo, obj);
+        }
 
-		#endregion
+        public static int InsertOrReplace<T>(this IDataContext dataContext, T obj)
+        {
+            return Query<T>.InsertOrReplace(DataContextInfo.Create(dataContext), obj);
+        }
 
-		#region InsertWithIdentity
+        #endregion
 
-		public static object InsertWithIdentity<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
-		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
-			return Query<T>.InsertWithIdentity(dataContextInfo, obj);
-		}
+        #region InsertWithIdentity
 
-		public static object InsertWithIdentity<T>(this IDataContext dataContext, T obj)
-		{
-			return Query<T>.InsertWithIdentity(DataContextInfo.Create(dataContext), obj);
-		}
+        public static object InsertWithIdentity<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
+        {
+            if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
+            return Query<T>.InsertWithIdentity(dataContextInfo, obj);
+        }
 
-		#endregion
+        public static object InsertWithIdentity<T>(this IDataContext dataContext, T obj)
+        {
+            return Query<T>.InsertWithIdentity(DataContextInfo.Create(dataContext), obj);
+        }
 
-		#region Update
+        #endregion
 
-		public static int Update<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
-		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
-			return Query<T>.Update(dataContextInfo, obj);
-		}
+        #region Update
 
-		public static int Update<T>(this IDataContext dataContext, T obj)
-		{
-			return Query<T>.Update(DataContextInfo.Create(dataContext), obj);
-		}
+        public static int Update<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
+        {
+            if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
+            return Query<T>.Update(dataContextInfo, obj);
+        }
 
-		#endregion
+        public static int Update<T>(this IDataContext dataContext, T obj)
+        {
+            return Query<T>.Update(DataContextInfo.Create(dataContext), obj);
+        }
 
-		#region Delete
+        #endregion
 
-		public static int Delete<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
-		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
-			return Query<T>.Delete(dataContextInfo, obj);
-		}
+        #region Delete
 
-		public static int Delete<T>([NotNull] this IDataContext dataContext, T obj)
-		{
-			if (dataContext == null) throw new ArgumentNullException("dataContext");
-			return Query<T>.Delete(DataContextInfo.Create(dataContext), obj);
-		}
-		#endregion
+        public static int Delete<T>([NotNull] this IDataContextInfo dataContextInfo, T obj)
+        {
+            if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
+            return Query<T>.Delete(dataContextInfo, obj);
+        }
 
-		#endregion
+        public static int Delete<T>([NotNull] this IDataContext dataContext, T obj)
+        {
+            if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
+            return Query<T>.Delete(DataContextInfo.Create(dataContext), obj);
+        }
+        #endregion
 
-		#region DDL Operations
+        #endregion
 
-		public static ITable<T> CreateTable<T>([NotNull] this IDataContextInfo dataContextInfo,
-			string         tableName       = null,
-			string         databaseName    = null,
-			string         ownerName       = null,
-			string         statementHeader = null,
-			string         statementFooter = null,
-			DefaulNullable defaulNullable  = DefaulNullable.None)
-		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
-			return Query<T>.CreateTable(dataContextInfo,
-				tableName, databaseName, ownerName, statementHeader, statementFooter, defaulNullable);
-		}
+        #region DDL Operations
 
-		public static ITable<T> CreateTable<T>([NotNull] this IDataContext dataContext,
-			string         tableName       = null,
-			string         databaseName    = null,
-			string         ownerName       = null,
-			string         statementHeader = null,
-			string         statementFooter = null,
-			DefaulNullable defaulNullable  = DefaulNullable.None)
-		{
-			if (dataContext == null) throw new ArgumentNullException("dataContext");
-			return Query<T>.CreateTable(DataContextInfo.Create(dataContext),
-				tableName, databaseName, ownerName, statementHeader, statementFooter, defaulNullable);
-		}
+        public static ITable<T> CreateTable<T>([NotNull] this IDataContextInfo dataContextInfo,
+            string         tableName       = null,
+            string         databaseName    = null,
+            string         ownerName       = null,
+            string         statementHeader = null,
+            string         statementFooter = null,
+            EDefaulNullable eDefaulNullable  = EDefaulNullable.None)
+        {
+            if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
+            return Query<T>.CreateTable(dataContextInfo,
+                tableName, databaseName, ownerName, statementHeader, statementFooter, eDefaulNullable);
+        }
 
-		public static void DropTable<T>([NotNull] this IDataContextInfo dataContextInfo,
-			string tableName    = null,
-			string databaseName = null,
-			string schemaName    = null)
-		{
-			if (dataContextInfo == null) throw new ArgumentNullException("dataContextInfo");
-			Query<T>.DropTable(dataContextInfo, tableName, databaseName, schemaName);
-		}
+        public static ITable<T> CreateTable<T>([NotNull] this IDataContext dataContext,
+            string         tableName       = null,
+            string         databaseName    = null,
+            string         ownerName       = null,
+            string         statementHeader = null,
+            string         statementFooter = null,
+            EDefaulNullable eDefaulNullable  = EDefaulNullable.None)
+        {
+            if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
+            return Query<T>.CreateTable(DataContextInfo.Create(dataContext),
+                tableName, databaseName, ownerName, statementHeader, statementFooter, eDefaulNullable);
+        }
 
-		public static void DropTable<T>([NotNull] this IDataContext dataContext, string tableName = null, string databaseName = null, string schemaName = null)
-		{
-			if (dataContext == null) throw new ArgumentNullException("dataContext");
-			Query<T>.DropTable(DataContextInfo.Create(dataContext), tableName, databaseName, schemaName);
-		}
+        public static void DropTable<T>([NotNull] this IDataContextInfo dataContextInfo,
+            string tableName    = null,
+            string databaseName = null,
+            string schemaName    = null)
+        {
+            if (dataContextInfo == null) throw new ArgumentNullException(nameof(dataContextInfo));
+            Query<T>.DropTable(dataContextInfo, tableName, databaseName, schemaName);
+        }
 
-		public static void DropTable<T>([NotNull] this ITable<T> table, string tableName = null, string databaseName = null, string schemaName = null)
-		{
-			if (table == null) throw new ArgumentNullException("table");
+        public static void DropTable<T>([NotNull] this IDataContext dataContext, string tableName = null, string databaseName = null, string schemaName = null)
+        {
+            if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
+            Query<T>.DropTable(DataContextInfo.Create(dataContext), tableName, databaseName, schemaName);
+        }
 
-			var tbl = (Table<T>)table;
+        public static void DropTable<T>([NotNull] this ITable<T> table, string tableName = null, string databaseName = null, string schemaName = null)
+        {
+            if (table == null) throw new ArgumentNullException(nameof(table));
 
-			Query<T>.DropTable(tbl.DataContextInfo, tableName ?? tbl.TableName, databaseName ?? tbl.DatabaseName, schemaName ?? tbl.SchemaName);
-		}
+            var tbl = (Table<T>)table;
 
-		#endregion
-	}
+            Query<T>.DropTable(tbl.DataContextInfo, tableName ?? tbl.TableName, databaseName ?? tbl.DatabaseName, schemaName ?? tbl.SchemaName);
+        }
+
+        #endregion
+    }
 }

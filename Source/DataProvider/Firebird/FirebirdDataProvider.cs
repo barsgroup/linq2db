@@ -42,11 +42,13 @@ namespace LinqToDB.DataProvider.Firebird
 
 		static Action<IDbDataParameter> _setTimeStamp;
 
-		public    override string ConnectionNamespace { get { return "FirebirdSql.Data.FirebirdClient"; } }
-		protected override string ConnectionTypeName  { get { return "{0}.{1}, {0}".Args(ConnectionNamespace, "FbConnection"); } }
-		protected override string DataReaderTypeName  { get { return "{0}.{1}, {0}".Args(ConnectionNamespace, "FbDataReader"); } }
+		public    override string ConnectionNamespace => "FirebirdSql.Data.FirebirdClient";
 
-		protected override void OnConnectionTypeCreated(Type connectionType)
+	    protected override string ConnectionTypeName => "{0}.{1}, {0}".Args(ConnectionNamespace, "FbConnection");
+
+	    protected override string DataReaderTypeName => "{0}.{1}, {0}".Args(ConnectionNamespace, "FbDataReader");
+
+	    protected override void OnConnectionTypeCreated(Type connectionType)
 		{
 			//                                             ((FbParameter)parameter).FbDbType =  FbDbType.   TimeStamp;
 			_setTimeStamp = GetSetParameter(connectionType, "FbParameter",         "FbDbType", "FbDbType", "TimeStamp");
@@ -104,7 +106,7 @@ namespace LinqToDB.DataProvider.Firebird
 		#region BulkCopy
 
 		public override BulkCopyRowsCopied BulkCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+			[Properties.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
 			return new FirebirdBulkCopy().BulkCopy(
 				options.BulkCopyType == BulkCopyType.Default ? FirebirdTools.DefaultBulkCopyType : options.BulkCopyType,

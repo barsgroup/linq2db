@@ -34,8 +34,9 @@ namespace LinqToDB.DataProvider
 		{
 			public DbType             DbType        { get; set; }
 			public ParameterDirection Direction     { get; set; }
-			public bool               IsNullable    { get { return Value == null || Value is DBNull; } }
-			public string             ParameterName { get; set; }
+			public bool               IsNullable => Value == null || Value is DBNull;
+
+		    public string             ParameterName { get; set; }
 			public string             SourceColumn  { get; set; }
 			public DataRowVersion     SourceVersion { get; set; }
 			public object             Value         { get; set; }
@@ -80,12 +81,9 @@ namespace LinqToDB.DataProvider
 			return count;
 		}
 
-		public int FieldCount
-		{
-			get { return _columns.Count; }
-		}
+		public int FieldCount => _columns.Count;
 
-		public long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length)
+	    public long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length)
 		{
 			throw new NotImplementedException();
 		}
@@ -207,12 +205,9 @@ namespace LinqToDB.DataProvider
 			get { throw new NotImplementedException(); }
 		}
 
-		public bool IsClosed
-		{
-			get { return false; }
-		}
+		public bool IsClosed => false;
 
-		public int RecordsAffected
+	    public int RecordsAffected
 		{
 			get { throw new NotImplementedException(); }
 		}

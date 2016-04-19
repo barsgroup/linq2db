@@ -3,77 +3,79 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using LinqToDB.Expressions;
-	using SqlQuery;
+    using LinqToDB.Expressions;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
 
-	class DropBuilder : MethodCallBuilder
-	{
-		#region DropBuilder
+    using SqlQuery;
 
-		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			return methodCall.IsQueryable("Drop");
-		}
+    class DropBuilder : MethodCallBuilder
+    {
+        #region DropBuilder
 
-		protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			var sequence = (TableBuilder.TableContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            return methodCall.IsQueryable("Drop");
+        }
 
-			sequence.SelectQuery.QueryType          = QueryType.CreateTable;
-			sequence.SelectQuery.CreateTable.Table  = sequence.SqlTable;
-			sequence.SelectQuery.CreateTable.IsDrop = true;
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            var sequence = (TableBuilder.TableContext)builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
-			return new DropContext(buildInfo.Parent, sequence);
-		}
+            sequence.Select.EQueryType          = EQueryType.CreateTable;
+            sequence.Select.CreateTable.Table  = sequence.SqlTable;
+            sequence.Select.CreateTable.IsDrop = true;
 
-		protected override SequenceConvertInfo Convert(
-			ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
-		{
-			return null;
-		}
+            return new DropContext(buildInfo.Parent, sequence);
+        }
 
-		#endregion
+        protected override SequenceConvertInfo Convert(
+            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+        {
+            return null;
+        }
 
-		#region DropContext
+        #endregion
 
-		class DropContext : SequenceContextBase
-		{
-			public DropContext(IBuildContext parent, IBuildContext sequence)
-				: base(parent, sequence, null)
-			{
-			}
+        #region DropContext
 
-			public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
-			{
-				query.SetNonQueryQuery();
-			}
+        class DropContext : SequenceContextBase
+        {
+            public DropContext(IBuildContext parent, IBuildContext sequence)
+                : base(parent, sequence, null)
+            {
+            }
 
-			public override Expression BuildExpression(Expression expression, int level)
-			{
-				throw new NotImplementedException();
-			}
+            public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
+            {
+                query.SetNonQueryQuery();
+            }
 
-			public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
-			{
-				throw new NotImplementedException();
-			}
+            public override Expression BuildExpression(Expression expression, int level)
+            {
+                throw new NotImplementedException();
+            }
 
-			public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
-			{
-				throw new NotImplementedException();
-			}
+            public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
+            {
+                throw new NotImplementedException();
+            }
 
-			public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor requestFlag)
-			{
-				throw new NotImplementedException();
-			}
+            public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
+            {
+                throw new NotImplementedException();
+            }
 
-			public override IBuildContext GetContext(Expression expression, int level, BuildInfo buildInfo)
-			{
-				throw new NotImplementedException();
-			}
-		}
+            public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor requestFlag)
+            {
+                throw new NotImplementedException();
+            }
 
-		#endregion
-	}
+            public override IBuildContext GetContext(Expression expression, int level, BuildInfo buildInfo)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        #endregion
+    }
 }

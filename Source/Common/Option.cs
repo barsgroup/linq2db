@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace LinqToDB.Common
+﻿namespace LinqToDB.Common
 {
 	class Option<T>
 	{
@@ -11,17 +9,11 @@ namespace LinqToDB.Common
 			Value = value;
 		}
 
-		public bool IsNone
-		{
-			get { return this == None; }
-		}
+		public bool IsNone => this == None;
 
-		public bool IsSome
-		{
-			get { return this != None; }
-		}
+	    public bool IsSome => this != None;
 
-		static public Option<T> Some(T value)
+	    static public Option<T> Some(T value)
 		{
 			return new Option<T>(value);
 		}

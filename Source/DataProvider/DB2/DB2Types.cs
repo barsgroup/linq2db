@@ -37,7 +37,7 @@ namespace LinqToDB.DataProvider.DB2
 			return typeCreator.Type;
 		}
 
-		public bool IsSupported { get { return Type != null; } }
+		public bool IsSupported => Type != null;
 	}
 
 	public class TypeCreator : TypeCreatorBase

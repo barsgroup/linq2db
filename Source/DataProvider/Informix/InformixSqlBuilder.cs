@@ -1,13 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
 
 namespace LinqToDB.DataProvider.Informix
 {
-	using SqlQuery;
-	using SqlProvider;
+    using System;
+
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	class InformixSqlBuilder : BasicSqlBuilder
 	{
@@ -16,7 +22,7 @@ namespace LinqToDB.DataProvider.Informix
 		{
 		}
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}
@@ -31,7 +37,7 @@ namespace LinqToDB.DataProvider.Informix
 			return new InformixSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override void BuildSql(int commandNumber, SelectQuery selectQuery, StringBuilder sb, int indent, bool skipAlias)
+		protected override void BuildSql(int commandNumber, ISelectQuery selectQuery, StringBuilder sb, int indent, bool skipAlias)
 		{
 			base.BuildSql(commandNumber, selectQuery, sb, indent, skipAlias);
 
@@ -52,10 +58,11 @@ namespace LinqToDB.DataProvider.Informix
 				base.BuildSelectClause();
 		}
 
-		protected override string FirstFormat { get { return "FIRST {0}"; } }
-		protected override string SkipFormat  { get { return "SKIP {0}";  } }
+		protected override string FirstFormat => "FIRST {0}";
 
-		protected override void BuildLikePredicate(SelectQuery.Predicate.Like predicate)
+	    protected override string SkipFormat => "SKIP {0}";
+
+	    protected override void BuildLikePredicate(ILike predicate)
 		{
 			if (predicate.IsNot)
 				StringBuilder.Append("NOT ");
@@ -73,13 +80,13 @@ namespace LinqToDB.DataProvider.Informix
 			}
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -109,7 +116,7 @@ namespace LinqToDB.DataProvider.Informix
 					if (value != null)
 					{
 						var str = value.ToString();
-						return (str.Length > 0 && str[0] == ':')? str.Substring(1): str;
+						return str.Length > 0 && str[0] == ':'? str.Substring(1): str;
 					}
 
 					break;
@@ -118,7 +125,7 @@ namespace LinqToDB.DataProvider.Informix
 			return value;
 		}
 
-		protected override void BuildCreateTableFieldType(SqlField field)
+		protected override void BuildCreateTableFieldType(ISqlField field)
 		{
 			if (field.IsIdentity)
 			{

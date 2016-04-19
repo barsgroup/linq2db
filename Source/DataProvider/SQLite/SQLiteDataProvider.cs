@@ -32,11 +32,13 @@ namespace LinqToDB.DataProvider.SQLite
 			_sqlOptimizer = new SQLiteSqlOptimizer(SqlProviderFlags);
 		}
 
-		public    override string ConnectionNamespace { get { return SQLiteTools.AssemblyName; } }
-		protected override string ConnectionTypeName  { get { return "{0}.{1}, {0}".Args(SQLiteTools.AssemblyName, SQLiteTools.ConnectionName); } }
-		protected override string DataReaderTypeName  { get { return "{0}.{1}, {0}".Args(SQLiteTools.AssemblyName, SQLiteTools.DataReaderName); } }
+		public    override string ConnectionNamespace => SQLiteTools.AssemblyName;
 
-		protected override void OnConnectionTypeCreated(Type connectionType)
+	    protected override string ConnectionTypeName => "{0}.{1}, {0}".Args(SQLiteTools.AssemblyName, SQLiteTools.ConnectionName);
+
+	    protected override string DataReaderTypeName => "{0}.{1}, {0}".Args(SQLiteTools.AssemblyName, SQLiteTools.DataReaderName);
+
+	    protected override void OnConnectionTypeCreated(Type connectionType)
 		{
 		}
 
@@ -84,9 +86,9 @@ namespace LinqToDB.DataProvider.SQLite
 
 		static Action<string> _createDatabase;
 
-		public void CreateDatabase([JetBrains.Annotations.NotNull] string databaseName, bool deleteIfExists = false)
+		public void CreateDatabase([Properties.NotNull] string databaseName, bool deleteIfExists = false)
 		{
-			if (databaseName == null) throw new ArgumentNullException("databaseName");
+			if (databaseName == null) throw new ArgumentNullException(nameof(databaseName));
 
 			CreateFileDatabase(
 				databaseName, deleteIfExists, ".sqlite",
@@ -105,16 +107,16 @@ namespace LinqToDB.DataProvider.SQLite
 				});
 		}
 
-		public void DropDatabase([JetBrains.Annotations.NotNull] string databaseName)
+		public void DropDatabase([Properties.NotNull] string databaseName)
 		{
-			if (databaseName == null) throw new ArgumentNullException("databaseName");
+			if (databaseName == null) throw new ArgumentNullException(nameof(databaseName));
 
 			DropFileDatabase(databaseName, ".sqlite");
 		}
 		#region BulkCopy
 
 		public override BulkCopyRowsCopied BulkCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+			[Properties.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
 			return new SQLiteBulkCopy().BulkCopy(
 				options.BulkCopyType == BulkCopyType.Default ? SQLiteTools.DefaultBulkCopyType : options.BulkCopyType,

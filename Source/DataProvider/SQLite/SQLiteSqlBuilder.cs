@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace LinqToDB.DataProvider.SQLite
 {
-	using SqlQuery;
-	using SqlProvider;
+    using System;
+
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	public class SQLiteSqlBuilder : BasicSqlBuilder
 	{
@@ -15,7 +18,7 @@ namespace LinqToDB.DataProvider.SQLite
 		{
 		}
 
-		public override int CommandCount(SelectQuery selectQuery)
+		public override int CommandCount(ISelectQuery selectQuery)
 		{
 			return selectQuery.IsInsert && selectQuery.Insert.WithIdentity ? 2 : 1;
 		}
@@ -30,12 +33,13 @@ namespace LinqToDB.DataProvider.SQLite
 			return new SQLiteSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override string LimitFormat  { get { return "LIMIT {0}";  } }
-		protected override string OffsetFormat { get { return "OFFSET {0}"; } }
+		protected override string LimitFormat => "LIMIT {0}";
 
-		public override bool IsNestedJoinSupported { get { return false; } }
+	    protected override string OffsetFormat => "OFFSET {0}";
 
-		protected override void BuildFromClause()
+	    public override bool IsNestedJoinSupported => false;
+
+	    protected override void BuildFromClause()
 		{
 			if (!SelectQuery.IsUpdate)
 				base.BuildFromClause();
@@ -90,7 +94,7 @@ namespace LinqToDB.DataProvider.SQLite
 			return value;
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -99,7 +103,7 @@ namespace LinqToDB.DataProvider.SQLite
 			}
 		}
 
-		protected override void BuildCreateTableIdentityAttribute2(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute2(ISqlField field)
 		{
 			StringBuilder.Append("PRIMARY KEY AUTOINCREMENT");
 		}

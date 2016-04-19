@@ -7,12 +7,9 @@ namespace LinqToDB.Configuration
 	public abstract class ElementBase : ConfigurationElement
 	{
 		private   readonly ConfigurationPropertyCollection _properties = new ConfigurationPropertyCollection();
-		protected override ConfigurationPropertyCollection  Properties
-		{
-			get { return _properties; }
-		}
+		protected override ConfigurationPropertyCollection  Properties => _properties;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether an unknown attribute is encountered during deserialization.
 		/// </summary>
 		/// <returns>
@@ -34,9 +31,6 @@ namespace LinqToDB.Configuration
 		}
 
 		readonly NameValueCollection _attributes = new NameValueCollection(StringComparer.OrdinalIgnoreCase);
-		public   NameValueCollection  Attributes
-		{
-			get { return _attributes; }
-		}
+		public   NameValueCollection  Attributes => _attributes;
 	}
 }

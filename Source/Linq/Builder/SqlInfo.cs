@@ -1,59 +1,60 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace LinqToDB.Linq.Builder
 {
-	using Extensions;
-	using SqlQuery;
+    using Extensions;
 
-	public class SqlInfo
-	{
-		public ISqlExpression   Sql;
-		public SelectQuery      Query;
-		public int              Index = -1;
-		public readonly List<MemberInfo> Members = new List<MemberInfo>();
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-		public SqlInfo()
-		{
-		}
+    public class SqlInfo
+    {
+        public IQueryExpression   Sql;
+        public ISelectQuery      Query;
+        public int              Index = -1;
+        public readonly List<MemberInfo> Members = new List<MemberInfo>();
 
-		public SqlInfo(MemberInfo mi)
-		{
-			Members.Add(mi);
-		}
+        public SqlInfo()
+        {
+        }
 
-		public SqlInfo(IEnumerable<MemberInfo> mi)
-		{
-			Members.AddRange(mi);
-		}
+        public SqlInfo(MemberInfo mi)
+        {
+            Members.Add(mi);
+        }
 
-		public SqlInfo Clone()
-		{
-			return new SqlInfo(Members) { Sql = Sql, Query = Query, Index = Index };
-		}
+        public SqlInfo(IEnumerable<MemberInfo> mi)
+        {
+            Members.AddRange(mi);
+        }
 
-		public SqlInfo Clone(MemberInfo mi)
-		{
-			var info = Clone();
+        public SqlInfo Clone()
+        {
+            return new SqlInfo(Members) { Sql = Sql, Query = Query, Index = Index };
+        }
 
-			if (Members.Count == 0 || Members[0] != mi)
-				info.Members.Insert(0, mi);
+        public SqlInfo Clone(MemberInfo mi)
+        {
+            var info = Clone();
 
-			return info;
-		}
+            if (Members.Count == 0 || Members[0] != mi)
+                info.Members.Insert(0, mi);
 
-		public bool CompareMembers(SqlInfo info)
-		{
-			return Members.Count == info.Members.Count && !Members.Where((t,i) => !t.EqualsTo(info.Members[i])).Any();
-		}
+            return info;
+        }
 
-		public bool CompareLastMember(SqlInfo info)
-		{
-			return
-				Members.Count > 0 && info.Members.Count > 0 &&
-				Members[Members.Count - 1].EqualsTo(info.Members[info.Members.Count - 1]);
-		}
-	}
+        public bool CompareMembers(SqlInfo info)
+        {
+            return Members.Count == info.Members.Count && !Members.Where((t,i) => !t.EqualsTo(info.Members[i])).Any();
+        }
+
+        public bool CompareLastMember(SqlInfo info)
+        {
+            return
+                Members.Count > 0 && info.Members.Count > 0 &&
+                Members[Members.Count - 1].EqualsTo(info.Members[info.Members.Count - 1]);
+        }
+    }
 }

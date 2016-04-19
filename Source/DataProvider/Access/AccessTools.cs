@@ -4,76 +4,76 @@ using System.Data;
 
 namespace LinqToDB.DataProvider.Access
 {
-	using Data;
+    using Data;
 
-	public static class AccessTools
-	{
-		static readonly AccessDataProvider _accessDataProvider = new AccessDataProvider();
+    public static class AccessTools
+    {
+        static readonly AccessDataProvider _accessDataProvider = new AccessDataProvider();
 
-		static AccessTools()
-		{
-			DataConnection.AddDataProvider(_accessDataProvider);
-		}
+        static AccessTools()
+        {
+            DataConnection.AddDataProvider(_accessDataProvider);
+        }
 
-		public static IDataProvider GetDataProvider()
-		{
-			return _accessDataProvider;
-		}
+        public static IDataProvider GetDataProvider()
+        {
+            return _accessDataProvider;
+        }
 
-		#region CreateDataConnection
+        #region CreateDataConnection
 
-		public static DataConnection CreateDataConnection(string connectionString)
-		{
-			return new DataConnection(_accessDataProvider, connectionString);
-		}
+        public static DataConnection CreateDataConnection(string connectionString)
+        {
+            return new DataConnection(_accessDataProvider, connectionString);
+        }
 
-		public static DataConnection CreateDataConnection(IDbConnection connection)
-		{
-			return new DataConnection(_accessDataProvider, connection);
-		}
+        public static DataConnection CreateDataConnection(IDbConnection connection)
+        {
+            return new DataConnection(_accessDataProvider, connection);
+        }
 
-		public static DataConnection CreateDataConnection(IDbTransaction transaction)
-		{
-			return new DataConnection(_accessDataProvider, transaction);
-		}
+        public static DataConnection CreateDataConnection(IDbTransaction transaction)
+        {
+            return new DataConnection(_accessDataProvider, transaction);
+        }
 
-		#endregion
+        #endregion
 
-		public static void CreateDatabase(string databaseName, bool deleteIfExists = false)
-		{
-			_accessDataProvider.CreateDatabase(databaseName, deleteIfExists);
-		}
+        public static void CreateDatabase(string databaseName, bool deleteIfExists = false)
+        {
+            _accessDataProvider.CreateDatabase(databaseName, deleteIfExists);
+        }
 
-		public static void DropDatabase(string databaseName)
-		{
-			_accessDataProvider.DropDatabase(databaseName);
-		}
+        public static void DropDatabase(string databaseName)
+        {
+            _accessDataProvider.DropDatabase(databaseName);
+        }
 
 
-		#region BulkCopy
+        #region BulkCopy
 
-		private static BulkCopyType _defaultBulkCopyType = BulkCopyType.MultipleRows;
-		public  static BulkCopyType  DefaultBulkCopyType
-		{
-			get { return _defaultBulkCopyType;  }
-			set { _defaultBulkCopyType = value; }
-		}
+        private static BulkCopyType _defaultBulkCopyType = BulkCopyType.MultipleRows;
+        public  static BulkCopyType  DefaultBulkCopyType
+        {
+            get { return _defaultBulkCopyType;  }
+            set { _defaultBulkCopyType = value; }
+        }
 
-		public static BulkCopyRowsCopied MultipleRowsCopy<T>(
-			DataConnection             dataConnection,
-			IEnumerable<T>             source,
-			int                        maxBatchSize       = 1000,
-			Action<BulkCopyRowsCopied> rowsCopiedCallback = null)
-		{
-			return dataConnection.BulkCopy(
-				new BulkCopyOptions
-				{
-					BulkCopyType       = BulkCopyType.MultipleRows,
-					MaxBatchSize       = maxBatchSize,
-					RowsCopiedCallback = rowsCopiedCallback,
-				}, source);
-		}
+        public static BulkCopyRowsCopied MultipleRowsCopy<T>(
+            DataConnection             dataConnection,
+            IEnumerable<T>             source,
+            int                        maxBatchSize       = 1000,
+            Action<BulkCopyRowsCopied> rowsCopiedCallback = null)
+        {
+            return dataConnection.BulkCopy(
+                new BulkCopyOptions
+                {
+                    BulkCopyType       = BulkCopyType.MultipleRows,
+                    MaxBatchSize       = maxBatchSize,
+                    RowsCopiedCallback = rowsCopiedCallback,
+                }, source);
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }

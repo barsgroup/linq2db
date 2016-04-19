@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace JetBrains.Annotations
+﻿namespace LinqToDB.Properties
 {
-	/// <summary>
+    using System;
+    using System.Collections.Generic;
+
+    /// <summary>
 	/// Indicates that marked method builds string by format pattern and (optional) arguments. 
 	/// Parameter, which contains format string, should be given in constructor.
 	/// The format string should be in <see cref="string.Format(IFormatProvider,string,object[])"/> -like form
@@ -25,10 +25,7 @@ namespace JetBrains.Annotations
 		/// <summary>
 		/// Gets format parameter name
 		/// </summary>
-		public string FormatParameterName
-		{
-			get { return _formatParameterName; }
-		}
+		public string FormatParameterName => _formatParameterName;
 	}
 
 	/// <summary>
@@ -73,10 +70,7 @@ namespace JetBrains.Annotations
 		/// <summary>
 		/// Gets condition type
 		/// </summary>
-		public AssertionConditionType ConditionType
-		{
-			get { return _conditionType; }
-		}
+		public AssertionConditionType ConditionType => _conditionType;
 	}
 
 	/// <summary>
@@ -182,10 +176,7 @@ namespace JetBrains.Annotations
 		/// <summary>
 		/// Gets enumerations of specified base types
 		/// </summary>
-		public IEnumerable<Type> BaseTypes
-		{
-			get { return _baseTypes; }
-		}
+		public IEnumerable<Type> BaseTypes => _baseTypes;
 	}
 
 	/// <summary>
@@ -200,12 +191,9 @@ namespace JetBrains.Annotations
 		/// Gets value indicating what is meant to be used
 		/// </summary>
 		[UsedImplicitly]
-		public ImplicitUseFlags Flags
-		{
-			get { return _flags; }
-		}
+		public ImplicitUseFlags Flags => _flags;
 
-		/// <summary>
+	    /// <summary>
 		/// Initializes new instance of UsedImplicitlyAttribute
 		/// </summary>
 		public UsedImplicitlyAttribute()
@@ -234,12 +222,9 @@ namespace JetBrains.Annotations
 		/// Gets value indicating what is meant to be used
 		/// </summary>
 		[UsedImplicitly]
-		public ImplicitUseFlags Flags
-		{
-			get { return _flags; }
-		}
+		public ImplicitUseFlags Flags => _flags;
 
-		/// <summary>
+	    /// <summary>
 		/// Initializes new instance of MeansImplicitUseAttribute
 		/// </summary>
 		[UsedImplicitly]

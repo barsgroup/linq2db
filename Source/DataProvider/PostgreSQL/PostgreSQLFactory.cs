@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Specialized;
-
-using JetBrains.Annotations;
+﻿using System.Collections.Specialized;
 
 namespace LinqToDB.DataProvider.PostgreSQL
 {
-	[UsedImplicitly]
-	class PostgreSQLFactory: IDataProviderFactory
-	{
-		IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)
-		{
-			return new PostgreSQLDataProvider();
-		}
-	}
+    using LinqToDB.Properties;
+
+    [UsedImplicitly]
+    class PostgreSQLFactory: IDataProviderFactory
+    {
+        IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)
+        {
+            return new PostgreSQLDataProvider();
+        }
+    }
 }

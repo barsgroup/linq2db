@@ -1,138 +1,143 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using Extensions;
-	using LinqToDB.Expressions;
-	using SqlQuery;
+    using Extensions;
+    using LinqToDB.Expressions;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	class TakeSkipBuilder : MethodCallBuilder
-	{
-		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			return methodCall.IsQueryable("Skip", "Take");
-		}
+    using SqlQuery;
 
-		protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+    class TakeSkipBuilder : MethodCallBuilder
+    {
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            return methodCall.IsQueryable("Skip", "Take");
+        }
 
-			var arg = methodCall.Arguments[1].Unwrap();
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
-			if (arg.NodeType == ExpressionType.Lambda)
-				arg = ((LambdaExpression)arg).Body.Unwrap();
+            var arg = methodCall.Arguments[1].Unwrap();
 
-			var expr = builder.ConvertToSql(sequence, arg);
+            if (arg.NodeType == ExpressionType.Lambda)
+                arg = ((LambdaExpression)arg).Body.Unwrap();
 
-			if (methodCall.Method.Name == "Take")
-			{
-				BuildTake(builder, sequence, expr);
-			}
-			else
-			{
-				BuildSkip(builder, sequence, sequence.SelectQuery.Select.SkipValue, expr);
-			}
+            var expr = builder.ConvertToSql(sequence, arg);
 
-			return sequence;
-		}
+            if (methodCall.Method.Name == "Take")
+            {
+                BuildTake(builder, sequence, expr);
+            }
+            else
+            {
+                BuildSkip(builder, sequence, sequence.Select.Select.SkipValue, expr);
+            }
 
-		protected override SequenceConvertInfo Convert(
-			ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
-		{
-			var info = builder.ConvertSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]), null);
+            return sequence;
+        }
 
-			if (info != null)
-			{
-				info.Expression =
-					Expression.Call(
-						methodCall.Method.DeclaringType,
-						methodCall.Method.Name,
-						new[] { info.Expression.Type.GetGenericArgumentsEx()[0] },
-						info.Expression, methodCall.Arguments[1]);
-					//methodCall.Transform(ex => ConvertMethod(methodCall, 0, info, null, ex));
-				info.Parameter  = param;
+        protected override SequenceConvertInfo Convert(
+            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+        {
+            var info = builder.ConvertSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]), null);
 
-				return info;
-			}
+            if (info != null)
+            {
+                info.Expression =
+                    Expression.Call(
+                        methodCall.Method.DeclaringType,
+                        methodCall.Method.Name,
+                        new[] { info.Expression.Type.GetGenericArgumentsEx()[0] },
+                        info.Expression, methodCall.Arguments[1]);
+                    //methodCall.Transform(ex => ConvertMethod(methodCall, 0, info, null, ex));
+                info.Parameter  = param;
 
-			return null;
-		}
+                return info;
+            }
 
-		static void BuildTake(ExpressionBuilder builder, IBuildContext sequence, ISqlExpression expr)
-		{
-			var sql = sequence.SelectQuery;
+            return null;
+        }
 
-			sql.Select.Take(expr);
+        static void BuildTake(ExpressionBuilder builder, IBuildContext sequence, IQueryExpression expr)
+        {
+            var sql = sequence.Select;
 
-			if (sql.Select.SkipValue != null &&
-				builder.DataContextInfo.SqlProviderFlags.IsTakeSupported &&
-				!builder.DataContextInfo.SqlProviderFlags.GetIsSkipSupportedFlag(sql))
-			{
-				if (sql.Select.SkipValue is SqlParameter && sql.Select.TakeValue is SqlValue)
-				{
-					var skip = (SqlParameter)sql.Select.SkipValue;
-					var parm = (SqlParameter)sql.Select.SkipValue.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
+            sql.Select.Take(expr);
 
-					parm.SetTakeConverter((int)((SqlValue)sql.Select.TakeValue).Value);
+            if (sql.Select.SkipValue != null &&
+                builder.DataContextInfo.SqlProviderFlags.IsTakeSupported &&
+                !builder.DataContextInfo.SqlProviderFlags.GetIsSkipSupportedFlag(sql))
+            {
+                var sqlParameter = sql.Select.SkipValue as ISqlParameter;
+                var sqlValue = sql.Select.TakeValue as ISqlValue;
+                if (sqlParameter != null && sqlValue != null)
+                {
+                    var skip = sqlParameter;
+                    var parm = (ISqlParameter)sqlParameter.Clone(new Dictionary<ICloneableElement,ICloneableElement>(), _ => true);
 
-					sql.Select.Take(parm);
+                    parm.SetTakeConverter((int)sqlValue.Value);
 
-					var ep = (from pm in builder.CurrentSqlParameters where pm.SqlParameter == skip select pm).First();
+                    sql.Select.Take(parm);
 
-					ep = new ParameterAccessor
-					{
-						Expression   = ep.Expression,
-						Accessor     = ep.Accessor,
-						SqlParameter = parm
-					};
+                    var ep = (from pm in builder.CurrentSqlParameters where pm.SqlParameter == skip select pm).First();
 
-					builder.CurrentSqlParameters.Add(ep);
-				}
-				else
-					sql.Select.Take(builder.Convert(
-						sequence,
-						new SqlBinaryExpression(typeof(int), sql.Select.SkipValue, "+", sql.Select.TakeValue, Precedence.Additive)));
-			}
+                    ep = new ParameterAccessor
+                    {
+                        Expression   = ep.Expression,
+                        Accessor     = ep.Accessor,
+                        SqlParameter = parm
+                    };
 
-			if (!builder.DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))
-			{
-				var p = sql.Select.TakeValue as SqlParameter;
+                    builder.CurrentSqlParameters.Add(ep);
+                }
+                else
+                    sql.Select.Take(builder.Convert(
+                        sequence,
+                        new SqlBinaryExpression(typeof(int), sql.Select.SkipValue, "+", sql.Select.TakeValue, Precedence.Additive)));
+            }
 
-				if (p != null)
-					p.IsQueryParameter = false;
-			}
-		}
+            if (!builder.DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))
+            {
+                var p = sql.Select.TakeValue as ISqlParameter;
 
-		static void BuildSkip(ExpressionBuilder builder, IBuildContext sequence, ISqlExpression prevSkipValue, ISqlExpression expr)
-		{
-			var sql = sequence.SelectQuery;
+                if (p != null)
+                    p.IsQueryParameter = false;
+            }
+        }
 
-			sql.Select.Skip(expr);
+        static void BuildSkip(ExpressionBuilder builder, IBuildContext sequence, IQueryExpression prevSkipValue, IQueryExpression expr)
+        {
+            var sql = sequence.Select;
 
-			if (sql.Select.TakeValue != null)
-			{
-				if (builder.DataContextInfo.SqlProviderFlags.GetIsSkipSupportedFlag(sql) ||
-					!builder.DataContextInfo.SqlProviderFlags.IsTakeSupported)
-					sql.Select.Take(builder.Convert(
-						sequence,
-						new SqlBinaryExpression(typeof(int), sql.Select.TakeValue, "-", sql.Select.SkipValue, Precedence.Additive)));
+            sql.Select.Skip(expr);
 
-				if (prevSkipValue != null)
-					sql.Select.Skip(builder.Convert(
-						sequence,
-						new SqlBinaryExpression(typeof(int), prevSkipValue, "+", sql.Select.SkipValue, Precedence.Additive)));
-			}
+            if (sql.Select.TakeValue != null)
+            {
+                if (builder.DataContextInfo.SqlProviderFlags.GetIsSkipSupportedFlag(sql) ||
+                    !builder.DataContextInfo.SqlProviderFlags.IsTakeSupported)
+                    sql.Select.Take(builder.Convert(
+                        sequence,
+                        new SqlBinaryExpression(typeof(int), sql.Select.TakeValue, "-", sql.Select.SkipValue, Precedence.Additive)));
 
-			if (!builder.DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))
-			{
-				var p = sql.Select.SkipValue as SqlParameter;
+                if (prevSkipValue != null)
+                    sql.Select.Skip(builder.Convert(
+                        sequence,
+                        new SqlBinaryExpression(typeof(int), prevSkipValue, "+", sql.Select.SkipValue, Precedence.Additive)));
+            }
 
-				if (p != null)
-					p.IsQueryParameter = false;
-			}
-		}
-	}
+            if (!builder.DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))
+            {
+                var p = sql.Select.SkipValue as ISqlParameter;
+
+                if (p != null)
+                    p.IsQueryParameter = false;
+            }
+        }
+    }
 }

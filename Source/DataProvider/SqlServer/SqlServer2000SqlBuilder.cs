@@ -1,20 +1,19 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.SqlServer
+﻿namespace LinqToDB.DataProvider.SqlServer
 {
-	using SqlQuery;
-	using SqlProvider;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	class SqlServer2000SqlBuilder : SqlServerSqlBuilder
+    using SqlProvider;
+    using SqlQuery.QueryElements.SqlElements;
+    class SqlServer2000SqlBuilder : SqlServerSqlBuilder
 	{
 		public SqlServer2000SqlBuilder(ISqlOptimizer sqlOptimizer, SqlProviderFlags sqlProviderFlags, ValueToSqlConverter valueToSqlConverter)
 			: base(sqlOptimizer, sqlProviderFlags, valueToSqlConverter)
 		{
 		}
 
-		protected override string FirstFormat { get { return "TOP {0}"; } }
+		protected override string FirstFormat => "TOP {0}";
 
-		protected override ISqlBuilder CreateSqlBuilder()
+        protected override ISqlBuilder CreateSqlBuilder()
 		{
 			return new SqlServer2000SqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
@@ -31,7 +30,7 @@ namespace LinqToDB.DataProvider.SqlServer
 				.AppendLine("SELECT SCOPE_IDENTITY()");
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -69,18 +68,15 @@ namespace LinqToDB.DataProvider.SqlServer
 			base.BuildDataType(type, createDbType);
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
 		}
 
-		public override string  Name
-		{
-			get { return ProviderName.SqlServer2000; }
-		}
+		public override string  Name => ProviderName.SqlServer2000;
 
-		protected override void BuildDropTableStatement()
+        protected override void BuildDropTableStatement()
 		{
 			var table = SelectQuery.CreateTable.Table;
 

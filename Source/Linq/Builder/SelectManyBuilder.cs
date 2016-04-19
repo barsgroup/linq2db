@@ -4,234 +4,243 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using LinqToDB.Expressions;
-	using SqlQuery;
+    using System.Linq;
 
-	class SelectManyBuilder : MethodCallBuilder
-	{
-		protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			return
-				methodCall.IsQueryable("SelectMany") &&
-				methodCall.Arguments.Count == 3      &&
-				((LambdaExpression)methodCall.Arguments[1].Unwrap()).Parameters.Count == 1;
-		}
+    using LinqToDB.Expressions;
+    using LinqToDB.Extensions;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Enums;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-		protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-		{
-			var sequence           = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-			var collectionSelector = (LambdaExpression)methodCall.Arguments[1].Unwrap();
-			var resultSelector     = (LambdaExpression)methodCall.Arguments[2].Unwrap();
+    using SqlQuery;
 
-			if (!sequence.SelectQuery.GroupBy.IsEmpty)
-			{
-				sequence = new SubQueryContext(sequence);
-			}
+    class SelectManyBuilder : MethodCallBuilder
+    {
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            return
+                methodCall.IsQueryable("SelectMany") &&
+                methodCall.Arguments.Count == 3      &&
+                ((LambdaExpression)methodCall.Arguments[1].Unwrap()).Parameters.Count == 1;
+        }
 
-			var context        = new SelectManyContext(buildInfo.Parent, collectionSelector, sequence);
-			var expr           = collectionSelector.Body.Unwrap();
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        {
+            var sequence           = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+            var collectionSelector = (LambdaExpression)methodCall.Arguments[1].Unwrap();
+            var resultSelector     = (LambdaExpression)methodCall.Arguments[2].Unwrap();
 
-			var collectionInfo = new BuildInfo(context, expr, new SelectQuery());
-			var collection     = builder.BuildSequence(collectionInfo);
-			var leftJoin       = collection is DefaultIfEmptyBuilder.DefaultIfEmptyContext;
-			var sql            = collection.SelectQuery;
+            if (!sequence.Select.GroupBy.IsEmpty)
+            {
+                sequence = new SubQueryContext(sequence);
+            }
 
-			var sequenceTables = new HashSet<ISqlTableSource>(sequence.SelectQuery.From.Tables[0].GetTables());
-			var newQuery       = null != new QueryVisitor().Find(sql, e => e == collectionInfo.SelectQuery);
-			var crossApply     = null != new QueryVisitor().Find(sql, e =>
-				e.ElementType == QueryElementType.TableSource && sequenceTables.Contains((ISqlTableSource)e)  ||
-				e.ElementType == QueryElementType.SqlField    && sequenceTables.Contains(((SqlField)e).Table) ||
-				e.ElementType == QueryElementType.Column      && sequenceTables.Contains(((SelectQuery.Column)e).Parent));
+            var context        = new SelectManyContext(buildInfo.Parent, collectionSelector, sequence);
+            var expr           = collectionSelector.Body.Unwrap();
 
-			if (collection is JoinBuilder.GroupJoinSubQueryContext)
-			{
-				var groupJoin = ((JoinBuilder.GroupJoinSubQueryContext)collection).GroupJoin;
+            var collectionInfo = new BuildInfo(context, expr, new SelectQuery());
+            var collection     = builder.BuildSequence(collectionInfo);
+            var leftJoin       = collection is DefaultIfEmptyBuilder.DefaultIfEmptyContext;
+            var sql            = collection.Select;
 
-				groupJoin.SelectQuery.From.Tables[0].Joins[0].JoinType = SelectQuery.JoinType.Inner;
-				groupJoin.SelectQuery.From.Tables[0].Joins[0].IsWeak   = false;
-			}
+            var sequenceTables = new HashSet<ISqlTableSource>(sequence.Select.From.Tables.First.Value.GetTables());
+            var newQuery       = null != QueryVisitor.Find(sql, e => e == collectionInfo.SelectQuery);
+            var crossApply     = null != QueryVisitor.Find(sql, e =>
+                e.ElementType == EQueryElementType.TableSource && sequenceTables.Contains((ISqlTableSource)e)  ||
+                e.ElementType == EQueryElementType.SqlField    && sequenceTables.Contains(((ISqlField)e).Table) ||
+                e.ElementType == EQueryElementType.Column      && sequenceTables.Contains(((IColumn)e).Parent));
 
-			if (!newQuery)
-			{
-				context.Collection = new SubQueryContext(collection, sequence.SelectQuery, false);
-				return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
-			}
+            var groupJoinSubQueryContext = collection as JoinBuilder.GroupJoinSubQueryContext;
+            if (groupJoinSubQueryContext != null)
+            {
+                var groupJoin = groupJoinSubQueryContext.GroupJoin;
 
-			if (!crossApply)
-			{
-				if (!leftJoin)
-				{
-					context.Collection = new SubQueryContext(collection, sequence.SelectQuery, true);
-					return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
-				}
-				else
-				{
-					var join = SelectQuery.OuterApply(sql);
-					sequence.SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
-					context.Collection = new SubQueryContext(collection, sequence.SelectQuery, false);
+                var joinedTables = groupJoin.Select.From.Tables.First.Value.Joins.First.Value;
+                joinedTables.JoinType = EJoinType.Inner;
+                joinedTables.IsWeak   = false;
+            }
 
-					return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
-				}
-			}
+            if (!newQuery)
+            {
+                context.Collection = new SubQueryContext(collection, sequence.Select, false);
+                return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
+            }
 
-			if (collection is TableBuilder.TableContext)
-			{
-				var table = (TableBuilder.TableContext)collection;
+            if (!crossApply)
+            {
+                if (!leftJoin)
+                {
+                    context.Collection = new SubQueryContext(collection, sequence.Select, true);
+                    return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
+                }
+                else
+                {
+                    var join = SelectQuery.OuterApply(sql);
+                    sequence.Select.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
+                    context.Collection = new SubQueryContext(collection, sequence.Select, false);
 
-				var join = table.SqlTable.TableArguments != null && table.SqlTable.TableArguments.Length > 0 ?
-					(leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql)) :
-					(leftJoin ? SelectQuery.LeftJoin  (sql) : SelectQuery.InnerJoin (sql));
+                    return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
+                }
+            }
 
-				join.JoinedTable.Condition.Conditions.AddRange(sql.Where.SearchCondition.Conditions);
-				join.JoinedTable.CanConvertApply = false;
+            var tableContext = collection as TableBuilder.TableContext;
+            if (tableContext != null)
+            {
+                var join = tableContext.SqlTable.TableArguments != null && tableContext.SqlTable.TableArguments.Count > 0 ?
+                    (leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql)) :
+                    (leftJoin ? SelectQuery.LeftJoin  (sql) : SelectQuery.InnerJoin (sql));
 
-				sql.Where.SearchCondition.Conditions.Clear();
+                join.JoinedTable.Condition.Conditions.AddRange(sql.Where.Search.Conditions);
+                join.JoinedTable.CanConvertApply = false;
 
-				var collectionParent = collection.Parent as TableBuilder.TableContext;
+                sql.Where.Search.Conditions.Clear();
 
-				// Association.
-				//
-				if (collectionParent != null && collectionInfo.IsAssociationBuilt)
-				{
-					var ts = (SelectQuery.TableSource)new QueryVisitor().Find(sequence.SelectQuery.From, e =>
-					{
-						if (e.ElementType == QueryElementType.TableSource)
-						{
-							var t = (SelectQuery.TableSource)e;
-							return t.Source == collectionParent.SqlTable;
-						}
+                var collectionParent = collection.Parent as TableBuilder.TableContext;
 
-						return false;
-					});
+                // Association.
+                //
+                if (collectionParent != null && collectionInfo.IsAssociationBuilt)
+                {
+                    var ts = (ITableSource)QueryVisitor.Find(sequence.Select.From, e =>
+                    {
+                        if (e.ElementType == EQueryElementType.TableSource)
+                        {
+                            var t = (ITableSource)e;
+                            return t.Source == collectionParent.SqlTable;
+                        }
 
-					ts.Joins.Add(join.JoinedTable);
-				}
-				else
-				{
-					sequence.SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
-				}
+                        return false;
+                    });
 
-				context.Collection = new SubQueryContext(collection, sequence.SelectQuery, false);
-				return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
-			}
-			else
-			{
-				var join = leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql);
-				sequence.SelectQuery.From.Tables[0].Joins.Add(join.JoinedTable);
+                }
+                else
+                {
+                    sequence.Select.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
+                }
 
-				context.Collection = new SubQueryContext(collection, sequence.SelectQuery, false);
-				return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
-			}
-		}
+                context.Collection = new SubQueryContext(collection, sequence.Select, false);
+                return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
+            }
+            else
+            {
+                var join = leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql);
+                sequence.Select.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
 
-		protected override SequenceConvertInfo Convert(
-			ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
-		{
-			return null;
-		}
+                context.Collection = new SubQueryContext(collection, sequence.Select, false);
+                return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
+            }
+        }
 
-		public class SelectManyContext : SelectContext
-		{
-			public SelectManyContext(IBuildContext parent, LambdaExpression lambda, IBuildContext sequence)
-				: base(parent, lambda, sequence)
-			{
-			}
+        protected override SequenceConvertInfo Convert(
+            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+        {
+            return null;
+        }
 
-			private IBuildContext _collection;
-			public  IBuildContext  Collection
-			{
-				get { return _collection; }
-				set
-				{
-					_collection = value;
-					_collection.Parent = this;
-				}
-			}
+        public class SelectManyContext : SelectContext
+        {
+            public SelectManyContext(IBuildContext parent, LambdaExpression lambda, IBuildContext sequence)
+                : base(parent, lambda, sequence)
+            {
+            }
 
-			public override Expression BuildExpression(Expression expression, int level)
-			{
-				if (expression == null)
-					return Collection.BuildExpression(expression, level);
+            private IBuildContext _collection;
+            public  IBuildContext  Collection
+            {
+                get { return _collection; }
+                set
+                {
+                    _collection = value;
+                    _collection.Parent = this;
+                }
+            }
 
-				var root = expression.GetRootObject();
+            public override Expression BuildExpression(Expression expression, int level)
+            {
+                if (expression == null)
+                    return Collection.BuildExpression(expression, level);
 
-				if (root == Lambda.Parameters[0])
-					return base.BuildExpression(expression, level);
+                var root = expression.GetRootObject();
 
-				return Collection.BuildExpression(expression, level);
-			}
+                if (root == Lambda.Parameters[0])
+                    return base.BuildExpression(expression, level);
 
-			public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
-			{
-				if (Collection == null)
-					base.BuildQuery(query, queryParameter);
+                return Collection.BuildExpression(expression, level);
+            }
 
-				throw new NotImplementedException();
-			}
+            public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
+            {
+                if (Collection == null)
+                    base.BuildQuery(query, queryParameter);
 
-			public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
-			{
-				if (Collection != null)
-				{
-					if (expression == null)
-						return Collection.ConvertToIndex(expression, level, flags);
+                throw new NotImplementedException();
+            }
 
-					var root = expression.GetRootObject();
+            public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
+            {
+                if (Collection != null)
+                {
+                    if (expression == null)
+                        return Collection.ConvertToIndex(expression, level, flags);
 
-					if (root != Lambda.Parameters[0])
-						return Collection.ConvertToIndex(expression, level, flags);
-				}
+                    var root = expression.GetRootObject();
 
-				return base.ConvertToIndex(expression, level, flags);
-			}
+                    if (root != Lambda.Parameters[0])
+                        return Collection.ConvertToIndex(expression, level, flags);
+                }
 
-			public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
-			{
-				if (Collection != null)
-				{
-					if (expression == null)
-						return Collection.ConvertToSql(expression, level, flags);
+                return base.ConvertToIndex(expression, level, flags);
+            }
 
-					var root = expression.GetRootObject();
+            public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
+            {
+                if (Collection != null)
+                {
+                    if (expression == null)
+                        return Collection.ConvertToSql(expression, level, flags);
 
-					if (root != Lambda.Parameters[0])
-						return Collection.ConvertToSql(expression, level, flags);
-				}
+                    var root = expression.GetRootObject();
 
-				return base.ConvertToSql(expression, level, flags);
-			}
+                    if (root != Lambda.Parameters[0])
+                        return Collection.ConvertToSql(expression, level, flags);
+                }
 
-			public override IBuildContext GetContext(Expression expression, int level, BuildInfo buildInfo)
-			{
-				if (Collection != null)
-				{
-					if (expression == null)
-						return Collection.GetContext(expression, level, buildInfo);
+                return base.ConvertToSql(expression, level, flags);
+            }
 
-					var root = expression.GetRootObject();
+            public override IBuildContext GetContext(Expression expression, int level, BuildInfo buildInfo)
+            {
+                if (Collection != null)
+                {
+                    if (expression == null)
+                        return Collection.GetContext(expression, level, buildInfo);
 
-					if (root != Lambda.Parameters[0])
-						return Collection.GetContext(expression, level, buildInfo);
-				}
+                    var root = expression.GetRootObject();
 
-				return base.GetContext(expression, level, buildInfo);
-			}
+                    if (root != Lambda.Parameters[0])
+                        return Collection.GetContext(expression, level, buildInfo);
+                }
 
-			public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor requestFlag)
-			{
-				if (Collection != null)
-				{
-					if (expression == null)
-						return Collection.IsExpression(expression, level, requestFlag);
+                return base.GetContext(expression, level, buildInfo);
+            }
 
-					var root = expression.GetRootObject();
+            public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor requestFlag)
+            {
+                if (Collection != null)
+                {
+                    if (expression == null)
+                        return Collection.IsExpression(expression, level, requestFlag);
 
-					if (root != Lambda.Parameters[0])
-						return Collection.IsExpression(expression, level, requestFlag);
-				}
+                    var root = expression.GetRootObject();
 
-				return base.IsExpression(expression, level, requestFlag);
-			}
-		}
-	}
+                    if (root != Lambda.Parameters[0])
+                        return Collection.IsExpression(expression, level, requestFlag);
+                }
+
+                return base.IsExpression(expression, level, requestFlag);
+            }
+        }
+    }
 }

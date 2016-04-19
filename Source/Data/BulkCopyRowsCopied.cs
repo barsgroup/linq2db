@@ -16,6 +16,6 @@ namespace LinqToDB.Data
 
 		readonly DateTime _startTime = DateTime.Now;
 
-		public DateTime StartTime { get { return _startTime; } }
+		public DateTime StartTime => _startTime;
 	}
 }

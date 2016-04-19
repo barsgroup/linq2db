@@ -1,22 +1,22 @@
-﻿using System;
-
-namespace LinqToDB
+﻿namespace LinqToDB
 {
-	[AttributeUsageAttribute(AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
-	public class ExpressionMethodAttribute : Attribute
-	{
-		public ExpressionMethodAttribute(string methodName)
-		{
-			MethodName = methodName;
-		}
+    using System;
 
-		public ExpressionMethodAttribute(string configuration, string methodName)
-		{
-			Configuration = configuration;
-			MethodName    = methodName;
-		}
+    [AttributeUsageAttribute(AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+    public class ExpressionMethodAttribute : Attribute
+    {
+        public ExpressionMethodAttribute(string methodName)
+        {
+            MethodName = methodName;
+        }
 
-		public string Configuration { get; set; }
-		public string MethodName    { get; set; }
-	}
+        public ExpressionMethodAttribute(string configuration, string methodName)
+        {
+            Configuration = configuration;
+            MethodName    = methodName;
+        }
+
+        public string Configuration { get; set; }
+        public string MethodName    { get; set; }
+    }
 }

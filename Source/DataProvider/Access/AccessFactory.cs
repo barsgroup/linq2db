@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Specialized;
-
-using JetBrains.Annotations;
+﻿using System.Collections.Specialized;
 
 namespace LinqToDB.DataProvider.Access
 {
-	[UsedImplicitly]
-	class AccessFactory : IDataProviderFactory
-	{
-		IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)
-		{
-			return new AccessDataProvider();
-		}
-	}
+    using LinqToDB.Properties;
+
+    [UsedImplicitly]
+    class AccessFactory : IDataProviderFactory
+    {
+        IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)
+        {
+            return new AccessDataProvider();
+        }
+    }
 }

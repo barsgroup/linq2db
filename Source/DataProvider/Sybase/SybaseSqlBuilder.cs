@@ -1,12 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
 namespace LinqToDB.DataProvider.Sybase
 {
-	using SqlQuery;
-	using SqlProvider;
+    using System;
+
+    using LinqToDB.SqlQuery.QueryElements.Conditions;
+    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.Predicates;
+    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	class SybaseSqlBuilder : BasicSqlBuilder
 	{
@@ -22,9 +29,9 @@ namespace LinqToDB.DataProvider.Sybase
 				.AppendLine("SELECT @@IDENTITY");
 		}
 
-		protected override string FirstFormat { get { return "TOP {0}"; } }
+		protected override string FirstFormat => "TOP {0}";
 
-		protected override void BuildFunction(SqlFunction func)
+	    protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
@@ -46,18 +53,18 @@ namespace LinqToDB.DataProvider.Sybase
 			_isSelect = false;
 		}
 
-		protected override void BuildColumnExpression(ISqlExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
 		{
 			var wrap = false;
 
 			if (expr.SystemType == typeof(bool))
 			{
-				if (expr is SelectQuery.SearchCondition)
+				if (expr is ISearchCondition)
 					wrap = true;
 				else
 				{
 					var ex = expr as SqlExpression;
-					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is SelectQuery.SearchCondition;
+					wrap = ex != null && ex.Expr == "{0}" && ex.Parameters.Length == 1 && ex.Parameters[0] is ISearchCondition;
 				}
 			}
 
@@ -73,7 +80,7 @@ namespace LinqToDB.DataProvider.Sybase
 			return new SybaseSqlBuilder(_isSelect, SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
 		}
 
-		protected override void BuildDataType(SqlDataType type, bool createDbType = false)
+		protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
 		{
 			switch (type.DataType)
 			{
@@ -96,8 +103,8 @@ namespace LinqToDB.DataProvider.Sybase
 				table = source = SelectQuery.Delete.Table;
 			else
 			{
-				table  = SelectQuery.From.Tables[0];
-				source = SelectQuery.From.Tables[0].Source;
+				table  = SelectQuery.From.Tables.First.Value;
+				source = SelectQuery.From.Tables.First.Value.Source;
 			}
 
 			var alias = GetTableAlias(table);
@@ -106,36 +113,40 @@ namespace LinqToDB.DataProvider.Sybase
 			StringBuilder.AppendLine();
 		}
 
-		protected override void BuildLikePredicate(SelectQuery.Predicate.Like predicate)
+		protected override void BuildLikePredicate(ILike predicate)
 		{
-			if (predicate.Expr2 is SqlValue)
+		    var sqlValue = predicate.Expr2 as ISqlValue;
+		    if (sqlValue != null)
 			{
-				var value = ((SqlValue)predicate.Expr2).Value;
+				var value = sqlValue.Value;
 
 				if (value != null)
 				{
-					var text  = ((SqlValue)predicate.Expr2).Value.ToString();
+					var text  = value.ToString();
 					var ntext = text.Replace("[", "[[]");
 
 					if (text != ntext)
-						predicate = new SelectQuery.Predicate.Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
+						predicate = new Like(predicate.Expr1, predicate.IsNot, new SqlValue(ntext), predicate.Escape);
 				}
 			}
-			else if (predicate.Expr2 is SqlParameter)
-			{
-				var p = ((SqlParameter)predicate.Expr2);
-				p.ReplaceLike = true;
-			}
+			else
+		    {
+		        var expr2 = predicate.Expr2 as ISqlParameter;
+		        if (expr2 != null)
+		        {
+		            expr2.ReplaceLike = true;
+		        }
+		    }
 
-			base.BuildLikePredicate(predicate);
+		    base.BuildLikePredicate(predicate);
 		}
 
 		protected override void BuildUpdateTableName()
 		{
-			if (SelectQuery.Update.Table != null && SelectQuery.Update.Table != SelectQuery.From.Tables[0].Source)
+			if (SelectQuery.Update.Table != null && SelectQuery.Update.Table != SelectQuery.From.Tables.First.Value.Source)
 				BuildPhysicalTable(SelectQuery.Update.Table, null);
 			else
-				BuildTableName(SelectQuery.From.Tables[0], true, false);
+				BuildTableName(SelectQuery.From.Tables.First.Value, true, false);
 		}
 
 		public override object Convert(object value, ConvertType convertType)
@@ -207,7 +218,7 @@ namespace LinqToDB.DataProvider.Sybase
 			StringBuilder.AppendLine("VALUES ()");
 		}
 
-		protected override void BuildCreateTableIdentityAttribute1(SqlField field)
+		protected override void BuildCreateTableIdentityAttribute1(ISqlField field)
 		{
 			StringBuilder.Append("IDENTITY");
 		}

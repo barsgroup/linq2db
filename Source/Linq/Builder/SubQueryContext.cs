@@ -5,164 +5,156 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-	using LinqToDB.Expressions;
-	using SqlQuery;
+    using LinqToDB.Expressions;
+    using LinqToDB.SqlQuery.QueryElements;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	class SubQueryContext : PassThroughContext
-	{
-		public SubQueryContext(IBuildContext subQuery, SelectQuery selectQuery, bool addToSql)
-			: base(subQuery)
-		{
-			if (selectQuery == subQuery.SelectQuery)
-				throw new ArgumentException("Wrong subQuery argument.", "subQuery");
+    class SubQueryContext : PassThroughContext
+    {
+        public SubQueryContext(IBuildContext subQuery, ISelectQuery selectQuery, bool addToSql)
+            : base(subQuery)
+        {
+            if (selectQuery == subQuery.Select)
+                throw new ArgumentException("Wrong subQuery argument.", nameof(subQuery));
 
-			SubQuery        = subQuery;
-			SubQuery.Parent = this;
-			SelectQuery     = selectQuery;
+            SubQuery        = subQuery;
+            SubQuery.Parent = this;
+            Select     = selectQuery;
 
-			if (addToSql)
-				selectQuery.From.Table(SubQuery.SelectQuery);
-		}
+            if (addToSql)
+                selectQuery.From.Table(SubQuery.Select);
+        }
 
-		public SubQueryContext(IBuildContext subQuery, bool addToSql = true)
-			: this(subQuery, new SelectQuery { ParentSelect = subQuery.SelectQuery.ParentSelect }, addToSql)
-		{
-		}
+        public SubQueryContext(IBuildContext subQuery, bool addToSql = true)
+            : this(subQuery, new SelectQuery { ParentSelect = subQuery.Select.ParentSelect }, addToSql)
+        {
+        }
 
-		public          IBuildContext SubQuery    { get; private set; }
-		public override SelectQuery   SelectQuery { get; set; }
-		public override IBuildContext Parent      { get; set; }
+        public          IBuildContext SubQuery    { get; private set; }
+        public override ISelectQuery Select { get; set; }
+        public override IBuildContext Parent      { get; set; }
 
-		public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
-		{
-			if (Expression.NodeType == ExpressionType.Lambda)
-			{
-				var le = (LambdaExpression)Expression;
+        public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
+        {
+            if (Expression.NodeType == ExpressionType.Lambda)
+            {
+                var le = (LambdaExpression)Expression;
 
-				if (le.Parameters.Count == 2 ||
-					le.Parameters.Count == 1 && null != Expression.Find(
-						e => e.NodeType == ExpressionType.Call && ((MethodCallExpression)e).IsQueryable()))
-				{
-					if (le.Body.NodeType == ExpressionType.New)
-					{
-						var ne = (NewExpression)le.Body;
-						var p  = Expression.Parameter(ne.Type, "p");
+                if (le.Parameters.Count == 2 ||
+                    le.Parameters.Count == 1 && null != Expression.Find(
+                        e => e.NodeType == ExpressionType.Call && ((MethodCallExpression)e).IsQueryable()))
+                {
+                    if (le.Body.NodeType == ExpressionType.New)
+                    {
+                        var ne = (NewExpression)le.Body;
+                        var p  = Expression.Parameter(ne.Type, "p");
 
-						var seq = new SelectContext(
-							Parent,
-							Expression.Lambda(
-								Expression.New(
-									ne.Constructor,
-									(IEnumerable<Expression>)ne.Members.Select(m => Expression.MakeMemberAccess(p, m)),
-									ne.Members),
-								p),
-							this);
+                        var seq = new SelectContext(
+                            Parent,
+                            Expression.Lambda(
+                                Expression.New(
+                                    ne.Constructor,
+                                    ne.Members.Select(m => Expression.MakeMemberAccess(p, m)),
+                                    ne.Members),
+                                p),
+                            this);
 
-						seq.BuildQuery(query, queryParameter);
+                        seq.BuildQuery(query, queryParameter);
 
-						return;
-					}
+                        return;
+                    }
 
-					if (le.Body.NodeType == ExpressionType.MemberInit)
-					{
-						var mi = (MemberInitExpression)le.Body;
+                    if (le.Body.NodeType == ExpressionType.MemberInit)
+                    {
+                        var mi = (MemberInitExpression)le.Body;
 
-						if (mi.NewExpression.Arguments.Count == 0 && mi.Bindings.All(b => b is MemberAssignment))
-						{
-							var p = Expression.Parameter(mi.Type, "p");
+                        if (mi.NewExpression.Arguments.Count == 0 && mi.Bindings.All(b => b is MemberAssignment))
+                        {
+                            var p = Expression.Parameter(mi.Type, "p");
 
-							var seq = new SelectContext(
-								Parent,
-								Expression.Lambda(
-								Expression.MemberInit(
-									mi.NewExpression,
-									(IEnumerable<MemberBinding>)mi.Bindings
-										.OfType<MemberAssignment>()
-										.Select(ma => Expression.Bind(ma.Member, Expression.MakeMemberAccess(p, ma.Member)))),
-									p),
-								this);
+                            var seq = new SelectContext(
+                                Parent,
+                                Expression.Lambda(
+                                Expression.MemberInit(
+                                    mi.NewExpression,
+                                    mi.Bindings
+                                      .OfType<MemberAssignment>()
+                                      .Select(ma => Expression.Bind(ma.Member, Expression.MakeMemberAccess(p, ma.Member)))),
+                                    p),
+                                this);
 
-							seq.BuildQuery(query, queryParameter);
+                            seq.BuildQuery(query, queryParameter);
 
-							return;
-						}
-					}
-				}
-			}
+                            return;
+                        }
+                    }
+                }
+            }
 
-			base.BuildQuery(query, queryParameter);
-		}
+            base.BuildQuery(query, queryParameter);
+        }
 
-		public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
-		{
-			return SubQuery
-				.ConvertToIndex(expression, level, flags)
-				.Select(idx => new SqlInfo((idx.Members)) { Sql = SubQuery.SelectQuery.Select.Columns[idx.Index] })
-				.ToArray();
-		}
+        public override SqlInfo[] ConvertToSql(Expression expression, int level, ConvertFlags flags)
+        {
+            return SubQuery
+                .ConvertToIndex(expression, level, flags)
+                .Select(idx => new SqlInfo(idx.Members) { Sql = SubQuery.Select.Select.Columns[idx.Index] })
+                .ToArray();
+        }
 
-		// JoinContext has similar logic. Consider to review it.
-		//
-		public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
-		{
-			return ConvertToSql(expression, level, flags)
-				.Select(idx =>
-				{
-					idx.Query = SelectQuery;
-					idx.Index = GetIndex((SelectQuery.Column)idx.Sql);
+        // JoinContext has similar logic. Consider to review it.
+        //
+        public override SqlInfo[] ConvertToIndex(Expression expression, int level, ConvertFlags flags)
+        {
+            return ConvertToSql(expression, level, flags)
+                .Select(idx =>
+                {
+                    idx.Query = Select;
+                    idx.Index = GetIndex((IColumn)idx.Sql);
 
-					return idx;
-				})
-				.ToArray();
-		}
+                    return idx;
+                })
+                .ToArray();
+        }
 
-		public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor testFlag)
-		{
-			switch (testFlag)
-			{
-				case RequestFor.SubQuery : return IsExpressionResult.True;
-			}
+        public override IsExpressionResult IsExpression(Expression expression, int level, RequestFor testFlag)
+        {
+            switch (testFlag)
+            {
+                case RequestFor.SubQuery : return IsExpressionResult.True;
+            }
 
-			return base.IsExpression(expression, level, testFlag);
-		}
+            return base.IsExpression(expression, level, testFlag);
+        }
 
-		internal protected readonly Dictionary<ISqlExpression,int> ColumnIndexes = new Dictionary<ISqlExpression,int>();
+        private int GetIndex(IColumn column)
+        {
+            return Select.Select.Add(column);
+        }
 
-		protected virtual int GetIndex(SelectQuery.Column column)
-		{
-			int idx;
+        public override int ConvertToParentIndex(int index, IBuildContext context)
+        {
+            var idx = GetIndex(context.Select.Select.Columns[index]);
+            return Parent == null ? idx : Parent.ConvertToParentIndex(idx, this);
+        }
 
-			if (!ColumnIndexes.TryGetValue(column, out idx))
-			{
-				idx = SelectQuery.Select.Add(column);
-				ColumnIndexes.Add(column, idx);
-			}
-
-			return idx;
-		}
-
-		public override int ConvertToParentIndex(int index, IBuildContext context)
-		{
-			var idx = GetIndex(context.SelectQuery.Select.Columns[index]);
-			return Parent == null ? idx : Parent.ConvertToParentIndex(idx, this);
-		}
-
-		public override void SetAlias(string alias)
-		{
+        public override void SetAlias(string alias)
+        {
 #if NETFX_CORE
-			if (alias.Contains("<"))
+            if (alias.Contains("<"))
 #else
-			if (alias.Contains('<'))
+            if (alias.Contains('<'))
 #endif
-				return;
+                return;
 
-			if (SelectQuery.From.Tables[0].Alias == null)
-				SelectQuery.From.Tables[0].Alias = alias;
-		}
+            if (Select.From.Tables.First.Value.Alias == null)
+                Select.From.Tables.First.Value.Alias = alias;
+        }
 
-		public override ISqlExpression GetSubQuery(IBuildContext context)
-		{
-			return null;
-		}
-	}
+        public override IQueryExpression GetSubQuery(IBuildContext context)
+        {
+            return null;
+        }
+    }
 }

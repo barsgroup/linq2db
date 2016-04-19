@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug.4.5\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;FW4;OVERRIDETOSTRING1</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;FW4;OVERRIDETOSTRING</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -73,6 +73,10 @@
   <ItemGroup>
     <Compile Include="AsyncExtensions.cs" />
     <Compile Include="Common\LinqToDBConvertException.cs" />
+    <Compile Include="Expressions\ExpressionEqualityComparer.cs" />
+    <Compile Include="Extensions\HashSetExtentions.cs" />
+    <Compile Include="Extensions\LinkedListExtentions.cs" />
+    <Compile Include="Extensions\TypeSwitch.cs" />
     <Compile Include="KeepConnectionAliveScope.cs" />
     <Compile Include="DataProvider\Access\AccessTools.cs" />
     <Compile Include="DataProvider\Access\AccessSqlOptimizer.cs" />
@@ -386,44 +390,140 @@
     <Compile Include="Linq\ReflectionHelper.cs" />
     <Compile Include="SqlProvider\ValueToSqlValueConverter.cs" />
     <Compile Include="SqlProvider\ValueToSqlConverter.cs" />
-    <Compile Include="SqlQuery\DefaulNullable.cs" />
+    <Compile Include="SqlQuery\QueryElements\BaseQueryElement.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\ClauseBase.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\DeleteClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\FromClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\GroupByClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\InsertClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\Interfaces\IDeleteClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\Interfaces\IGroupByClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\OrderByClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\SelectClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\UpdateClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\WhereClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Column.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Condition.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\ConditionBase.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Expr.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\ICondition.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IConditionBase.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IConditionExpr.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IExpr.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IHaveSearchCondition.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IJoin.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\INot.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IOperator.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\ISearchCondition.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Join.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Not.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\Operator.cs" />
+    <Compile Include="SqlQuery\QueryElements\Conditions\SearchCondition.cs" />
+    <Compile Include="SqlQuery\QueryElements\CreateTableStatement.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\EDefaulNullable.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\EQueryType.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\EJoinType.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\EOperator.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\Interfaces\IClauseBase.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\ICloneableElement.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IColumn.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\ICreateTableStatement.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\Interfaces\IFromClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\Interfaces\IInsertClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IJoinedTable.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\Interfaces\IOrderByClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IOperation.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IOrderByItem.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IQueryElement.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\Interfaces\ISelectClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\ISelectQuery.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\ISetExpression.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\ITableSource.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IUnion.cs" />
+    <Compile Include="SqlQuery\QueryElements\Clauses\Interfaces\IUpdateClause.cs" />
+    <Compile Include="SqlQuery\QueryElements\Interfaces\IValueContainer.cs" />
+    <Compile Include="SqlQuery\QueryElements\Enums\EQueryElementType.cs" />
+    <Compile Include="SqlQuery\QueryElements\JoinedTable.cs" />
+    <Compile Include="SqlQuery\QueryElements\OrderByItem.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Between.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Expr.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\ExprExpr.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\FuncLike.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\HierarhicalLike.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\InList.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\InSubQuery.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\IBetween.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\IExpr.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\IExprExpr.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\IFuncLike.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\IHierarhicalLike.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\IInList.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\IInSubQuery.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\IIsNull.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\ILike.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\INotExpr.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Interfaces\ISqlPredicate.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\IsNull.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Like.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\NotExpr.cs" />
+    <Compile Include="SqlQuery\QueryElements\Predicates\Predicate.cs" />
+    <Compile Include="SqlQuery\QueryElements\SetExpression.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Enums\ESqlTableType.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlBinaryExpression.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlDataType.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlExpression.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlField.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlFunction.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlParameter.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlTable.cs" />
+    <Compile Include="SqlQuery\QueryElements\TableSource.cs" />
+    <Compile Include="SqlQuery\QueryElements\Union.cs" />
+    <Compile Include="SqlQuery\Search\DelegateConstructor.cs" />
+    <Compile Include="SqlQuery\Search\PathBuilder\CompositPropertyVertex.cs" />
+    <Compile Include="SqlQuery\Search\PathBuilder\PathBuilder.cs" />
+    <Compile Include="SqlQuery\Search\PathBuilder\PathBuilderSearchCache.cs" />
+    <Compile Include="SqlQuery\Search\PathBuilder\PropertyInfoVertex.cs" />
+    <Compile Include="SqlQuery\Search\ReflectionSearcher.cs" />
+    <Compile Include="SqlQuery\Search\SearchContainerAttribute.cs" />
+    <Compile Include="SqlQuery\Search\SearchHelper.cs" />
+    <Compile Include="SqlQuery\Search\TypeGraph\CastEdge.cs" />
+    <Compile Include="SqlQuery\Search\TypeGraph\Connection.cs" />
+    <Compile Include="SqlQuery\Search\TypeGraph\ConnectionType.cs" />
+    <Compile Include="SqlQuery\Search\TypeGraph\PropertyEdge.cs" />
+    <Compile Include="SqlQuery\Search\TypeGraph\TypeGraph.cs" />
+    <Compile Include="SqlQuery\Search\SearchEngine.cs" />
+    <Compile Include="SqlQuery\Search\TypeGraph\TypeVertex.cs" />
+    <Compile Include="SqlQuery\Search\TypeKey.cs" />
+    <Compile Include="SqlQuery\Search\Utils\CollectionUtils.cs" />
     <Compile Include="SqlQuery\SelectQueryOptimizer.cs" />
-    <Compile Include="Sql\Sql.cs" />
-    <Compile Include="Sql\Sql.EnumAttribute.cs" />
-    <Compile Include="Sql\Sql.ExpressionAttribute.cs" />
-    <Compile Include="Sql\Sql.FunctionAttribute.cs" />
-    <Compile Include="Sql\Sql.GroupBy.cs" />
-    <Compile Include="Sql\Sql.PropertyAttribute.cs" />
-    <Compile Include="Sql\Sql.TableExpressionAttribute.cs" />
-    <Compile Include="Sql\Sql.TableFunctionAttribute.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\IQueryExpression.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlExpressionWalkable.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\Interfaces\ISqlTableSource.cs" />
+    <Compile Include="SqlEntities\Sql.cs" />
+    <Compile Include="SqlEntities\Sql.EnumAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.ExpressionAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.FunctionAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.GroupBy.cs" />
+    <Compile Include="SqlEntities\Sql.PropertyAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.TableExpressionAttribute.cs" />
+    <Compile Include="SqlEntities\Sql.TableFunctionAttribute.cs" />
     <Compile Include="Linq\TableT.cs" />
     <Compile Include="SqlQuery\Extensions.cs" />
-    <Compile Include="SqlQuery\ICloneableElement.cs" />
-    <Compile Include="SqlQuery\IQueryElement.cs" />
-    <Compile Include="SqlQuery\ISqlExpression.cs" />
-    <Compile Include="SqlQuery\ISqlExpressionWalkable.cs" />
-    <Compile Include="SqlQuery\ISqlPredicate.cs" />
-    <Compile Include="SqlQuery\ISqlTableSource.cs" />
-    <Compile Include="SqlQuery\IValueContainer.cs" />
     <Compile Include="SqlQuery\Precedence.cs" />
-    <Compile Include="SqlQuery\QueryElementType.cs" />
-    <Compile Include="SqlQuery\QueryType.cs" />
     <Compile Include="SqlQuery\QueryVisitor.cs" />
-    <Compile Include="SqlQuery\SqlBinaryExpression.cs" />
-    <Compile Include="SqlQuery\SqlDataType.cs" />
-    <Compile Include="SqlQuery\SqlException.cs" />
-    <Compile Include="SqlQuery\SqlExpression.cs" />
-    <Compile Include="SqlQuery\SqlField.cs" />
-    <Compile Include="SqlQuery\SqlFunction.cs" />
-    <Compile Include="SqlQuery\SqlParameter.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlBinaryExpression.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlDataType.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlException.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlExpression.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlField.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlFunction.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlParameter.cs" />
     <Compile Include="SqlProvider\BasicSqlBuilder.cs" />
     <Compile Include="SqlProvider\ISqlBuilder.cs" />
     <Compile Include="Mapping\SequenceNameAttribute.cs" />
-    <Compile Include="SqlQuery\SelectQuery.cs" />
-    <Compile Include="SqlQuery\SqlTable.cs" />
-    <Compile Include="SqlQuery\SqlTableT.cs" />
-    <Compile Include="SqlQuery\SqlTableType.cs" />
-    <Compile Include="SqlQuery\SqlValue.cs" />
+    <Compile Include="SqlQuery\QueryElements\SelectQuery.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlTable.cs" />
+    <Compile Include="SqlQuery\QueryElements\SqlElements\SqlValue.cs" />
     <Compile Include="Expressions\TransformInfo.cs" />
     <Compile Include="LinqToDBException.cs" />
     <Compile Include="Expressions\InternalExtensions.cs" />
@@ -464,13 +564,13 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SqlQuery\ReservedWords.txt" />
+    <EmbeddedResource Include="SqlQuery\QueryElements\ReservedWords.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Compile.bat" />
     <None Include="linq2db.snk" />
+    <None Include="paket.references" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -479,4 +579,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')" />
+  </Choose>
 </Project>

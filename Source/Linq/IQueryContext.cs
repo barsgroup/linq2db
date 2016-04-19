@@ -1,15 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace LinqToDB.Linq
 {
-	using SqlQuery;
+    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-	public interface IQueryContext
-	{
-		SelectQuery    SelectQuery { get; }
-		object         Context     { get; set; }
-		List<string>   QueryHints  { get; }
-		SqlParameter[] GetParameters();
-	}
+    public interface IQueryContext
+    {
+        ISelectQuery   SelectQuery { get; }
+        object         Context     { get; set; }
+        List<string>   QueryHints  { get; }
+        ISqlParameter[] GetParameters();
+    }
 }

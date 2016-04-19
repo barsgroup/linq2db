@@ -23,11 +23,13 @@ namespace LinqToDB.DataProvider.MySql
 			_sqlOptimizer = new MySqlSqlOptimizer(SqlProviderFlags);
 		}
 
-		public    override string ConnectionNamespace { get { return "MySql.Data.MySqlClient"; } }
-		protected override string ConnectionTypeName  { get { return "{0}.{1}, MySql.Data".Args(ConnectionNamespace, "MySqlConnection"); } }
-		protected override string DataReaderTypeName  { get { return "{0}.{1}, MySql.Data".Args(ConnectionNamespace, "MySqlDataReader"); } }
+		public    override string ConnectionNamespace => "MySql.Data.MySqlClient";
 
-		Type _mySqlDecimalType;
+	    protected override string ConnectionTypeName => "{0}.{1}, MySql.Data".Args(ConnectionNamespace, "MySqlConnection");
+
+	    protected override string DataReaderTypeName => "{0}.{1}, MySql.Data".Args(ConnectionNamespace, "MySqlDataReader");
+
+	    Type _mySqlDecimalType;
 		Type _mySqlDateTimeType;
 
 		Func<object,object> _mySqlDecimalValueGetter;
@@ -99,7 +101,7 @@ namespace LinqToDB.DataProvider.MySql
 		#region BulkCopy
 
 		public override BulkCopyRowsCopied BulkCopy<T>(
-			[JetBrains.Annotations.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
+			[Properties.NotNull] DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)
 		{
 			return new MySqlBulkCopy().BulkCopy(
 				options.BulkCopyType == BulkCopyType.Default ? MySqlTools.DefaultBulkCopyType : options.BulkCopyType,

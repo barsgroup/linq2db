@@ -1,9 +1,9 @@
-﻿using System;
-
-namespace LinqToDB.DataProvider.SqlServer
+﻿namespace LinqToDB.DataProvider.SqlServer
 {
-	using SqlQuery;
-	using SqlProvider;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements;
+    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+    using SqlProvider;
 
 	class SqlServer2008SqlBuilder : SqlServerSqlBuilder
 	{
@@ -23,15 +23,12 @@ namespace LinqToDB.DataProvider.SqlServer
 			StringBuilder.AppendLine(";");
 		}
 
-		protected override void BuildFunction(SqlFunction func)
+		protected override void BuildFunction(ISqlFunction func)
 		{
 			func = ConvertFunctionParameters(func);
 			base.BuildFunction(func);
 		}
 
-		public override string  Name
-		{
-			get { return ProviderName.SqlServer2008; }
-		}
+		public override string  Name => ProviderName.SqlServer2008;
 	}
 }
