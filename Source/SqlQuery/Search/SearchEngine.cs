@@ -20,22 +20,23 @@
 
         public static SearchEngine<TBaseSearchInterface> Current { get; } = new SearchEngine<TBaseSearchInterface>();
 
-        public void Find<TElement>(TBaseSearchInterface source, LinkedList<TElement> resultList, SearchStrategy<TElement> strategy, HashSet<object> visited) where TElement : class, TBaseSearchInterface
+        public void Find<TElement>(TBaseSearchInterface source, LinkedList<TElement> resultList, FindStrategy<TElement> strategy, HashSet<object> visited) where TElement : class, TBaseSearchInterface
         {
-            var deleg = GetOrCreateDelegate(source, strategy);
-            deleg.Invoke(source, resultList, visited);
-
-# if DEBUG
-            ////var isEqualToReflection = ReflectionSearcher.FindAndCompare(source, stepIntoFound, result);
-            ////
-            ////if (!isEqualToReflection)
-            ////{
-            ////    throw new Exception("result not corresponding to reflection");
-            ////}
-#endif
+            Find(source, resultList, strategy, visited, null);
         }
 
-        public ResultDelegate<TElement> GetOrCreateDelegate<TElement>(TBaseSearchInterface source, SearchStrategy<TElement> strategy) where TElement : class
+        public void Find<TElement, TResult>(
+            TBaseSearchInterface source, 
+            LinkedList<TResult> resultList,
+            SearchStrategy<TElement, TResult> strategy,
+            HashSet<object> visited,
+            Func<TElement, TResult> action) where TElement : class, TBaseSearchInterface
+        {
+            var deleg = GetOrCreateDelegate(source, strategy);
+            deleg.Invoke(source, resultList, visited, action);
+        }
+
+        public ResultDelegate<TElement, TResult> GetOrCreateDelegate<TElement, TResult>(TBaseSearchInterface source, SearchStrategy<TElement, TResult> strategy) where TElement : class
         {
             var key = new TypeKey(strategy.GetType(), source.GetType(), typeof(TElement));
             Delegate cachedDelegate;
@@ -43,12 +44,12 @@
             {
                 var paths = _pathBuilder.Find<TElement>(source);
 
-                var delegateConstructor = new DelegateConstructor<TElement>();
+                var delegateConstructor = new DelegateConstructor<TElement, TResult>();
                 cachedDelegate = delegateConstructor.CreateResultDelegate(paths, strategy);
                 _delegateCache[key] = cachedDelegate;
             }
 
-            return (ResultDelegate<TElement>)cachedDelegate;
+            return (ResultDelegate<TElement, TResult>)cachedDelegate;
         }
     }
 }

@@ -10,16 +10,16 @@
     using LinqToDB.SqlQuery.Search.PathBuilder;
     using LinqToDB.SqlQuery.Search.Utils;
 
-    public delegate void ResultDelegate<TSearch>(object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class;
+    public delegate void ResultDelegate<TSearch, TResult>(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> func) where TSearch : class;
 
-    public class DelegateConstructor<TSearch>
+    public class DelegateConstructor<TSearch, TResult>
         where TSearch : class
     {
-        public ResultDelegate<TSearch> CreateResultDelegate(LinkedList<CompositPropertyVertex> vertices, SearchStrategy<TSearch> strategy)
+        public ResultDelegate<TSearch, TResult> CreateResultDelegate(LinkedList<CompositPropertyVertex> vertices, SearchStrategy<TSearch, TResult> strategy)
         {
-            var delegateMap = new Dictionary<CompositPropertyVertex, ProxyDelegate<TSearch>>();
+            var delegateMap = new Dictionary<CompositPropertyVertex, ProxyDelegate<TSearch, TResult>>();
 
-            var delegates = new ProxyDelegate<TSearch>[vertices.Count];
+            var delegates = new ProxyDelegate<TSearch, TResult>[vertices.Count];
 
             var index = 0;
             vertices.ForEach(
@@ -29,13 +29,13 @@
                         delegates[index++] = delegateMap[node.Value];
                     });
 
-            var rootDelegate = new RootProxyDelegate<TSearch>(delegates, strategy);
+            var rootDelegate = new RootProxyDelegate<TSearch, TResult>(delegates, strategy);
             rootDelegate.BuildExecuteChildrenDelegate();
 
             return rootDelegate.Execute;
         }
 
-        private static void CreateDelegate(CompositPropertyVertex vertex, Dictionary<CompositPropertyVertex, ProxyDelegate<TSearch>> delegateMap, SearchStrategy<TSearch> strategy)
+        private static void CreateDelegate(CompositPropertyVertex vertex, Dictionary<CompositPropertyVertex, ProxyDelegate<TSearch, TResult>> delegateMap, SearchStrategy<TSearch, TResult> strategy)
         {
             if (vertex.PropertyList.First == null)
             {
@@ -86,9 +86,9 @@
                         propertyGetters[index++] = deleg;
                     });
 
-            var childDelegates = new ProxyDelegate<TSearch>[vertex.Children.Count];
+            var childDelegates = new ProxyDelegate<TSearch, TResult>[vertex.Children.Count];
 
-            delegateMap[vertex] = new ProxyDelegate<TSearch>(propertyGetters, childDelegates, strategy, hasCollection);
+            delegateMap[vertex] = new ProxyDelegate<TSearch, TResult>(propertyGetters, childDelegates, strategy, hasCollection);
 
             index = 0;
             vertex.Children.ForEach(
@@ -100,40 +100,40 @@
         }
     }
 
-    public sealed class ProxyDelegate<TSearch> : BaseProxyDelegate<TSearch>
+    public sealed class ProxyDelegate<TSearch, TResult> : BaseProxyDelegate<TSearch, TResult>
         where TSearch : class
     {
         private readonly Func<object, object>[] _propertyGetters;
 
         private readonly bool _isCollection;
 
-        public ProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate<TSearch>[] children, SearchStrategy<TSearch> strategy, bool isCollection): base(children, strategy)
+        public ProxyDelegate(Func<object, object>[] propertyGetters, ProxyDelegate<TSearch, TResult>[] children, SearchStrategy<TSearch, TResult> strategy, bool isCollection): base(children, strategy)
         {
             _isCollection = isCollection;
 
             _propertyGetters = propertyGetters;
         }
 
-        public void Execute(object obj, LinkedList<TSearch> resultList, HashSet<object> visited = null)
+        public void Execute(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> func)
         {
             if (_isCollection)
             {
-                CollectionExecute(obj, resultList, visited);
+                CollectionExecute(obj, resultList, visited, func);
             }
             else
             {
-                ScalarExecute(obj, resultList, visited);
+                ScalarExecute(obj, resultList, visited, func);
             }
         }
 
 
-        private void HandleFinalPropertyValues(object source, int index, LinkedList<TSearch> resultList, HashSet<object> visited)
+        private void HandleFinalPropertyValues(object source, int index, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> func)
         {
             while (true)
             {
                 if (index == _propertyGetters.Length)
                 {
-                    HandleValue(this, source, resultList, visited);
+                    HandleValue(this, source, resultList, visited, func);
                     return;
                 }
 
@@ -153,7 +153,7 @@
                     {
                         if (colItems[i] != null)
                         {
-                            HandleFinalPropertyValues(colItems[i], nextIndex, resultList, visited);
+                            HandleFinalPropertyValues(colItems[i], nextIndex, resultList, visited, func);
                         }
                     }
                     break;
@@ -165,7 +165,7 @@
             }
         }
 
-        private void ScalarExecute(object obj, LinkedList<TSearch> resultList, HashSet<object> visited)
+        private void ScalarExecute(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> func)
         {
             var currentObj = obj;
 
@@ -179,45 +179,45 @@
                 }
             }
 
-            HandleValue(this, currentObj, resultList, visited);
+            HandleValue(this, currentObj, resultList, visited, func);
         }
 
-        private void CollectionExecute(object obj, LinkedList<TSearch> resultList, HashSet<object> visited)
+        private void CollectionExecute(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> func)
         {
-            HandleFinalPropertyValues(obj, 0, resultList, visited);
+            HandleFinalPropertyValues(obj, 0, resultList, visited, func);
         }
     }
 
-    internal sealed class RootProxyDelegate<TSearch> : BaseProxyDelegate<TSearch>
+    internal sealed class RootProxyDelegate<TSearch, TResult> : BaseProxyDelegate<TSearch, TResult>
         where TSearch : class
     {
-        public RootProxyDelegate(ProxyDelegate<TSearch>[] children, SearchStrategy<TSearch> strategy) : base(children, strategy)
+        public RootProxyDelegate(ProxyDelegate<TSearch, TResult>[] children, SearchStrategy<TSearch, TResult> strategy) : base(children, strategy)
         {
             IsRoot = true;
         }
 
-        public void Execute(object obj, LinkedList<TSearch> resultList, HashSet<object> visited)
+        public void Execute(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> func)
         {
             if (obj == null)
             {
                 return;
             }
 
-            HandleValue(this, obj, resultList, visited);
+            HandleValue(this, obj, resultList, visited, func);
         }
     }
 
-    public abstract class BaseProxyDelegate<TSearch>
+    public abstract class BaseProxyDelegate<TSearch, TResult>
         where TSearch : class
     {
-        public readonly ProxyDelegate<TSearch>[] Children;
+        public readonly ProxyDelegate<TSearch, TResult>[] Children;
 
-        private ResultDelegate<TSearch> _strategyDelegate;
-        private SearchStrategy<TSearch> _strategy;
+        private ResultDelegate<TSearch, TResult> _strategyDelegate;
+        private SearchStrategy<TSearch, TResult> _strategy;
 
         public bool IsRoot = false;
 
-        protected static void HandleValue(BaseProxyDelegate<TSearch> current, object value, LinkedList<TSearch> resultList, HashSet<object> visited)
+        protected static void HandleValue(BaseProxyDelegate<TSearch, TResult> current, object value, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> func)
         {
             if (visited.Contains(value))
             {
@@ -226,7 +226,7 @@
 
             visited.Add(value);
 
-            current._strategyDelegate(value, resultList, visited);
+            current._strategyDelegate(value, resultList, visited, func);
         }
 
         public void BuildExecuteChildrenDelegate()
@@ -244,7 +244,7 @@
             }
             else
             {
-                var executeMethodInfo = typeof(ProxyDelegate<TSearch>).GetMethod("Execute");
+                var executeMethodInfo = typeof(ProxyDelegate<TSearch, TResult>).GetMethod("Execute");
 
                 var callChildrenExpressions = Children.Select(Expression.Constant).Select(childExpr => Expression.Call(childExpr, executeMethodInfo, _strategy.ParamArray));
                 
@@ -259,7 +259,7 @@
             }
         }
 
-        protected BaseProxyDelegate(ProxyDelegate<TSearch>[] children, SearchStrategy<TSearch>  strategy)
+        protected BaseProxyDelegate(ProxyDelegate<TSearch, TResult>[] children, SearchStrategy<TSearch, TResult>  strategy)
         {
             Children = children;
             _strategy = strategy;
