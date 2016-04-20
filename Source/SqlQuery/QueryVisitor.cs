@@ -26,23 +26,27 @@ namespace LinqToDB.SqlQuery
     public abstract class SearchStrategy<TSearch>
         where TSearch : class
     {
-        public readonly ParameterExpression CurrentParam = Expression.Parameter(typeof(BaseProxyDelegate<TSearch>), "current");
         public readonly ParameterExpression ObjParam = Expression.Parameter(typeof(object), "obj");
         public readonly ParameterExpression ResultListParam = Expression.Parameter(typeof(LinkedList<TSearch>), "resultList");
         public readonly ParameterExpression VisitedParam = Expression.Parameter(typeof(HashSet<object>), "visited");
 
+        public readonly ParameterExpression[] ParamArray;
+
         protected readonly Expression NullConst = Expression.Constant(null);
 
-        public abstract Expression<StrategyDelegate<TSearch>> GetStrategyExpression(Expression executeChildrenExpression, bool isRoot);
+        protected SearchStrategy()
+        {
+            ParamArray = new[] { ObjParam, ResultListParam, VisitedParam };
+        }
+
+        public abstract Expression<ResultDelegate<TSearch>> GetStrategyExpression(Expression executeChildrenExpression, bool isRoot);
     }
     
     public class ParentFirstStrategy<TSearch> : SearchStrategy<TSearch>
         where TSearch : class
     {
-        public override Expression<StrategyDelegate<TSearch>> GetStrategyExpression(Expression executeChildrenExpression, bool isRoot)
+        public override Expression<ResultDelegate<TSearch>> GetStrategyExpression(Expression executeChildrenExpression, bool isRoot)
         {
-            var paramList = new[] { CurrentParam, ObjParam, ResultListParam, VisitedParam };
-            
             var castVariable = Expression.Variable(typeof(TSearch), "searchValue");
             var castAs = Expression.TypeAs(ObjParam, typeof(TSearch));
             var castAssign = Expression.Assign(castVariable, castAs);
@@ -55,17 +59,15 @@ namespace LinqToDB.SqlQuery
 
             var block = Expression.Block(new[] { castVariable }, castAssign, conditionalAdd, executeChildrenExpression);
 
-            return Expression.Lambda<StrategyDelegate<TSearch>>(block, paramList);
+            return Expression.Lambda<ResultDelegate<TSearch>>(block, ParamArray);
         }
     }
 
     public class ChildrenFirstStrategy<TSearch> : SearchStrategy<TSearch>
         where TSearch : class
     {
-        public override Expression<StrategyDelegate<TSearch>> GetStrategyExpression(Expression executeChildrenExpression, bool isRoot)
+        public override Expression<ResultDelegate<TSearch>> GetStrategyExpression(Expression executeChildrenExpression, bool isRoot)
         {
-            var paramList = new[] { CurrentParam, ObjParam, ResultListParam, VisitedParam };
-            
             var castVariable = Expression.Variable(typeof(TSearch), "searchValue");
             var castAs = Expression.TypeAs(ObjParam, typeof(TSearch));
             var castAssign = Expression.Assign(castVariable, castAs);
@@ -78,20 +80,18 @@ namespace LinqToDB.SqlQuery
 
             var block = Expression.Block(new[] { castVariable }, castAssign, conditionalAdd, executeChildrenExpression);
 
-            return Expression.Lambda<StrategyDelegate<TSearch>>(block, paramList);
+            return Expression.Lambda<ResultDelegate<TSearch>>(block, ParamArray);
         }
     }
 
     public class DownToStrategy<TSearch> : SearchStrategy<TSearch>
         where TSearch : class
     {
-        public override Expression<StrategyDelegate<TSearch>> GetStrategyExpression(Expression executeChildrenExpression, bool isRoot)
+        public override Expression<ResultDelegate<TSearch>> GetStrategyExpression(Expression executeChildrenExpression, bool isRoot)
         {
-            var paramList = new[] { CurrentParam, ObjParam, ResultListParam, VisitedParam };
-            
             if (isRoot)
             {
-                return Expression.Lambda<StrategyDelegate<TSearch>>(executeChildrenExpression, paramList);
+                return Expression.Lambda<ResultDelegate<TSearch>>(executeChildrenExpression, ParamArray);
             }
             
             var castVariable = Expression.Variable(typeof(TSearch), "searchValue");
@@ -106,7 +106,7 @@ namespace LinqToDB.SqlQuery
             
             var block = Expression.Block(new[] { castVariable }, castAssign, conditionalAddOrCallChildren);
 
-            return Expression.Lambda<StrategyDelegate<TSearch>>(block, paramList);
+            return Expression.Lambda<ResultDelegate<TSearch>>(block, ParamArray);
         }
     }
 
@@ -116,43 +116,6 @@ namespace LinqToDB.SqlQuery
 
         readonly Dictionary<IQueryElement,IQueryElement> _visitedElements = new Dictionary<IQueryElement, IQueryElement>();
         
-        ////public static void ParentFirstStrategy<TSearch>(BaseProxyDelegate<TSearch> current, object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class
-        ////{
-        ////    var searchValue = obj as TSearch;
-        ////    if (searchValue != null)
-        ////    {
-        ////        resultList.AddLast(searchValue);
-        ////    }
-        ////
-        ////    current.ExecuteChildrenDelegate(obj, resultList, visited);
-        ////}
-        ////
-        ////public static void ChildrenFirstStrategy<TSearch>(BaseProxyDelegate<TSearch> current, object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class
-        ////{
-        ////    var searchValue = obj as TSearch;
-        ////    if (searchValue != null)
-        ////    {
-        ////        resultList.AddFirst(searchValue);
-        ////    }
-        ////
-        ////    current.ExecuteChildrenDelegate(obj, resultList, visited);
-        ////}
-        ////
-        ////public static void DownToStrategy<TSearch>(BaseProxyDelegate<TSearch> current, object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class
-        ////{
-        ////    var searchValue = obj as TSearch;
-        ////    if (searchValue != null)
-        ////    {
-        ////        if (!current.IsRoot)
-        ////        {
-        ////            resultList.AddFirst(searchValue);
-        ////            return;
-        ////        }
-        ////    }
-        ////
-        ////    current.ExecuteChildrenDelegate(obj, resultList, visited);
-        ////}
-
         public static void FindParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
         {
             var resultList = new LinkedList<IQueryElement>();

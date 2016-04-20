@@ -12,8 +12,6 @@
 
     public delegate void ResultDelegate<TSearch>(object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class;
 
-    public delegate void StrategyDelegate<TSearch>(BaseProxyDelegate<TSearch> current, object obj, LinkedList<TSearch> resultList, HashSet<object> visited) where TSearch : class;
-
     public class DelegateConstructor<TSearch>
         where TSearch : class
     {
@@ -84,14 +82,6 @@
                         var block = Expression.Block(typeof(object), new[] { castVariable, resultVariable }, castAssign, resultAssign, returnExpr, returnLabel);
                         
                         var deleg = Expression.Lambda<Func<object, object>>(block, parameter).Compile();
-
-
-                        ////var castAs = Expression.TypeAs(parameter, node.Value.DeclaringType);
-                        ////var checkNotNull = Expression.NotEqual(castAs, nullConst);
-                        ////var memberAccess = Expression.Convert(Expression.MakeMemberAccess(castAs, node.Value), typeof(object));
-                        ////var conditionalMemberAccess = Expression.Condition(checkNotNull, memberAccess, nullConst);
-                        ////
-                        ////var deleg = Expression.Lambda<Func<object, object>>(conditionalMemberAccess, parameter).Compile();
 
                         propertyGetters[index++] = deleg;
                     });
@@ -222,7 +212,7 @@
     {
         public readonly ProxyDelegate<TSearch>[] Children;
 
-        private StrategyDelegate<TSearch> _strategyDelegate;
+        private ResultDelegate<TSearch> _strategyDelegate;
         private SearchStrategy<TSearch> _strategy;
 
         public bool IsRoot = false;
@@ -236,7 +226,7 @@
 
             visited.Add(value);
 
-            current._strategyDelegate(current, value, resultList, visited);
+            current._strategyDelegate(value, resultList, visited);
         }
 
         public void BuildExecuteChildrenDelegate()
@@ -246,8 +236,6 @@
                 return;
             }
             
-            var paramArray = new[] { _strategy.ObjParam, _strategy.ResultListParam, _strategy.VisitedParam };
-
             Expression executeChildrenExpression;
 
             if (Children.Length == 0)
@@ -258,7 +246,7 @@
             {
                 var executeMethodInfo = typeof(ProxyDelegate<TSearch>).GetMethod("Execute");
 
-                var callChildrenExpressions = Children.Select(Expression.Constant).Select(childExpr => Expression.Call(childExpr, executeMethodInfo, paramArray));
+                var callChildrenExpressions = Children.Select(Expression.Constant).Select(childExpr => Expression.Call(childExpr, executeMethodInfo, _strategy.ParamArray));
                 
                 executeChildrenExpression = Expression.Block(callChildrenExpressions);
             }
