@@ -236,22 +236,11 @@
                 return;
             }
             
-            Expression executeChildrenExpression;
+            var executeMethodInfo = typeof(ProxyDelegate<TSearch, TResult>).GetMethod("Execute");
 
-            if (Children.Length == 0)
-            {
-                executeChildrenExpression = Expression.Empty();
-            }
-            else
-            {
-                var executeMethodInfo = typeof(ProxyDelegate<TSearch, TResult>).GetMethod("Execute");
-
-                var callChildrenExpressions = Children.Select(Expression.Constant).Select(childExpr => Expression.Call(childExpr, executeMethodInfo, _strategy.ParamArray));
-                
-                executeChildrenExpression = Expression.Block(callChildrenExpressions);
-            }
-
-            _strategyDelegate = _strategy.GetStrategyExpression(executeChildrenExpression, IsRoot).Compile();
+            var callChildrenExpressions = Children.Select(Expression.Constant).Select(childExpr => Expression.Call(childExpr, executeMethodInfo, _strategy.ParamArray)).ToArray();
+            
+            _strategyDelegate = _strategy.GetStrategyExpression(callChildrenExpressions, IsRoot).Compile();
 
             for (var i = 0; i < Children.Length; ++i)
             {
