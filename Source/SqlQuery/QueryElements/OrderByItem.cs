@@ -20,7 +20,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public IQueryExpression Expression   { get;  set; }
 
-        public bool           IsDescending { get; private set; }
+        public bool           IsDescending { get; }
 
         public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {

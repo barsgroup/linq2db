@@ -32,7 +32,7 @@
         }
 
         public object Value      { get;  set; }
-        public Type   SystemType { get; private set; }
+        public Type   SystemType { get; }
 
         #region Overrides
 

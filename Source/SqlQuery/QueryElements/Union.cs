@@ -16,9 +16,9 @@ namespace LinqToDB.SqlQuery.QueryElements
             IsAll    = isAll;
         }
 
-        public ISelectQuery SelectQuery { get; private set; }
+        public ISelectQuery SelectQuery { get; }
 
-        public bool IsAll { get; private set; }
+        public bool IsAll { get; }
 
         public override EQueryElementType ElementType => EQueryElementType.Union;
 

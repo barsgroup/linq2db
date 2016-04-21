@@ -79,7 +79,7 @@ namespace LinqToDB.DataProvider.SqlServer
 
 	    public override Type   DataReaderType => typeof(SqlDataReader);
 
-	    public SqlServerVersion Version { get; private set; }
+	    public SqlServerVersion Version { get; }
 
 		#endregion
 

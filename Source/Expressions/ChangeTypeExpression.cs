@@ -19,7 +19,7 @@ namespace LinqToDB.Expressions
 
 	    public override ExpressionType NodeType => (ExpressionType)ChangeTypeType;
 
-	    public Expression Expression { get; private set; }
+	    public Expression Expression { get; }
 
 		public override string ToString()
 		{

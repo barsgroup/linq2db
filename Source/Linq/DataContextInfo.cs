@@ -17,8 +17,8 @@
 			DisposeContext = disposeContext;
 		}
 
-		public IDataContext     DataContext      { get; private set; }
-		public bool             DisposeContext   { get; private set; }
+		public IDataContext     DataContext      { get; }
+		public bool             DisposeContext   { get; }
 		public string           ContextID => DataContext.ContextID;
 
 	    public MappingSchema    MappingSchema => DataContext.MappingSchema;

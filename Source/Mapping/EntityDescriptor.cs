@@ -26,13 +26,13 @@ namespace LinqToDB.Mapping
 
 		readonly MappingSchema _mappingSchema;
 
-		public TypeAccessor                TypeAccessor              { get; private set; }
+		public TypeAccessor                TypeAccessor              { get; }
 		public string                      TableName                 { get; private set; }
 		public string                      SchemaName                { get; private set; }
 		public string                      DatabaseName              { get; private set; }
 		public bool                        IsColumnAttributeRequired { get; private set; }
-		public List<ColumnDescriptor>      Columns                   { get; private set; }
-		public List<AssociationDescriptor> Associations              { get; private set; }
+		public List<ColumnDescriptor>      Columns                   { get; }
+		public List<AssociationDescriptor> Associations              { get; }
 		public Dictionary<string,string>   Aliases                   { get; private set; }
 
 		readonly ManualResetEvent _mre = new ManualResetEvent(false);

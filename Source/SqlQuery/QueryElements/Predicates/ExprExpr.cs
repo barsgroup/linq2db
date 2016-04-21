@@ -20,7 +20,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             Expr2    = exp2;
         }
 
-        public EOperator   EOperator { get; private  set; }
+        public EOperator   EOperator { get; }
 
         public IQueryExpression Expr2    { get; set; }
 

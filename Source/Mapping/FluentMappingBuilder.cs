@@ -19,7 +19,7 @@ namespace LinqToDB.Mapping
             MappingSchema.AddMetadataReader(_reader);
         }
 
-        public MappingSchema MappingSchema { get; private set; }
+        public MappingSchema MappingSchema { get; }
 
         readonly FluentMetadataReader _reader = new FluentMetadataReader();
 

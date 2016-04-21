@@ -31,7 +31,7 @@ namespace LinqToDB.Linq.Builder
         {
         }
 
-        public          IBuildContext SubQuery    { get; private set; }
+        public          IBuildContext SubQuery    { get; }
         public override ISelectQuery Select { get; set; }
         public override IBuildContext Parent      { get; set; }
 

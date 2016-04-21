@@ -135,9 +135,9 @@ namespace LinqToDB.Data
 
         #region Public Properties
 
-        public string        ConfigurationString { get; private set; }
-        public IDataProvider DataProvider        { get; private set; }
-        public string        ConnectionString    { get; private set; }
+        public string        ConfigurationString { get; }
+        public IDataProvider DataProvider        { get; }
+        public string        ConnectionString    { get; }
 
         static readonly ConcurrentDictionary<string,int> _configurationIDs;
         static int _maxID;

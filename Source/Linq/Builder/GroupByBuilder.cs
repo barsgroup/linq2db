@@ -167,7 +167,7 @@ namespace LinqToDB.Linq.Builder
                 readonly List<ParameterAccessor>                               _parameters;
                 readonly Func<IDataContext,TKey,object[],IQueryable<TElement>> _itemReader;
 
-                public TKey Key { get; private set; }
+                public TKey Key { get; }
 
                 List<TElement> GetItems()
                 {

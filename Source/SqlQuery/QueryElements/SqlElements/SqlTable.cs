@@ -16,11 +16,6 @@
 
     public class SqlTable<TEntity> : SqlTable
     {
-        public SqlTable()
-            : base(typeof(TEntity))
-        {
-        }
-
         public SqlTable(MappingSchema mappingSchema)
             : base(mappingSchema, typeof(TEntity))
         {
@@ -223,7 +218,7 @@
 
         public LinkedList<IQueryExpression> TableArguments { get; } = new LinkedList<IQueryExpression>();
 
-        public Dictionary<string, ISqlField> Fields { get; private set; }
+        public Dictionary<string, ISqlField> Fields { get; }
 
         public SequenceNameAttribute[] SequenceAttributes { get; private set; }
 

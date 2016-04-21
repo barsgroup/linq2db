@@ -757,7 +757,7 @@
 
         public static int SourceIDCounter;
 
-        public int           SourceID     { get; private set; }
+        public int           SourceID     { get; }
         public ESqlTableType  SqlTableType
         {
             get { return ESqlTableType.Table; }

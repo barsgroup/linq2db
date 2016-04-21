@@ -52,7 +52,7 @@ namespace LinqToDB.Linq.Builder
             public string _sqlQueryText => Select == null ? "" : Select.SqlText;
 #endif
 
-            public ExpressionBuilder Builder     { get; private set; }
+            public ExpressionBuilder Builder     { get; }
             public Expression        Expression  { get; set; }
             public ISelectQuery Select { get; set; }
             public IBuildContext     Parent      { get; set; }

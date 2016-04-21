@@ -118,11 +118,11 @@
 
         #region Public Members
 
-        public DataType DataType  { get; private set; }
-        public Type     Type      { get; private set; }
-        public int?     Length    { get; private set; }
-        public int?     Precision { get; private set; }
-        public int?     Scale     { get; private set; }
+        public DataType DataType  { get; }
+        public Type     Type      { get; }
+        public int?     Length    { get; }
+        public int?     Precision { get; }
+        public int?     Scale     { get; }
 
         public static readonly ISqlDataType Undefined = new SqlDataType(DataType.Undefined, typeof(object), null, null, null);
 

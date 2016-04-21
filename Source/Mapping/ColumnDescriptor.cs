@@ -94,10 +94,10 @@ namespace LinqToDB.Mapping
             }
         }
 
-        public MappingSchema  MappingSchema   { get; private set; }
-        public MemberAccessor MemberAccessor  { get; private set; }
-        public MemberInfo     MemberInfo      { get; private set; }
-        public Type           MemberType      { get; private set; }
+        public MappingSchema  MappingSchema   { get; }
+        public MemberAccessor MemberAccessor  { get; }
+        public MemberInfo     MemberInfo      { get; }
+        public Type           MemberType      { get; }
         public string         MemberName      { get; private set; }
         public string         ColumnName      { get; private set; }
         public string         Storage         { get; private set; }
@@ -105,7 +105,7 @@ namespace LinqToDB.Mapping
         public bool           IsHierarchical  { get; private set; }
         public DataType       DataType        { get; private set; }
         public string         DbType          { get; private set; }
-        public bool           IsIdentity      { get; private set; }
+        public bool           IsIdentity      { get; }
         public bool           SkipOnInsert    { get; private set; }
         public bool           SkipOnUpdate    { get; private set; }
         public bool           IsPrimaryKey    { get; private set; }
