@@ -48,11 +48,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region IQueryElement Members
 
-        //public override void GetChildren(LinkedList<IQueryElement> list)
-        //{
-        //    list.AddLast(Table);
-        //}
-
         public override EQueryElementType ElementType => EQueryElementType.DeleteClause;
 
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)

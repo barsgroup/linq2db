@@ -697,12 +697,12 @@
         {
             Insert?.Walk(skipColumns, func);
             Update?.Walk(skipColumns, func);
-            ((ISqlExpressionWalkable)Delete)?.Walk(skipColumns, func);
+            Delete?.Walk(skipColumns, func);
 
             Select .Walk(skipColumns, func);
             From   .Walk(skipColumns, func);
             Where  .Walk(skipColumns, func);
-            ((ISqlExpressionWalkable)GroupBy).Walk(skipColumns, func);
+            GroupBy.Walk(skipColumns, func);
             Having .Walk(skipColumns, func);
             OrderBy.Walk(skipColumns, func);
 
@@ -779,7 +779,7 @@
             Select. ToString(sb, dic);
             From.   ToString(sb, dic);
             Where.  ToString(sb, dic);
-            ((IQueryElement)GroupBy).ToString(sb, dic);
+            GroupBy.ToString(sb, dic);
             Having. ToString(sb, dic);
             OrderBy.ToString(sb, dic);
 

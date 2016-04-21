@@ -7,6 +7,5 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces
     {
         [SearchContainer]
         ISqlFunction Function { get; }
-       
     }
 }
