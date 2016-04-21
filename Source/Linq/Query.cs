@@ -8,8 +8,6 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq
 {
-    using System.Runtime.Caching;
-
     using Builder;
     using Data;
     using Common;
@@ -22,7 +20,7 @@ namespace LinqToDB.Linq
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using Mapping;
-    using SqlQuery;
+
     using SqlProvider;
 
     public abstract class Query

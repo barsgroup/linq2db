@@ -9,7 +9,6 @@
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
 
     [Serializable, DebuggerDisplay("SQL = {SqlText}")]
     public class SqlBinaryExpression : BaseQueryElement,

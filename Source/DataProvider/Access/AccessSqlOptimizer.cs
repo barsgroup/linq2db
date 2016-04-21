@@ -4,7 +4,6 @@
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
 
     using SqlProvider;
-    using SqlQuery;
 
     class AccessSqlOptimizer : BasicSqlOptimizer
     {

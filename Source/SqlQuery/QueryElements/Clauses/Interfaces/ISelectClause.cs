@@ -8,7 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
     public interface ISelectClause : IClauseWithConditionBase, ISqlExpressionWalkable
     {
-        ISelectClause Expr(IQueryExpression expr);
+        void Expr(IQueryExpression expr);
 
         int Add(IQueryExpression expr);
 
@@ -26,10 +26,5 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
         [SearchContainer]
         IQueryExpression SkipValue { get; set; }
-
-        ISelectClause Take(IQueryExpression value);
-
-        ISelectClause Skip(IQueryExpression value);
-
     }
 }

@@ -11,8 +11,6 @@ namespace LinqToDB
     using LinqToDB.Properties;
     using LinqToDB.SqlQuery.QueryElements.Enums;
 
-    using SqlQuery;
-
     public static class DataExtensions
     {
         #region Table Helpers

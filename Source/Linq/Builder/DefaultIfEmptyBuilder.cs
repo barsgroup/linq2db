@@ -4,7 +4,6 @@ using System.Linq.Expressions;
 namespace LinqToDB.Linq.Builder
 {
     using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
 

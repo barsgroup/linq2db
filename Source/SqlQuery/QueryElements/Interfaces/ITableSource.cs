@@ -1,6 +1,5 @@
 namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 {
-    using System;
     using System.Collections.Generic;
 
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;

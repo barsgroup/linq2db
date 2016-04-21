@@ -194,7 +194,7 @@ namespace LinqToDB.Linq.Builder
         {
             var sql = context.Select;
 
-            sql.Select.Take(expr);
+            sql.Select.TakeValue = expr;
 
             if (sql.Select.SkipValue != null &&
                  DataContextInfo.SqlProviderFlags.IsTakeSupported &&
@@ -206,7 +206,7 @@ namespace LinqToDB.Linq.Builder
 
                     parm.SetTakeConverter((int)((ISqlValue)sql.Select.TakeValue).Value);
 
-                    sql.Select.Take(parm);
+                    sql.Select.TakeValue = parm;
 
                     var ep = (from pm in CurrentSqlParameters where ReferenceEquals(pm.SqlParameter, (ISqlParameter)sql.Select.SkipValue) select pm).First();
 
@@ -220,9 +220,7 @@ namespace LinqToDB.Linq.Builder
                     CurrentSqlParameters.Add(ep);
                 }
                 else
-                    sql.Select.Take(Convert(
-                        context,
-                        new SqlBinaryExpression(typeof(int), sql.Select.SkipValue, "+", sql.Select.TakeValue, Precedence.Additive)));
+                    sql.Select.TakeValue = Convert(context, new SqlBinaryExpression(typeof(int), sql.Select.SkipValue, "+", sql.Select.TakeValue, Precedence.Additive));
             }
 
             if (!DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))

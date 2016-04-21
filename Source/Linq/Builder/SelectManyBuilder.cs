@@ -4,14 +4,11 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq.Builder
 {
-    using System.Linq;
-
     using LinqToDB.Expressions;
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using SqlQuery;
@@ -20,37 +17,37 @@ namespace LinqToDB.Linq.Builder
     {
         protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
         {
-            return
-                methodCall.IsQueryable("SelectMany") &&
-                methodCall.Arguments.Count == 3      &&
-                ((LambdaExpression)methodCall.Arguments[1].Unwrap()).Parameters.Count == 1;
+            return methodCall.IsQueryable("SelectMany") && methodCall.Arguments.Count == 3 && ((LambdaExpression)methodCall.Arguments[1].Unwrap()).Parameters.Count == 1;
         }
 
         protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
         {
-            var sequence           = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
             var collectionSelector = (LambdaExpression)methodCall.Arguments[1].Unwrap();
-            var resultSelector     = (LambdaExpression)methodCall.Arguments[2].Unwrap();
+            var resultSelector = (LambdaExpression)methodCall.Arguments[2].Unwrap();
 
             if (!sequence.Select.GroupBy.IsEmpty)
             {
                 sequence = new SubQueryContext(sequence);
             }
 
-            var context        = new SelectManyContext(buildInfo.Parent, collectionSelector, sequence);
-            var expr           = collectionSelector.Body.Unwrap();
+            var context = new SelectManyContext(buildInfo.Parent, collectionSelector, sequence);
+            var expr = collectionSelector.Body.Unwrap();
 
             var collectionInfo = new BuildInfo(context, expr, new SelectQuery());
-            var collection     = builder.BuildSequence(collectionInfo);
-            var leftJoin       = collection is DefaultIfEmptyBuilder.DefaultIfEmptyContext;
-            var sql            = collection.Select;
+            var collection = builder.BuildSequence(collectionInfo);
+            var leftJoin = collection is DefaultIfEmptyBuilder.DefaultIfEmptyContext;
+            var sql = collection.Select;
 
             var sequenceTables = new HashSet<ISqlTableSource>(sequence.Select.From.Tables.First.Value.GetTables());
-            var newQuery       = null != QueryVisitor.Find(sql, e => e == collectionInfo.SelectQuery);
-            var crossApply     = null != QueryVisitor.FindFirstOrDefault<IQueryExpression>(sql, e =>
-                e.ElementType == EQueryElementType.TableSource && sequenceTables.Contains((ISqlTableSource)e)  ||
-                e.ElementType == EQueryElementType.SqlField    && sequenceTables.Contains(((ISqlField)e).Table) ||
-                e.ElementType == EQueryElementType.Column      && sequenceTables.Contains(((IColumn)e).Parent));
+            var newQuery = null != QueryVisitor.Find(sql, e => e == collectionInfo.SelectQuery);
+            var crossApply = null !=
+                             QueryVisitor.FindFirstOrDefault<IQueryExpression>(
+                                 sql,
+                                 e =>
+                                 e.ElementType == EQueryElementType.TableSource && sequenceTables.Contains((ISqlTableSource)e) ||
+                                 e.ElementType == EQueryElementType.SqlField && sequenceTables.Contains(((ISqlField)e).Table) ||
+                                 e.ElementType == EQueryElementType.Column && sequenceTables.Contains(((IColumn)e).Parent));
 
             var groupJoinSubQueryContext = collection as JoinBuilder.GroupJoinSubQueryContext;
             if (groupJoinSubQueryContext != null)
@@ -59,7 +56,7 @@ namespace LinqToDB.Linq.Builder
 
                 var joinedTables = groupJoin.Select.From.Tables.First.Value.Joins.First.Value;
                 joinedTables.JoinType = EJoinType.Inner;
-                joinedTables.IsWeak   = false;
+                joinedTables.IsWeak = false;
             }
 
             if (!newQuery)
@@ -75,22 +72,24 @@ namespace LinqToDB.Linq.Builder
                     context.Collection = new SubQueryContext(collection, sequence.Select, true);
                     return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
                 }
-                else
-                {
-                    var join = SelectQuery.OuterApply(sql);
-                    sequence.Select.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
-                    context.Collection = new SubQueryContext(collection, sequence.Select, false);
 
-                    return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
-                }
+                var join = SelectQuery.OuterApply(sql);
+                sequence.Select.From.Tables.First.Value.Joins.AddLast(@join.JoinedTable);
+                context.Collection = new SubQueryContext(collection, sequence.Select, false);
+
+                return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);
             }
 
             var tableContext = collection as TableBuilder.TableContext;
             if (tableContext != null)
             {
-                var join = tableContext.SqlTable.TableArguments != null && tableContext.SqlTable.TableArguments.Count > 0 ?
-                    (leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql)) :
-                    (leftJoin ? SelectQuery.LeftJoin  (sql) : SelectQuery.InnerJoin (sql));
+                var join = tableContext.SqlTable.TableArguments != null && tableContext.SqlTable.TableArguments.Count > 0
+                               ? (leftJoin
+                                      ? SelectQuery.OuterApply(sql)
+                                      : SelectQuery.CrossApply(sql))
+                               : (leftJoin
+                                      ? SelectQuery.LeftJoin(sql)
+                                      : SelectQuery.InnerJoin(sql));
 
                 join.JoinedTable.Condition.Conditions.AddRange(sql.Where.Search.Conditions);
                 join.JoinedTable.CanConvertApply = false;
@@ -104,7 +103,6 @@ namespace LinqToDB.Linq.Builder
                 if (collectionParent != null && collectionInfo.IsAssociationBuilt)
                 {
                     QueryVisitor.FindFirstOrDefault<ITableSource>(sequence.Select.From, t => t.Source == collectionParent.SqlTable);
-
                 }
                 else
                 {
@@ -116,7 +114,9 @@ namespace LinqToDB.Linq.Builder
             }
             else
             {
-                var join = leftJoin ? SelectQuery.OuterApply(sql) : SelectQuery.CrossApply(sql);
+                var join = leftJoin
+                               ? SelectQuery.OuterApply(sql)
+                               : SelectQuery.CrossApply(sql);
                 sequence.Select.From.Tables.First.Value.Joins.AddLast(join.JoinedTable);
 
                 context.Collection = new SubQueryContext(collection, sequence.Select, false);
@@ -124,21 +124,20 @@ namespace LinqToDB.Linq.Builder
             }
         }
 
-        protected override SequenceConvertInfo Convert(
-            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+        protected override SequenceConvertInfo Convert(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
         {
             return null;
         }
 
         public class SelectManyContext : SelectContext
         {
-            public SelectManyContext(IBuildContext parent, LambdaExpression lambda, IBuildContext sequence)
-                : base(parent, lambda, sequence)
+            public SelectManyContext(IBuildContext parent, LambdaExpression lambda, IBuildContext sequence) : base(parent, lambda, sequence)
             {
             }
 
             private IBuildContext _collection;
-            public  IBuildContext  Collection
+
+            public IBuildContext Collection
             {
                 get { return _collection; }
                 set

@@ -10,7 +10,6 @@ namespace LinqToDB.Linq.Builder
     using Common;
     using Extensions;
     using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;

@@ -6,8 +6,6 @@ namespace LinqToDB.Linq.Builder
     using LinqToDB.Expressions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
 
-    using SqlQuery;
-
     class DeleteBuilder : MethodCallBuilder
     {
         protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)

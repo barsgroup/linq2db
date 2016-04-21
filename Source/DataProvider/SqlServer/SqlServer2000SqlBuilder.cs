@@ -3,7 +3,7 @@
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using SqlProvider;
-    using SqlQuery.QueryElements.SqlElements;
+
     class SqlServer2000SqlBuilder : SqlServerSqlBuilder
 	{
 		public SqlServer2000SqlBuilder(ISqlOptimizer sqlOptimizer, SqlProviderFlags sqlProviderFlags, ValueToSqlConverter valueToSqlConverter)

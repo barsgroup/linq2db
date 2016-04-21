@@ -4,9 +4,7 @@ using LinqToDB.Common;
 namespace LinqToDB.Linq.Builder
 {
     using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     class WithTableExpressionBuilder : MethodCallBuilder
     {

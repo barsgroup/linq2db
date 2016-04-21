@@ -11,8 +11,7 @@ namespace LinqToDB.DataProvider.MySql
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    using SqlQuery;
-	using SqlProvider;
+    using SqlProvider;
 
 	class MySqlSqlBuilder : BasicSqlBuilder
 	{

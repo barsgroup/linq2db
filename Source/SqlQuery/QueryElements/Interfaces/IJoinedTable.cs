@@ -1,6 +1,5 @@
 namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 {
-    using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;

@@ -1,7 +1,6 @@
 namespace LinqToDB.SqlQuery.QueryElements.SqlElements
 {
     using System;
-    using System.Runtime.Serialization;
 
     using LinqToDB.Properties;
 

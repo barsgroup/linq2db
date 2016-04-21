@@ -68,7 +68,7 @@ namespace LinqToDB.Linq.Builder
         {
             var sql = sequence.Select;
 
-            sql.Select.Take(expr);
+            sql.Select.TakeValue = expr;
 
             if (sql.Select.SkipValue != null &&
                 builder.DataContextInfo.SqlProviderFlags.IsTakeSupported &&
@@ -83,7 +83,7 @@ namespace LinqToDB.Linq.Builder
 
                     parm.SetTakeConverter((int)sqlValue.Value);
 
-                    sql.Select.Take(parm);
+                    sql.Select.TakeValue = parm;
 
                     var ep = (from pm in builder.CurrentSqlParameters where pm.SqlParameter == skip select pm).First();
 
@@ -97,9 +97,9 @@ namespace LinqToDB.Linq.Builder
                     builder.CurrentSqlParameters.Add(ep);
                 }
                 else
-                    sql.Select.Take(builder.Convert(
+                    sql.Select.TakeValue = builder.Convert(
                         sequence,
-                        new SqlBinaryExpression(typeof(int), sql.Select.SkipValue, "+", sql.Select.TakeValue, Precedence.Additive)));
+                        new SqlBinaryExpression(typeof(int), sql.Select.SkipValue, "+", sql.Select.TakeValue, Precedence.Additive));
             }
 
             if (!builder.DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))
@@ -115,20 +115,20 @@ namespace LinqToDB.Linq.Builder
         {
             var sql = sequence.Select;
 
-            sql.Select.Skip(expr);
+            sql.Select.SkipValue = expr;
 
             if (sql.Select.TakeValue != null)
             {
                 if (builder.DataContextInfo.SqlProviderFlags.GetIsSkipSupportedFlag(sql) ||
                     !builder.DataContextInfo.SqlProviderFlags.IsTakeSupported)
-                    sql.Select.Take(builder.Convert(
+                    sql.Select.TakeValue =builder.Convert(
                         sequence,
-                        new SqlBinaryExpression(typeof(int), sql.Select.TakeValue, "-", sql.Select.SkipValue, Precedence.Additive)));
+                        new SqlBinaryExpression(typeof(int), sql.Select.TakeValue, "-", sql.Select.SkipValue, Precedence.Additive));
 
                 if (prevSkipValue != null)
-                    sql.Select.Skip(builder.Convert(
+                    sql.Select.SkipValue = builder.Convert(
                         sequence,
-                        new SqlBinaryExpression(typeof(int), prevSkipValue, "+", sql.Select.SkipValue, Precedence.Additive)));
+                        new SqlBinaryExpression(typeof(int), prevSkipValue, "+", sql.Select.SkipValue, Precedence.Additive));
             }
 
             if (!builder.DataContextInfo.SqlProviderFlags.GetAcceptsTakeAsParameterFlag(sql))

@@ -3,7 +3,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
     using System.Collections.Generic;
 
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
     using LinqToDB.SqlQuery.Search;
 

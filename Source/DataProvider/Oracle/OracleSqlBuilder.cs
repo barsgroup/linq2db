@@ -3,12 +3,8 @@ using System.Linq;
 
 namespace LinqToDB.DataProvider.Oracle
 {
-    using System;
-
     using Common;
 
-	using LinqToDB.SqlQuery.QueryElements;
-	using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
 	using LinqToDB.SqlQuery.QueryElements.Interfaces;

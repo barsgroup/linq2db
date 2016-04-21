@@ -4,10 +4,8 @@ namespace LinqToDB.SqlQuery.QueryElements
     using System.Diagnostics;
     using System.Text;
 
-    using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
 
     [DebuggerDisplay("SQL = {SqlText}")]
     public abstract class BaseQueryElement : IQueryElement
