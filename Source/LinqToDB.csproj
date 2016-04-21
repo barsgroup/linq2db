@@ -315,7 +315,6 @@
     <Compile Include="Mapping\PrimaryKeyAttribute.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ServiceModel\LinqServiceInfo.cs" />
     <Compile Include="SqlProvider\BasicSqlOptimizer.cs" />
     <Compile Include="SqlProvider\ISqlOptimizer.cs" />
     <Compile Include="SqlProvider\SqlProviderFlags.cs" />
@@ -543,19 +542,6 @@
     <Compile Include="Reflection\ObjectFactoryAttribute.cs" />
     <Compile Include="Reflection\TypeAccessor.cs" />
     <Compile Include="Extensions\ReflectionExtensions.cs" />
-    <Compile Include="ServiceModel\DataService.cs" />
-    <Compile Include="ServiceModel\ILinqService.cs" />
-    <Compile Include="ServiceModel\ILinqSoapService.cs" />
-    <Compile Include="ServiceModel\LinqService.cs" />
-    <Compile Include="ServiceModel\LinqServiceClient.cs" />
-    <Compile Include="ServiceModel\LinqServiceQuery.cs" />
-    <Compile Include="ServiceModel\LinqServiceResult.cs" />
-    <Compile Include="ServiceModel\LinqServiceSerializer.cs" />
-    <Compile Include="ServiceModel\LinqSoapServiceClient.cs" />
-    <Compile Include="ServiceModel\RemoteDataContextBase.cs" />
-    <Compile Include="ServiceModel\ServiceModelDataContext.cs" />
-    <Compile Include="ServiceModel\ServiceModelDataReader.cs" />
-    <Compile Include="ServiceModel\SoapDataContext.cs" />
     <Compile Include="DataProvider\DynamicDataProviderBase.cs" />
   </ItemGroup>
   <ItemGroup>

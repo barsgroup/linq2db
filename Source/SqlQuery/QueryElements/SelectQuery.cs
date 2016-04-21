@@ -765,18 +765,7 @@
         }
 
         private ISqlField _all;
-        public ISqlField All
-        {
-            get { return _all ?? (_all = new SqlField { Name = "*", PhysicalName = "*", Table = this }); }
-
-            set
-            {
-                _all = value;
-
-                if (_all != null)
-                    _all.Table = this;
-            }
-        }
+        public ISqlField All => _all ?? (_all = new SqlField { Name = "*", PhysicalName = "*", Table = this })  ;
 
         List<IQueryExpression> _keys;
 
@@ -835,5 +824,5 @@
         #endregion
     }
 
- 
+
 }

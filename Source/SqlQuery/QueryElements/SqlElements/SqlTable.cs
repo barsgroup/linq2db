@@ -229,19 +229,12 @@
 
         private ISqlField _all;
 
-        public ISqlField All
-        {
-            get
-            {
-                return _all ?? (_all = new SqlField
-                                       {
-                                           Name = "*",
-                                           PhysicalName = "*",
-                                           Table = this
-                                       });
-            }
-            set { }
-        }
+        public ISqlField All => _all ?? (_all = new SqlField
+                                                {
+                                                    Name = "*",
+                                                    PhysicalName = "*",
+                                                    Table = this
+                                                });
 
         public ISqlField GetIdentityField()
         {
@@ -340,7 +333,7 @@
                     {
                         TableArguments.AddLast(tableArgument);
                     }
-                    
+
                 }
                 objectTree.Add(this, table);
                 objectTree.Add(All,  table.All);

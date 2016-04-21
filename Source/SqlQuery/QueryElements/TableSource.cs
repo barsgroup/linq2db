@@ -135,11 +135,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public int       SourceID => Source.SourceID;
 
-        public ISqlField All
-        {
-            get { return Source.All; }
-            set {  }
-        }
+        public ISqlField All => Source.All;
 
         IList<IQueryExpression> ISqlTableSource.GetKeys(bool allIfEmpty)
         {
