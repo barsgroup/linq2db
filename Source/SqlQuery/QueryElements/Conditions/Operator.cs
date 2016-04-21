@@ -10,7 +10,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
     public class Operator<T1, T2> : IOperator<T2>
         where T1 : IConditionBase<T1,T2>
     {
-        internal Operator(IExpr<T1, T2> expr, EOperator op) 
+        internal Operator(IExpr<T1, T2> expr, EOperator op)
         {
             _expr = expr;
             _op   = op;

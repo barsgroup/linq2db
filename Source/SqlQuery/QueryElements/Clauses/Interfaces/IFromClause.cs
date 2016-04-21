@@ -13,8 +13,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
     {
         IFromClause Table(ISqlTableSource table, params IJoin[] joins);
 
-        IFromClause Table(ISqlTableSource table, string alias, params IJoin[] joins);
-
         ITableSource this[ISqlTableSource table] { get; }
 
         ITableSource this[ISqlTableSource table, string alias] { get; }

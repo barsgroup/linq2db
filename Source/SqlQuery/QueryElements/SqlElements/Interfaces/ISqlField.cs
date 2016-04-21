@@ -6,36 +6,36 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
     {
         string Alias { get; set; }
 
-        string Name { get; set; }
+        string Name { get;  }
 
-        bool Nullable { get; set; }
+        bool Nullable { get;  }
 
-        bool IsPrimaryKey { get; set; }
+        bool IsPrimaryKey { get;  }
 
-        int PrimaryKeyOrder { get; set; }
+        int PrimaryKeyOrder { get;  }
 
-        bool IsIdentity { get; set; }
+        bool IsIdentity { get;  }
 
-        bool IsInsertable { get; set; }
+        bool IsInsertable { get;  }
 
-        bool IsUpdatable { get; set; }
+        bool IsUpdatable { get;  }
 
-        DataType DataType { get; set; }
+        DataType DataType { get;  }
 
-        string DbType { get; set; }
+        string DbType { get;  }
 
-        int? Length { get; set; }
+        int? Length { get;  }
 
-        int? Precision { get; set; }
+        int? Precision { get; }
 
-        int? Scale { get; set; }
+        int? Scale { get;  }
 
-        string CreateFormat { get; set; }
+        string CreateFormat { get;  }
 
         ISqlTableSource Table { get; set; }
 
-        ColumnDescriptor ColumnDescriptor { get; set; }
+        ColumnDescriptor ColumnDescriptor { get;  }
 
-        string PhysicalName { get; set; }
+        string PhysicalName { get;  }
     }
 }

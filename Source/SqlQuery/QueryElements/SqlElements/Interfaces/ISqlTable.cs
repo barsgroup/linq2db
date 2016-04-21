@@ -8,8 +8,6 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 
     public interface ISqlTable : ISqlTableSource
     {
-        ISqlField this[string fieldName] { get; }
-
         string Name { get; set; }
 
         string Alias { get; set; }
@@ -18,7 +16,7 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 
         string Owner { get; set; }
 
-        Type ObjectType { get; set; }
+        Type ObjectType { get; }
 
         string PhysicalName { get; set; }
 
@@ -31,9 +29,5 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
         SequenceNameAttribute[] SequenceAttributes { get; }
 
         ISqlField GetIdentityField();
-
-        void Add(ISqlField field);
-
-        void AddRange(IEnumerable<ISqlField> collection);
     }
 }

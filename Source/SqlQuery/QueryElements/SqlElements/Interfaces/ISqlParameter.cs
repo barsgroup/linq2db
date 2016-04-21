@@ -13,7 +13,7 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 
         DataType DataType { get; set; }
 
-        int DbSize { get; set; }
+        int DbSize { get;  }
 
         string LikeStart { get; set; }
 
@@ -23,7 +23,7 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 
         void SetTakeConverter(int take);
 
-        Func<object, object> ValueConverter { get; set; }
+        Func<object, object> ValueConverter { set; }
 
         object RawValue { get; }
     }

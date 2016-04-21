@@ -12,19 +12,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
     {
         ISelectQuery SelectQuery { get; }
 
-        ISelectClause Select { get; }
-
-        IFromClause From { get; }
-
-
-        IGroupByClause GroupBy { get; }
-
-        IWhereClause Having { get; }
-
-        IOrderByClause OrderBy { get; }
-
-        ISelectQuery End();
-
         void SetSqlQuery(ISelectQuery selectQuery);
     }
 }

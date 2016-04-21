@@ -7,7 +7,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
     using LinqToDB.SqlQuery.Search;
 
-    public interface IInsertClause : IQueryElement, 
+    public interface IInsertClause : IQueryElement,
                                      ISqlExpressionWalkable,
                                      ICloneableElement
     {

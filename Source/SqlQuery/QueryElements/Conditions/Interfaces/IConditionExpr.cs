@@ -8,7 +8,5 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
     {
         T Expr    (IQueryExpression expr);
         T Field   (ISqlField field);
-        T SubQuery(ISelectQuery selectQuery);
-        T Value   (object         value);
     }
 }

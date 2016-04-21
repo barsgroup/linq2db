@@ -9,8 +9,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
     {
         IGroupByClause Expr(IQueryExpression expr);
 
-        IGroupByClause Field(ISqlField field);
-
         [SearchContainer]
         LinkedList<IQueryExpression> Items { get; }
 

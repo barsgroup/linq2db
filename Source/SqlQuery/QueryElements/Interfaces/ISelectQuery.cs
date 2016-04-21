@@ -1,12 +1,10 @@
 namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 {
-    using System;
     using System.Collections.Generic;
 
     using LinqToDB.SqlQuery.QueryElements.Clauses;
     using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
     using LinqToDB.SqlQuery.Search;
 
@@ -29,8 +27,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
         bool IsSelect { get; }
 
         bool IsDelete { get; }
-
-        bool IsInsertOrUpdate { get; }
 
         bool IsInsert { get; }
 
@@ -73,21 +69,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         void ClearUpdate();
 
-        void ClearDelete();
-
-        void AddUnion(ISelectQuery union, bool isAll);
-
         ISelectQuery ProcessParameters();
 
         ISelectQuery Clone();
 
-        ISelectQuery Clone(Predicate<ICloneableElement> doClone);
-
-        void RemoveAlias(string alias);
-
         void SetAliases();
-
-        string GetAlias(string desiredAlias, string defaultAlias);
 
         string[] GetTempAliases(int n, string defaultAlias);
 

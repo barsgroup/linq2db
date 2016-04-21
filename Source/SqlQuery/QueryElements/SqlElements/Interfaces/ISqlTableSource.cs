@@ -6,11 +6,11 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 
     public interface ISqlTableSource : IQueryExpression
     {
-        ISqlField All { get;}
+        ISqlField All { get; }
 
-        int                   SourceID     { get; }
+        int SourceID { get; }
 
-        ESqlTableType          SqlTableType { get; set; }
+        ESqlTableType SqlTableType { get; set; }
 
         IList<IQueryExpression> GetKeys(bool allIfEmpty);
     }
