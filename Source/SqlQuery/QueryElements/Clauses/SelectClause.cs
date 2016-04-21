@@ -183,24 +183,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #endregion
 
-        #region Distinct
-
-        public ISelectClause Distinct
-        {
-            get { IsDistinct = true; return this; }
-        }
-
         public bool IsDistinct { get; set; }
 
-        #endregion
-
         #region Take
-
-        public ISelectClause Take(int value)
-        {
-            TakeValue = new SqlValue(value);
-            return this;
-        }
 
         public ISelectClause Take(IQueryExpression value)
         {
@@ -213,12 +198,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #endregion
 
         #region Skip
-
-        public ISelectClause Skip(int value)
-        {
-            SkipValue = new SqlValue(value);
-            return this;
-        }
 
         public ISelectClause Skip(IQueryExpression value)
         {

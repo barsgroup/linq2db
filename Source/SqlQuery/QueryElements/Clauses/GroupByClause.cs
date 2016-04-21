@@ -42,11 +42,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return this;
         }
 
-        public IGroupByClause Field(ISqlField field)
-        {
-            return Expr(field);
-        }
-
         void Add(IQueryExpression expr)
         {
             foreach (var e in Items)

@@ -114,6 +114,7 @@
             _propertyGetters = propertyGetters;
         }
 
+        // ReSharper disable once UnusedMember.Global
         public void Execute(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> func)
         {
             if (_isCollection)

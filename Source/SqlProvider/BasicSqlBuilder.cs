@@ -2072,7 +2072,7 @@
         #endregion
 
         #region BuildDataType
-    
+
         protected virtual void BuildDataType(ISqlDataType type, bool createDbType = false)
         {
             switch (type.DataType)
@@ -2467,7 +2467,7 @@
             return
                 precedence == 0 ||
                 precedence < parentPrecedence ||
-                (precedence == parentPrecedence && 
+                (precedence == parentPrecedence &&
                     (parentPrecedence == Precedence.Subtraction ||
                      parentPrecedence == Precedence.LogicalNegation));
         }
@@ -2659,11 +2659,6 @@
                 sb.Append(" -- ").Append(t2);
         }
 
-        protected virtual void PrintParameterValue(StringBuilder sb, IDbDataParameter parameter)
-        {
-            ValueToSqlConverter.Convert(sb, parameter.Value);
-        }
-
         public virtual StringBuilder PrintParameters(StringBuilder sb, IDbDataParameter[] parameters)
         {
             if (parameters != null && parameters.Length > 0)
@@ -2697,7 +2692,7 @@
             {
                 foreach (var p in parameters.OrderByDescending(param => param.ParameterName))
                 {
-                    sb.Replace(":" + p.ParameterName, valueToSqlValueConverter.Convert(p.Value));                            
+                    sb.Replace(":" + p.ParameterName, valueToSqlValueConverter.Convert(p.Value));
                 }
             }
 

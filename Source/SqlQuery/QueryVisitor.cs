@@ -52,45 +52,6 @@ namespace LinqToDB.SqlQuery
     {
     }
 
-    public class ParentFirstStrategy<TSearch> : FindStrategy<TSearch>
-        where TSearch : class
-    {
-        public override Expression<ResultDelegate<TSearch, TSearch>> GetStrategyExpression(Expression[] executeChildrenExpressions, bool isRoot)
-        {
-            ////void ExecuteParentFirst(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> action)
-            ////{
-            ////    var searchValue = obj as TSearch;
-            ////
-            ////    if (searchValue != null)
-            ////    {
-            ////        resultList.AddLast(searchValue);
-            ////    }
-            ////
-            ////    child1.Execute(obj, resultList, visited, action);
-            ////    child2.Execute(obj, resultList, visited, action);
-            ////    ...
-            ////}
-
-            var castVariable = Expression.Variable(typeof(TSearch), "searchValue");
-            var castAs = Expression.TypeAs(ObjParam, typeof(TSearch));
-            var castAssign = Expression.Assign(castVariable, castAs);
-
-            var checkNotNull = Expression.NotEqual(castVariable, NullConst);
-
-            var addLastMethod = typeof(LinkedList<TSearch>).GetMethod("AddLast", new[] { typeof(TSearch) });
-            var callAddLast = Expression.Call(ResultListParam, addLastMethod, castVariable);
-            var conditionalAdd = Expression.IfThen(checkNotNull, callAddLast);
-
-            var executeChildrenBlock = executeChildrenExpressions.Any()
-                                           ? Expression.Block(executeChildrenExpressions)
-                                           : (Expression)Expression.Empty();
-
-            var block = Expression.Block(new[] { castVariable }, castAssign, conditionalAdd, executeChildrenBlock);
-
-            return Expression.Lambda<ResultDelegate<TSearch, TSearch>>(block, ParamArray);
-        }
-    }
-
     public class ChildrenFirstStrategy<TSearch> : FindStrategy<TSearch>
         where TSearch : class
     {

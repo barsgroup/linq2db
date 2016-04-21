@@ -8,6 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
         IJoinedTable JoinedTable { get; }
 
         [SearchContainer]
+        // ReSharper disable once UnusedMember.Global
         ISearchCondition Search { get; }
 
     }

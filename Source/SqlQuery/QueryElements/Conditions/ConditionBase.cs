@@ -25,8 +25,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         public IExpr<T1, T2> Expr    (IQueryExpression expr)        { return new Expr<T1, T2>(this, false, expr); }
         public IExpr<T1, T2> Field   (ISqlField field)       { return Expr(field);                  }
-        public IExpr<T1, T2> SubQuery(ISelectQuery    selectQuery) { return Expr(selectQuery);            }
-        public IExpr<T1, T2> Value   (object         value)       { return Expr(new SqlValue(value));    }
 
         public T2 Exists(ISelectQuery subQuery)
         {

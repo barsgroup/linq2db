@@ -76,8 +76,6 @@ namespace LinqToDB.SqlQuery.QueryElements
             set { _alias = value; }
         }
 
-        public ITableSource this[ISqlTableSource table] => this[table, null];
-
         public ITableSource this[ISqlTableSource table, string alias] => Joins.Select(tj => SelectQuery.CheckTableSource(tj.Table, table, alias)).FirstOrDefault(t => t != null);
 
         public LinkedList<IJoinedTable>  Joins { get; } = new LinkedList<IJoinedTable>();

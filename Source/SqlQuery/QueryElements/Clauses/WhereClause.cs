@@ -30,11 +30,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             }
 
             readonly IWhereClause _parent;
-
-            public IWhereClause Or => _parent.SetOr(true);
-
-            public IWhereClause And => _parent.SetOr(false);
-
         }
 
         internal WhereClause(ISelectQuery selectQuery) : base(selectQuery)

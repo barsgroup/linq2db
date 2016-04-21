@@ -21,11 +21,5 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         public T2 Expr    (IQueryExpression expr)       { return _expr.Add(new ExprExpr(_expr.SqlExpression, _op, expr)); }
         public T2 Field   (ISqlField field)       { return Expr(field);               }
-        public T2 SubQuery(ISelectQuery selectQuery) { return Expr(selectQuery);         }
-        public T2 Value   (object        value)       { return Expr(new SqlValue(value)); }
-
-        public T2 All     (ISelectQuery subQuery)    { return Expr(SqlFunction.CreateAll (subQuery)); }
-        public T2 Some    (ISelectQuery subQuery)    { return Expr(SqlFunction.CreateSome(subQuery)); }
-        public T2 Any     (ISelectQuery subQuery)    { return Expr(SqlFunction.CreateAny (subQuery)); }
     }
 }
