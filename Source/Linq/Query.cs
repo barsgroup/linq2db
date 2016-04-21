@@ -8,6 +8,8 @@ using System.Linq.Expressions;
 
 namespace LinqToDB.Linq
 {
+    using System.Runtime.Caching;
+
     using Builder;
     using Data;
     using Common;
@@ -96,11 +98,10 @@ namespace LinqToDB.Linq
 
         public readonly List<QueryInfo> Queries = new List<QueryInfo>(1);
 
-        public bool Compare(string contextID, MappingSchema mappingSchema, Expression expr)
+        public bool Compare(string contextId, MappingSchema mappingSchema, Expression expr)
         {
             return
-                ContextID.Length == contextID.Length &&
-                ContextID        == contextID        &&
+                ContextID.Equals(contextId) &&
                 MappingSchema    == mappingSchema    &&
                 Expression.EqualsTo(expr, _queryableAccessorDic);
         }
@@ -167,9 +168,6 @@ namespace LinqToDB.Linq
 
         #region Properties & Fields
 
-        public          bool              DoNotChache;
-        public          Query<T>          Next;
-        
         public          ISqlOptimizer     SqlOptimizer;
 
         public Func<QueryContext,IDataContextInfo,Expression,object[],object>         GetElement;
@@ -184,96 +182,18 @@ namespace LinqToDB.Linq
 
         #region GetInfo
 
-        static          Query<T> _first;
-        static readonly object   _sync = new object();
-
-        const int CacheSize = 100;
+        //static          Query<T> _first;
+        //static readonly object   _sync = new object();
+        //const int CacheSize = 100;
 
         public static Query<T> GetQuery(IDataContextInfo dataContextInfo, Expression expr, bool isSaveResultMappingIndexes)
         {
-            var query = FindQuery(dataContextInfo, expr);
+            var newQuery = new Query<T>
+                           {
+                               IsSaveResultMappingIndexes = isSaveResultMappingIndexes
+                           };
 
-            if (query == null)
-            {
-                lock (_sync)
-                {
-                    query = FindQuery(dataContextInfo, expr);
-
-                    if (query == null)
-                    {
-                        if (Configuration.Linq.GenerateExpressionTest)
-                        {
-                            var testFile = new ExpressionTestGenerator().GenerateSource(expr);
-#if !SILVERLIGHT && !NETFX_CORE
-                            DataConnection.WriteTraceLine(
-                                "Expression test code generated: '" + testFile + "'.", 
-                                DataConnection.TraceSwitch.DisplayName);
-#endif
-                        }
-
-                        try
-                        {
-                            var newQuery = new Query<T> { DoNotChache = true, IsSaveResultMappingIndexes = isSaveResultMappingIndexes };
-                            query = new ExpressionBuilder(newQuery, dataContextInfo, expr, null).Build<T>();
-                        }
-                        catch (Exception)
-                        {
-                            if (!Configuration.Linq.GenerateExpressionTest)
-                            {
-#if !SILVERLIGHT && !NETFX_CORE
-                                DataConnection.WriteTraceLine(
-                                    "To generate test code to diagnose the problem set 'LinqToDB.Common.Configuration.Linq.GenerateExpressionTest = true'.",
-                                    DataConnection.TraceSwitch.DisplayName);
-#endif
-                            }
-
-                            throw;
-                        }
-
-                        if (!query.DoNotChache)
-                        {
-                            query.Next = _first;
-                            _first = query;
-                        }
-                    }
-                }
-            }
-
-            return query;
-        }
-
-        static Query<T> FindQuery(IDataContextInfo dataContextInfo, Expression expr)
-        {
-            Query<T> prev = null;
-            var      n    = 0;
-
-            for (var query = _first; query != null; query = query.Next)
-            {
-                if (query.Compare(dataContextInfo.ContextID, dataContextInfo.MappingSchema, expr))
-                {
-                    if (prev != null)
-                    {
-                        lock (_sync)
-                        {
-                            prev.Next  = query.Next;
-                            query.Next = _first;
-                            _first     = query;
-                        }
-                    }
-
-                    return query;
-                }
-
-                if (n++ >= CacheSize)
-                {
-                    query.Next = null;
-                    return null;
-                }
-
-                prev = query;
-            }
-
-            return null;
+            return new ExpressionBuilder(newQuery, dataContextInfo, expr, null).Build<T>();
         }
 
         #endregion
@@ -610,7 +530,6 @@ namespace LinqToDB.Linq
             var key = new { dataContextInfo.MappingSchema, dataContextInfo.ContextID };
 
             if (!ObjectOperation<T>.Insert.TryGetValue(key, out ei))
-                lock (_sync)
                     if (!ObjectOperation<T>.Insert.TryGetValue(key, out ei))
                     {
                         var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
@@ -672,7 +591,6 @@ namespace LinqToDB.Linq
             var key = new { dataContextInfo.MappingSchema, dataContextInfo.ContextID };
 
             if (!ObjectOperation<T>.InsertWithIdentity.TryGetValue(key, out ei))
-                lock (_sync)
                     if (!ObjectOperation<T>.InsertWithIdentity.TryGetValue(key, out ei))
                     {
                         var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
@@ -732,8 +650,6 @@ namespace LinqToDB.Linq
 
             if (!ObjectOperation<T>.InsertOrUpdate.TryGetValue(key, out ei))
             {
-                lock (_sync)
-                {
                     if (!ObjectOperation<T>.InsertOrUpdate.TryGetValue(key, out ei))
                     {
                         var fieldDic = new Dictionary<ISqlField, ParameterAccessor>();
@@ -836,7 +752,6 @@ namespace LinqToDB.Linq
                         ObjectOperation<T>.InsertOrUpdate.Add(key, ei);
                     }
                 }
-            }
 
             return (int)ei.GetElement(null, dataContextInfo, Expression.Constant(obj), null);
         }
@@ -896,7 +811,6 @@ namespace LinqToDB.Linq
             var key = new { dataContextInfo.MappingSchema, dataContextInfo.ContextID };
 
             if (!ObjectOperation<T>.Update.TryGetValue(key, out ei))
-                lock (_sync)
                     if (!ObjectOperation<T>.Update.TryGetValue(key, out ei))
                     {
                         var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
@@ -970,7 +884,6 @@ namespace LinqToDB.Linq
             var key = new { dataContextInfo.MappingSchema, dataContextInfo.ContextID };
 
             if (!ObjectOperation<T>.Delete.TryGetValue(key, out ei))
-                lock (_sync)
                     if (!ObjectOperation<T>.Delete.TryGetValue(key, out ei))
                     {
                         var sqlTable = new SqlTable<T>(dataContextInfo.MappingSchema);
@@ -1192,7 +1105,7 @@ namespace LinqToDB.Linq
 
             if (IsSaveResultMappingIndexes)
             {
-                SaveResultMappingIndexes(expression);		        
+                SaveResultMappingIndexes(expression);
             }
 
             ClearParameters();
@@ -1285,7 +1198,7 @@ namespace LinqToDB.Linq
                 }
 
                 T result;
-                
+
                 try
                 {
                     result = mapper(queryContext, dataContextInfo.DataContext, dr, expr, ps);
@@ -1366,7 +1279,7 @@ namespace LinqToDB.Linq
                 }
 
                 T result;
-                
+
                 try
                 {
                     result = mapper(queryContext, dataContextInfo.DataContext, dr, expr, ps, counter);

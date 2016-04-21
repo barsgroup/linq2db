@@ -64,23 +64,23 @@
                         }
 
                         var resultVariable = Expression.Variable(typeof(object), "result");
-                        
+
                         var castVariable = Expression.Variable(node.Value.DeclaringType, "value");
                         var castAs = Expression.TypeAs(parameter, node.Value.DeclaringType);
                         var castAssign = Expression.Assign(castVariable, castAs);
-                        
+
                         var checkNotNull = Expression.NotEqual(castVariable, nullConst);
                         var memberAccess = Expression.Convert(Expression.MakeMemberAccess(castVariable, node.Value), typeof(object));
                         var conditionalMemberAccess = Expression.Condition(checkNotNull, memberAccess, nullConst);
-                        
+
                         var resultAssign = Expression.Assign(resultVariable, conditionalMemberAccess);
-                        
+
                         var returnTarget = Expression.Label(typeof(object));
                         var returnLabel = Expression.Label(returnTarget, nullConst);
                         var returnExpr = Expression.Return(returnTarget, resultVariable);
-                        
+
                         var block = Expression.Block(typeof(object), new[] { castVariable, resultVariable }, castAssign, resultAssign, returnExpr, returnLabel);
-                        
+
                         var deleg = Expression.Lambda<Func<object, object>>(block, parameter).Compile();
 
                         propertyGetters[index++] = deleg;
@@ -118,7 +118,7 @@
         {
             if (_isCollection)
             {
-                CollectionExecute(obj, resultList, visited, func);
+                HandleFinalPropertyValues(obj, 0, resultList, visited, func);
             }
             else
             {
@@ -181,11 +181,6 @@
 
             HandleValue(this, currentObj, resultList, visited, func);
         }
-
-        private void CollectionExecute(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> func)
-        {
-            HandleFinalPropertyValues(obj, 0, resultList, visited, func);
-        }
     }
 
     internal sealed class RootProxyDelegate<TSearch, TResult> : BaseProxyDelegate<TSearch, TResult>
@@ -235,11 +230,11 @@
             {
                 return;
             }
-            
+
             var executeMethodInfo = typeof(ProxyDelegate<TSearch, TResult>).GetMethod("Execute");
 
             var callChildrenExpressions = Children.Select(Expression.Constant).Select(childExpr => Expression.Call(childExpr, executeMethodInfo, _strategy.ParamArray)).ToArray();
-            
+
             _strategyDelegate = _strategy.GetStrategyExpression(callChildrenExpressions, IsRoot).Compile();
 
             for (var i = 0; i < Children.Length; ++i)

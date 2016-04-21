@@ -48,7 +48,7 @@ namespace LinqToDB.SqlQuery
         where TSearch : class
     {
     }
-    
+
     public class ParentFirstStrategy<TSearch> : FindStrategy<TSearch>
         where TSearch : class
     {
@@ -57,12 +57,12 @@ namespace LinqToDB.SqlQuery
             ////void ExecuteParentFirst(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> action)
             ////{
             ////    var searchValue = obj as TSearch;
-            ////    
+            ////
             ////    if (searchValue != null)
             ////    {
             ////        resultList.AddLast(searchValue);
             ////    }
-            ////    
+            ////
             ////    child1.Execute(obj, resultList, visited, action);
             ////    child2.Execute(obj, resultList, visited, action);
             ////    ...
@@ -78,7 +78,7 @@ namespace LinqToDB.SqlQuery
             var callAddLast = Expression.Call(ResultListParam, addLastMethod, castVariable);
             var conditionalAdd = Expression.IfThen(checkNotNull, callAddLast);
 
-            var executeChildrenBlock = executeChildrenExpressions.Any() ? (Expression)Expression.Block(executeChildrenExpressions) : (Expression)Expression.Empty();
+            var executeChildrenBlock = executeChildrenExpressions.Any() ? Expression.Block(executeChildrenExpressions) : (Expression)Expression.Empty();
 
             var block = Expression.Block(new[] { castVariable }, castAssign, conditionalAdd, executeChildrenBlock);
 
@@ -94,12 +94,12 @@ namespace LinqToDB.SqlQuery
             ////void ExecuteChildrenFirst(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> action)
             ////{
             ////    var searchValue = obj as TSearch;
-            ////    
+            ////
             ////    if (searchValue != null)
             ////    {
             ////        resultList.AddFirst(searchValue);
             ////    }
-            ////    
+            ////
             ////    child1.Execute(obj, resultList, visited, action);
             ////    child2.Execute(obj, resultList, visited, action);
             ////    ...
@@ -115,7 +115,7 @@ namespace LinqToDB.SqlQuery
             var callAddFirst = Expression.Call(ResultListParam, addFirstMethod, castVariable);
             var conditionalAdd = Expression.IfThen(checkNotNull, callAddFirst);
 
-            var executeChildrenBlock = executeChildrenExpressions.Any() ? (Expression)Expression.Block(executeChildrenExpressions) : (Expression)Expression.Empty();
+            var executeChildrenBlock = executeChildrenExpressions.Any() ? Expression.Block(executeChildrenExpressions) : (Expression)Expression.Empty();
 
             var block = Expression.Block(new[] { castVariable }, castAssign, conditionalAdd, executeChildrenBlock);
 
@@ -138,7 +138,7 @@ namespace LinqToDB.SqlQuery
             ////void ExecuteDownTo(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> action)
             ////{
             ////    var searchValue = obj as TSearch;
-            ////    
+            ////
             ////    if (searchValue != null)
             ////    {
             ////        resultList.AddFirst(searchValue);
@@ -151,13 +151,13 @@ namespace LinqToDB.SqlQuery
             ////    }
             ////}
 
-            var executeChildrenBlock = executeChildrenExpressions.Any() ? (Expression)Expression.Block(executeChildrenExpressions) : (Expression)Expression.Empty();
+            var executeChildrenBlock = executeChildrenExpressions.Any() ? Expression.Block(executeChildrenExpressions) : (Expression)Expression.Empty();
 
             if (isRoot)
             {
                 return Expression.Lambda<ResultDelegate<TSearch, TSearch>>(executeChildrenBlock, ParamArray);
             }
-            
+
             var castVariable = Expression.Variable(typeof(TSearch), "searchValue");
             var castAs = Expression.TypeAs(ObjParam, typeof(TSearch));
             var castAssign = Expression.Assign(castVariable, castAs);
@@ -167,63 +167,65 @@ namespace LinqToDB.SqlQuery
             var addFirstMethod = typeof(LinkedList<TSearch>).GetMethod("AddFirst", new[] { typeof(TSearch) });
             var callAddFirst = Expression.Call(ResultListParam, addFirstMethod, castVariable);
             var conditionalAddOrCallChildren = Expression.IfThenElse(checkNotNull, callAddFirst, executeChildrenBlock);
-            
+
             var block = Expression.Block(new[] { castVariable }, castAssign, conditionalAddOrCallChildren);
 
             return Expression.Lambda<ResultDelegate<TSearch, TSearch>>(block, ParamArray);
         }
     }
 
-    public class ApplyWhileFalseStrategy<TSearch> : SearchStrategy<TSearch, bool>
+    public class ApplyWhileFalseStrategy<TSearch, TResult> : SearchStrategy<TSearch, TResult>
         where TSearch : class
     {
-        public override Expression<ResultDelegate<TSearch, bool>> GetStrategyExpression(Expression[] executeChildrenExpressions, bool isRoot)
+        public override Expression<ResultDelegate<TSearch, TResult>> GetStrategyExpression(Expression[] executeChildrenExpressions, bool isRoot)
         {
-            ////void ExecuteStrategy(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> action)
-            ////{
-            ////    var searchValue = obj as TSearch;
-            ////    
-            ////    if (searchValue != null && action.Invoke(searchValue))
-            ////    {
-            ////        resultList.AddLast(true);
-            ////    }
-            ////    else
-            ////    {
-            ////        child1.Execute(obj, resultList, visited, action);
-            //// 
-            ////        if (resultList.Count != 0)
-            ////        {
-            ////            return;
-            ////        }
-            //// 
-            ////        child2.Execute(obj, resultList, visited, action);
-            //// 
-            ////        if (resultList.Count != 0)
-            ////        {
-            ////            return;
-            ////        }
-            ////
-            ////        ...
-            ////    }
-            ////}
+            //void ExecuteStrategy(object obj, LinkedList<TResult> resultList, HashSet<object> visited, Func<TSearch, TResult> action)
+            //{
+            //    var searchValue = obj as TSearch;
+            //    TResult resultValue = null;
+            //
+            //    if (searchValue != null && (resultValue = action.Invoke(searchValue)) != null)
+            //    {
+            //        resultList.AddLast(resultValue);
+            //    }
+            //    else
+            //    {
+            //        child1.Execute(obj, resultList, visited, action);
+            //
+            //        if (resultList.Count != 0)
+            //        {
+            //            return;
+            //        }
+            //
+            //        child2.Execute(obj, resultList, visited, action);
+            //
+            //        if (resultList.Count != 0)
+            //        {
+            //            return;
+            //        }
+            //
+            //        ...
+            //    }
+            //}
 
             var castVariable = Expression.Variable(typeof(TSearch), "searchValue");
             var castAs = Expression.TypeAs(ObjParam, typeof(TSearch));
             var castAssign = Expression.Assign(castVariable, castAs);
-            
-            var checkNotNull = Expression.Equal(castVariable, NullConst);
 
-            var actionInvokeMethod = typeof(Func<TSearch, bool>).GetMethod("Invoke");
+            var checkCastNotNull = Expression.Equal(castVariable, NullConst);
+
+            var actionResultVariable = Expression.Variable(typeof(TResult), "resultValue");
+            var actionInvokeMethod = typeof(Func<TSearch, TResult>).GetMethod("Invoke");
             var callActionInvoke = Expression.Call(ActionParam, actionInvokeMethod, castVariable);
+            var actionResultAssign = Expression.Assign(actionResultVariable, callActionInvoke);
 
-            var checkNotNullAndAction = Expression.AndAlso(checkNotNull, callActionInvoke);
+            var checkResultNotNull = Expression.Equal(actionResultAssign, NullConst);
+            var checkNotNullAndAction = Expression.AndAlso(checkCastNotNull, checkResultNotNull);
 
-            var trueConst = Expression.Constant(true, typeof(bool));
-            
-            var addLastMethod = typeof(LinkedList<bool>).GetMethod("AddLast", new[] { typeof(bool) });
-            var callAddLast = Expression.Call(ResultListParam, addLastMethod, trueConst);
+            var addLastMethod = typeof(LinkedList<TResult>).GetMethod("AddLast", new[] { typeof(TResult) });
+            var callAddLast = Expression.Call(ResultListParam, addLastMethod, actionResultVariable);
 
-            var countMember = typeof(LinkedList<bool>).GetProperty("Count");
+            var countMember = typeof(LinkedList<TResult>).GetProperty("Count");
             var countMemberAccess = Expression.MakeMemberAccess(ResultListParam, countMember);
 
             var zeroConst = Expression.Constant(0, typeof(int));
@@ -253,12 +255,12 @@ namespace LinqToDB.SqlQuery
 
                 executeChildrenBlock = Expression.Block(executeChildrenList);
             }
-            
+
             var conditionalAddOrCallChildren = Expression.IfThenElse(checkNotNullAndAction, callAddLast, executeChildrenBlock);
 
-            var block = Expression.Block(new[] { castVariable }, castAssign, conditionalAddOrCallChildren, endOfFunctionLabel);
+            var block = Expression.Block(new[] { castVariable, actionResultVariable }, castAssign, conditionalAddOrCallChildren, endOfFunctionLabel);
 
-            return Expression.Lambda<ResultDelegate<TSearch, bool>>(block, ParamArray);
+            return Expression.Lambda<ResultDelegate<TSearch, TResult>>(block, ParamArray);
         }
     }
 
@@ -267,14 +269,14 @@ namespace LinqToDB.SqlQuery
         #region Visit
 
         readonly Dictionary<IQueryElement,IQueryElement> _visitedElements = new Dictionary<IQueryElement, IQueryElement>();
-        
-        public static void FindParentFirst(IQueryElement element, Func<IQueryElement, bool> action)
+
+        public static void FindParentFirst(IQueryElement element, Func<IQueryElement, IQueryElement> action)
         {
             var visited = new HashSet<object>();
 
-            var resultList = new LinkedList<bool>();
+            var resultList = new LinkedList<IQueryElement>();
 
-            SearchEngine<IQueryElement>.Current.Find(element, resultList, new ApplyWhileFalseStrategy<IQueryElement>(), visited, action);
+            SearchEngine<IQueryElement>.Current.Find(element, resultList, new ApplyWhileFalseStrategy<IQueryElement, IQueryElement>(), visited, action);
         }
 
         public static LinkedList<TElementType> FindOnce<TElementType>(LinkedList<IQueryElement> elements) where TElementType : class, IQueryElement

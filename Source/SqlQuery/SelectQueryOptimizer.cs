@@ -225,7 +225,7 @@
             };
 
             var areTablesCollected = false;
-            
+
             QueryVisitor.FindOnce<ITableSource>(_selectQuery).ForEach(
                 item =>
                     {
@@ -262,7 +262,7 @@
                                         {
                                             items.AddLast(_selectQuery.Delete);
                                         }
-                                        
+
                                         QueryVisitor.FindOnce<ISqlTable>(_selectQuery.From).ForEach(
                                             fromTable =>
                                                 {
@@ -496,20 +496,20 @@
                             if (e != selectQuery)
                             {
                                 data.Queries.Add(GetQueryData((ISelectQuery)e));
-                                return false;
+                                return null;
                             }
 
                             break;
                         }
 
                         case EQueryElementType.Column:
-                            return ((IColumn)e).Parent == selectQuery;
+                            return ((IColumn)e).Parent == selectQuery ?  e : null;
 
                         case EQueryElementType.SqlTable:
-                            return false;
+                            return null;
                     }
 
-                    return true;
+                    return e;
                 });
 
             return data;
@@ -727,7 +727,7 @@
         private void OptimizeUnions()
         {
             var exprs = new Dictionary<IQueryExpression, IQueryExpression>();
-            
+
             QueryVisitor.FindOnce<ISelectQuery>(_selectQuery).ForEach(
                 elem =>
                     {
@@ -898,7 +898,7 @@
             {
                 ConcatSearchCondition(_selectQuery.Having, query.Having);
             }
-            
+
             QueryVisitor.FindOnce<ISelectQuery>(top).ForEach(
                 node =>
                 {
@@ -968,7 +968,7 @@
                         switch (e.ElementType)
                         {
                             case EQueryElementType.SqlQuery:
-                                return e == data.Query;
+                                return e == data.Query ? e : null;
 
                             case EQueryElementType.SqlFunction:
                             {
@@ -1103,7 +1103,7 @@
 
                                 if (expr.Parent != data.Query)
                                 {
-                                    return false;
+                                    return null;
                                 }
 
                                 if (dic.TryGetValue(expr.Expression, out ex))
@@ -1151,7 +1151,7 @@
                             }
                         }
 
-                        return true;
+                        return e;
                     });
             }
 
