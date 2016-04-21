@@ -323,7 +323,7 @@
                 }
             }
 
-            if (optimizeColumns && QueryVisitor.Find(expr, e => e is ISelectQuery || IsAggregationFunction(e)) == null)
+            if (optimizeColumns && QueryVisitor.FindFirstOrDefault(expr, e => e is ISelectQuery || IsAggregationFunction(e)) == null)
             {
                 var q = query.ParentSelect ?? query;
                 var count = QueryVisitor.FindOnce<IColumn>(q).Count(e => e == column);
@@ -334,11 +334,11 @@
             return true;
         }
 
-        private static void ConcatSearchCondition(IHaveSearchCondition fromCondition, IHaveSearchCondition ToCondition)
+        private static void ConcatSearchCondition(ISearchCondition fromCondition, ISearchCondition toCondition)
         {
             if (fromCondition.IsEmpty)
             {
-                fromCondition.Search.Conditions.AddRange(ToCondition.Search.Conditions);
+                fromCondition.Search.Conditions.AddRange(toCondition.Search.Conditions);
             }
             else
             {
@@ -352,17 +352,17 @@
                     fromCondition.Search.Conditions.AddLast(new Condition(false, sc1));
                 }
 
-                if (ToCondition.Search.Precedence < Precedence.LogicalConjunction)
+                if (toCondition.Search.Precedence < Precedence.LogicalConjunction)
                 {
                     var sc2 = new SearchCondition();
 
-                    sc2.Conditions.AddRange(ToCondition.Search.Conditions);
+                    sc2.Conditions.AddRange(toCondition.Search.Conditions);
 
                     fromCondition.Search.Conditions.AddLast(new Condition(false, sc2));
                 }
                 else
                 {
-                    fromCondition.Search.Conditions.AddRange(ToCondition.Search.Conditions);
+                    fromCondition.Search.Conditions.AddRange(toCondition.Search.Conditions);
                 }
             }
         }
@@ -370,7 +370,7 @@
         private static bool ContainsTable(ISqlTableSource table, IQueryElement sql)
         {
             return null !=
-                   QueryVisitor.Find(
+                   QueryVisitor.FindFirstOrDefault(
                        sql,
                        e =>
                        e == table || e.ElementType == EQueryElementType.SqlField && table == ((ISqlField)e).Table ||
@@ -887,16 +887,16 @@
             {
                 if (parentJoin != null && parentJoin.JoinType == EJoinType.Left)
                 {
-                    ConcatSearchCondition(parentJoin.Condition, query.Where);
+                    ConcatSearchCondition(parentJoin.Condition, query.Where.Search);
                 }
                 else
                 {
-                    ConcatSearchCondition(_selectQuery.Where, query.Where);
+                    ConcatSearchCondition(_selectQuery.Where.Search, query.Where.Search);
                 }
             }
             if (!query.Having.IsEmpty)
             {
-                ConcatSearchCondition(_selectQuery.Having, query.Having);
+                ConcatSearchCondition(_selectQuery.Having.Search, query.Having.Search);
             }
 
             QueryVisitor.FindOnce<ISelectQuery>(top).ForEach(

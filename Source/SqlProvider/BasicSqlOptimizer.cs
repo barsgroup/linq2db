@@ -113,7 +113,7 @@
                     //
                     var allTables = new HashSet<ISqlTableSource>();
                     var levelTables = new HashSet<ISqlTableSource>();
-                    
+
                     QueryVisitor.FindOnce<ISqlTableSource>(subQuery).ForEach(
                         node =>
                             {
@@ -146,7 +146,7 @@
                     subQuery.Where.Search.Conditions.ForEach(
                         node =>
                         {
-                            if (QueryVisitor.Find(node.Value, checkTable) == null)
+                            if (QueryVisitor.FindFirstOrDefault(node.Value, checkTable) == null)
                                 return;
 
                             var replaced = new Dictionary<IQueryElement, IQueryElement>();
@@ -264,7 +264,7 @@
                                         }
                                     });
 
-                            if (SqlProviderFlags.IsSubQueryColumnSupported && QueryVisitor.Find(subQuery, checkTable) == null)
+                            if (SqlProviderFlags.IsSubQueryColumnSupported && QueryVisitor.FindFirstOrDefault(subQuery, checkTable) == null)
                                 continue;
 
                             var join = SelectQuery.LeftJoin(subQuery);
@@ -318,7 +318,7 @@
                             subQuery.Where.Search.Conditions.ForEach(
                                 node =>
                                     {
-                                        if (QueryVisitor.Find(node.Value, checkTable) == null)
+                                        if (QueryVisitor.FindFirstOrDefault(node.Value, checkTable) == null)
                                             return;
 
                                         var replaced = new Dictionary<IQueryElement, IQueryElement>();
@@ -1165,8 +1165,8 @@
         protected ISelectQuery GetAlternativeDelete(ISelectQuery selectQuery)
         {
             var source = selectQuery.From.Tables.First.Value.Source as ISqlTable;
-            if (selectQuery.IsDelete && 
-                (selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables.First.Value.Joins.Count > 0) && 
+            if (selectQuery.IsDelete &&
+                (selectQuery.From.Tables.Count > 1 || selectQuery.From.Tables.First.Value.Joins.Count > 0) &&
                 source != null)
             {
                 var sql = new SelectQuery { EQueryType = EQueryType.Delete, IsParameterDependent = selectQuery.IsParameterDependent };
@@ -1226,8 +1226,8 @@
                     var table = selectQuery.Update.Table ?? (ISqlTable)selectQuery.From.Tables.First.Value.Source;
 
                     if (selectQuery.Update.Table != null)
-                        if (QueryVisitor.Find(selectQuery.From, t => t == table) == null)
-                            table = (ISqlTable)QueryVisitor.Find(selectQuery.From,
+                        if (QueryVisitor.FindFirstOrDefault(selectQuery.From, t => t == table) == null)
+                            table = (ISqlTable)QueryVisitor.FindFirstOrDefault(selectQuery.From,
                                 ex =>
                                 {
                                     var sqlTable = ex as ISqlTable;

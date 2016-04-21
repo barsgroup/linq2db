@@ -10,6 +10,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
                                                  IConditionBase<T1, T2>
         where T1 : IConditionBase<T1,T2>
     {
+
         public bool IsEmpty => Search.Conditions.Count == 0;
         public abstract ISearchCondition Search { get; protected set; }
         public abstract T2              GetNext();

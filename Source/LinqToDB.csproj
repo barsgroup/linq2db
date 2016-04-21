@@ -411,7 +411,6 @@
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IConditionBase.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IConditionExpr.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IExpr.cs" />
-    <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IHaveSearchCondition.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IJoin.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\INot.cs" />
     <Compile Include="SqlQuery\QueryElements\Conditions\Interfaces\IOperator.cs" />

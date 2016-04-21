@@ -11,5 +11,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
     {
         [SearchContainer]
         LinkedList<ICondition> Conditions { get; }
+
+        ISearchCondition Search { get; }
     }
 }
