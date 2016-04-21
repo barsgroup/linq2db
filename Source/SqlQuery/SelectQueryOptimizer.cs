@@ -323,7 +323,7 @@
                 }
             }
 
-            if (optimizeColumns && QueryVisitor.FindFirstOrDefault(expr, e => e is ISelectQuery || IsAggregationFunction(e)) == null)
+            if (optimizeColumns && QueryVisitor.FindFirstOrDefault<ISelectQuery>(expr, IsAggregationFunction) == null)
             {
                 var q = query.ParentSelect ?? query;
                 var count = QueryVisitor.FindOnce<IColumn>(q).Count(e => e == column);
@@ -370,10 +370,11 @@
         private static bool ContainsTable(ISqlTableSource table, IQueryElement sql)
         {
             return null !=
-                   QueryVisitor.FindFirstOrDefault(
+                   QueryVisitor.FindFirstOrDefault<IQueryExpression>(
                        sql,
                        e =>
-                       e == table || e.ElementType == EQueryElementType.SqlField && table == ((ISqlField)e).Table ||
+                       e == table ||
+                       e.ElementType == EQueryElementType.SqlField && table == ((ISqlField)e).Table ||
                        e.ElementType == EQueryElementType.Column && table == ((IColumn)e).Parent);
         }
 

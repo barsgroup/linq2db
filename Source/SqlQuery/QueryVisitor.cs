@@ -221,7 +221,7 @@ namespace LinqToDB.SqlQuery
             var castAs = Expression.TypeAs(ObjParam, typeof(TSearch));
             var castAssign = Expression.Assign(castVariable, castAs);
 
-            var checkCastNotNull = Expression.Equal(castVariable, NullConst);
+            var checkCastNotNull = Expression.NotEqual(castVariable, NullConst);
 
             var actionResultVariable = Expression.Variable(typeof(TResult), "resultValue");
             var actionInvokeMethod = typeof(Func<TSearch, TResult>).GetMethod("Invoke");
@@ -343,20 +343,23 @@ namespace LinqToDB.SqlQuery
             return resultList;
         }
 
-        public static TResult FindFirstOrDefault<TResult>(IQueryElement element, Func<IQueryElement, TResult> action) where TResult : class, IQueryElement
+        public static TResult FindFirstOrDefault<TElementType, TResult>(IQueryElement element, Func<TElementType, TResult> action)
+            where TResult : class, IQueryElement
+            where TElementType : class, IQueryElement
         {
             var visited = new HashSet<object>();
 
             var resultList = new LinkedList<TResult>();
 
-            SearchEngine<IQueryElement>.Current.Find(element, resultList, new ApplyWhileFalseStrategy<IQueryElement, TResult>(), visited, action);
+            SearchEngine<IQueryElement>.Current.Find(element, resultList, new ApplyWhileFalseStrategy<TElementType, TResult>(), visited, action);
 
             return resultList.First?.Value;
         }
 
-        public static IQueryElement FindFirstOrDefault(IQueryElement element, Func<IQueryElement, bool> action)
+        public static TElementType FindFirstOrDefault<TElementType>(IQueryElement element, Func<TElementType, bool> action)
+            where TElementType : class, IQueryElement
         {
-            Func<IQueryElement, IQueryElement> resultFunc = queryElement => action(queryElement)
+            Func<TElementType, TElementType> resultFunc = queryElement => action(queryElement)
                                                                                 ? queryElement
                                                                                 : null;
 
@@ -1033,7 +1036,7 @@ namespace LinqToDB.SqlQuery
 
                     if (!doConvert)
                     {
-                        doConvert = null != FindFirstOrDefault(q, e =>
+                        doConvert = null != FindFirstOrDefault<IQueryElement>(q, e =>
                         {
                             if (_visitedElements.ContainsKey(e) && _visitedElements[e] != e)
                                 return true;
