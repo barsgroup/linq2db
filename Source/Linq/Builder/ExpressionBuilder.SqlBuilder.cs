@@ -1518,11 +1518,9 @@ namespace LinqToDB.Linq.Builder
             }
             else
             {
-                var leftUnaryExpression = (UnaryExpression)left;
-
-                if (left.NodeType == ExpressionType.Convert && leftUnaryExpression.Operand is MemberExpression)
+                if (left.NodeType == ExpressionType.Convert && ((UnaryExpression)left).Operand is MemberExpression)
                 {
-                    operand = leftUnaryExpression.Operand;
+                    operand = ((UnaryExpression)left).Operand;
                     value   = right;
                 }
                 else if (right is MemberExpression)
@@ -1540,7 +1538,7 @@ namespace LinqToDB.Linq.Builder
                     }
                     else if (left.NodeType == ExpressionType.Convert)
                     {
-                        operand = leftUnaryExpression.Operand;
+                        operand = ((UnaryExpression)left).Operand;
                         value   = right;
                     }
                     else
