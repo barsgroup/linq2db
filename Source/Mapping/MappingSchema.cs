@@ -625,7 +625,7 @@ namespace LinqToDB.Mapping
             var attrs = GetAttributes(type, configGetter, inherit);
             return attrs.Length == 0 ? null : attrs[0];
         }
-        
+
         public T GetAttribute<T>(MemberInfo memberInfo, Func<T,string> configGetter, bool inherit = true)
             where T : Attribute
         {
@@ -983,13 +983,6 @@ namespace LinqToDB.Mapping
 
             return ed;
         }
-
-        //public EntityDescriptor GetEntityDescriptor(Type type)
-        //{
-        //    if (_entityDescriptors == null)
-        //        _entityDescriptors = new ConcurrentDictionary<Type, EntityDescriptor>();
-        //    return _entityDescriptors.GetOrAdd(type, t => new EntityDescriptor(this, t));
-        //}
 
         #endregion
     }

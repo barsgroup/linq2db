@@ -166,7 +166,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
             if (Tables.Count > 0)
             {
-                foreach (IQueryElement ts in Tables)
+                foreach (ITableSource ts in Tables)
                 {
                     sb.Append('\t');
                     var len = sb.Length;

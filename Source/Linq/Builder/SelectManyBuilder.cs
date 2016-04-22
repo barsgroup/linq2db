@@ -40,7 +40,7 @@ namespace LinqToDB.Linq.Builder
             var sql = collection.Select;
 
             var sequenceTables = new HashSet<ISqlTableSource>(sequence.Select.From.Tables.First.Value.GetTables());
-            var newQuery = null != QueryVisitor.Find(sql, e => e == collectionInfo.SelectQuery);
+            var newQuery = sql != collectionInfo.SelectQuery && QueryVisitor.FindFirstOrDefault<ISelectQuery>(sql, e => e == collectionInfo.SelectQuery) == null;
             var crossApply = null !=
                              QueryVisitor.FindFirstOrDefault<IQueryExpression>(
                                  sql,
@@ -59,7 +59,7 @@ namespace LinqToDB.Linq.Builder
                 joinedTables.IsWeak = false;
             }
 
-            if (!newQuery)
+            if (newQuery)
             {
                 context.Collection = new SubQueryContext(collection, sequence.Select, false);
                 return new SelectContext(buildInfo.Parent, resultSelector, sequence, context);

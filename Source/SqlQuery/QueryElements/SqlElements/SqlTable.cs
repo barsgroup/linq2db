@@ -33,41 +33,6 @@
             Fields    = new Dictionary<string, ISqlField>();
         }
 
-        internal SqlTable(
-            int id, string name, string alias, string database, string owner, string physicalName, Type objectType,
-            SequenceNameAttribute[] sequenceAttributes,
-            ISqlField[]              fields,
-            ESqlTableType            sqlTableType,
-            LinkedList<IQueryExpression>        tableArguments)
-        {
-            _sourceID          = id;
-            Name               = name;
-            Alias              = alias;
-            Database           = database;
-            Owner              = owner;
-            PhysicalName       = physicalName;
-            ObjectType         = objectType;
-            SequenceAttributes = sequenceAttributes;
-
-            Fields = new Dictionary<string, ISqlField>();
-
-            AddRange(fields);
-
-            foreach (var field in fields)
-            {
-                if (field.Name == "*")
-                {
-                    _all = field;
-                    Fields.Remove("*");
-                    _all.Table = this;
-                    break;
-                }
-            }
-
-            SqlTableType   = sqlTableType;
-            TableArguments = tableArguments;
-        }
-
         #endregion
 
         #region Init from type
