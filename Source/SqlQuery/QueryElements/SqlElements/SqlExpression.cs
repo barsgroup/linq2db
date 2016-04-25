@@ -41,11 +41,11 @@
         {
         }
 
-        public Type             SystemType { get; private set; }
-        public string           Expr       { get; private set; }
-        public int              Precedence { get; private set; }
+        public Type             SystemType { get; }
+        public string           Expr       { get; }
+        public int              Precedence { get; }
 
-        public IQueryExpression[] Parameters { get; private set; }
+        public IQueryExpression[] Parameters { get; }
 
         #region Overrides
 

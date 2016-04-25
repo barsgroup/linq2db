@@ -8,10 +8,8 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
 
     public class TableSource : BaseQueryElement, ITableSource
     {
@@ -76,8 +74,6 @@ namespace LinqToDB.SqlQuery.QueryElements
             set { _alias = value; }
         }
 
-        public ITableSource this[ISqlTableSource table] => this[table, null];
-
         public ITableSource this[ISqlTableSource table, string alias] => Joins.Select(tj => SelectQuery.CheckTableSource(tj.Table, table, alias)).FirstOrDefault(t => t != null);
 
         public LinkedList<IJoinedTable>  Joins { get; } = new LinkedList<IJoinedTable>();
@@ -135,11 +131,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public int       SourceID => Source.SourceID;
 
-        public ISqlField All
-        {
-            get { return Source.All; }
-            set {  }
-        }
+        public ISqlField All => Source.All;
 
         IList<IQueryExpression> ISqlTableSource.GetKeys(bool allIfEmpty)
         {

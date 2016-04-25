@@ -8,7 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
     public interface ISelectClause : IClauseWithConditionBase, ISqlExpressionWalkable
     {
-        ISelectClause Expr(IQueryExpression expr);
+        void Expr(IQueryExpression expr);
 
         int Add(IQueryExpression expr);
 
@@ -19,8 +19,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
         bool HasModifier { get; }
 
-        ISelectClause Distinct { get; }
-
         bool IsDistinct { get; set; }
 
         [SearchContainer]
@@ -28,14 +26,5 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
 
         [SearchContainer]
         IQueryExpression SkipValue { get; set; }
-
-        ISelectClause Take(int value);
-
-        ISelectClause Take(IQueryExpression value);
-
-        ISelectClause Skip(int value);
-
-        ISelectClause Skip(IQueryExpression value);
-
     }
 }

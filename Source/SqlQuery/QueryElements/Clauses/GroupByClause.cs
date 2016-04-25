@@ -2,14 +2,12 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
     using System.Text;
 
     using LinqToDB.Extensions;
     using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class GroupByClause : ClauseBase,
@@ -40,11 +38,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         {
             Add(expr);
             return this;
-        }
-
-        public IGroupByClause Field(ISqlField field)
-        {
-            return Expr(field);
         }
 
         void Add(IQueryExpression expr)

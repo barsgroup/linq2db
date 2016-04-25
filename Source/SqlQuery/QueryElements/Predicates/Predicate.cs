@@ -51,7 +51,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         #region IPredicate Members
 
-        public int Precedence { get; private set; }
+        public int Precedence { get; }
 
         public    abstract bool              CanBeNull();
         protected abstract ICloneableElement Clone    (Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone);

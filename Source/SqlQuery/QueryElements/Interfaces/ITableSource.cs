@@ -1,6 +1,5 @@
 namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 {
-    using System;
     using System.Collections.Generic;
 
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
@@ -15,8 +14,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Interfaces
 
         [SearchContainer]
         LinkedList<IJoinedTable> Joins { get; }
-
-        ITableSource this[ISqlTableSource table] { get; }
 
         ITableSource this[ISqlTableSource table, string alias] { get; }
 

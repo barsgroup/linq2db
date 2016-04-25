@@ -119,7 +119,7 @@ namespace LinqToDB.DataProvider.DB2
 
 	    protected override string DataReaderTypeName => "IBM.Data.DB2.DB2DataReader, IBM.Data.DB2";
 
-	    public DB2Version Version { get; private set; }
+	    public DB2Version Version { get; }
 
 		static class MappingSchemaInstance
 		{

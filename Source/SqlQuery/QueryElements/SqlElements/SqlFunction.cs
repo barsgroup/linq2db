@@ -9,7 +9,6 @@
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
 
     public class SqlFunction : BaseQueryElement,
                                ISqlFunction
@@ -36,17 +35,14 @@
             Parameters = parameters;
         }
 
-        public Type             SystemType { get; private set; }
-        public string           Name       { get; private set; }
-        public int              Precedence { get; private set; }
+        public Type             SystemType { get; }
+        public string           Name       { get; }
+        public int              Precedence { get; }
 
-        public IQueryExpression[] Parameters { get; private set; }
+        public IQueryExpression[] Parameters { get; }
 
         public static ISqlFunction CreateCount (Type type, ISqlTableSource table) { return new SqlFunction(type, "Count",  new SqlExpression("*")); }
 
-        public static ISqlFunction CreateAll   (ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "ALL",    SqlQuery.Precedence.Comparison, subQuery); }
-        public static ISqlFunction CreateSome  (ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "SOME",   SqlQuery.Precedence.Comparison, subQuery); }
-        public static ISqlFunction CreateAny   (ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "ANY",    SqlQuery.Precedence.Comparison, subQuery); }
         public static ISqlFunction CreateExists(ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "EXISTS", SqlQuery.Precedence.Comparison, subQuery); }
 
         #region Overrides

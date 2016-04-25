@@ -225,7 +225,7 @@
             };
 
             var areTablesCollected = false;
-            
+
             QueryVisitor.FindOnce<ITableSource>(_selectQuery).ForEach(
                 item =>
                     {
@@ -262,7 +262,7 @@
                                         {
                                             items.AddLast(_selectQuery.Delete);
                                         }
-                                        
+
                                         QueryVisitor.FindOnce<ISqlTable>(_selectQuery.From).ForEach(
                                             fromTable =>
                                                 {
@@ -323,7 +323,7 @@
                 }
             }
 
-            if (optimizeColumns && QueryVisitor.Find(expr, e => e is ISelectQuery || IsAggregationFunction(e)) == null)
+            if (optimizeColumns && QueryVisitor.FindFirstOrDefault<ISelectQuery>(expr, IsAggregationFunction) == null)
             {
                 var q = query.ParentSelect ?? query;
                 var count = QueryVisitor.FindOnce<IColumn>(q).Count(e => e == column);
@@ -334,11 +334,11 @@
             return true;
         }
 
-        private static void ConcatSearchCondition(IHaveSearchCondition fromCondition, IHaveSearchCondition ToCondition)
+        private static void ConcatSearchCondition(ISearchCondition fromCondition, ISearchCondition toCondition)
         {
             if (fromCondition.IsEmpty)
             {
-                fromCondition.Search.Conditions.AddRange(ToCondition.Search.Conditions);
+                fromCondition.Search.Conditions.AddRange(toCondition.Search.Conditions);
             }
             else
             {
@@ -352,17 +352,17 @@
                     fromCondition.Search.Conditions.AddLast(new Condition(false, sc1));
                 }
 
-                if (ToCondition.Search.Precedence < Precedence.LogicalConjunction)
+                if (toCondition.Search.Precedence < Precedence.LogicalConjunction)
                 {
                     var sc2 = new SearchCondition();
 
-                    sc2.Conditions.AddRange(ToCondition.Search.Conditions);
+                    sc2.Conditions.AddRange(toCondition.Search.Conditions);
 
                     fromCondition.Search.Conditions.AddLast(new Condition(false, sc2));
                 }
                 else
                 {
-                    fromCondition.Search.Conditions.AddRange(ToCondition.Search.Conditions);
+                    fromCondition.Search.Conditions.AddRange(toCondition.Search.Conditions);
                 }
             }
         }
@@ -370,10 +370,11 @@
         private static bool ContainsTable(ISqlTableSource table, IQueryElement sql)
         {
             return null !=
-                   QueryVisitor.Find(
+                   QueryVisitor.FindFirstOrDefault<IQueryExpression>(
                        sql,
                        e =>
-                       e == table || e.ElementType == EQueryElementType.SqlField && table == ((ISqlField)e).Table ||
+                       e == table ||
+                       e.ElementType == EQueryElementType.SqlField && table == ((ISqlField)e).Table ||
                        e.ElementType == EQueryElementType.Column && table == ((IColumn)e).Parent);
         }
 
@@ -496,20 +497,20 @@
                             if (e != selectQuery)
                             {
                                 data.Queries.Add(GetQueryData((ISelectQuery)e));
-                                return false;
+                                return null;
                             }
 
                             break;
                         }
 
                         case EQueryElementType.Column:
-                            return ((IColumn)e).Parent == selectQuery;
+                            return ((IColumn)e).Parent == selectQuery ?  e : null;
 
                         case EQueryElementType.SqlTable:
-                            return false;
+                            return null;
                     }
 
-                    return true;
+                    return e;
                 });
 
             return data;
@@ -727,7 +728,7 @@
         private void OptimizeUnions()
         {
             var exprs = new Dictionary<IQueryExpression, IQueryExpression>();
-            
+
             QueryVisitor.FindOnce<ISelectQuery>(_selectQuery).ForEach(
                 elem =>
                     {
@@ -887,18 +888,18 @@
             {
                 if (parentJoin != null && parentJoin.JoinType == EJoinType.Left)
                 {
-                    ConcatSearchCondition(parentJoin.Condition, query.Where);
+                    ConcatSearchCondition(parentJoin.Condition, query.Where.Search);
                 }
                 else
                 {
-                    ConcatSearchCondition(_selectQuery.Where, query.Where);
+                    ConcatSearchCondition(_selectQuery.Where.Search, query.Where.Search);
                 }
             }
             if (!query.Having.IsEmpty)
             {
-                ConcatSearchCondition(_selectQuery.Having, query.Having);
+                ConcatSearchCondition(_selectQuery.Having.Search, query.Having.Search);
             }
-            
+
             QueryVisitor.FindOnce<ISelectQuery>(top).ForEach(
                 node =>
                 {
@@ -968,7 +969,7 @@
                         switch (e.ElementType)
                         {
                             case EQueryElementType.SqlQuery:
-                                return e == data.Query;
+                                return e == data.Query ? e : null;
 
                             case EQueryElementType.SqlFunction:
                             {
@@ -1103,7 +1104,7 @@
 
                                 if (expr.Parent != data.Query)
                                 {
-                                    return false;
+                                    return null;
                                 }
 
                                 if (dic.TryGetValue(expr.Expression, out ex))
@@ -1151,7 +1152,7 @@
                             }
                         }
 
-                        return true;
+                        return e;
                     });
             }
 

@@ -2,7 +2,6 @@
 
 namespace LinqToDB.DataProvider.SqlServer
 {
-    using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Predicates;

@@ -9,7 +9,6 @@ namespace LinqToDB.Linq.Builder
     using LinqToDB.Expressions;
     using Extensions;
 
-    using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -33,10 +32,10 @@ namespace LinqToDB.Linq.Builder
         public IBuildContext[]   Sequence    { get; set; }
         public LambdaExpression  Lambda      { get; set; }
         public Expression        Body        { get; set; }
-        public ExpressionBuilder Builder     { get; private set; }
+        public ExpressionBuilder Builder     { get; }
         public ISelectQuery Select { get; set; }
         public IBuildContext     Parent      { get; set; }
-        public bool              IsScalar    { get; private set; }
+        public bool              IsScalar    { get; }
 
         Expression IBuildContext.Expression => Lambda;
 

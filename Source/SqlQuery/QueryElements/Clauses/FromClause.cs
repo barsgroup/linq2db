@@ -117,26 +117,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public LinkedList<ITableSource>  Tables => _tables;
 
-        static IEnumerable<ISqlTableSource> GetJoinTables(ITableSource source, EQueryElementType elementType)
-        {
-            if (source.Source.ElementType == elementType)
-                yield return source.Source;
-
-            foreach (var join in source.Joins)
-                foreach (var table in GetJoinTables(@join.Table, elementType))
-                    yield return table;
-        }
-
-        internal IEnumerable<ISqlTableSource> GetFromTables()
-        {
-            return Tables.SelectMany(_ => GetJoinTables(_, EQueryElementType.SqlTable));
-        }
-
-        internal IEnumerable<ISqlTableSource> GetFromQueries()
-        {
-            return Tables.SelectMany(_ => GetJoinTables(_, EQueryElementType.SqlQuery));
-        }
-
         static ITableSource FindTableSource(ITableSource source, ISqlTable table)
         {
             if (source.Source == table)
@@ -186,7 +166,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
             if (Tables.Count > 0)
             {
-                foreach (IQueryElement ts in Tables)
+                foreach (ITableSource ts in Tables)
                 {
                     sb.Append('\t');
                     var len = sb.Length;

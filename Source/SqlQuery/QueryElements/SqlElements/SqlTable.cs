@@ -16,11 +16,6 @@
 
     public class SqlTable<TEntity> : SqlTable
     {
-        public SqlTable()
-            : base(typeof(TEntity))
-        {
-        }
-
         public SqlTable(MappingSchema mappingSchema)
             : base(mappingSchema, typeof(TEntity))
         {
@@ -36,41 +31,6 @@
         {
             _sourceID = Interlocked.Increment(ref SelectQuery.SourceIDCounter);
             Fields    = new Dictionary<string, ISqlField>();
-        }
-
-        internal SqlTable(
-            int id, string name, string alias, string database, string owner, string physicalName, Type objectType,
-            SequenceNameAttribute[] sequenceAttributes,
-            ISqlField[]              fields,
-            ESqlTableType            sqlTableType,
-            LinkedList<IQueryExpression>        tableArguments)
-        {
-            _sourceID          = id;
-            Name               = name;
-            Alias              = alias;
-            Database           = database;
-            Owner              = owner;
-            PhysicalName       = physicalName;
-            ObjectType         = objectType;
-            SequenceAttributes = sequenceAttributes;
-
-            Fields = new Dictionary<string, ISqlField>();
-
-            AddRange(fields);
-
-            foreach (var field in fields)
-            {
-                if (field.Name == "*")
-                {
-                    _all = field;
-                    Fields.Remove("*");
-                    _all.Table = this;
-                    break;
-                }
-            }
-
-            SqlTableType   = sqlTableType;
-            TableArguments = tableArguments;
         }
 
         #endregion
@@ -223,25 +183,18 @@
 
         public LinkedList<IQueryExpression> TableArguments { get; } = new LinkedList<IQueryExpression>();
 
-        public Dictionary<string, ISqlField> Fields { get; private set; }
+        public Dictionary<string, ISqlField> Fields { get; }
 
         public SequenceNameAttribute[] SequenceAttributes { get; private set; }
 
         private ISqlField _all;
 
-        public ISqlField All
-        {
-            get
-            {
-                return _all ?? (_all = new SqlField
-                                       {
-                                           Name = "*",
-                                           PhysicalName = "*",
-                                           Table = this
-                                       });
-            }
-            set { }
-        }
+        public ISqlField All => _all ?? (_all = new SqlField
+                                                {
+                                                    Name = "*",
+                                                    PhysicalName = "*",
+                                                    Table = this
+                                                });
 
         public ISqlField GetIdentityField()
         {
@@ -340,7 +293,7 @@
                     {
                         TableArguments.AddLast(tableArgument);
                     }
-                    
+
                 }
                 objectTree.Add(this, table);
                 objectTree.Add(All,  table.All);

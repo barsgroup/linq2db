@@ -7,7 +7,6 @@
     using System.Reflection;
 
     using LinqToDB.Mapping;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 

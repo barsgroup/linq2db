@@ -59,22 +59,5 @@
 
             throw new NotSupportedException();
         }
-
-        public static IEnumerable GetCollectionIEnumerable(object collection)
-        {
-            var dict = collection as IDictionary;
-            if (dict != null)
-            {
-                return dict.Values;
-            }
-
-            var coll = collection as IEnumerable;
-            if (coll != null)
-            {
-                return coll;
-            }
-
-            throw new NotSupportedException();
-        }
     }
 }

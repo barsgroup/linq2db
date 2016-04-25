@@ -10,9 +10,13 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+    using LinqToDB.SqlQuery.Search;
 
     public interface IWhereClause : IClauseBase, ISqlExpressionWalkable, IConditionBase<IWhereClause, WhereClause.Next>
     {
+        [SearchContainer]
+        ISearchCondition Search { get; }
+
     }
 
     public class WhereClause : ClauseBase<IWhereClause, WhereClause.Next>,
@@ -26,11 +30,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             }
 
             readonly IWhereClause _parent;
-
-            public IWhereClause Or => _parent.SetOr(true);
-
-            public IWhereClause And => _parent.SetOr(false);
-
         }
 
         internal WhereClause(ISelectQuery selectQuery) : base(selectQuery)

@@ -8,9 +8,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
 
     public class OrderByClause : ClauseBase,
                                  IOrderByClause
@@ -40,13 +38,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return this;
         }
 
-        public IOrderByClause Expr     (IQueryExpression expr)               { return Expr(expr,  false);        }
         public IOrderByClause ExprAsc  (IQueryExpression expr)               { return Expr(expr,  false);        }
-        public IOrderByClause ExprDesc (IQueryExpression expr)               { return Expr(expr,  true);         }
-        public IOrderByClause Field    (ISqlField field, bool isDescending) { return Expr(field, isDescending); }
-        public IOrderByClause Field    (ISqlField field)                    { return Expr(field, false);        }
-        public IOrderByClause FieldAsc (ISqlField field)                    { return Expr(field, false);        }
-        public IOrderByClause FieldDesc(ISqlField field)                    { return Expr(field, true);         }
 
         void Add(IQueryExpression expr, bool isDescending)
         {

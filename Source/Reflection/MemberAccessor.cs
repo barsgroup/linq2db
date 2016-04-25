@@ -249,7 +249,7 @@ namespace LinqToDB.Reflection
 		#region Public Properties
 
 		public MemberInfo            MemberInfo       { get; private set; }
-		public TypeAccessor          TypeAccessor     { get; private set; }
+		public TypeAccessor          TypeAccessor     { get; }
 		public bool                  HasGetter        { get; private set; }
 		public bool                  HasSetter        { get; private set; }
 		public Type                  Type             { get; private set; }

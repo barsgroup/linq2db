@@ -9,7 +9,6 @@
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
 
     [Serializable, DebuggerDisplay("SQL = {SqlText}")]
     public class SqlBinaryExpression : BaseQueryElement,
@@ -30,13 +29,13 @@
 
         public IQueryExpression Expr1 { get; set; }
 
-        public string         Operation  { get; private set;  }
+        public string         Operation  { get; }
 
         public IQueryExpression Expr2      { get; set; }
 
-        public Type           SystemType { get; private set;  }
+        public Type           SystemType { get; }
 
-        public int            Precedence { get; private set;  }
+        public int            Precedence { get; }
 
         #region Overrides
 

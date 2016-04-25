@@ -19,31 +19,31 @@
 		{
 		}
 
-		
-		private bool SearchSelectClause(IQueryElement element)
+
+		private IQueryElement SearchSelectClause(IQueryElement element)
 		{
-			if (element.ElementType != EQueryElementType.SelectClause) return true;
+			if (element.ElementType != EQueryElementType.SelectClause) return element;
 
 			QueryVisitor.FindParentFirst(element, SetNonQueryParameterInSelectClause);
 
-			return false;
+			return null;
 		}
 
-		private bool SetNonQueryParameterInSelectClause(IQueryElement element)
+		private IQueryElement SetNonQueryParameterInSelectClause(IQueryElement element)
 		{
 			if (element.ElementType == EQueryElementType.SqlParameter)
 			{
 				((ISqlParameter)element).IsQueryParameter = false;
-				return false;
+				return null;
 			}
 
 			if (element.ElementType == EQueryElementType.SqlQuery)
 			{
 				QueryVisitor.FindParentFirst(element, SearchSelectClause);
-				return false;
+				return null;
 			}
 
-			return true;
+			return element;
 		}
 
 		public override ISelectQuery Finalize(ISelectQuery selectQuery)

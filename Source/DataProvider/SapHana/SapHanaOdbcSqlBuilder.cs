@@ -5,7 +5,6 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.SapHana
 {
-    using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;

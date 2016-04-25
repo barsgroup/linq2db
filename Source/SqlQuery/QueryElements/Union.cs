@@ -5,7 +5,6 @@ namespace LinqToDB.SqlQuery.QueryElements
 
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
 
     public class Union : BaseQueryElement,
                          IUnion
@@ -16,9 +15,9 @@ namespace LinqToDB.SqlQuery.QueryElements
             IsAll    = isAll;
         }
 
-        public ISelectQuery SelectQuery { get; private set; }
+        public ISelectQuery SelectQuery { get; }
 
-        public bool IsAll { get; private set; }
+        public bool IsAll { get; }
 
         public override EQueryElementType ElementType => EQueryElementType.Union;
 

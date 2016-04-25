@@ -17,19 +17,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             SelectQuery = selectQuery;
         }
 
-        public ISelectClause Select => SelectQuery.Select;
-
-        public IFromClause From => SelectQuery.From;
-
         public IWhereClause Where => SelectQuery.Where;
-
-        public IGroupByClause GroupBy => SelectQuery.GroupBy;
-
-        public IWhereClause Having => SelectQuery.Having;
-
-        public IOrderByClause OrderBy => SelectQuery.OrderBy;
-
-        public ISelectQuery End() { return SelectQuery; }
 
         public ISelectQuery SelectQuery { get; private set; }
 
@@ -53,18 +41,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         {
             SelectQuery = selectQuery;
         }
-
-        public ISelectClause Select => SelectQuery.Select;
-
-        public IFromClause From => SelectQuery.From;
-
-        public IGroupByClause GroupBy => SelectQuery.GroupBy;
-
-        public IWhereClause Having => SelectQuery.Having;
-
-        public IOrderByClause OrderBy => SelectQuery.OrderBy;
-
-        public ISelectQuery End()   { return SelectQuery; }
 
         public ISelectQuery SelectQuery { get; private set; }
 

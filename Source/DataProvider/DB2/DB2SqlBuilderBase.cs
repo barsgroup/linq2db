@@ -4,12 +4,8 @@ using System.Text;
 
 namespace LinqToDB.DataProvider.DB2
 {
-    using System;
-
-    using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using SqlProvider;

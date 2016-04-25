@@ -21,7 +21,7 @@ namespace LinqToDB.Mapping
 
 		readonly FluentMappingBuilder _builder;
 
-		public string Configuration { get; private set; }
+		public string Configuration { get; }
 
 		#endregion
 

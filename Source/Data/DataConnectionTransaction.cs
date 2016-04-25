@@ -13,7 +13,7 @@ namespace LinqToDB.Data
             DataConnection = dataConnection;
         }
 
-        public DataConnection DataConnection { get; private set; }
+        public DataConnection DataConnection { get; }
 
         bool _disposeTransaction = true;
 

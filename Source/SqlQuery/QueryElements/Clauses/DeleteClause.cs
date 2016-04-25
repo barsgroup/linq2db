@@ -7,7 +7,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
     using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     public class DeleteClause : BaseQueryElement,
@@ -48,11 +47,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #endregion
 
         #region IQueryElement Members
-
-        //public override void GetChildren(LinkedList<IQueryElement> list)
-        //{
-        //    list.AddLast(Table);
-        //}
 
         public override EQueryElementType ElementType => EQueryElementType.DeleteClause;
 

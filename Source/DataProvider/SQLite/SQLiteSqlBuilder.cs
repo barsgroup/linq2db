@@ -3,10 +3,7 @@ using System.Linq;
 
 namespace LinqToDB.DataProvider.SQLite
 {
-    using System;
-
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
     using SqlProvider;

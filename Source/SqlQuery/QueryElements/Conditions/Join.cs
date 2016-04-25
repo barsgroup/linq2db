@@ -20,10 +20,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
             readonly IJoin _parent;
 
-            public IJoin Or => _parent.SetOr(true);
-
-            public IJoin And => _parent.SetOr(false);
-
             public static implicit operator Join(Next next)
             {
                 return (Join)next._parent;

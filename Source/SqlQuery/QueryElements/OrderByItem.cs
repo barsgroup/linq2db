@@ -7,7 +7,6 @@ namespace LinqToDB.SqlQuery.QueryElements
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
 
     public class OrderByItem : BaseQueryElement,
                                IOrderByItem
@@ -20,7 +19,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public IQueryExpression Expression   { get;  set; }
 
-        public bool           IsDescending { get; private set; }
+        public bool           IsDescending { get; }
 
         public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
         {

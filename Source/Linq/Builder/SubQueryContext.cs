@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -31,7 +30,7 @@ namespace LinqToDB.Linq.Builder
         {
         }
 
-        public          IBuildContext SubQuery    { get; private set; }
+        public          IBuildContext SubQuery    { get; }
         public override ISelectQuery Select { get; set; }
         public override IBuildContext Parent      { get; set; }
 

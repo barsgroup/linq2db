@@ -10,7 +10,6 @@ namespace LinqToDB.Linq.Builder
     using Common;
     using Extensions;
     using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
@@ -137,8 +136,8 @@ namespace LinqToDB.Linq.Builder
             public string _sqlQueryText => Select == null ? "" : Select.SqlText;
 #endif
 
-            public ExpressionBuilder  Builder     { get; private set; }
-            public Expression         Expression  { get; private set; }
+            public ExpressionBuilder  Builder     { get; }
+            public Expression         Expression  { get; }
             public ISelectQuery Select { get; set; }
             public List<MemberInfo[]> LoadWith    { get; set; }
 

@@ -11,7 +11,6 @@ namespace LinqToDB.Linq.Builder
     using Common;
     using Extensions;
     using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
@@ -167,7 +166,7 @@ namespace LinqToDB.Linq.Builder
                 readonly List<ParameterAccessor>                               _parameters;
                 readonly Func<IDataContext,TKey,object[],IQueryable<TElement>> _itemReader;
 
-                public TKey Key { get; private set; }
+                public TKey Key { get; }
 
                 List<TElement> GetItems()
                 {
