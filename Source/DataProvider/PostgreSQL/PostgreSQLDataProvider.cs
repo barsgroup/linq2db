@@ -74,7 +74,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
             SetProviderField(NpgsqlInetType,       NpgsqlInetType,       "GetProviderSpecificValue");
             SetProviderField(_npgsqlDate,          _npgsqlDate,          "GetDate");
 
-            if (_npgsqlTimeStampTZ != null) 
+            if (_npgsqlTimeStampTZ != null)
             {
                 // SetProviderField2<NpgsqlDataReader,DateTimeOffset,NpgsqlTimeStampTZ>((r,i) => (NpgsqlTimeStampTZ)r.GetProviderSpecificValue(i));
 
@@ -112,7 +112,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
             MappingSchema.AddScalarType(_npgsqlDate);
             MappingSchema.AddScalarType(NpgsqlPolygonType);
 
-            if (_npgsqlTimeStampTZ != null) 
+            if (_npgsqlTimeStampTZ != null)
             {
                 // SetConvertExpression<NpgsqlTimeStampTZ,DateTimeOffset>(
                 //     d => new DateTimeOffset(d.Year, d.Month, d.Day, d.Hours, d.Minutes, d.Seconds, d.Milliseconds,
@@ -192,16 +192,61 @@ namespace LinqToDB.DataProvider.PostgreSQL
                 case DataType.Xml: _setXml(parameter); break;
                 case DataType.Text:
                 case DataType.NText: _setText(parameter); break;
+                case DataType.Hierarchical: _setText(parameter); break;
+                case DataType.Undefined:
+                    break;
+                case DataType.Char:
+                    break;
+                case DataType.VarChar:
+                    break;
+                case DataType.NChar:
+                    break;
+                case DataType.NVarChar:
+                    break;
+                case DataType.Blob:
+                    break;
+                case DataType.Guid:
+                    break;
+                case DataType.Int16:
+                    break;
+                case DataType.Int32:
+                    break;
+                case DataType.Int64:
+                    break;
+                case DataType.Byte:
+                    break;
+                case DataType.Single:
+                    break;
+                case DataType.Double:
+                    break;
+                case DataType.SmallMoney:
+                    break;
+                case DataType.Date:
+                    break;
+                case DataType.Time:
+                    break;
+                case DataType.DateTime:
+                    break;
+                case DataType.SmallDateTime:
+                    break;
+                case DataType.DateTimeOffset:
+                    break;
+                case DataType.Timestamp:
+                    break;
+                case DataType.Variant:
+                    break;
+                case DataType.Udt:
+                    break;
                 default: base.SetParameterType(parameter, dataType); break;
             }
         }
 
-        //public override void InitCommand(DataConnection dataConnection, CommandType commandType, string commandText, DataParameter[] parameters)
-        //{
-        //    EnsureConnection();
+        public override void InitCommand(DataConnection dataConnection, CommandType commandType, string commandText, DataParameter[] parameters)
+        {
+            EnsureConnection();
 
-        //    base.InitCommand(dataConnection, commandType, commandText, parameters);
-        //}
+            base.InitCommand(dataConnection, commandType, commandText, parameters);
+        }
 
         #region BulkCopy
 

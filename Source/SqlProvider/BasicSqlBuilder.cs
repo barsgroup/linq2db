@@ -278,10 +278,10 @@
                     StringBuilder.Append(',').AppendLine();
                 first = false;
 
-                var addAlias = true;
+                bool addAlias = true;
 
                 AppendIndent();
-                BuildColumnExpression(col.Expression, col.Alias, ref addAlias);
+                BuildColumnExpression(col, ref addAlias);
 
                 if (!SkipAlias && addAlias && col.Alias != null)
                     StringBuilder.Append(" as ").Append(Convert(col.Alias, ConvertType.NameToQueryFieldAlias));
@@ -295,9 +295,9 @@
             StringBuilder.AppendLine();
         }
 
-        protected virtual void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
+        protected virtual void BuildColumnExpression(IColumn col, ref bool addAlias)
         {
-            BuildExpression(expr, true, true, alias, ref addAlias, true);
+            BuildExpression(col.Expression, true, true, col.Alias, ref addAlias);
         }
 
         #endregion
@@ -319,7 +319,6 @@
         protected virtual void BuildUpdateClause()
         {
             BuildUpdateTable();
-            BuildUpdateSet  ();
         }
 
         protected virtual void BuildUpdateTable()
@@ -339,36 +338,6 @@
                 BuildPhysicalTable(SelectQuery.Update.Table, null);
             else
                 BuildTableName(SelectQuery.From.Tables.First.Value, true, true);
-        }
-
-        protected virtual void BuildUpdateSet()
-        {
-            AppendIndent()
-                .AppendLine("SET");
-
-            Indent++;
-
-            var first = true;
-
-            foreach (var expr in SelectQuery.Update.Items)
-            {
-                if (!first)
-                    StringBuilder.Append(',').AppendLine();
-                first = false;
-
-                AppendIndent();
-
-                BuildExpression(expr.Column, SqlProviderFlags.IsUpdateSetTableAliasSupported, true, false);
-                StringBuilder.Append(" = ");
-
-                var addAlias = false;
-
-                BuildColumnExpression(expr.Expression, null, ref addAlias);
-            }
-
-            Indent--;
-
-            StringBuilder.AppendLine();
         }
 
         #endregion
@@ -470,79 +439,6 @@
         protected virtual void BuildInsertOrUpdateQuery()
         {
             throw new SqlException("InsertOrUpdate query type is not supported by {0} provider.", Name);
-        }
-
-        protected void BuildInsertOrUpdateQueryAsMerge(string fromDummyTable)
-        {
-            var table       = SelectQuery.Insert.Into;
-            var tableSource = SelectQuery.From.Tables.First.Value;
-
-            var targetAlias = Convert(tableSource.Alias, ConvertType.NameToQueryTableAlias).ToString();
-            var sourceAlias = Convert(GetTempAliases(1, "s")[0],        ConvertType.NameToQueryTableAlias).ToString();
-            var keys        = SelectQuery.Update.Keys;
-
-            AppendIndent().Append("MERGE INTO ");
-            BuildPhysicalTable(table, null);
-            StringBuilder.Append(' ').AppendLine(targetAlias);
-
-            AppendIndent().Append("USING (SELECT ");
-
-            keys.ForEach(
-                node =>
-                {
-                    BuildExpression(node.Value.Expression, false, false);
-                    StringBuilder.Append(" AS ");
-                    BuildExpression(node.Value.Column, false, false);
-
-                    if (node.Next != null)
-                        StringBuilder.Append(", ");
-                });
-
-            if (!string.IsNullOrEmpty(fromDummyTable))
-                StringBuilder.Append(' ').Append(fromDummyTable);
-
-            StringBuilder.Append(") ").Append(sourceAlias).AppendLine(" ON");
-
-            AppendIndent().AppendLine("(");
-
-            Indent++;
-
-            keys.ForEach(
-                node =>
-                {
-                    var key = node.Value;
-                    AppendIndent();
-
-                    StringBuilder.Append(targetAlias).Append('.');
-                    BuildExpression(key.Column, false, false);
-
-                    StringBuilder.Append(" = ").Append(sourceAlias).Append('.');
-                    BuildExpression(key.Column, false, false);
-
-                    if (node.Next != null)
-                        StringBuilder.Append(" AND");
-
-                    StringBuilder.AppendLine();
-                });
-
-            Indent--;
-
-            AppendIndent().AppendLine(")");
-            AppendIndent().AppendLine("WHEN MATCHED THEN");
-
-            Indent++;
-            AppendIndent().AppendLine("UPDATE ");
-            BuildUpdateSet();
-            Indent--;
-
-            AppendIndent().AppendLine("WHEN NOT MATCHED THEN");
-
-            Indent++;
-            BuildInsertClause("INSERT", false);
-            Indent--;
-
-            while (_endLine.Contains(StringBuilder[StringBuilder.Length - 1]))
-                StringBuilder.Length--;
         }
 
         static readonly char[] _endLine = { ' ', '\r', '\n' };
@@ -1364,6 +1260,10 @@
                     BuildLikePredicate((ILike)predicate);
                     break;
 
+                case EQueryElementType.HierarhicalPredicate:
+                    BuildHierarhicalPredicate((IHierarhicalPredicate)predicate);
+                    break;
+
                 case EQueryElementType.BetweenPredicate :
                     {
                         var p = (IBetween)predicate;
@@ -1446,6 +1346,16 @@
                     throw new InvalidOperationException();
             }
         }
+
+        protected virtual void BuildHierarhicalPredicate(IHierarhicalPredicate predicate)
+        {
+            var precedence = GetPrecedence(predicate);
+
+            BuildExpression(precedence, predicate.Expr1);
+            StringBuilder.AppendFormat(" {0} ", predicate.GetOperator());
+            BuildExpression(precedence, predicate.Expr2);
+        }
+
 
         static ISqlField GetUnderlayingField(IQueryExpression expr)
         {
@@ -1748,94 +1658,15 @@
             switch (expr.ElementType)
             {
                 case EQueryElementType.SqlField:
-                    {
-                        var field = (ISqlField)expr;
-
-                        if (buildTableName)
-                        {
-                            var ts = SelectQuery.GetTableSource(field.Table);
-
-                            if (ts == null)
-                            {
-                                if (field != field.Table.All)
-                                {
-                                    if (throwExceptionIfTableNotFound)
-                                        throw new SqlException("Table '{0}' not found.", field.Table);
-                                }
-                            }
-                            else
-                            {
-                                var table = GetTableAlias(ts);
-
-                                table = table == null ?
-                                    GetPhysicalTableName(field.Table, null) :
-                                    Convert(table, ConvertType.NameToQueryTableAlias).ToString();
-
-                                if (string.IsNullOrEmpty(table))
-                                    throw new SqlException("Table {0} should have an alias.", field.Table);
-
-                                addAlias = alias != field.PhysicalName;
-
-                                StringBuilder
-                                    .Append(table)
-                                    .Append('.');
-                            }
-                        }
-
-                        if (field == field.Table.All)
-                        {
-                            StringBuilder.Append("*");
-                        }
-                        else
-                        {
-                            StringBuilder.Append(Convert(field.PhysicalName, ConvertType.NameToQueryField));
-                        }
-                    }
-
+                    BuildSqlField(buildTableName, alias, out addAlias, throwExceptionIfTableNotFound, (ISqlField)expr);
                     break;
 
                 case EQueryElementType.Column:
-                    {
-                        var column = (IColumn)expr;
-
-                        var table = SelectQuery.GetTableSource(column.Parent);
-
-                        if (table == null)
-                        {
-                            throw new SqlException("Table not found for '{0}'.", column);
-                        }
-
-                        var tableAlias = GetTableAlias(table) ?? GetPhysicalTableName(column.Parent, null);
-
-                        if (string.IsNullOrEmpty(tableAlias))
-                            throw new SqlException("Table {0} should have an alias.", column.Parent);
-
-                        addAlias = alias != column.Alias;
-
-                        StringBuilder
-                            .Append(Convert(tableAlias, ConvertType.NameToQueryTableAlias))
-                            .Append('.')
-                            .Append(Convert(column.Alias, ConvertType.NameToQueryField));
-                    }
-
+                    BuildColumn(expr, alias, out addAlias);
                     break;
 
                 case EQueryElementType.SqlQuery:
-                    {
-                        var hasParentheses = checkParentheses && StringBuilder[StringBuilder.Length - 1] == '(';
-
-                        if (!hasParentheses)
-                            StringBuilder.Append("(");
-                        StringBuilder.AppendLine();
-
-                        BuildSqlBuilder((ISelectQuery)expr, Indent + 1, BuildStep != Step.FromClause);
-
-                        AppendIndent();
-
-                        if (!hasParentheses)
-                            StringBuilder.Append(")");
-                    }
-
+                        BuildSqlQuery(expr, checkParentheses);
                     break;
 
                 case EQueryElementType.SqlValue:
@@ -1897,20 +1728,8 @@
                     break;
 
                 case EQueryElementType.SqlParameter:
-                    {
-                        var parm = (ISqlParameter)expr;
-
-                        if (parm.IsQueryParameter)
-                        {
-                            var name = Convert(parm.Name, ConvertType.NameToQueryParameter);
-                            StringBuilder.Append(name);
-                        }
-                        else
-                        {
-                            BuildValue(new SqlDataType(parm.DataType, parm.SystemType, 0, 0, 0), parm.Value);
-                        }
-                    }
-
+                    var parm = (ISqlParameter)expr;
+                    BuildParameter(parm);
                     break;
 
                 case EQueryElementType.SqlDataType:
@@ -1926,6 +1745,99 @@
             }
 
             return StringBuilder;
+        }
+
+        protected virtual void BuildParameter(ISqlParameter parm)
+        {
+            if (parm.IsQueryParameter)
+            {
+                var name = Convert(parm.Name, ConvertType.NameToQueryParameter);
+                StringBuilder.Append(name);
+            }
+            else
+            {
+                BuildValue(new SqlDataType(parm.DataType, parm.SystemType, 0, 0, 0), parm.Value);
+            }
+        }
+
+        protected virtual void BuildSqlQuery(IQueryExpression expr, bool checkParentheses)
+        {
+            var hasParentheses = checkParentheses && StringBuilder[StringBuilder.Length - 1] == '(';
+
+            if (!hasParentheses)
+                StringBuilder.Append("(");
+            StringBuilder.AppendLine();
+
+            BuildSqlBuilder((ISelectQuery)expr, Indent + 1, BuildStep != Step.FromClause);
+
+            AppendIndent();
+
+            if (!hasParentheses)
+                StringBuilder.Append(")");
+        }
+
+        protected virtual void BuildColumn(IQueryExpression expr, string alias, out bool addAlias)
+        {
+            var column = (IColumn)expr;
+
+            var table = SelectQuery.GetTableSource(column.Parent);
+
+            if (table == null)
+            {
+                throw new SqlException("Table not found for '{0}'.", column);
+            }
+
+            var tableAlias = GetTableAlias(table) ?? GetPhysicalTableName(column.Parent, null);
+
+            if (string.IsNullOrEmpty(tableAlias))
+                throw new SqlException("Table {0} should have an alias.", column.Parent);
+
+            addAlias = alias != column.Alias;
+
+            StringBuilder.Append(Convert(tableAlias, ConvertType.NameToQueryTableAlias)).Append('.').Append(Convert(column.Alias, ConvertType.NameToQueryField));
+        }
+
+        protected virtual void BuildSqlField(bool buildTableName, string alias, out bool addAlias, bool throwExceptionIfTableNotFound, ISqlField field)
+        {
+            addAlias = false;
+
+            if (buildTableName)
+            {
+                var ts = SelectQuery.GetTableSource(field.Table);
+
+                if (ts == null)
+                {
+                    if (field != field.Table.All)
+                    {
+                        if (throwExceptionIfTableNotFound)
+                            throw new SqlException("Table '{0}' not found.", field.Table);
+                    }
+                }
+                else
+                {
+                    var table = GetTableAlias(ts);
+
+                    table = table == null
+                                ? GetPhysicalTableName(field.Table, null)
+                                : Convert(table, ConvertType.NameToQueryTableAlias).ToString();
+
+                    if (string.IsNullOrEmpty(table))
+                        throw new SqlException("Table {0} should have an alias.", field.Table);
+
+                    addAlias = alias != field.PhysicalName;
+
+                    StringBuilder.Append(table).Append('.');
+                }
+            }
+
+            if (field == field.Table.All)
+            {
+                StringBuilder.Append("*");
+            }
+            else
+            {
+                StringBuilder.Append(Convert(field.PhysicalName, ConvertType.NameToQueryField));
+            }
         }
 
         void BuildExpression(int parentPrecedence, IQueryExpression expr, string alias, ref bool addAlias)

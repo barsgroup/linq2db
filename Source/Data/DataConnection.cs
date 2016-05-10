@@ -101,7 +101,7 @@ namespace LinqToDB.Data
         {
             if (dataProvider == null) throw new ArgumentNullException(nameof(dataProvider));
             if (connection   == null) throw new ArgumentNullException(nameof(connection));
-            
+
             InitConfig();
 
             if (!Configuration.AvoidSpecificDataProviderAPI && !dataProvider.IsCompatibleConnection(connection))
@@ -117,7 +117,7 @@ namespace LinqToDB.Data
         {
             if (dataProvider == null) throw new ArgumentNullException(nameof(dataProvider));
             if (transaction  == null) throw new ArgumentNullException(nameof(transaction));
-            
+
             InitConfig();
 
             if (!Configuration.AvoidSpecificDataProviderAPI && !dataProvider.IsCompatibleConnection(transaction.Connection))
@@ -263,18 +263,9 @@ namespace LinqToDB.Data
         {
             _configurationIDs = new ConcurrentDictionary<string,int>();
 
-            LinqToDB.DataProvider.SqlServer. SqlServerTools. GetDataProvider();
-            LinqToDB.DataProvider.Access.    AccessTools.    GetDataProvider();
-            LinqToDB.DataProvider.SqlCe.     SqlCeTools.     GetDataProvider();
-            LinqToDB.DataProvider.Firebird.  FirebirdTools.  GetDataProvider();
-            LinqToDB.DataProvider.MySql.     MySqlTools.     GetDataProvider();
-            LinqToDB.DataProvider.SQLite.    SQLiteTools.    GetDataProvider();
-            LinqToDB.DataProvider.Sybase.    SybaseTools.    GetDataProvider();
+
             LinqToDB.DataProvider.Oracle.    OracleTools.    GetDataProvider();
             LinqToDB.DataProvider.PostgreSQL.PostgreSQLTools.GetDataProvider();
-            LinqToDB.DataProvider.DB2.       DB2Tools.       GetDataProvider();
-            LinqToDB.DataProvider.Informix.  InformixTools.  GetDataProvider();
-            LinqToDB.DataProvider.SapHana.   SapHanaTools.   GetDataProvider(); 
 
             var section = LinqToDBSection.Instance;
 
@@ -770,7 +761,7 @@ namespace LinqToDB.Data
         #region Transaction
 
         public IDbTransaction Transaction { get; private set; }
-        
+
         public virtual DataConnectionTransaction BeginTransaction()
         {
             // If transaction is open, we dispose it, it will rollback all changes.
@@ -865,7 +856,7 @@ namespace LinqToDB.Data
             return this;
         }
 
-        public 
+        public
 
         #endregion
 
@@ -898,7 +889,7 @@ namespace LinqToDB.Data
 
             return new DataConnection(ConfigurationString, DataProvider, ConnectionString, connection, MappingSchema);
         }
-        
+
         #endregion
 
         #region System.IDisposable Members

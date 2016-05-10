@@ -156,7 +156,6 @@ namespace LinqToDB.Data
 			}
 
 			DataProvider.SetParameter(p, name, dataType, parm.Value);
-
 			parms.Add(p);
 		}
 

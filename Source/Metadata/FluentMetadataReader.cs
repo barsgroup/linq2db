@@ -8,6 +8,8 @@ namespace LinqToDB.Metadata
 {
     using Common;
 
+    using LinqToDB.Mapping;
+
     public class FluentMetadataReader : IMetadataReader
     {
         readonly ConcurrentDictionary<Type,List<Attribute>> _types = new ConcurrentDictionary<Type,List<Attribute>>();
@@ -35,6 +37,13 @@ namespace LinqToDB.Metadata
 
         public void AddAttribute(MemberInfo memberInfo, Attribute attribute)
         {
+            var prop = memberInfo as PropertyInfo;
+            var mappingSchema = MappingSchema.Default;
+            if (prop != null  && mappingSchema.IsScalarType(prop.PropertyType) && (attribute is AssociationAttribute || (attribute is ColumnAttribute && ((ColumnAttribute)attribute).Transparent)))
+            {
+                return;
+            }
+
             _members.GetOrAdd(memberInfo, t => new List<Attribute>()).Add(attribute);
         }
     }

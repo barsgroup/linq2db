@@ -14,6 +14,7 @@ namespace LinqToDB.Linq.Builder
     using LinqToDB.Expressions;
     using Extensions;
 
+    using LinqToDB.Mapping.DataTypes;
     using LinqToDB.SqlEntities;
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Conditions;
@@ -1284,7 +1285,16 @@ namespace LinqToDB.Linq.Builder
                         if (e.Method.Name == "Equals" && e.Object != null && e.Arguments.Count == 1)
                             return ConvertCompare(context, ExpressionType.Equal, e.Object, e.Arguments[0]);
 
-                        if (e.Method.DeclaringType == typeof(string))
+                        if (e.Method.DeclaringType == typeof(Hierarchical))
+                        {
+                            switch (e.Method.Name)
+                            {
+                                case "IsChildOf": predicate = ConvertHierarhicalPredicate(context, e, HierarhicalFlow.IsChildOf); break;
+                                case "IsParentOf": predicate = ConvertHierarhicalPredicate(context, e, HierarhicalFlow.IsParentOf); break;
+                                case "Contains": predicate = ConvertHierarhicalPredicate(context, e, HierarhicalFlow.Contains); break;
+                            }
+                        }
+                        else if (e.Method.DeclaringType == typeof(string))
                         {
                             switch (e.Method.Name)
                             {
@@ -1998,11 +2008,18 @@ namespace LinqToDB.Linq.Builder
 
         #endregion
 
+        ISqlPredicate ConvertHierarhicalPredicate(IBuildContext context, MethodCallExpression expr, HierarhicalFlow flow)
+        {
+            var o = ConvertToSql(context, expr.Object);
+            var a = ConvertToSql(context, expr.Arguments[0]);
+
+            return new HierarhicalPredicate(o, a, flow);
+        }
+
         #region LIKE predicate
 
-        ISqlPredicate ConvertLikePredicate(IBuildContext context, MethodCallExpression expression, string start, string end)
+        ISqlPredicate ConvertLikePredicate(IBuildContext context, MethodCallExpression e, string start, string end)
         {
-            var e = expression;
             var o = ConvertToSql(context, e.Object);
             var a = ConvertToSql(context, e.Arguments[0]);
 
@@ -2040,15 +2057,17 @@ namespace LinqToDB.Linq.Builder
                 return new Like(o, false, ep.SqlParameter, new SqlValue('~'));
             }
 
-            var mi = MemberHelper.MethodOf(() => "".Replace("", ""));
+            var replaceMethod = MemberHelper.MethodOf(() => string.Empty.Replace(string.Empty, string.Empty));
             var ex =
                 Expression.Call(
-                Expression.Call(
-                Expression.Call(
-                    e.Arguments[0],
-                        mi, Expression.Constant("~"), Expression.Constant("~~")),
-                        mi, Expression.Constant("%"), Expression.Constant("~%")),
-                        mi, Expression.Constant("_"), Expression.Constant("~_"));
+                    Expression.Call(
+                        Expression.Call(e.Arguments[0], replaceMethod, Expression.Constant("~"), Expression.Constant("~~")),
+                        replaceMethod,
+                        Expression.Constant("%"),
+                        Expression.Constant("~%")),
+                    replaceMethod,
+                    Expression.Constant("_"),
+                    Expression.Constant("~_"));
 
             var expr = ConvertToSql(context, ConvertExpression(ex));
 
@@ -2061,9 +2080,8 @@ namespace LinqToDB.Linq.Builder
             return new Like(o, false, expr, new SqlValue('~'));
         }
 
-        ISqlPredicate ConvertLikePredicate(IBuildContext context, MethodCallExpression expression)
+        ISqlPredicate ConvertLikePredicate(IBuildContext context, MethodCallExpression e)
         {
-            var e  = expression;
             var a1 = ConvertToSql(context, e.Arguments[0]);
             var a2 = ConvertToSql(context, e.Arguments[1]);
 

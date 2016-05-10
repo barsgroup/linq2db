@@ -903,7 +903,7 @@ namespace LinqToDB.Linq.Builder
 //						}
 
                         var ex = Expression.Equal(e1, e2);
-                            
+
                         expr = expr == null ? ex : Expression.AndAlso(expr, ex);
                     }
 

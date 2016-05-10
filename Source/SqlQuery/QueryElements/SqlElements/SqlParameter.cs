@@ -5,6 +5,7 @@
     using System.Text;
 
     using LinqToDB.Extensions;
+    using LinqToDB.Mapping;
     using LinqToDB.SqlQuery.QueryElements;
     using LinqToDB.SqlQuery.QueryElements.Enums;
     using LinqToDB.SqlQuery.QueryElements.Interfaces;
@@ -22,6 +23,8 @@
             Name = name;
             SystemType = systemType;
             _value = value;
+
+            DataType = MappingSchema.Default.GetDataType(SystemType).DataType;
         }
 
         public SqlParameter(Type systemType, string name, object value, Func<object, object> valueConverter) : this(systemType, name, value)

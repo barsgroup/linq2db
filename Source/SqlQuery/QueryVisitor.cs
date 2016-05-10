@@ -528,6 +528,18 @@ namespace LinqToDB.SqlQuery
                     break;
                 }
 
+                case EQueryElementType.HierarhicalPredicate:
+                {
+                    var p = (IHierarhicalPredicate)element;
+                    var e1 = (IQueryExpression)ConvertInternal(p.Expr1, action);
+                    var e2 = (IQueryExpression)ConvertInternal(p.Expr2, action);
+
+                    if (e1 != null && !ReferenceEquals(p.Expr1, e1) || e2 != null && !ReferenceEquals(p.Expr2, e2))
+                        newElement = new HierarhicalPredicate(e1 ?? p.Expr1, e2 ?? p.Expr2, p.Flow);
+
+                    break;
+                }
+
                 case EQueryElementType.BetweenPredicate:
                 {
                     var p = (IBetween)element;

@@ -199,9 +199,11 @@ namespace LinqToDB.DataProvider.Oracle
 				base.BuildFromClause();
 		}
 
-		protected override void BuildColumnExpression(IQueryExpression expr, string alias, ref bool addAlias)
+		protected override void BuildColumnExpression(IColumn col, ref bool addAlias)
 		{
-			var wrap = false;
+            var expr = col.Expression;
+
+            var wrap = false;
 
 			if (expr.SystemType == typeof(bool))
 			{
@@ -215,7 +217,7 @@ namespace LinqToDB.DataProvider.Oracle
 			}
 
 			if (wrap) StringBuilder.Append("CASE WHEN ");
-			base.BuildColumnExpression(expr, alias, ref addAlias);
+			base.BuildColumnExpression(col, ref addAlias);
 			if (wrap) StringBuilder.Append(" THEN 1 ELSE 0 END");
 		}
 
@@ -232,7 +234,6 @@ namespace LinqToDB.DataProvider.Oracle
 
 		protected override void BuildInsertOrUpdateQuery()
 		{
-			BuildInsertOrUpdateQueryAsMerge("FROM SYS.DUAL");
 		}
 
 		protected override void BuildEmptyInsert()

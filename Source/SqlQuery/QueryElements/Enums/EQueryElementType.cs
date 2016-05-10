@@ -14,6 +14,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Enums
         ExprPredicate,
         NotExprPredicate,
         ExprExprPredicate,
+        HierarhicalPredicate,
         LikePredicate,
         BetweenPredicate,
         IsNullPredicate,

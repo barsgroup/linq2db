@@ -19,6 +19,7 @@ namespace LinqToDB.Mapping
     using Expressions;
     using Extensions;
 
+    using LinqToDB.Mapping.DataTypes;
     using LinqToDB.SqlQuery.QueryElements.SqlElements;
     using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
 
@@ -726,6 +727,7 @@ namespace LinqToDB.Mapping
                 AddScalarType(typeof(float?),          DataType.Single);
                 AddScalarType(typeof(double),          DataType.Double);
                 AddScalarType(typeof(double?),         DataType.Double);
+                AddScalarType(typeof(Hierarchical),         DataType.Hierarchical);
 
                 ValueToSqlConverter.SetDefauls();
             }
@@ -969,7 +971,7 @@ namespace LinqToDB.Mapping
         ConcurrentDictionary<Type,EntityDescriptor> _entityDescriptors;
 
         public EntityDescriptor GetEntityDescriptor(Type type)
-        {
+            {
             if (_entityDescriptors == null)
                 _entityDescriptors = new ConcurrentDictionary<Type, EntityDescriptor>();
 

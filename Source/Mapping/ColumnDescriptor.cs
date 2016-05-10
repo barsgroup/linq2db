@@ -37,7 +37,6 @@ namespace LinqToDB.Mapping
             Storage         = columnAttribute.Storage;
             PrimaryKeyOrder = columnAttribute.PrimaryKeyOrder;
             IsDiscriminator = columnAttribute.IsDiscriminator;
-            IsHierarchical  = columnAttribute.IsHierarchical;
             DataType        = columnAttribute.DataType;
             DbType          = columnAttribute.DbType;
             CreateFormat    = columnAttribute.CreateFormat;

@@ -17,14 +17,10 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 
         string LikeStart { get; set; }
 
-        string LikeEnd { get; set; }
-
         bool ReplaceLike { get; set; }
 
         void SetTakeConverter(int take);
 
         Func<object, object> ValueConverter { set; }
-
-        object RawValue { get; }
     }
 }

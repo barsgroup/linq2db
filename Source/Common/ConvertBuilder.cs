@@ -360,7 +360,7 @@ namespace LinqToDB.Common
                         toAttr = toField.Attrs.FirstOrDefault(a => a.Configuration == toAttr.Configuration && a.IsDefault) ?? toAttr;
 
                         var fromAttrs = fromFields.Where(f => f.Attrs.Any(a =>
-                            a.Value == null ? toAttr.Value == null : a.Value.Equals(toAttr.Value))).ToList();
+                            a.Value?.Equals(toAttr.Value) ?? toAttr.Value == null)).ToList();
 
                         if (fromAttrs.Count == 0)
                             return null;
@@ -371,7 +371,7 @@ namespace LinqToDB.Common
                                 from f in fromAttrs
                                 select new {
                                     f,
-                                    a = f.Attrs.First(a => a.Value == null ? toAttr.Value == null : a.Value.Equals(toAttr.Value))
+                                    a = f.Attrs.First(a => a.Value?.Equals(toAttr.Value) ?? toAttr.Value == null)
                                 } into fa
                                 from c in cl
                                 where fa.a.Configuration == c.c
@@ -413,7 +413,7 @@ namespace LinqToDB.Common
                             expression,
                             Expression.Convert(
                                 Expression.Call(_defaultConverter,
-                                    Expression.Convert(expression, typeof(object)), 
+                                    Expression.Convert(expression, typeof(object)),
                                     Expression.Constant(to)),
                                 to),
                             cases.ToArray());
@@ -500,7 +500,7 @@ namespace LinqToDB.Common
                 mappingSchema = MappingSchema.Default;
 
             var p  = Expression.Parameter(from, "p");
-            var ne = null as LambdaExpression;
+            LambdaExpression ne = null;
 
             if (from == to)
                 return Tuple.Create(Expression.Lambda(p, p), ne, false);

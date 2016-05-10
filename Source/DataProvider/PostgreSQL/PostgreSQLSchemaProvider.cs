@@ -210,7 +210,8 @@ namespace LinqToDB.DataProvider.PostgreSQL
         {
             switch (dataType)
             {
-                case "character"                      : return DataType.NChar;
+                case "ltree"                        : return DataType.NChar;
+                case "character"                    : return DataType.Hierarchical;
                 case "text"                           : return DataType.Text;
                 case "smallint"                       : return DataType.Int16;
                 case "integer"                        : return DataType.Int32;

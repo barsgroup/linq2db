@@ -1060,6 +1060,20 @@
                                 break;
                             }
 
+                            case EQueryElementType.HierarhicalPredicate:
+                                {
+                                    var expr = (IHierarhicalPredicate)e;
+                                    if (dic.TryGetValue(expr.Expr1, out ex))
+                                    {
+                                        expr.Expr1 = ex;
+                                    }
+                                    if (dic.TryGetValue(expr.Expr2, out ex))
+                                    {
+                                        expr.Expr2 = ex;
+                                    }
+                                    break;
+                                }
+
                             case EQueryElementType.BetweenPredicate:
                             {
                                 var expr = (IBetween)e;

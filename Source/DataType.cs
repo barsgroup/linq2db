@@ -203,5 +203,7 @@
         /*
         Structured	A special data type for specifying structured data contained in table-valued parameters.
         */
+
+        Hierarchical
     }
 }
