@@ -1,7 +1,7 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TestInterfaces.CastFromBase
-{
-    using LinqToDB.SqlQuery.Search;
+﻿using Bars2Db.SqlQuery.Search;
 
+namespace LinqToDB.Tests.SearchEngine.TestInterfaces.CastFromBase
+{
     public interface IBase
     {
     }

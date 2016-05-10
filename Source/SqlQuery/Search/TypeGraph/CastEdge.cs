@@ -1,18 +1,18 @@
-﻿namespace LinqToDB.SqlQuery.Search.TypeGraph
-{
-    using System;
+﻿using System;
 
+namespace Bars2Db.SqlQuery.Search.TypeGraph
+{
     public class CastEdge : IEquatable<CastEdge>
     {
-        public TypeVertex CastFrom { get; }
-
-        public TypeVertex CastTo { get; }
-
         public CastEdge(TypeVertex castFrom, TypeVertex castTo)
         {
             CastFrom = castFrom;
             CastTo = castTo;
         }
+
+        public TypeVertex CastFrom { get; }
+
+        public TypeVertex CastTo { get; }
 
         public virtual bool Equals(CastEdge other)
         {
@@ -31,7 +31,7 @@
             unchecked
             {
                 var hashCode = CastFrom?.Type.GetHashCode() ?? 0;
-                hashCode = (hashCode * 397) ^ (CastTo?.Type.GetHashCode() ?? 0);
+                hashCode = (hashCode*397) ^ (CastTo?.Type.GetHashCode() ?? 0);
                 return hashCode;
             }
         }

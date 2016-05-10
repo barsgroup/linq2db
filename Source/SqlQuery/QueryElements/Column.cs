@@ -1,23 +1,24 @@
-namespace LinqToDB.SqlQuery.QueryElements
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class Column : BaseQueryElement,
-                          IColumn
+        IColumn
     {
+        internal string _alias;
+
         public Column(ISelectQuery parent, IQueryExpression expression, string alias)
         {
             if (expression == null) throw new ArgumentNullException(nameof(expression));
 
-            Parent     = parent;
+            Parent = parent;
             Expression = expression;
-            _alias     = alias;
+            _alias = alias;
 
 #if DEBUG
             _columnNumber = ++_columnCounter;
@@ -29,17 +30,11 @@ namespace LinqToDB.SqlQuery.QueryElements
         {
         }
 
-#if DEBUG
-        readonly int _columnNumber;
-        static   int _columnCounter;
-#endif
-
         public IQueryExpression Expression { get; set; }
 
-        public ISelectQuery Parent     { get; set; }
+        public ISelectQuery Parent { get; set; }
 
-        internal string _alias;
-        public   string  Alias
+        public string Alias
         {
             get
             {
@@ -68,58 +63,6 @@ namespace LinqToDB.SqlQuery.QueryElements
             return Expression.Equals(other.Expression) && Equals(Parent, other.Parent);
         }
 
-#if OVERRIDETOSTRING
-
-            public override string ToString()
-            {
-                return ((IQueryElement)this).ToString(new StringBuilder(), new Dictionary<IQueryElement,IQueryElement>()).ToString();
-            }
-
-#endif
-
-        #region ISqlExpression Members
-
-        public bool CanBeNull()
-        {
-            return Expression.CanBeNull();
-        }
-
-        public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
-        {
-            if (this == other)
-                return true;
-
-            var column = other as IColumn;
-            return
-                column != null &&
-                Expression.Equals(column.Expression, comparer) &&
-                comparer(this, column);
-        }
-
-        public int Precedence => SqlQuery.Precedence.Primary;
-
-        public Type SystemType => Expression.SystemType;
-
-        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
-        {
-            if (!doClone(this))
-                return this;
-
-            ICloneableElement clone;
-
-            var parent = (ISelectQuery)Parent.Clone(objectTree, doClone);
-
-            if (!objectTree.TryGetValue(this, out clone))
-                objectTree.Add(this, clone = new Column(
-                                                 parent,
-                                                 (IQueryExpression)Expression.Clone(objectTree, doClone),
-                                                 _alias));
-
-            return clone;
-        }
-
-        #endregion
-
         #region IEquatable<ISqlExpression> Members
 
         bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
@@ -135,7 +78,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region ISqlExpressionWalkable Members
 
-        public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
+        public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
         {
             if (!(skipColumns && Expression is IColumn))
                 Expression = Expression.Walk(skipColumns, func);
@@ -145,11 +88,71 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #endregion
 
+#if OVERRIDETOSTRING
+
+        public override string ToString()
+        {
+            return
+                ((IQueryElement) this).ToString(new StringBuilder(), new Dictionary<IQueryElement, IQueryElement>())
+                    .ToString();
+        }
+
+#endif
+
+#if DEBUG
+        private readonly int _columnNumber;
+        private static int _columnCounter;
+#endif
+
+        #region ISqlExpression Members
+
+        public bool CanBeNull()
+        {
+            return Expression.CanBeNull();
+        }
+
+        public bool Equals(IQueryExpression other, Func<IQueryExpression, IQueryExpression, bool> comparer)
+        {
+            if (this == other)
+                return true;
+
+            var column = other as IColumn;
+            return
+                column != null &&
+                Expression.Equals(column.Expression, comparer) &&
+                comparer(this, column);
+        }
+
+        public int Precedence => SqlQuery.Precedence.Primary;
+
+        public Type SystemType => Expression.SystemType;
+
+        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
+        {
+            if (!doClone(this))
+                return this;
+
+            ICloneableElement clone;
+
+            var parent = (ISelectQuery) Parent.Clone(objectTree, doClone);
+
+            if (!objectTree.TryGetValue(this, out clone))
+                objectTree.Add(this, clone = new Column(
+                    parent,
+                    (IQueryExpression) Expression.Clone(objectTree, doClone),
+                    _alias));
+
+            return clone;
+        }
+
+        #endregion
+
         #region IQueryElement Members
 
         public sealed override EQueryElementType ElementType => EQueryElementType.Column;
 
-        public sealed override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public sealed override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
             if (dic.ContainsKey(this))
                 return sb.Append("...");

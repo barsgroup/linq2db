@@ -1,11 +1,12 @@
 ﻿using System;
+using Bars2Db.Properties;
 
-namespace LinqToDB.Data
+namespace Bars2Db.Data
 {
-    using LinqToDB.Properties;
-
     public class DataConnectionTransaction : IDisposable
     {
+        private bool _disposeTransaction = true;
+
         public DataConnectionTransaction([NotNull] DataConnection dataConnection)
         {
             if (dataConnection == null) throw new ArgumentNullException(nameof(dataConnection));
@@ -15,7 +16,11 @@ namespace LinqToDB.Data
 
         public DataConnection DataConnection { get; }
 
-        bool _disposeTransaction = true;
+        public void Dispose()
+        {
+            if (_disposeTransaction)
+                DataConnection.RollbackTransaction();
+        }
 
         public void Commit()
         {
@@ -27,12 +32,6 @@ namespace LinqToDB.Data
         {
             DataConnection.RollbackTransaction();
             _disposeTransaction = false;
-        }
-
-        public void Dispose()
-        {
-            if (_disposeTransaction)
-                DataConnection.RollbackTransaction();
         }
     }
 }

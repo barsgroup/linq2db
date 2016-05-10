@@ -1,7 +1,7 @@
-namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
-{
-    using System;
+using System;
 
+namespace Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces
+{
     public interface ISqlDataType : IQueryExpression
     {
         DataType DataType { get; }

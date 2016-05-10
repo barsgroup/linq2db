@@ -1,17 +1,16 @@
-namespace LinqToDB.SqlQuery.QueryElements.Clauses
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Clauses.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.Clauses
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class OrderByClause : ClauseBase,
-                                 IOrderByClause
+        IOrderByClause
     {
         internal OrderByClause(ISelectQuery selectQuery) : base(selectQuery)
         {
@@ -20,16 +19,16 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         internal OrderByClause(
             ISelectQuery selectQuery,
             IOrderByClause clone,
-            Dictionary<ICloneableElement,ICloneableElement> objectTree,
+            Dictionary<ICloneableElement, ICloneableElement> objectTree,
             Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
-            _items.AddRange(clone.Items.Select(item => (IOrderByItem)item.Clone(objectTree, doClone)));
+            Items.AddRange(clone.Items.Select(item => (IOrderByItem) item.Clone(objectTree, doClone)));
         }
 
         internal OrderByClause(IEnumerable<IOrderByItem> items) : base(null)
         {
-            _items.AddRange(items);
+            Items.AddRange(items);
         }
 
         public IOrderByClause Expr(IQueryExpression expr, bool isDescending)
@@ -38,9 +37,27 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             return this;
         }
 
-        public IOrderByClause ExprAsc  (IQueryExpression expr)               { return Expr(expr,  false);        }
+        public IOrderByClause ExprAsc(IQueryExpression expr)
+        {
+            return Expr(expr, false);
+        }
 
-        void Add(IQueryExpression expr, bool isDescending)
+        public List<IOrderByItem> Items { get; } = new List<IOrderByItem>();
+
+        public bool IsEmpty => Items.Count == 0;
+
+        #region ISqlExpressionWalkable Members
+
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
+        {
+            foreach (var t in Items)
+                t.Walk(skipColumns, func);
+            return null;
+        }
+
+        #endregion
+
+        private void Add(IQueryExpression expr, bool isDescending)
         {
             foreach (var item in Items)
                 if (item.Expression.Equals(expr, (x, y) =>
@@ -53,29 +70,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             Items.Add(new OrderByItem(expr, isDescending));
         }
 
-        readonly List<IOrderByItem> _items = new List<IOrderByItem>();
-
-        public List<IOrderByItem>  Items => _items;
-
-        public bool IsEmpty => Items.Count == 0;
-
-
-        #region ISqlExpressionWalkable Members
-
-        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
-        {
-            foreach (var t in Items)
-                t.Walk(skipColumns, func);
-            return null;
-        }
-
-        #endregion
-
         #region IQueryElement Members
 
         public override EQueryElementType ElementType => EQueryElementType.OrderByClause;
 
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
             if (Items.Count == 0)
                 return sb;

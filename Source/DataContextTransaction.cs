@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Data;
+using Bars2Db.Properties;
 
-namespace LinqToDB
+namespace Bars2Db
 {
-    using LinqToDB.Properties;
-
     public class DataContextTransaction : IDisposable
     {
+        private int _transactionCounter;
+
         public DataContextTransaction([NotNull] DataContext dataContext)
         {
             if (dataContext == null) throw new ArgumentNullException(nameof(dataContext));
@@ -16,7 +17,19 @@ namespace LinqToDB
 
         public DataContext DataContext { get; set; }
 
-        int _transactionCounter;
+        public void Dispose()
+        {
+            if (_transactionCounter > 0)
+            {
+                var db = DataContext.GetDataConnection();
+
+                db.RollbackTransaction();
+
+                _transactionCounter = 0;
+
+                DataContext.LockDbManagerCounter--;
+            }
+        }
 
         public void BeginTransaction()
         {
@@ -75,20 +88,6 @@ namespace LinqToDB
                     DataContext.LockDbManagerCounter--;
                     DataContext.ReleaseQuery();
                 }
-            }
-        }
-
-        public void Dispose()
-        {
-            if (_transactionCounter > 0)
-            {
-                var db = DataContext.GetDataConnection();
-
-                db.RollbackTransaction();
-
-                _transactionCounter = 0;
-
-                DataContext.LockDbManagerCounter--;
             }
         }
     }

@@ -1,24 +1,26 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Bars2Db.Expressions;
+using Bars2Db.SqlQuery.QueryElements.Enums;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-
-    class DeleteBuilder : MethodCallBuilder
+    internal class DeleteBuilder : MethodCallBuilder
     {
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             return methodCall.IsQueryable("Delete");
         }
 
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
             if (methodCall.Arguments.Count == 2)
-                sequence = builder.BuildWhere(buildInfo.Parent, sequence, (LambdaExpression)methodCall.Arguments[1].Unwrap(), false);
+                sequence = builder.BuildWhere(buildInfo.Parent, sequence,
+                    (LambdaExpression) methodCall.Arguments[1].Unwrap(), false);
 
             sequence.Select.EQueryType = EQueryType.Delete;
 
@@ -41,7 +43,8 @@ namespace LinqToDB.Linq.Builder
                     var tableContext = res.Context as TableBuilder.TableContext;
                     if (res.Result && tableContext != null)
                     {
-                        if (sequence.Select.From.Tables.Count == 0 || sequence.Select.From.Tables.First.Value.Source != tableContext.Select)
+                        if (sequence.Select.From.Tables.Count == 0 ||
+                            sequence.Select.From.Tables.First.Value.Source != tableContext.Select)
                             sequence.Select.Delete.Table = tableContext.SqlTable;
                     }
                 }
@@ -56,7 +59,7 @@ namespace LinqToDB.Linq.Builder
             return null;
         }
 
-        class DeleteContext : SequenceContextBase
+        private class DeleteContext : SequenceContextBase
         {
             public DeleteContext(IBuildContext parent, IBuildContext sequence)
                 : base(parent, sequence, null)

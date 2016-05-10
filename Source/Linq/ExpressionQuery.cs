@@ -5,13 +5,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Bars2Db.Extensions;
+using Bars2Db.Properties;
 
-namespace LinqToDB.Linq
+namespace Bars2Db.Linq
 {
-    using Extensions;
-
-    using LinqToDB.Properties;
-
     public abstract class ExpressionQuery<T> : IExpressionQuery<T>
     {
         #region Init
@@ -25,21 +23,23 @@ namespace LinqToDB.Linq
 #else
             DataContextInfo = dataContextInfo ?? new DefaultDataContextInfo();
 #endif
-            Expression      = expression      ?? Expression.Constant(this);
+            Expression = expression ?? Expression.Constant(this);
         }
 
-        [NotNull] public Expression       Expression      { get; set; }
-        [NotNull] public IDataContextInfo DataContextInfo { get; set; }
+        [NotNull]
+        public Expression Expression { get; set; }
 
-        internal  Query<T> Info;
-        internal  object[] Parameters;
+        [NotNull]
+        public IDataContextInfo DataContextInfo { get; set; }
+
+        internal Query<T> Info;
+        internal object[] Parameters;
 
         #endregion
 
         #region Public Members
 
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string _sqlTextHolder;
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)] private string _sqlTextHolder;
 
 // ReSharper disable InconsistentNaming
         [UsedImplicitly]
@@ -47,13 +47,13 @@ namespace LinqToDB.Linq
 
         // ReSharper restore InconsistentNaming
 
-        public  string  SqlText
+        public string SqlText
         {
             get
             {
                 if (_sqlTextHolder == null)
                 {
-                    var info    = GetQuery(Expression, false);
+                    var info = GetQuery(Expression, false);
                     var sqlText = info.GetSqlText(DataContextInfo.DataContext, Expression, Parameters, 0);
 
                     _sqlTextHolder = sqlText;
@@ -72,12 +72,12 @@ namespace LinqToDB.Linq
             return Execute(DataContextInfo, expression);
         }
 
-        IEnumerable<T> Execute(IDataContextInfo dataContextInfo, Expression expression)
+        private IEnumerable<T> Execute(IDataContextInfo dataContextInfo, Expression expression)
         {
             return GetQuery(expression, true).GetIEnumerable(null, dataContextInfo, expression, Parameters);
         }
 
-        Query<T> GetQuery(Expression expression, bool cache)
+        private Query<T> GetQuery(Expression expression, bool cache)
         {
             if (cache && Info != null)
                 return Info;
@@ -89,7 +89,7 @@ namespace LinqToDB.Linq
 
             return info;
         }
-        
+
         public Query GetQuery()
         {
             return Query<T>.GetQuery(DataContextInfo, Expression, true);
@@ -126,7 +126,10 @@ namespace LinqToDB.Linq
 
             try
             {
-                return (IQueryable)Activator.CreateInstance(typeof(ExpressionQueryImpl<>).MakeGenericType(elementType), new object[] { DataContextInfo, expression });
+                return
+                    (IQueryable)
+                        Activator.CreateInstance(typeof(ExpressionQueryImpl<>).MakeGenericType(elementType),
+                            DataContextInfo, expression);
             }
             catch (TargetInvocationException ex)
             {
@@ -136,7 +139,7 @@ namespace LinqToDB.Linq
 
         TResult IQueryProvider.Execute<TResult>(Expression expression)
         {
-            return (TResult)GetQuery(expression, false).GetElement(null, DataContextInfo, expression, Parameters);
+            return (TResult) GetQuery(expression, false).GetElement(null, DataContextInfo, expression, Parameters);
         }
 
         object IQueryProvider.Execute(Expression expression)

@@ -1,21 +1,22 @@
-﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Bars2Db.SqlQuery.Search.PathBuilder;
+
+namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.PathBuilder;
-
     public class BaseFindTest
     {
         protected bool IsEqual(IEnumerable<CompositPropertyVertex> graph1, IEnumerable<CompositPropertyVertex> graph2)
         {
-            return IsEqualInternal(graph1, graph2, new Dictionary<Tuple<CompositPropertyVertex, CompositPropertyVertex>, bool>());
+            return IsEqualInternal(graph1, graph2,
+                new Dictionary<Tuple<CompositPropertyVertex, CompositPropertyVertex>, bool>());
         }
 
-        protected bool IsEqualInternal(IEnumerable<CompositPropertyVertex> graph1, IEnumerable<CompositPropertyVertex> graph2, Dictionary<Tuple<CompositPropertyVertex, CompositPropertyVertex>, bool> isEqualCache)
+        protected bool IsEqualInternal(IEnumerable<CompositPropertyVertex> graph1,
+            IEnumerable<CompositPropertyVertex> graph2,
+            Dictionary<Tuple<CompositPropertyVertex, CompositPropertyVertex>, bool> isEqualCache)
         {
             var array1 = GetOrderedArray(graph1);
             var array2 = GetOrderedArray(graph2);

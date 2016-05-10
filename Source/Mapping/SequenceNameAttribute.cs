@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true)]
     public class SequenceNameAttribute : Attribute
@@ -8,7 +8,7 @@ namespace LinqToDB.Mapping
         public SequenceNameAttribute(string configuration, string sequenceName)
         {
             Configuration = configuration;
-            SequenceName  = sequenceName;
+            SequenceName = sequenceName;
         }
 
         public SequenceNameAttribute(string sequenceName)
@@ -17,6 +17,6 @@ namespace LinqToDB.Mapping
         }
 
         public string Configuration { get; set; }
-        public string SequenceName  { get; set; }
+        public string SequenceName { get; set; }
     }
 }

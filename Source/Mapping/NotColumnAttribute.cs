@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
     public class NotColumnAttribute : ColumnAttribute
     {
         public NotColumnAttribute()

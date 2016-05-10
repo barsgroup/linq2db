@@ -1,8 +1,8 @@
 using System;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple=true)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true)]
     public class NullableAttribute : Attribute
     {
         public NullableAttribute()
@@ -18,10 +18,10 @@ namespace LinqToDB.Mapping
         public NullableAttribute(string configuration, bool isNullable)
         {
             Configuration = configuration;
-            CanBeNull     = isNullable;
+            CanBeNull = isNullable;
         }
 
         public string Configuration { get; set; }
-        public bool   CanBeNull     { get; set; }
+        public bool CanBeNull { get; set; }
     }
 }

@@ -1,24 +1,28 @@
-﻿namespace LinqToDB.SqlQuery.Search
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
+namespace Bars2Db.SqlQuery.Search
+{
     public static class SearchHelper<TBaseInterface>
     {
-        private static Dictionary<Type, List<Type>> baseInterfaces = new Dictionary<Type, List<Type>>();
+        private static readonly Dictionary<Type, List<Type>> baseInterfaces = new Dictionary<Type, List<Type>>();
 
-        private static Dictionary<Type, List<Type>> derivedInterfaces = new Dictionary<Type, List<Type>>(); 
+        private static readonly Dictionary<Type, List<Type>> derivedInterfaces = new Dictionary<Type, List<Type>>();
 
-        private static Dictionary<Type, List<Type>> leafInterfaces = new Dictionary<Type, List<Type>>(); 
+        private static readonly Dictionary<Type, List<Type>> leafInterfaces = new Dictionary<Type, List<Type>>();
 
         static SearchHelper()
         {
             var baseType = typeof(TBaseInterface);
             var allTypes = baseType.Assembly.GetTypes().Where(type => baseType.IsAssignableFrom(type)).ToList();
 
-            if (allTypes.Any(t => t.IsGenericType && t.GetProperties().Any(p => p.GetCustomAttribute<SearchContainerAttribute>() != null)))
+            if (
+                allTypes.Any(
+                    t =>
+                        t.IsGenericType &&
+                        t.GetProperties().Any(p => p.GetCustomAttribute<SearchContainerAttribute>() != null)))
             {
                 throw new NotSupportedException("SearchContainerAttribute in generic class");
             }
@@ -41,16 +45,25 @@
             foreach (var type in allClasses)
             {
                 var interfaces = baseInterfaces[type];
-                leafInterfaces[type] = interfaces.Where(leaf => !interfaces.Any(i => leaf.IsAssignableFrom(i) && leaf != i)).ToList();
+                leafInterfaces[type] =
+                    interfaces.Where(leaf => !interfaces.Any(i => leaf.IsAssignableFrom(i) && leaf != i)).ToList();
             }
         }
 
         public static IEnumerable<Type> GetAllSearchInterfaces(IEnumerable<Type> types)
         {
             var baseType = typeof(TBaseInterface);
-            var inter = types.Where(t => baseType.IsAssignableFrom(t) && t.IsInterface && !t.IsGenericType).SelectMany(FindBaseWithSelf).Distinct().ToList();
+            var inter =
+                types.Where(t => baseType.IsAssignableFrom(t) && t.IsInterface && !t.IsGenericType)
+                    .SelectMany(FindBaseWithSelf)
+                    .Distinct()
+                    .ToList();
             var interfaces =
-                inter.SelectMany(t => t.GetProperties()).Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null).Select(p => p.DeclaringType).Concat(inter).Distinct();
+                inter.SelectMany(t => t.GetProperties())
+                    .Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null)
+                    .Select(p => p.DeclaringType)
+                    .Concat(inter)
+                    .Distinct();
 
             return interfaces;
         }
@@ -94,7 +107,7 @@
                 return interfaces;
             }
 
-            return interfaces.Concat(FindDerived(propertyType)).Concat(new[] { propertyType });
+            return interfaces.Concat(FindDerived(propertyType)).Concat(new[] {propertyType});
         }
 
 
@@ -103,8 +116,8 @@
             var interfaces = FindBase(propertyType);
 
             return propertyType.IsInterface
-                       ? interfaces.Concat(new[] { propertyType })
-                       : interfaces;
+                ? interfaces.Concat(new[] {propertyType})
+                : interfaces;
         }
     }
 }

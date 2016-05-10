@@ -1,22 +1,23 @@
 ﻿using System.Linq;
 using System.Linq.Expressions;
+using Bars2Db.Expressions;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-
-    class DefaultIfEmptyBuilder : MethodCallBuilder
+    internal class DefaultIfEmptyBuilder : MethodCallBuilder
     {
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             return methodCall.IsQueryable("DefaultIfEmpty");
         }
 
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
-            var sequence     = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
             var defaultValue = methodCall.Arguments.Count == 1 ? null : methodCall.Arguments[1].Unwrap();
 
             var selectManyContext = buildInfo.Parent as SelectManyBuilder.SelectManyContext;
@@ -41,13 +42,13 @@ namespace LinqToDB.Linq.Builder
 
         public class DefaultIfEmptyContext : SequenceContextBase
         {
-            public DefaultIfEmptyContext(IBuildContext parent, IBuildContext sequence, Expression defaultValue) 
+            private readonly Expression _defaultValue;
+
+            public DefaultIfEmptyContext(IBuildContext parent, IBuildContext sequence, Expression defaultValue)
                 : base(parent, sequence, null)
             {
                 _defaultValue = defaultValue;
             }
-
-            private readonly Expression _defaultValue;
 
             public override Expression BuildExpression(Expression expression, int level)
             {
@@ -63,7 +64,7 @@ namespace LinqToDB.Linq.Builder
                     var idx = q.DefaultIfEmpty(-1).First();
 
                     if (idx == -1)
-                        idx = Select.Select.Add(new SqlValue((int?)1));
+                        idx = Select.Select.Add(new SqlValue((int?) 1));
 
                     var n = ConvertToParentIndex(idx, this);
 
@@ -76,7 +77,7 @@ namespace LinqToDB.Linq.Builder
 
                     if (expr.NodeType == ExpressionType.Parameter)
                     {
-                        var par  = (ParameterExpression)expr;
+                        var par = (ParameterExpression) expr;
                         var pidx = Builder.BlockVariables.IndexOf(par);
 
                         if (pidx >= 0)
@@ -85,7 +86,7 @@ namespace LinqToDB.Linq.Builder
 
                             if (ex.NodeType == ExpressionType.Assign)
                             {
-                                var bex = (BinaryExpression)ex;
+                                var bex = (BinaryExpression) ex;
 
                                 if (bex.Left == expr)
                                 {

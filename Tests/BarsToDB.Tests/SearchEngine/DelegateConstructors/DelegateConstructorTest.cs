@@ -1,172 +1,173 @@
-﻿namespace LinqToDB.Tests.SearchEngine.DelegateConstructors
-{
-    using System.Collections.Generic;
+﻿//namespace LinqToDB.Tests.SearchEngine.DelegateConstructors
+//{
+//    using System.Collections.Generic;
 
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.PathBuilder;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.DelegateConstructors.Base;
+//    using LinqToDB.SqlQuery.Search;
+//    using LinqToDB.SqlQuery.Search.PathBuilder;
+//    using LinqToDB.SqlQuery.Search.TypeGraph;
+//    using LinqToDB.Tests.SearchEngine.DelegateConstructors.Base;
 
-    using Xunit;
+//    using Xunit;
 
-    public class DelegateConstructorTest : BaseDelegateConstructorTest<DelegateConstructorTest.IBase>
-    {
-        public interface IBase
-        {
+//    public class DelegateConstructorTest : BaseDelegateConstructorTest<DelegateConstructorTest.IBase>
+//    {
+//        public interface IBase
+//        {
 
-        }
+//        }
 
-        private interface IA : IBase
-        {
-            [SearchContainer]
-            IB B { get; set; }
+//        private interface IA : IBase
+//        {
+//            [SearchContainer]
+//            IB B { get; set; }
 
-            [SearchContainer]
-            IE E { get; set; }
-        }
+//            [SearchContainer]
+//            IE E { get; set; }
+//        }
 
-        private interface IB : IBase
-        {
-            [SearchContainer]
-            IC C { get; set; }
+//        private interface IB : IBase
+//        {
+//            [SearchContainer]
+//            IC C { get; set; }
 
-            [SearchContainer]
-            ID D { get; set; }
+//            [SearchContainer]
+//            ID D { get; set; }
 
-            [SearchContainer]
-            IE E { get; set; }
-        }
+//            [SearchContainer]
+//            IE E { get; set; }
+//        }
 
-        private interface IC : IBase
-        {
-            [SearchContainer]
-            ID D { get; set; }
-        }
+//        private interface IC : IBase
+//        {
+//            [SearchContainer]
+//            ID D { get; set; }
+//        }
 
-        private interface ID : IBase
-        {
-        }
+//        private interface ID : IBase
+//        {
+//        }
 
-        private interface IE : IBase
-        {
-        }
+//        private interface IE : IBase
+//        {
+//        }
 
-        private class A : IA
-        {
-            public IB B { get; set; }
+//        private class A : IA
+//        {
+//            public IB B { get; set; }
 
-            public IE E { get; set; }
+//            public IE E { get; set; }
 
-            public A()
-            {
-                B = new B();
-                E = new E();
-            }
-        }
+//            public A()
+//            {
+//                B = new B();
+//                E = new E();
+//            }
+//        }
 
-        private class B : IB
-        {
-            public IC C { get; set; }
-            
-            public ID D { get; set; }
+//        private class B : IB
+//        {
+//            public IC C { get; set; }
 
-            public IE E { get; set; }
+//            public ID D { get; set; }
 
-            public B()
-            {
-                C = new C();
-                D = new D();
-                E = new E();
-            }
-        }
+//            public IE E { get; set; }
 
-        private class C : IC
-        {
-            [SearchContainer]
-            public ID D { get; set; }
+//            public B()
+//            {
+//                C = new C();
+//                D = new D();
+//                E = new E();
+//            }
+//        }
 
-            public C()
-            {
-                D = new D();
-            }
-        }
+//        private class C : IC
+//        {
+//            [SearchContainer]
+//            public ID D { get; set; }
 
-        private class D : ID
-        {
-        }
+//            public C()
+//            {
+//                D = new D();
+//            }
+//        }
 
-        private class E : IE
-        {
-        }
+//        private class D : ID
+//        {
+//        }
 
-        [Fact]
-        public void SimpleDelegateB()
-        {
-            var obj = new A();
-            var deleg = SetupTest<IBase, IB>(obj);
+//        private class E : IE
+//        {
+//        }
 
-            var result = new LinkedList<IB>();
-            deleg(obj, result, true, new HashSet<object>());
+//        [Fact]
+//        public void SimpleDelegateB()
+//        {
+//            var obj = new A();
+//            var deleg = SetupTest<IBase, IB>(obj);
 
-            Assert.Equal(1, result.Count);
-            Assert.Equal(obj.B, result.First.Value);
+//            var result = new LinkedList<IB>();
+//            deleg(obj, result, true, new HashSet<object>());
 
-            Assert.True(CompareWithReflectionSearcher<IB>(obj));
-        }
+//            Assert.Equal(1, result.Count);
+//            Assert.Equal(obj.B, result.First.Value);
 
-        [Fact]
-        public void SimpleDelegateC()
-        {
-            var obj = new A();
-            var deleg = SetupTest<IBase, IC>(obj);
+//            Assert.True(CompareWithReflectionSearcher<IB>(obj));
+//        }
 
-            var result = new LinkedList<IC>();
-            deleg(obj, result, true, new HashSet<object>());
+//        [Fact]
+//        public void SimpleDelegateC()
+//        {
+//            var obj = new A();
+//            var deleg = SetupTest<IBase, IC>(obj);
 
-            Assert.Equal(1, result.Count);
-            Assert.Equal(obj.B.C, result.First.Value);
+//            var result = new LinkedList<IC>();
+//            deleg(obj, result, true, new HashSet<object>());
 
-            Assert.True(CompareWithReflectionSearcher<IC>(obj));
-        }
+//            Assert.Equal(1, result.Count);
+//            Assert.Equal(obj.B.C, result.First.Value);
 
-        [Fact]
-        public void BranchDelegateD()
-        {
-            var obj = new A();
-            var deleg = SetupTest<IBase, ID>(obj);
+//            Assert.True(CompareWithReflectionSearcher<IC>(obj));
+//        }
 
-            var result = new LinkedList<ID>();
-            deleg(obj, result, true, new HashSet<object>());
+//        [Fact]
+//        public void BranchDelegateD()
+//        {
+//            var obj = new A();
+//            var deleg = SetupTest<IBase, ID>(obj);
 
-            Assert.Equal(2, result.Count);
+//            var result = new LinkedList<ID>();
+//            deleg(obj, result, true, new HashSet<object>());
 
-            Assert.True(CompareWithReflectionSearcher<ID>(obj));
-        }
+//            Assert.Equal(2, result.Count);
 
-        [Fact]
-        public void TwoPathsDelegateE()
-        {
-            var obj = new A();
-            var deleg = SetupTest<IBase, IE>(obj);
+//            Assert.True(CompareWithReflectionSearcher<ID>(obj));
+//        }
 
-            var result = new LinkedList<IE>();
-            deleg(obj, result, true, new HashSet<object>());
+//        [Fact]
+//        public void TwoPathsDelegateE()
+//        {
+//            var obj = new A();
+//            var deleg = SetupTest<IBase, IE>(obj);
 
-            Assert.Equal(2, result.Count);
+//            var result = new LinkedList<IE>();
+//            deleg(obj, result, true, new HashSet<object>());
 
-            Assert.True(CompareWithReflectionSearcher<IE>(obj));
-        }
+//            Assert.Equal(2, result.Count);
 
-        private ResultDelegate<TSearch> SetupTest<TBase, TSearch>(TBase obj) where TSearch : class
-        {
-            var typeGraph = new TypeGraph<TBase>(GetType().Assembly.GetTypes());
+//            Assert.True(CompareWithReflectionSearcher<IE>(obj));
+//        }
 
-            var pathBuilder = new PathBuilder<TBase>(typeGraph);
+//        private ResultDelegate<TSearch> SetupTest<TBase, TSearch>(TBase obj) where TSearch : class
+//        {
+//            var typeGraph = new TypeGraph<TBase>(GetType().Assembly.GetTypes());
 
-            var paths = pathBuilder.Find(obj, typeof(TSearch));
+//            var pathBuilder = new PathBuilder<TBase>(typeGraph);
 
-            var delegateConstructor = new DelegateConstructor<TSearch>();
-            return delegateConstructor.CreateResultDelegate(paths);
-        }
-    }
-}
+//            var paths = pathBuilder.Find(obj, typeof(TSearch));
+
+//            var delegateConstructor = new DelegateConstructor<TSearch>();
+//            return delegateConstructor.CreateResultDelegate(paths);
+//        }
+//    }
+//}
+

@@ -1,16 +1,15 @@
-namespace LinqToDB.SqlQuery.QueryElements.Clauses
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Clauses.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Conditions;
+using Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.Clauses
 {
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Conditions;
-    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-
     public abstract class ClauseBase : BaseQueryElement,
-                                       IClauseWithConditionBase
+        IClauseWithConditionBase
     {
         protected ClauseBase(ISelectQuery selectQuery)
         {

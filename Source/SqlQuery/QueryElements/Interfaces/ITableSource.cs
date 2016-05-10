@@ -1,11 +1,10 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
+using System.Collections.Generic;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
+
+namespace Bars2Db.SqlQuery.QueryElements.Interfaces
 {
-    using System.Collections.Generic;
-
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
-
-    public interface ITableSource: ISqlTableSource
+    public interface ITableSource : ISqlTableSource
     {
         [SearchContainer]
         ISqlTableSource Source { get; set; }

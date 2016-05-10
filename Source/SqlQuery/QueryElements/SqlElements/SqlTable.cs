@@ -1,19 +1,17 @@
-﻿namespace LinqToDB.SqlQuery.QueryElements.SqlElements
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using Bars2Db.Extensions;
+using Bars2Db.Mapping;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.SqlElements
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.Mapping;
-    using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class SqlTable<TEntity> : SqlTable
     {
         public SqlTable(MappingSchema mappingSchema)
@@ -23,15 +21,112 @@
     }
 
     public class SqlTable : BaseQueryElement,
-                            ISqlTable
+        ISqlTable
     {
         #region Init
 
         public SqlTable()
         {
-            _sourceID = Interlocked.Increment(ref SelectQuery.SourceIDCounter);
-            Fields    = new Dictionary<string, ISqlField>();
+            SourceID = Interlocked.Increment(ref SelectQuery.SourceIDCounter);
+            Fields = new Dictionary<string, ISqlField>();
         }
+
+        #endregion
+
+        #region ICloneableElement Members
+
+        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
+        {
+            if (!doClone(this))
+                return this;
+
+            ICloneableElement clone;
+
+            if (!objectTree.TryGetValue(this, out clone))
+            {
+                var table = new SqlTable
+                {
+                    Name = Name,
+                    Alias = Alias,
+                    Database = Database,
+                    Owner = Owner,
+                    PhysicalName = PhysicalName,
+                    ObjectType = ObjectType,
+                    SqlTableType = SqlTableType,
+                    SequenceAttributes = SequenceAttributes
+                };
+
+                table.Fields.Clear();
+
+                foreach (var field in Fields)
+                {
+                    var fc = new SqlField(field.Value);
+
+                    objectTree.Add(field.Value, fc);
+                    table.Add(fc);
+                }
+
+                if (TableArguments != null)
+                {
+                    foreach (
+                        var tableArgument in TableArguments.Select(e => (IQueryExpression) e.Clone(objectTree, doClone))
+                        )
+                    {
+                        TableArguments.AddLast(tableArgument);
+                    }
+                }
+                objectTree.Add(this, table);
+                objectTree.Add(All, table.All);
+
+                clone = table;
+            }
+
+            return clone;
+        }
+
+        #endregion
+
+        public override EQueryElementType ElementType => EQueryElementType.SqlTable;
+
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
+        {
+            return sb.Append(Name);
+        }
+
+        #region IEquatable<ISqlExpression> Members
+
+        bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
+        {
+            return this == other;
+        }
+
+        #endregion
+
+        #region ISqlExpressionWalkable Members
+
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
+        {
+            TableArguments.ForEach(
+                node => { node.Value = node.Value.Walk(skipColumns, func); });
+
+            return func(this);
+        }
+
+        #endregion
+
+        #region Overrides
+
+#if OVERRIDETOSTRING
+
+        public override string ToString()
+        {
+            return
+                ((IQueryElement) this).ToString(new StringBuilder(), new Dictionary<IQueryElement, IQueryElement>())
+                    .ToString();
+        }
+
+#endif
 
         #endregion
 
@@ -43,32 +138,32 @@
 
             var ed = mappingSchema.GetEntityDescriptor(objectType);
 
-            Database     = ed.DatabaseName;
-            Owner        = ed.SchemaName;
-            Name         = ed.TableName;
-            ObjectType   = objectType;
+            Database = ed.DatabaseName;
+            Owner = ed.SchemaName;
+            Name = ed.TableName;
+            ObjectType = objectType;
             PhysicalName = Name;
 
             foreach (var column in ed.Columns)
             {
                 var field = new SqlField
                 {
-                    SystemType       = column.MemberType,
-                    Name             = column.MemberName,
-                    PhysicalName     = column.ColumnName,
-                    Nullable         = column.CanBeNull,
-                    IsPrimaryKey     = column.IsPrimaryKey,
-                    PrimaryKeyOrder  = column.PrimaryKeyOrder,
-                    IsIdentity       = column.IsIdentity,
-                    IsInsertable     = !column.SkipOnInsert,
-                    IsUpdatable      = !column.SkipOnUpdate,
-                    DataType         = column.DataType,
-                    DbType           = column.DbType,
-                    Length           = column.Length,
-                    Precision        = column.Precision,
-                    Scale            = column.Scale,
-                    CreateFormat     = column.CreateFormat,
-                    ColumnDescriptor = column,
+                    SystemType = column.MemberType,
+                    Name = column.MemberName,
+                    PhysicalName = column.ColumnName,
+                    Nullable = column.CanBeNull,
+                    IsPrimaryKey = column.IsPrimaryKey,
+                    PrimaryKeyOrder = column.PrimaryKeyOrder,
+                    IsIdentity = column.IsIdentity,
+                    IsInsertable = !column.SkipOnInsert,
+                    IsUpdatable = !column.SkipOnUpdate,
+                    DataType = column.DataType,
+                    DbType = column.DbType,
+                    Length = column.Length,
+                    Precision = column.Precision,
+                    Scale = column.Scale,
+                    CreateFormat = column.CreateFormat,
+                    ColumnDescriptor = column
                 };
 
                 Add(field);
@@ -79,7 +174,7 @@
 
                     if (dataType.DataType == DataType.Undefined)
                     {
-                        var  canBeNull = field.Nullable;
+                        var canBeNull = field.Nullable;
 
                         dataType = mappingSchema.GetUnderlyingDataType(field.SystemType, ref canBeNull);
 
@@ -115,49 +210,37 @@
 
         public SqlTable(ISqlTable table) : this()
         {
-            Alias              = table.Alias;
-            Database           = table.Database;
-            Owner              = table.Owner;
-            Name               = table.Name;
-            PhysicalName       = table.PhysicalName;
-            ObjectType         = table.ObjectType;
+            Alias = table.Alias;
+            Database = table.Database;
+            Owner = table.Owner;
+            Name = table.Name;
+            PhysicalName = table.PhysicalName;
+            ObjectType = table.ObjectType;
             SequenceAttributes = table.SequenceAttributes;
 
             foreach (var field in table.Fields.Values)
                 Add(new SqlField(field));
 
-            SqlTableType   = table.SqlTableType;
+            SqlTableType = table.SqlTableType;
             TableArguments = table.TableArguments;
         }
 
-        public SqlTable(ISqlTable table, IEnumerable<ISqlField> fields, LinkedList<IQueryExpression> tableArguments) : this()
+        public SqlTable(ISqlTable table, IEnumerable<ISqlField> fields, LinkedList<IQueryExpression> tableArguments)
+            : this()
         {
-            Alias              = table.Alias;
-            Database           = table.Database;
-            Owner              = table.Owner;
-            Name               = table.Name;
-            PhysicalName       = table.PhysicalName;
-            ObjectType         = table.ObjectType;
+            Alias = table.Alias;
+            Database = table.Database;
+            Owner = table.Owner;
+            Name = table.Name;
+            PhysicalName = table.PhysicalName;
+            ObjectType = table.ObjectType;
             SequenceAttributes = table.SequenceAttributes;
 
             AddRange(fields);
 
-            SqlTableType   = table.SqlTableType;
+            SqlTableType = table.SqlTableType;
             TableArguments = tableArguments;
         }
-
-        #endregion
-
-        #region Overrides
-
-#if OVERRIDETOSTRING
-
-        public override string ToString()
-        {
-            return ((IQueryElement)this).ToString(new StringBuilder(), new Dictionary<IQueryElement,IQueryElement>()).ToString();
-        }
-
-#endif
 
         #endregion
 
@@ -173,13 +256,13 @@
             }
         }
 
-        public string           Name           { get; set; }
-        public string           Alias          { get; set; }
-        public string           Database       { get; set; }
-        public string           Owner          { get; set; }
-        public Type             ObjectType     { get; set; }
-        public string           PhysicalName   { get; set; }
-        public ESqlTableType     SqlTableType   { get; set; }
+        public string Name { get; set; }
+        public string Alias { get; set; }
+        public string Database { get; set; }
+        public string Owner { get; set; }
+        public Type ObjectType { get; set; }
+        public string PhysicalName { get; set; }
+        public ESqlTableType SqlTableType { get; set; }
 
         public LinkedList<IQueryExpression> TableArguments { get; } = new LinkedList<IQueryExpression>();
 
@@ -190,11 +273,11 @@
         private ISqlField _all;
 
         public ISqlField All => _all ?? (_all = new SqlField
-                                                {
-                                                    Name = "*",
-                                                    PhysicalName = "*",
-                                                    Table = this
-                                                });
+        {
+            Name = "*",
+            PhysicalName = "*",
+            Table = this
+        });
 
         public ISqlField GetIdentityField()
         {
@@ -205,7 +288,7 @@
             var keys = GetKeys(true);
 
             if (keys != null && keys.Count == 1)
-                return (ISqlField)keys[0];
+                return (ISqlField) keys[0];
 
             return null;
         }
@@ -229,10 +312,9 @@
 
         #region ISqlTableSource Members
 
-        readonly int _sourceID;
-        public   int  SourceID => _sourceID;
+        public int SourceID { get; }
 
-        List<IQueryExpression> _keyFields;
+        private List<IQueryExpression> _keyFields;
 
         public IList<IQueryExpression> GetKeys(bool allIfEmpty)
         {
@@ -240,10 +322,10 @@
             {
                 _keyFields = (
                     from f in Fields.Values
-                    where   f.IsPrimaryKey
+                    where f.IsPrimaryKey
                     orderby f.PrimaryKeyOrder
                     select f as IQueryExpression
-                ).ToList();
+                    ).ToList();
             }
 
             if (_keyFields.Count == 0 && allIfEmpty)
@@ -254,65 +336,6 @@
 
         #endregion
 
-        #region ICloneableElement Members
-
-        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
-        {
-            if (!doClone(this))
-                return this;
-
-            ICloneableElement clone;
-
-            if (!objectTree.TryGetValue(this, out clone))
-            {
-                var table = new SqlTable
-                {
-                    Name               = Name,
-                    Alias              = Alias,
-                    Database           = Database,
-                    Owner              = Owner,
-                    PhysicalName       = PhysicalName,
-                    ObjectType         = ObjectType,
-                    SqlTableType       = SqlTableType,
-                    SequenceAttributes = SequenceAttributes,
-                };
-
-                table.Fields.Clear();
-
-                foreach (var field in Fields)
-                {
-                    var fc = new SqlField(field.Value);
-
-                    objectTree.Add(field.Value, fc);
-                    table.     Add(fc);
-                }
-
-                if (TableArguments != null)
-                {
-                    foreach (var tableArgument in TableArguments.Select(e => (IQueryExpression)e.Clone(objectTree, doClone)))
-                    {
-                        TableArguments.AddLast(tableArgument);
-                    }
-
-                }
-                objectTree.Add(this, table);
-                objectTree.Add(All,  table.All);
-
-                clone = table;
-            }
-
-            return clone;
-        }
-
-        #endregion
-
-        public override EQueryElementType ElementType => EQueryElementType.SqlTable;
-
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
-        {
-            return sb.Append(Name);
-        }
-
         #region ISqlExpression Members
 
         public bool CanBeNull()
@@ -320,7 +343,7 @@
             return true;
         }
 
-        public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
+        public bool Equals(IQueryExpression other, Func<IQueryExpression, IQueryExpression, bool> comparer)
         {
             return this == other;
         }
@@ -328,30 +351,6 @@
         public int Precedence => SqlQuery.Precedence.Unknown;
 
         Type IQueryExpression.SystemType => ObjectType;
-
-        #endregion
-
-        #region IEquatable<ISqlExpression> Members
-
-        bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
-        {
-            return this == other;
-        }
-
-        #endregion
-
-        #region ISqlExpressionWalkable Members
-
-        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
-        {
-            TableArguments.ForEach(
-                node =>
-                {
-                    node.Value = node.Value.Walk(skipColumns, func);
-                });
-
-            return func(this);
-        }
 
         #endregion
     }

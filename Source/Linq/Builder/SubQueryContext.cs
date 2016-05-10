@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using Bars2Db.Expressions;
+using Bars2Db.SqlQuery.QueryElements;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    class SubQueryContext : PassThroughContext
+    internal class SubQueryContext : PassThroughContext
     {
         public SubQueryContext(IBuildContext subQuery, ISelectQuery selectQuery, bool addToSql)
             : base(subQuery)
@@ -17,37 +16,37 @@ namespace LinqToDB.Linq.Builder
             if (selectQuery == subQuery.Select)
                 throw new ArgumentException("Wrong subQuery argument.", nameof(subQuery));
 
-            SubQuery        = subQuery;
+            SubQuery = subQuery;
             SubQuery.Parent = this;
-            Select     = selectQuery;
+            Select = selectQuery;
 
             if (addToSql)
                 selectQuery.From.Table(SubQuery.Select);
         }
 
         public SubQueryContext(IBuildContext subQuery, bool addToSql = true)
-            : this(subQuery, new SelectQuery { ParentSelect = subQuery.Select.ParentSelect }, addToSql)
+            : this(subQuery, new SelectQuery {ParentSelect = subQuery.Select.ParentSelect}, addToSql)
         {
         }
 
-        public          IBuildContext SubQuery    { get; }
+        public IBuildContext SubQuery { get; }
         public override ISelectQuery Select { get; set; }
-        public override IBuildContext Parent      { get; set; }
+        public override IBuildContext Parent { get; set; }
 
         public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
         {
             if (Expression.NodeType == ExpressionType.Lambda)
             {
-                var le = (LambdaExpression)Expression;
+                var le = (LambdaExpression) Expression;
 
                 if (le.Parameters.Count == 2 ||
                     le.Parameters.Count == 1 && null != Expression.Find(
-                        e => e.NodeType == ExpressionType.Call && ((MethodCallExpression)e).IsQueryable()))
+                        e => e.NodeType == ExpressionType.Call && ((MethodCallExpression) e).IsQueryable()))
                 {
                     if (le.Body.NodeType == ExpressionType.New)
                     {
-                        var ne = (NewExpression)le.Body;
-                        var p  = Expression.Parameter(ne.Type, "p");
+                        var ne = (NewExpression) le.Body;
+                        var p = Expression.Parameter(ne.Type, "p");
 
                         var seq = new SelectContext(
                             Parent,
@@ -66,7 +65,7 @@ namespace LinqToDB.Linq.Builder
 
                     if (le.Body.NodeType == ExpressionType.MemberInit)
                     {
-                        var mi = (MemberInitExpression)le.Body;
+                        var mi = (MemberInitExpression) le.Body;
 
                         if (mi.NewExpression.Arguments.Count == 0 && mi.Bindings.All(b => b is MemberAssignment))
                         {
@@ -75,11 +74,13 @@ namespace LinqToDB.Linq.Builder
                             var seq = new SelectContext(
                                 Parent,
                                 Expression.Lambda(
-                                Expression.MemberInit(
-                                    mi.NewExpression,
-                                    mi.Bindings
-                                      .OfType<MemberAssignment>()
-                                      .Select(ma => Expression.Bind(ma.Member, Expression.MakeMemberAccess(p, ma.Member)))),
+                                    Expression.MemberInit(
+                                        mi.NewExpression,
+                                        mi.Bindings
+                                            .OfType<MemberAssignment>()
+                                            .Select(
+                                                ma =>
+                                                    Expression.Bind(ma.Member, Expression.MakeMemberAccess(p, ma.Member)))),
                                     p),
                                 this);
 
@@ -98,7 +99,7 @@ namespace LinqToDB.Linq.Builder
         {
             return SubQuery
                 .ConvertToIndex(expression, level, flags)
-                .Select(idx => new SqlInfo(idx.Members) { Sql = SubQuery.Select.Select.Columns[idx.Index] })
+                .Select(idx => new SqlInfo(idx.Members) {Sql = SubQuery.Select.Select.Columns[idx.Index]})
                 .ToArray();
         }
 
@@ -110,7 +111,7 @@ namespace LinqToDB.Linq.Builder
                 .Select(idx =>
                 {
                     idx.Query = Select;
-                    idx.Index = GetIndex((IColumn)idx.Sql);
+                    idx.Index = GetIndex((IColumn) idx.Sql);
 
                     return idx;
                 })
@@ -121,7 +122,8 @@ namespace LinqToDB.Linq.Builder
         {
             switch (testFlag)
             {
-                case RequestFor.SubQuery : return IsExpressionResult.True;
+                case RequestFor.SubQuery:
+                    return IsExpressionResult.True;
             }
 
             return base.IsExpression(expression, level, testFlag);

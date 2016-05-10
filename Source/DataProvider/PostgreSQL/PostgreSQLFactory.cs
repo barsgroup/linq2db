@@ -1,11 +1,10 @@
 ﻿using System.Collections.Specialized;
+using Bars2Db.Properties;
 
-namespace LinqToDB.DataProvider.PostgreSQL
+namespace Bars2Db.DataProvider.PostgreSQL
 {
-    using LinqToDB.Properties;
-
     [UsedImplicitly]
-    class PostgreSQLFactory: IDataProviderFactory
+    internal class PostgreSQLFactory : IDataProviderFactory
     {
         IDataProvider IDataProviderFactory.GetDataProvider(NameValueCollection attributes)
         {

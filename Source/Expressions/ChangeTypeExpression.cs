@@ -1,29 +1,27 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace LinqToDB.Expressions
+namespace Bars2Db.Expressions
 {
-	class ChangeTypeExpression : Expression
-	{
-		public const int ChangeTypeType = 1000;
+    internal class ChangeTypeExpression : Expression
+    {
+        public const int ChangeTypeType = 1000;
 
-		public ChangeTypeExpression(Expression expression, Type type)
-		{
-			Expression = expression;
-			_type       = type;
-		}
+        public ChangeTypeExpression(Expression expression, Type type)
+        {
+            Expression = expression;
+            Type = type;
+        }
 
-		readonly Type _type;
+        public override Type Type { get; }
 
-		public override Type           Type => _type;
+        public override ExpressionType NodeType => (ExpressionType) ChangeTypeType;
 
-	    public override ExpressionType NodeType => (ExpressionType)ChangeTypeType;
+        public Expression Expression { get; }
 
-	    public Expression Expression { get; }
-
-		public override string ToString()
-		{
-			return "(" + Type + ")" + Expression;
-		}
-	}
+        public override string ToString()
+        {
+            return "(" + Type + ")" + Expression;
+        }
+    }
 }

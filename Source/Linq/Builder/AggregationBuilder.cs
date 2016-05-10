@@ -2,35 +2,35 @@
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using Bars2Db.Common;
+using Bars2Db.Expressions;
+using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.QueryElements;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using Common;
-    using LinqToDB.Expressions;
-    using Extensions;
-
-    using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    class AggregationBuilder : MethodCallBuilder
+    internal class AggregationBuilder : MethodCallBuilder
     {
-        public static string[] MethodNames = new[] { "Average", "Min", "Max", "Sum" };
+        public static string[] MethodNames = {"Average", "Min", "Max", "Sum"};
 
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             return methodCall.IsQueryable(MethodNames);
         }
 
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
-            if (sequence.Select.Select.IsDistinct        ||
+            if (sequence.Select.Select.IsDistinct ||
                 sequence.Select.Select.TakeValue != null ||
                 sequence.Select.Select.SkipValue != null ||
-               !sequence.Select.GroupBy.IsEmpty)
+                !sequence.Select.GroupBy.IsEmpty)
             {
                 sequence = new SubQueryContext(sequence);
             }
@@ -44,11 +44,11 @@ namespace LinqToDB.Linq.Builder
             }
 
             var context = new AggregationContext(buildInfo.Parent, sequence, methodCall);
-            var sql     = sequence.ConvertToSql(null, 0, ConvertFlags.Field).Select(_ => _.Sql).ToArray();
+            var sql = sequence.ConvertToSql(null, 0, ConvertFlags.Field).Select(_ => _.Sql).ToArray();
 
             if (sql.Length == 1 && sql[0] is ISelectQuery)
             {
-                var query = (ISelectQuery)sql[0];
+                var query = (ISelectQuery) sql[0];
 
                 if (query.Select.Columns.Count == 1)
                 {
@@ -58,7 +58,7 @@ namespace LinqToDB.Linq.Builder
                 }
             }
 
-            context.Sql        = context.Select;
+            context.Sql = context.Select;
             context.FieldIndex = context.Select.Select.Add(
                 new SqlFunction(methodCall.Type, methodCall.Method.Name, sql));
 
@@ -71,8 +71,15 @@ namespace LinqToDB.Linq.Builder
             return null;
         }
 
-        class AggregationContext : SequenceContextBase
+        private class AggregationContext : SequenceContextBase
         {
+            private readonly string _methodName;
+            private readonly Type _returnType;
+            private SqlInfo[] _index;
+
+            public int FieldIndex;
+            public IQueryExpression Sql;
+
             public AggregationContext(IBuildContext parent, IBuildContext sequence, MethodCallExpression methodCall)
                 : base(parent, sequence, null)
             {
@@ -80,25 +87,18 @@ namespace LinqToDB.Linq.Builder
                 _methodName = methodCall.Method.Name;
             }
 
-            readonly string _methodName;
-            readonly Type   _returnType;
-            private  SqlInfo[] _index;
-
-            public int            FieldIndex;
-            public IQueryExpression Sql;
-
-            static int CheckNullValue(IDataRecord reader, object context)
+            private static int CheckNullValue(IDataRecord reader, object context)
             {
                 if (reader.IsDBNull(0))
                     throw new InvalidOperationException(
                         "Function {0} returns non-nullable value, but result is NULL. Use nullable version of the function instead."
-                        .Args(context));
+                            .Args(context));
                 return 0;
             }
 
             public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
             {
-                var expr   = BuildExpression(FieldIndex);
+                var expr = BuildExpression(FieldIndex);
                 var mapper = Builder.BuildMapper<object>(expr);
 
                 query.SetElementQuery(mapper.Compile());
@@ -109,7 +109,7 @@ namespace LinqToDB.Linq.Builder
                 return BuildExpression(ConvertToIndex(expression, level, ConvertFlags.Field)[0].Index);
             }
 
-            Expression BuildExpression(int fieldIndex)
+            private Expression BuildExpression(int fieldIndex)
             {
                 Expression expr;
 
@@ -120,7 +120,8 @@ namespace LinqToDB.Linq.Builder
                 else
                 {
                     expr = Expression.Block(
-                        Expression.Call(null, MemberHelper.MethodOf(() => CheckNullValue(null, null)), ExpressionBuilder.DataReaderParam, Expression.Constant(_methodName)),
+                        Expression.Call(null, MemberHelper.MethodOf(() => CheckNullValue(null, null)),
+                            ExpressionBuilder.DataReaderParam, Expression.Constant(_methodName)),
                         Builder.BuildSql(_returnType, fieldIndex));
                 }
 
@@ -131,9 +132,10 @@ namespace LinqToDB.Linq.Builder
             {
                 switch (flags)
                 {
-                    case ConvertFlags.All   :
-                    case ConvertFlags.Key   :
-                    case ConvertFlags.Field : return Sequence.ConvertToSql(expression, level + 1, flags);
+                    case ConvertFlags.All:
+                    case ConvertFlags.Key:
+                    case ConvertFlags.Field:
+                        return Sequence.ConvertToSql(expression, level + 1, flags);
                 }
 
                 throw new InvalidOperationException();
@@ -143,10 +145,10 @@ namespace LinqToDB.Linq.Builder
             {
                 switch (flags)
                 {
-                    case ConvertFlags.Field :
+                    case ConvertFlags.Field:
                         return _index ?? (_index = new[]
                         {
-                            new SqlInfo { Query = Parent.Select, Index = Parent.Select.Select.Add(Sql), Sql = Sql, }
+                            new SqlInfo {Query = Parent.Select, Index = Parent.Select.Select.Add(Sql), Sql = Sql}
                         });
                 }
 
@@ -157,8 +159,10 @@ namespace LinqToDB.Linq.Builder
             {
                 switch (requestFlag)
                 {
-                    case RequestFor.Root       : return new IsExpressionResult(Lambda != null && expression == Lambda.Parameters[0]);
-                    case RequestFor.Expression : return IsExpressionResult.True;
+                    case RequestFor.Root:
+                        return new IsExpressionResult(Lambda != null && expression == Lambda.Parameters[0]);
+                    case RequestFor.Expression:
+                        return IsExpressionResult.True;
                 }
 
                 return IsExpressionResult.False;

@@ -1,8 +1,8 @@
 ﻿using System.Linq.Expressions;
 
-namespace LinqToDB.Linq
+namespace Bars2Db.Linq
 {
-    class ExpressionQueryImpl<T> : ExpressionQuery<T>, IExpressionQuery
+    internal class ExpressionQueryImpl<T> : ExpressionQuery<T>, IExpressionQuery
     {
         public ExpressionQueryImpl(IDataContextInfo dataContext, Expression expression)
         {

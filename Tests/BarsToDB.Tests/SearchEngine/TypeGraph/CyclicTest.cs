@@ -1,15 +1,13 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TypeGraph
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Bars2Db.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
+using Xunit;
+
+namespace LinqToDB.Tests.SearchEngine.TypeGraph
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
-
-    using Xunit;
-
     public class CyclicTest : TypeGraphBaseTest
     {
         public interface IBase
@@ -81,14 +79,6 @@
             public IB B1 { get; set; }
         }
 
-        [Fact]
-        public void Test()
-        {
-            var typeGraph = new TypeGraph<IBase>(GetType().Assembly.GetTypes());
-            
-            Assert.True(CheckCyclicGraph(typeGraph.Vertices, new Dictionary<Type, TypeVertex>()));
-        }
-
         private bool CheckCyclicGraph(IEnumerable<TypeVertex> graph, Dictionary<Type, TypeVertex> visited)
         {
             foreach (var vertex in graph)
@@ -108,6 +98,14 @@
             }
 
             return true;
+        }
+
+        [Fact]
+        public void Test()
+        {
+            var typeGraph = new TypeGraph<IBase>(GetType().Assembly.GetTypes());
+
+            Assert.True(CheckCyclicGraph(typeGraph.Vertices, new Dictionary<Type, TypeVertex>()));
         }
     }
 }

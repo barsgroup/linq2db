@@ -1,13 +1,12 @@
-namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
+using System.Collections.Generic;
+using Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
+
+namespace Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces
 {
-    using System.Collections.Generic;
-
-    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
-
     public interface ISearchCondition : IQueryExpression,
-                                        IConditionBase<ISearchCondition, SearchCondition.NextCondition>, ISqlPredicate
+        IConditionBase<ISearchCondition, SearchCondition.NextCondition>, ISqlPredicate
     {
         [SearchContainer]
         LinkedList<ICondition> Conditions { get; }

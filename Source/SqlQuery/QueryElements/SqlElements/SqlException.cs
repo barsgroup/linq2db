@@ -1,9 +1,8 @@
-namespace LinqToDB.SqlQuery.QueryElements.SqlElements
+using System;
+using Bars2Db.Properties;
+
+namespace Bars2Db.SqlQuery.QueryElements.SqlElements
 {
-    using System;
-
-    using LinqToDB.Properties;
-
     public class SqlException : Exception
     {
         public SqlException(string message)
@@ -18,4 +17,3 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements
         }
     }
 }
-

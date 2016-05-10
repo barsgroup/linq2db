@@ -1,4 +1,4 @@
-namespace LinqToDB.SqlQuery.QueryElements.Enums
+namespace Bars2Db.SqlQuery.QueryElements.Enums
 {
     public enum EQueryType
     {
@@ -7,6 +7,6 @@ namespace LinqToDB.SqlQuery.QueryElements.Enums
         Update,
         Insert,
         InsertOrUpdate,
-        CreateTable,
+        CreateTable
     }
 }

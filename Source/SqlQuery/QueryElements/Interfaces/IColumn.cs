@@ -1,12 +1,11 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
+using System;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
+
+namespace Bars2Db.SqlQuery.QueryElements.Interfaces
 {
-    using System;
-
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
-
     public interface IColumn : IEquatable<IColumn>,
-                               IQueryExpression
+        IQueryExpression
     {
         [SearchContainer]
         IQueryExpression Expression { get; set; }

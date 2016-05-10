@@ -1,9 +1,8 @@
-namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
+using System.Collections.Generic;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Enums;
+
+namespace Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces
 {
-    using System.Collections.Generic;
-
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
-
     public interface ISqlTableSource : IQueryExpression
     {
         ISqlField All { get; }

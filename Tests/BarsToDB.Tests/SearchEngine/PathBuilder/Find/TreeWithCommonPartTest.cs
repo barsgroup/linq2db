@@ -1,13 +1,12 @@
-﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
+﻿using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search.PathBuilder;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
+using Xunit;
+
+namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
 {
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.PathBuilder;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
-
-    using Xunit;
-
     public class TreeWithCommonPartTest : BaseFindTest
     {
         public interface IBase
@@ -50,20 +49,19 @@
         public interface ID : IBase
         {
         }
-        
+
         public interface IX : IBase
         {
         }
 
         public class A : IA
         {
-            public IB B { get; set; }
-
-            public IX X { get; set; }
-
             public IC C { get; set; }
 
             public IX Base { get; set; }
+            public IB B { get; set; }
+
+            public IX X { get; set; }
         }
 
         [Fact]
@@ -93,9 +91,9 @@
             var startVertex = new CompositPropertyVertex();
             startVertex.PropertyList.AddLast(ab);
             startVertex.PropertyList.AddLast(bc);
-            startVertex.Children.AddRange(new[] { cd1Vertex, cd2Vertex, cd3Vertex });
+            startVertex.Children.AddRange(new[] {cd1Vertex, cd2Vertex, cd3Vertex});
 
-            var expected = new[] { startVertex };
+            var expected = new[] {startVertex};
 
             Assert.True(IsEqual(expected, result));
         }

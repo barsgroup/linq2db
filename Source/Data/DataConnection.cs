@@ -5,20 +5,28 @@ using System.Configuration;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
+using Bars2Db.Common;
+using Bars2Db.Configuration;
+using Bars2Db.DataProvider;
+using Bars2Db.DataProvider.Oracle;
+using Bars2Db.DataProvider.PostgreSQL;
+using Bars2Db.Mapping;
 
-namespace LinqToDB.Data
+namespace Bars2Db.Data
 {
-    using System.Text;
-
-    using Common;
-    using Configuration;
-    using DataProvider;
-
-    using Mapping;
-
     public partial class DataConnection : ICloneable
     {
+        #region System.IDisposable Members
+
+        public void Dispose()
+        {
+            Close();
+        }
+
+        #endregion
+
         #region .ctor
 
         public DataConnection() : this(null)
@@ -36,22 +44,22 @@ namespace LinqToDB.Data
 
             var ci = GetConfigurationInfo(ConfigurationString);
 
-            DataProvider     = ci.DataProvider;
+            DataProvider = ci.DataProvider;
             ConnectionString = ci.ConnectionString;
-            _mappingSchema   = DataProvider.MappingSchema;
+            MappingSchema = DataProvider.MappingSchema;
         }
 
         public DataConnection([Properties.NotNull] string providerName, [Properties.NotNull] string connectionString)
         {
-            if (providerName     == null) throw new ArgumentNullException(nameof(providerName));
+            if (providerName == null) throw new ArgumentNullException(nameof(providerName));
             if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
 
             var dataProvider =
-            (
-                from key in _dataProviders.Keys
-                where string.Compare(key, providerName, StringComparison.InvariantCultureIgnoreCase) == 0
-                select _dataProviders[key]
-            ).FirstOrDefault();
+                (
+                    from key in _dataProviders.Keys
+                    where string.Compare(key, providerName, StringComparison.InvariantCultureIgnoreCase) == 0
+                    select _dataProviders[key]
+                    ).FirstOrDefault();
 
             if (dataProvider == null)
             {
@@ -60,9 +68,9 @@ namespace LinqToDB.Data
 
             InitConfig();
 
-            DataProvider     = dataProvider;
+            DataProvider = dataProvider;
             ConnectionString = connectionString;
-            _mappingSchema   = DataProvider.MappingSchema;
+            MappingSchema = DataProvider.MappingSchema;
         }
 
         public DataConnection([Properties.NotNull] string providerName, [Properties.NotNull] IDbConnection connection)
@@ -81,53 +89,58 @@ namespace LinqToDB.Data
             }
 
             DataProvider = dataProvider;
-            _mappingSchema = DataProvider.MappingSchema;
+            MappingSchema = DataProvider.MappingSchema;
             _connection = connection;
         }
 
-        public DataConnection([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] string connectionString)
+        public DataConnection([Properties.NotNull] IDataProvider dataProvider,
+            [Properties.NotNull] string connectionString)
         {
-            if (dataProvider     == null) throw new ArgumentNullException(nameof(dataProvider));
+            if (dataProvider == null) throw new ArgumentNullException(nameof(dataProvider));
             if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
 
             InitConfig();
 
-            DataProvider     = dataProvider;
-            _mappingSchema   = DataProvider.MappingSchema;
+            DataProvider = dataProvider;
+            MappingSchema = DataProvider.MappingSchema;
             ConnectionString = connectionString;
         }
 
-        public DataConnection([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] IDbConnection connection)
+        public DataConnection([Properties.NotNull] IDataProvider dataProvider,
+            [Properties.NotNull] IDbConnection connection)
         {
             if (dataProvider == null) throw new ArgumentNullException(nameof(dataProvider));
-            if (connection   == null) throw new ArgumentNullException(nameof(connection));
+            if (connection == null) throw new ArgumentNullException(nameof(connection));
 
             InitConfig();
 
-            if (!Configuration.AvoidSpecificDataProviderAPI && !dataProvider.IsCompatibleConnection(connection))
+            if (!Common.Configuration.AvoidSpecificDataProviderAPI && !dataProvider.IsCompatibleConnection(connection))
                 throw new LinqToDBException(
                     "DataProvider '{0}' and connection '{1}' are not compatible.".Args(dataProvider, connection));
 
-            DataProvider   = dataProvider;
-            _mappingSchema = DataProvider.MappingSchema;
-            _connection    = connection;
+            DataProvider = dataProvider;
+            MappingSchema = DataProvider.MappingSchema;
+            _connection = connection;
         }
 
-        public DataConnection([Properties.NotNull] IDataProvider dataProvider, [Properties.NotNull] IDbTransaction transaction)
+        public DataConnection([Properties.NotNull] IDataProvider dataProvider,
+            [Properties.NotNull] IDbTransaction transaction)
         {
             if (dataProvider == null) throw new ArgumentNullException(nameof(dataProvider));
-            if (transaction  == null) throw new ArgumentNullException(nameof(transaction));
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
 
             InitConfig();
 
-            if (!Configuration.AvoidSpecificDataProviderAPI && !dataProvider.IsCompatibleConnection(transaction.Connection))
+            if (!Common.Configuration.AvoidSpecificDataProviderAPI &&
+                !dataProvider.IsCompatibleConnection(transaction.Connection))
                 throw new LinqToDBException(
-                    "DataProvider '{0}' and connection '{1}' are not compatible.".Args(dataProvider, transaction.Connection));
+                    "DataProvider '{0}' and connection '{1}' are not compatible.".Args(dataProvider,
+                        transaction.Connection));
 
-            DataProvider      = dataProvider;
-            _mappingSchema    = DataProvider.MappingSchema;
-            _connection       = transaction.Connection;
-            Transaction       = transaction;
+            DataProvider = dataProvider;
+            MappingSchema = DataProvider.MappingSchema;
+            _connection = transaction.Connection;
+            Transaction = transaction;
             _closeTransaction = false;
         }
 
@@ -135,21 +148,23 @@ namespace LinqToDB.Data
 
         #region Public Properties
 
-        public string        ConfigurationString { get; }
-        public IDataProvider DataProvider        { get; }
-        public string        ConnectionString    { get; }
+        public string ConfigurationString { get; }
+        public IDataProvider DataProvider { get; }
+        public string ConnectionString { get; }
 
-        static readonly ConcurrentDictionary<string,int> _configurationIDs;
-        static int _maxID;
+        private static readonly ConcurrentDictionary<string, int> _configurationIDs;
+        private static int _maxID;
 
         private int? _id;
-        public  int   ID
+
+        public int ID
         {
             get
             {
                 if (!_id.HasValue)
                 {
-                    var key = MappingSchema.ConfigurationID + "." + (ConfigurationString ?? ConnectionString ?? Connection.ConnectionString);
+                    var key = MappingSchema.ConfigurationID + "." +
+                              (ConfigurationString ?? ConnectionString ?? Connection.ConnectionString);
                     int id;
 
                     if (!_configurationIDs.TryGetValue(key, out id))
@@ -163,12 +178,13 @@ namespace LinqToDB.Data
         }
 
         private bool? _isMarsEnabled;
-        public  bool   IsMarsEnabled
+
+        public bool IsMarsEnabled
         {
             get
             {
                 if (_isMarsEnabled == null)
-                    _isMarsEnabled = (bool)(DataProvider.GetConnectionInfo(this, "IsMarsEnabled") ?? false);
+                    _isMarsEnabled = (bool) (DataProvider.GetConnectionInfo(this, "IsMarsEnabled") ?? false);
 
                 return _isMarsEnabled.Value;
             }
@@ -176,16 +192,17 @@ namespace LinqToDB.Data
         }
 
         public static string DefaultConfiguration { get; set; }
-        public static string DefaultDataProvider  { get; set; }
+        public static string DefaultDataProvider { get; set; }
 
         private static Action<TraceInfo> _onTrace = OnTraceInternal;
-        public  static Action<TraceInfo>  OnTrace
+
+        public static Action<TraceInfo> OnTrace
         {
             get { return _onTrace; }
             set { _onTrace = value ?? OnTraceInternal; }
         }
 
-        static void OnTraceInternal(TraceInfo info)
+        private static void OnTraceInternal(TraceInfo info)
         {
             if (info.BeforeExecute)
             {
@@ -211,7 +228,9 @@ namespace LinqToDB.Data
             }
             else if (info.RecordsAffected != null)
             {
-                WriteTraceLine("Execution time: {0}. Records affected: {1}.\r\n".Args(info.ExecutionTime, info.RecordsAffected), TraceSwitch.DisplayName);
+                WriteTraceLine(
+                    "Execution time: {0}. Records affected: {1}.\r\n".Args(info.ExecutionTime, info.RecordsAffected),
+                    TraceSwitch.DisplayName);
             }
             else
             {
@@ -220,17 +239,18 @@ namespace LinqToDB.Data
         }
 
         private static TraceSwitch _traceSwitch;
-        public  static TraceSwitch  TraceSwitch
+
+        public static TraceSwitch TraceSwitch
         {
             get
             {
                 return _traceSwitch ?? (_traceSwitch = new TraceSwitch("DataConnection", "DataConnection trace switch",
 #if DEBUG
-                "Warning"
+                    "Warning"
 #else
                 "Off"
 #endif
-                ));
+                    ));
             }
             set { _traceSwitch = value; }
         }
@@ -240,13 +260,15 @@ namespace LinqToDB.Data
             TraceSwitch = new TraceSwitch("DataConnection", "DataConnection trace switch", traceLevel.ToString());
         }
 
-        public static Action<string,string> WriteTraceLine = (message, displayName) => Debug.WriteLine(message, displayName);
+        public static Action<string, string> WriteTraceLine =
+            (message, displayName) => Debug.WriteLine(message, displayName);
 
         #endregion
 
         #region Configuration
 
-        static IDataProvider FindProvider(string configuration, IEnumerable<KeyValuePair<string,IDataProvider>> ps, IDataProvider defp)
+        private static IDataProvider FindProvider(string configuration,
+            IEnumerable<KeyValuePair<string, IDataProvider>> ps, IDataProvider defp)
         {
             foreach (var p in ps.OrderByDescending(kv => kv.Key.Length))
                 if (configuration == p.Key || configuration.StartsWith(p.Key + '.'))
@@ -261,23 +283,23 @@ namespace LinqToDB.Data
 
         static DataConnection()
         {
-            _configurationIDs = new ConcurrentDictionary<string,int>();
+            _configurationIDs = new ConcurrentDictionary<string, int>();
 
 
-            LinqToDB.DataProvider.Oracle.    OracleTools.    GetDataProvider();
-            LinqToDB.DataProvider.PostgreSQL.PostgreSQLTools.GetDataProvider();
+            OracleTools.GetDataProvider();
+            PostgreSQLTools.GetDataProvider();
 
             var section = LinqToDBSection.Instance;
 
             if (section != null)
             {
                 DefaultConfiguration = section.DefaultConfiguration;
-                DefaultDataProvider  = section.DefaultDataProvider;
+                DefaultDataProvider = section.DefaultDataProvider;
 
                 foreach (DataProviderElement provider in section.DataProviders)
                 {
                     var dataProviderType = Type.GetType(provider.TypeName, true);
-                    var providerInstance = (IDataProviderFactory)Activator.CreateInstance(dataProviderType);
+                    var providerInstance = (IDataProviderFactory) Activator.CreateInstance(dataProviderType);
 
                     if (!string.IsNullOrEmpty(provider.Name))
                         AddDataProvider(provider.Name, providerInstance.GetDataProvider(provider.Attributes));
@@ -285,10 +307,10 @@ namespace LinqToDB.Data
             }
         }
 
-        readonly static List<Func<ConnectionStringSettings,IDataProvider>> _providerDetectors =
-            new List<Func<ConnectionStringSettings,IDataProvider>>();
+        private static readonly List<Func<ConnectionStringSettings, IDataProvider>> _providerDetectors =
+            new List<Func<ConnectionStringSettings, IDataProvider>>();
 
-        public static void AddProviderDetector(Func<ConnectionStringSettings,IDataProvider> providerDetector)
+        public static void AddProviderDetector(Func<ConnectionStringSettings, IDataProvider> providerDetector)
         {
             _providerDetectors.Add(providerDetector);
         }
@@ -309,7 +331,7 @@ namespace LinqToDB.Data
             return source == null || source.EndsWith("machine.config", StringComparison.OrdinalIgnoreCase);
         }
 
-        static void InitConnectionStrings()
+        private static void InitConnectionStrings()
         {
             foreach (ConnectionStringSettings css in ConfigurationManager.ConnectionStrings)
             {
@@ -322,10 +344,10 @@ namespace LinqToDB.Data
             }
         }
 
-        static          bool   _isInitialized;
-        static readonly object _initSync = new object();
+        private static bool _isInitialized;
+        private static readonly object _initSync = new object();
 
-        static void InitConfig()
+        private static void InitConfig()
         {
             if (!_isInitialized)
                 lock (_initSync)
@@ -336,10 +358,11 @@ namespace LinqToDB.Data
                     }
         }
 
-        static readonly ConcurrentDictionary<string,IDataProvider> _dataProviders =
-            new ConcurrentDictionary<string,IDataProvider>();
+        private static readonly ConcurrentDictionary<string, IDataProvider> _dataProviders =
+            new ConcurrentDictionary<string, IDataProvider>();
 
-        public static void AddDataProvider([Properties.NotNull] string providerName, [Properties.NotNull] IDataProvider dataProvider)
+        public static void AddDataProvider([Properties.NotNull] string providerName,
+            [Properties.NotNull] IDataProvider dataProvider)
         {
             if (providerName == null) throw new ArgumentNullException(nameof(providerName));
             if (dataProvider == null) throw new ArgumentNullException(nameof(dataProvider));
@@ -364,12 +387,18 @@ namespace LinqToDB.Data
             return GetConfigurationInfo(configurationString).DataProvider;
         }
 
-        class ConfigurationInfo
+        private class ConfigurationInfo
         {
+            private readonly ConnectionStringSettings _connectionStringSettings;
+
+            private IDataProvider _dataProvider;
+
+            public string ConnectionString;
+
             public ConfigurationInfo(string connectionString, IDataProvider dataProvider)
             {
                 ConnectionString = connectionString;
-                DataProvider     = dataProvider;
+                DataProvider = dataProvider;
             }
 
             public ConfigurationInfo(ConnectionStringSettings connectionStringSettings)
@@ -379,22 +408,17 @@ namespace LinqToDB.Data
                 _connectionStringSettings = connectionStringSettings;
             }
 
-            public  string ConnectionString;
-
-            private readonly ConnectionStringSettings _connectionStringSettings;
-
-            private IDataProvider _dataProvider;
-            public  IDataProvider  DataProvider
+            public IDataProvider DataProvider
             {
                 get { return _dataProvider ?? (_dataProvider = GetDataProvider(_connectionStringSettings)); }
                 set { _dataProvider = value; }
             }
 
-            static IDataProvider GetDataProvider(ConnectionStringSettings css)
+            private static IDataProvider GetDataProvider(ConnectionStringSettings css)
             {
                 var configuration = css.Name;
-                var providerName  = css.ProviderName;
-                var dataProvider  = _providerDetectors.Select(d => d(css)).FirstOrDefault(dp => dp != null);
+                var providerName = css.ProviderName;
+                var dataProvider = _providerDetectors.Select(d => d(css)).FirstOrDefault(dp => dp != null);
 
                 if (dataProvider == null)
                 {
@@ -408,13 +432,20 @@ namespace LinqToDB.Data
                         dataProvider = _dataProviders[configuration];
                     else
                     {
-                        var providers = _dataProviders.Where(dp => dp.Value.ConnectionNamespace == providerName).ToList();
+                        var providers =
+                            _dataProviders.Where(dp => dp.Value.ConnectionNamespace == providerName).ToList();
 
                         switch (providers.Count)
                         {
-                            case 0  : dataProvider = defaultDataProvider;                                        break;
-                            case 1  : dataProvider = providers[0].Value;                                         break;
-                            default : dataProvider = FindProvider(configuration, providers, providers[0].Value); break;
+                            case 0:
+                                dataProvider = defaultDataProvider;
+                                break;
+                            case 1:
+                                dataProvider = providers[0].Value;
+                                break;
+                            default:
+                                dataProvider = FindProvider(configuration, providers, providers[0].Value);
+                                break;
                         }
                     }
                 }
@@ -428,7 +459,7 @@ namespace LinqToDB.Data
             }
         }
 
-        static ConfigurationInfo GetConfigurationInfo(string configurationString)
+        private static ConfigurationInfo GetConfigurationInfo(string configurationString)
         {
             ConfigurationInfo ci;
 
@@ -451,7 +482,7 @@ namespace LinqToDB.Data
             }
         }
 
-        static readonly ConcurrentDictionary<string,ConfigurationInfo> _configurations =
+        private static readonly ConcurrentDictionary<string, ConfigurationInfo> _configurations =
             new ConcurrentDictionary<string, ConfigurationInfo>();
 
         public static void AddConfiguration(
@@ -459,7 +490,7 @@ namespace LinqToDB.Data
             [Properties.NotNull] string connectionString,
             IDataProvider dataProvider = null)
         {
-            if (configuration    == null) throw new ArgumentNullException(nameof(configuration));
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
             if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
 
             _configurations[configuration] = new ConfigurationInfo(
@@ -471,7 +502,7 @@ namespace LinqToDB.Data
             [Properties.NotNull] string configuration,
             [Properties.NotNull] string connectionString)
         {
-            if (configuration    == null) throw new ArgumentNullException(nameof(configuration));
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
             if (connectionString == null) throw new ArgumentNullException(nameof(connectionString));
 
             InitConfig();
@@ -495,9 +526,9 @@ namespace LinqToDB.Data
 
         #region Connection
 
-        bool          _closeConnection;
-        bool          _closeTransaction;
-        IDbConnection _connection;
+        private bool _closeConnection;
+        private bool _closeTransaction;
+        private IDbConnection _connection;
 
         public IDbConnection Connection
         {
@@ -548,7 +579,8 @@ namespace LinqToDB.Data
 
         public string LastQuery;
 
-        internal void InitCommand(CommandType commandType, string sql, DataParameter[] parameters, List<string> queryHints)
+        internal void InitCommand(CommandType commandType, string sql, DataParameter[] parameters,
+            List<string> queryHints)
         {
             if (queryHints != null && queryHints.Count > 0)
             {
@@ -562,14 +594,16 @@ namespace LinqToDB.Data
         }
 
         private int? _commandTimeout;
-        public  int   CommandTimeout
+
+        public int CommandTimeout
         {
             get { return _commandTimeout ?? 0; }
-            set { _commandTimeout = value;     }
+            set { _commandTimeout = value; }
         }
 
         private IDbCommand _command;
-        public  IDbCommand  Command
+
+        public IDbCommand Command
         {
             get { return _command ?? (_command = CreateCommand()); }
             set { _command = value; }
@@ -606,10 +640,10 @@ namespace LinqToDB.Data
             {
                 OnTrace(new TraceInfo
                 {
-                    BeforeExecute  = true,
-                    TraceLevel     = TraceLevel.Info,
+                    BeforeExecute = true,
+                    TraceLevel = TraceLevel.Info,
                     DataConnection = this,
-                    Command        = Command,
+                    Command = Command
                 });
             }
 
@@ -622,11 +656,11 @@ namespace LinqToDB.Data
                 {
                     OnTrace(new TraceInfo
                     {
-                        TraceLevel      = TraceLevel.Info,
-                        DataConnection  = this,
-                        Command         = Command,
-                        ExecutionTime   = DateTime.Now - now,
-                        RecordsAffected = ret,
+                        TraceLevel = TraceLevel.Info,
+                        DataConnection = this,
+                        Command = Command,
+                        ExecutionTime = DateTime.Now - now,
+                        RecordsAffected = ret
                     });
                 }
 
@@ -638,10 +672,10 @@ namespace LinqToDB.Data
                 {
                     OnTrace(new TraceInfo
                     {
-                        TraceLevel     = TraceLevel.Error,
+                        TraceLevel = TraceLevel.Error,
                         DataConnection = this,
-                        Command        = Command,
-                        Exception      = ex,
+                        Command = Command,
+                        Exception = ex
                     });
                 }
 
@@ -658,10 +692,10 @@ namespace LinqToDB.Data
             {
                 OnTrace(new TraceInfo
                 {
-                    BeforeExecute  = true,
-                    TraceLevel     = TraceLevel.Info,
+                    BeforeExecute = true,
+                    TraceLevel = TraceLevel.Info,
                     DataConnection = this,
-                    Command        = Command,
+                    Command = Command
                 });
             }
 
@@ -674,10 +708,10 @@ namespace LinqToDB.Data
                 {
                     OnTrace(new TraceInfo
                     {
-                        TraceLevel     = TraceLevel.Info,
+                        TraceLevel = TraceLevel.Info,
                         DataConnection = this,
-                        Command        = Command,
-                        ExecutionTime  = DateTime.Now - now,
+                        Command = Command,
+                        ExecutionTime = DateTime.Now - now
                     });
                 }
 
@@ -689,10 +723,10 @@ namespace LinqToDB.Data
                 {
                     OnTrace(new TraceInfo
                     {
-                        TraceLevel     = TraceLevel.Error,
+                        TraceLevel = TraceLevel.Error,
                         DataConnection = this,
-                        Command        = Command,
-                        Exception      = ex,
+                        Command = Command,
+                        Exception = ex
                     });
                 }
 
@@ -714,10 +748,10 @@ namespace LinqToDB.Data
             {
                 OnTrace(new TraceInfo
                 {
-                    BeforeExecute  = true,
-                    TraceLevel     = TraceLevel.Info,
+                    BeforeExecute = true,
+                    TraceLevel = TraceLevel.Info,
                     DataConnection = this,
-                    Command        = Command,
+                    Command = Command
                 });
             }
 
@@ -730,10 +764,10 @@ namespace LinqToDB.Data
                 {
                     OnTrace(new TraceInfo
                     {
-                        TraceLevel     = TraceLevel.Info,
+                        TraceLevel = TraceLevel.Info,
                         DataConnection = this,
-                        Command        = Command,
-                        ExecutionTime  = DateTime.Now - now,
+                        Command = Command,
+                        ExecutionTime = DateTime.Now - now
                     });
                 }
 
@@ -745,10 +779,10 @@ namespace LinqToDB.Data
                 {
                     OnTrace(new TraceInfo
                     {
-                        TraceLevel     = TraceLevel.Error,
+                        TraceLevel = TraceLevel.Error,
                         DataConnection = this,
-                        Command        = Command,
-                        Exception      = ex,
+                        Command = Command,
+                        Exception = ex
                     });
                 }
 
@@ -836,40 +870,39 @@ namespace LinqToDB.Data
 
         #region MappingSchema
 
-        private MappingSchema _mappingSchema;
-
-        public  MappingSchema  MappingSchema => _mappingSchema;
+        public MappingSchema MappingSchema { get; private set; }
 
         public bool InlineParameters { get; set; }
 
         private List<string> _queryHints;
-        public  List<string>  QueryHints => _queryHints ?? (_queryHints = new List<string>());
+        public List<string> QueryHints => _queryHints ?? (_queryHints = new List<string>());
 
         private List<string> _nextQueryHints;
-        public  List<string>  NextQueryHints => _nextQueryHints ?? (_nextQueryHints = new List<string>());
+        public List<string> NextQueryHints => _nextQueryHints ?? (_nextQueryHints = new List<string>());
 
         public DataConnection AddMappingSchema(MappingSchema mappingSchema)
         {
-            _mappingSchema = new MappingSchema(mappingSchema, _mappingSchema);
-            _id            = null;
+            MappingSchema = new MappingSchema(mappingSchema, MappingSchema);
+            _id = null;
 
             return this;
         }
 
         public
 
-        #endregion
+            #endregion
 
-        #region ICloneable Members
+            #region ICloneable Members
 
-        DataConnection(string configurationString, IDataProvider dataProvider, string connectionString, IDbConnection connection, MappingSchema mappingSchema)
+            DataConnection(string configurationString, IDataProvider dataProvider, string connectionString,
+                IDbConnection connection, MappingSchema mappingSchema)
         {
             ConfigurationString = configurationString;
-            DataProvider        = dataProvider;
-            ConnectionString    = connectionString;
-            _connection         = connection;
-            _mappingSchema      = mappingSchema;
-            _closeConnection    = true;
+            DataProvider = dataProvider;
+            ConnectionString = connectionString;
+            _connection = connection;
+            MappingSchema = mappingSchema;
+            _closeConnection = true;
         }
 
         public object Clone()
@@ -879,8 +912,8 @@ namespace LinqToDB.Data
             {
                 var cloneable = _connection as ICloneable;
                 connection = cloneable != null
-                                 ? (IDbConnection)cloneable.Clone()
-                                 : DataProvider.CreateConnection(ConnectionString);
+                    ? (IDbConnection) cloneable.Clone()
+                    : DataProvider.CreateConnection(ConnectionString);
             }
             else
             {
@@ -888,15 +921,6 @@ namespace LinqToDB.Data
             }
 
             return new DataConnection(ConfigurationString, DataProvider, ConnectionString, connection, MappingSchema);
-        }
-
-        #endregion
-
-        #region System.IDisposable Members
-
-        public void Dispose()
-        {
-            Close();
         }
 
         #endregion

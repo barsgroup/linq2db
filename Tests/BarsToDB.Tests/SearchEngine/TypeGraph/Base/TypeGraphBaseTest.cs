@@ -1,12 +1,10 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TypeGraph.Base
+﻿using System;
+using System.Linq;
+using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+
+namespace LinqToDB.Tests.SearchEngine.TypeGraph.Base
 {
-    using System;
-    using System.Linq;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-
     public class TypeGraphBaseTest
     {
         protected static TypeVertex[] GetGraphArray(params TypeVertex[] vertices)
@@ -151,11 +149,11 @@
             {
                 var newChildren =
                     vertex.Children.OrderBy(child => child.PropertyInfo.Name)
-                          .ThenBy(child => child.PropertyInfo.DeclaringType.FullName)
-                          .ThenBy(child => child.PropertyInfo.ReflectedType.FullName)
-                          .ThenBy(child => child.PropertyInfo.PropertyType.FullName)
-                          .ThenBy(child => child.Child.Type.FullName)
-                          .ToList();
+                        .ThenBy(child => child.PropertyInfo.DeclaringType.FullName)
+                        .ThenBy(child => child.PropertyInfo.ReflectedType.FullName)
+                        .ThenBy(child => child.PropertyInfo.PropertyType.FullName)
+                        .ThenBy(child => child.Child.Type.FullName)
+                        .ToList();
                 vertex.Children.Clear();
                 vertex.Children.AddRange(newChildren);
 

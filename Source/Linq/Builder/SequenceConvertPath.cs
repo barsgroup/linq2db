@@ -1,15 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Linq.Expressions;
+using Bars2Db.Properties;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Properties;
-
     [DebuggerDisplay("Path = {Path}, Expr = {Expr}, Level = {Level}")]
     public class SequenceConvertPath
     {
-        [NotNull] public Expression Path;
         [NotNull] public Expression Expr;
-                  public int        Level;
+        public int Level;
+        [NotNull] public Expression Path;
     }
 }

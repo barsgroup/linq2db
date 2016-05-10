@@ -1,16 +1,16 @@
 ﻿using System;
 
-namespace LinqToDB
+namespace Bars2Db
 {
     public class KeepConnectionAliveScope : IDisposable
     {
-        readonly DataContext _dataContext;
-        readonly bool        _savedValue;
+        private readonly DataContext _dataContext;
+        private readonly bool _savedValue;
 
         public KeepConnectionAliveScope(DataContext dataContext)
         {
             _dataContext = dataContext;
-            _savedValue  = dataContext.KeepConnectionAlive;
+            _savedValue = dataContext.KeepConnectionAlive;
 
             dataContext.KeepConnectionAlive = true;
         }

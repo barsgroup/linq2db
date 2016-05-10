@@ -1,22 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LinqToDB.Mapping.DataTypes
+﻿namespace Bars2Db.Mapping.DataTypes
 {
     public class Hierarchical
     {
-        public virtual string Content { get; protected set; }
-
         protected Hierarchical()
         {
         }
+
         public Hierarchical(string content)
         {
             Content = content;
         }
+
+        public virtual string Content { get; protected set; }
 
         public virtual bool IsChildOf(Hierarchical content)
         {

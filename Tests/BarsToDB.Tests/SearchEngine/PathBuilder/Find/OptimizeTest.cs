@@ -1,12 +1,11 @@
-﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
+﻿using Bars2Db.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search.PathBuilder;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
+using Xunit;
+
+namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
 {
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.PathBuilder;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
-
-    using Xunit;
-
     public class OptimizeTest : BaseFindTest
     {
         public interface IBase
@@ -71,9 +70,9 @@
         public void Test()
         {
             var typeGraph = new TypeGraph<IBase>(GetType().Assembly.GetTypes());
-            
+
             var pathBuilder = new PathBuilder<IBase>(typeGraph);
-            
+
             var result = pathBuilder.Find(new ClassA(), typeof(IE));
 
             //// 1) IA.B -> IB.C -> IC.D -> ID.E
@@ -120,7 +119,7 @@
             vertexBaseAA.Children.AddLast(vertexABCDE);
             vertexBaseAA.Children.AddLast(vertexBaseAA);
 
-            var expected = new[] { vertexABCDE, vertexBaseAA };
+            var expected = new[] {vertexABCDE, vertexBaseAA};
 
             Assert.True(IsEqual(expected, result));
         }

@@ -1,14 +1,12 @@
-namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
+using System;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces
 {
-    using System;
-
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-
-    public interface IQueryExpression : IQueryElement, IEquatable<IQueryExpression>, ISqlExpressionWalkable, ICloneableElement, IOperation
+    public interface IQueryExpression : IQueryElement, IEquatable<IQueryExpression>, ISqlExpressionWalkable,
+        ICloneableElement, IOperation
     {
-        bool Equals   (IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer);
-    
         Type SystemType { get; }
-
+        bool Equals(IQueryExpression other, Func<IQueryExpression, IQueryExpression, bool> comparer);
     }
 }

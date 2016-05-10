@@ -1,18 +1,17 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
+﻿using Bars2Db.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
+using Xunit;
+
+namespace LinqToDB.Tests.SearchEngine.TypeGraph
 {
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
-
-    using Xunit;
-
     public class PropertiesWithoutAttributeTest : TypeGraphBaseTest
     {
         public interface IBase
         {
             [SearchContainer]
             IA A1 { get; set; }
-            
+
             IA A2 { get; set; }
         }
 

@@ -1,80 +1,17 @@
-namespace LinqToDB.SqlQuery.QueryElements.Clauses
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Clauses.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.Clauses
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class SelectClause : ClauseBase,
-                                ISelectClause
+        ISelectClause
     {
-        #region Init
-
-        internal SelectClause(ISelectQuery selectQuery) : base(selectQuery)
-        {
-        }
-
-        internal SelectClause(ISelectQuery selectQuery, ISelectClause clone, Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
-            : base(selectQuery)
-        {
-            _columns.AddRange(clone.Columns.Select(c => (IColumn)c.Clone(objectTree, doClone)));
-            IsDistinct = clone.IsDistinct;
-            TakeValue = (IQueryExpression)clone.TakeValue?.Clone(objectTree, doClone);
-            SkipValue = (IQueryExpression)clone.SkipValue?.Clone(objectTree, doClone);
-        }
-
-        internal SelectClause(bool isDistinct, IQueryExpression takeValue, IQueryExpression skipValue, IEnumerable<IColumn> columns) : base(null)
-        {
-            IsDistinct = isDistinct;
-            TakeValue = takeValue;
-            SkipValue = skipValue;
-            _columns.AddRange(columns);
-        }
-
-        #endregion
-
-        #region Columns
-
-        public void Expr(IQueryExpression expr)
-        {
-            AddOrGetColumn(new Column(SelectQuery, expr));
-        }
-
-        public int Add(IQueryExpression expr)
-        {
-            var column = expr as Column;
-            if (column != null && column.Parent == SelectQuery)
-                throw new InvalidOperationException();
-
-            return _columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr)));
-        }
-
-        public int Add(IQueryExpression expr, string alias)
-        {
-            return _columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr, alias)));
-        }
-
-        IColumn AddOrGetColumn(IColumn col)
-        {
-            if (_columns.All(c => !c.Equals(col)))
-            {
-                _columns.Add(col);
-            }
-
-            return col;
-        }
-
-        private readonly List<IColumn> _columns = new List<IColumn>();
-
-        public List<IColumn> Columns => _columns;
-
-        #endregion
-
         #region HasModifier
 
         public bool HasModifier => IsDistinct || SkipValue != null || TakeValue != null;
@@ -99,16 +36,16 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
         {
-            for (var i = 0; i < _columns.Count; i++)
+            for (var i = 0; i < Columns.Count; i++)
             {
-                var col = _columns[i];
+                var col = Columns[i];
                 var expr = col.Walk(skipColumns, func);
 
                 var column = expr as IColumn;
                 if (column != null)
-                    _columns[i] = column;
+                    Columns[i] = column;
                 else
-                    _columns[i] = new Column(col.Parent, expr, col.Alias);
+                    Columns[i] = new Column(col.Parent, expr, col.Alias);
             }
 
             TakeValue = TakeValue?.Walk(skipColumns, func);
@@ -116,6 +53,68 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
             return null;
         }
+
+        #endregion
+
+        #region Init
+
+        internal SelectClause(ISelectQuery selectQuery) : base(selectQuery)
+        {
+        }
+
+        internal SelectClause(ISelectQuery selectQuery, ISelectClause clone,
+            Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+            : base(selectQuery)
+        {
+            Columns.AddRange(clone.Columns.Select(c => (IColumn) c.Clone(objectTree, doClone)));
+            IsDistinct = clone.IsDistinct;
+            TakeValue = (IQueryExpression) clone.TakeValue?.Clone(objectTree, doClone);
+            SkipValue = (IQueryExpression) clone.SkipValue?.Clone(objectTree, doClone);
+        }
+
+        internal SelectClause(bool isDistinct, IQueryExpression takeValue, IQueryExpression skipValue,
+            IEnumerable<IColumn> columns) : base(null)
+        {
+            IsDistinct = isDistinct;
+            TakeValue = takeValue;
+            SkipValue = skipValue;
+            Columns.AddRange(columns);
+        }
+
+        #endregion
+
+        #region Columns
+
+        public void Expr(IQueryExpression expr)
+        {
+            AddOrGetColumn(new Column(SelectQuery, expr));
+        }
+
+        public int Add(IQueryExpression expr)
+        {
+            var column = expr as Column;
+            if (column != null && column.Parent == SelectQuery)
+                throw new InvalidOperationException();
+
+            return Columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr)));
+        }
+
+        public int Add(IQueryExpression expr, string alias)
+        {
+            return Columns.IndexOf(AddOrGetColumn(new Column(SelectQuery, expr, alias)));
+        }
+
+        private IColumn AddOrGetColumn(IColumn col)
+        {
+            if (Columns.All(c => !c.Equals(col)))
+            {
+                Columns.Add(col);
+            }
+
+            return col;
+        }
+
+        public List<IColumn> Columns { get; } = new List<IColumn>();
 
         #endregion
 
@@ -151,14 +150,14 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
             sb.AppendLine();
 
-            if (_columns.Count == 0)
+            if (Columns.Count == 0)
                 sb.Append("\t*, \n");
             else
                 foreach (var c in Columns)
                 {
                     sb.Append("\t");
                     c.ToString(sb, dic);
-                    sb.Append(" as ").Append(c.Alias ?? "c" + (_columns.IndexOf(c) + 1)).Append(", \n");
+                    sb.Append(" as ").Append(c.Alias ?? "c" + (Columns.IndexOf(c) + 1)).Append(", \n");
                 }
 
             sb.Length -= 3;

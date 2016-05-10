@@ -1,41 +1,43 @@
-namespace LinqToDB.SqlQuery.QueryElements.Conditions
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.Conditions
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
-
     public class Condition : BaseQueryElement,
-                             ICondition
+        ICondition
     {
         public Condition(bool isNot, ISqlPredicate predicate)
         {
-            IsNot     = isNot;
+            IsNot = isNot;
             Predicate = predicate;
         }
 
         public Condition(bool isNot, ISqlPredicate predicate, bool isOr)
         {
-            IsNot     = isNot;
+            IsNot = isNot;
             Predicate = predicate;
-            IsOr      = isOr;
+            IsOr = isOr;
         }
 
-        public bool          IsNot     { get; set; }
+        public bool IsNot { get; set; }
 
         public ISqlPredicate Predicate { get; set; }
 
-        public bool          IsOr      { get; set; }
+        public bool IsOr { get; set; }
 
-        public int Precedence => IsNot ? SqlQuery.Precedence.LogicalNegation :
-                                     IsOr  ? SqlQuery.Precedence.LogicalDisjunction :
-                                         SqlQuery.Precedence.LogicalConjunction;
+        public int Precedence => IsNot
+            ? SqlQuery.Precedence.LogicalNegation
+            : IsOr
+                ? SqlQuery.Precedence.LogicalDisjunction
+                : SqlQuery.Precedence.LogicalConjunction;
 
-        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
         {
             if (!doClone(this))
                 return this;
@@ -43,7 +45,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
             ICloneableElement clone;
 
             if (!objectTree.TryGetValue(this, out clone))
-                objectTree.Add(this, clone = new Condition(IsNot, (ISqlPredicate)Predicate.Clone(objectTree, doClone), IsOr));
+                objectTree.Add(this,
+                    clone = new Condition(IsNot, (ISqlPredicate) Predicate.Clone(objectTree, doClone), IsOr));
 
             return clone;
         }
@@ -57,7 +60,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
 
         public override EQueryElementType ElementType => EQueryElementType.Condition;
 
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
             if (dic.ContainsKey(this))
                 return sb.Append("...");

@@ -1,12 +1,11 @@
-﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
+﻿using Bars2Db.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search.PathBuilder;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
+using Xunit;
+
+namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
 {
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.PathBuilder;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
-
-    using Xunit;
-
     public class WrongPathsTest : BaseFindTest
     {
         public interface IBase
@@ -17,7 +16,7 @@
         {
             [SearchContainer]
             IB B { get; set; }
-            
+
             [SearchContainer]
             IC C { get; set; }
         }
@@ -68,7 +67,7 @@
             var vertex2 = new CompositPropertyVertex();
             vertex2.PropertyList.AddLast(ac);
             vertex2.PropertyList.AddLast(cderb);
-            var expected = new[] { vertex1, vertex2 };
+            var expected = new[] {vertex1, vertex2};
 
             Assert.True(IsEqual(expected, result));
         }

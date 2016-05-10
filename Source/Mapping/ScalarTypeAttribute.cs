@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct, AllowMultiple = true)]
     public class ScalarTypeAttribute : Attribute
     {
         public ScalarTypeAttribute()
@@ -12,22 +12,22 @@ namespace LinqToDB.Mapping
 
         public ScalarTypeAttribute(bool isScalar)
         {
-            IsScalar      = isScalar;
+            IsScalar = isScalar;
         }
 
         public ScalarTypeAttribute(string configuration)
         {
             Configuration = configuration;
-            IsScalar      = true;
+            IsScalar = true;
         }
 
         public ScalarTypeAttribute(string configuration, bool isScalar)
         {
             Configuration = configuration;
-            IsScalar      = isScalar;
+            IsScalar = isScalar;
         }
 
         public string Configuration { get; set; }
-        public bool   IsScalar      { get; set; }
+        public bool IsScalar { get; set; }
     }
 }

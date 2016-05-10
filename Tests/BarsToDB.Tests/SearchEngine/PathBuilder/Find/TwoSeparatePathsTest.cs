@@ -1,12 +1,11 @@
-﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
+﻿using Bars2Db.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search.PathBuilder;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
+using Xunit;
+
+namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
 {
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.PathBuilder;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
-
-    using Xunit;
-
     public class TwoSeparatePathsTest : BaseFindTest
     {
         public interface IBase
@@ -72,7 +71,7 @@
             var ac = typeof(IA).GetProperty("C");
             var bc = typeof(IB).GetProperty("C");
             var cf = typeof(IC).GetProperty("F");
-            
+
             var pathCommon = new CompositPropertyVertex();
             pathCommon.PropertyList.AddLast(cf);
 
@@ -85,7 +84,7 @@
             path2.PropertyList.AddLast(ac);
             path2.Children.AddLast(pathCommon);
 
-            var expected = new[] { path1, path2 };
+            var expected = new[] {path1, path2};
 
             Assert.True(IsEqual(expected, result));
         }

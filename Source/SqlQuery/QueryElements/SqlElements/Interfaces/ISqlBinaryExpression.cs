@@ -1,7 +1,7 @@
-namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
-{
-    using LinqToDB.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search;
 
+namespace Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces
+{
     public interface ISqlBinaryExpression : IQueryExpression
     {
         [SearchContainer]

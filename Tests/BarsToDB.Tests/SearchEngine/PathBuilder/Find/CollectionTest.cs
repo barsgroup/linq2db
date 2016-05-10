@@ -1,14 +1,12 @@
-﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
+﻿using System.Collections.Generic;
+using Bars2Db.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search.PathBuilder;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
+using Xunit;
+
+namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
 {
-    using System.Collections.Generic;
-
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.PathBuilder;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
-
-    using Xunit;
-
     public class CollectionTest : BaseFindTest
     {
         public interface IBase
@@ -43,8 +41,8 @@
 
             var vertex1 = new CompositPropertyVertex();
             vertex1.PropertyList.AddLast(ab);
-            
-            var expected = new[] { vertex1 };
+
+            var expected = new[] {vertex1};
 
             Assert.True(IsEqual(expected, result));
         }

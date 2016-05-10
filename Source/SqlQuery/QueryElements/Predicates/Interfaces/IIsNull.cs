@@ -1,6 +1,6 @@
-namespace LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces
+namespace Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces
 {
-    public interface IIsNull: INotExpr
+    public interface IIsNull : INotExpr
     {
     }
 }

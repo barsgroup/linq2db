@@ -5,20 +5,21 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LinqToDB.Data
+namespace Bars2Db.Data
 {
 #if !NOASYNC
 
     public partial class DataConnection
     {
-        internal async Task InitCommandAsync(CommandType commandType, string sql, DataParameter[] parameters, CancellationToken cancellationToken)
+        internal async Task InitCommandAsync(CommandType commandType, string sql, DataParameter[] parameters,
+            CancellationToken cancellationToken)
         {
             if (_connection == null)
                 _connection = DataProvider.CreateConnection(ConnectionString);
 
             if (_connection.State == ConnectionState.Closed)
             {
-                await ((DbConnection)_connection).OpenAsync(cancellationToken);
+                await ((DbConnection) _connection).OpenAsync(cancellationToken);
                 _closeConnection = true;
             }
 
@@ -28,33 +29,33 @@ namespace LinqToDB.Data
         internal async Task<int> ExecuteNonQueryAsync(CancellationToken cancellationToken)
         {
             if (TraceSwitch.Level == TraceLevel.Off)
-                return await ((DbCommand)Command).ExecuteNonQueryAsync(cancellationToken);
+                return await ((DbCommand) Command).ExecuteNonQueryAsync(cancellationToken);
 
             if (TraceSwitch.TraceInfo)
             {
                 OnTrace(new TraceInfo
                 {
-                    BeforeExecute  = true,
-                    TraceLevel     = TraceLevel.Info,
+                    BeforeExecute = true,
+                    TraceLevel = TraceLevel.Info,
                     DataConnection = this,
-                    Command        = Command,
+                    Command = Command
                 });
             }
 
             try
             {
                 var now = DateTime.Now;
-                var ret = await ((DbCommand)Command).ExecuteNonQueryAsync(cancellationToken);
+                var ret = await ((DbCommand) Command).ExecuteNonQueryAsync(cancellationToken);
 
                 if (TraceSwitch.TraceInfo)
                 {
                     OnTrace(new TraceInfo
                     {
-                        TraceLevel      = TraceLevel.Info,
-                        DataConnection  = this,
-                        Command         = Command,
-                        ExecutionTime   = DateTime.Now - now,
-                        RecordsAffected = ret,
+                        TraceLevel = TraceLevel.Info,
+                        DataConnection = this,
+                        Command = Command,
+                        ExecutionTime = DateTime.Now - now,
+                        RecordsAffected = ret
                     });
                 }
 
@@ -66,10 +67,10 @@ namespace LinqToDB.Data
                 {
                     OnTrace(new TraceInfo
                     {
-                        TraceLevel     = TraceLevel.Error,
+                        TraceLevel = TraceLevel.Error,
                         DataConnection = this,
-                        Command        = Command,
-                        Exception      = ex,
+                        Command = Command,
+                        Exception = ex
                     });
                 }
 
@@ -77,35 +78,36 @@ namespace LinqToDB.Data
             }
         }
 
-        internal async Task<DbDataReader> ExecuteReaderAsync(CommandBehavior commandBehavior, CancellationToken cancellationToken)
+        internal async Task<DbDataReader> ExecuteReaderAsync(CommandBehavior commandBehavior,
+            CancellationToken cancellationToken)
         {
             if (TraceSwitch.Level == TraceLevel.Off)
-                return await ((DbCommand)Command).ExecuteReaderAsync(commandBehavior, cancellationToken);
+                return await ((DbCommand) Command).ExecuteReaderAsync(commandBehavior, cancellationToken);
 
             if (TraceSwitch.TraceInfo)
             {
                 OnTrace(new TraceInfo
                 {
-                    BeforeExecute  = true,
-                    TraceLevel     = TraceLevel.Info,
+                    BeforeExecute = true,
+                    TraceLevel = TraceLevel.Info,
                     DataConnection = this,
-                    Command        = Command,
+                    Command = Command
                 });
             }
 
             try
             {
                 var now = DateTime.Now;
-                var ret = await ((DbCommand)Command).ExecuteReaderAsync(cancellationToken);
+                var ret = await ((DbCommand) Command).ExecuteReaderAsync(cancellationToken);
 
                 if (TraceSwitch.TraceInfo)
                 {
                     OnTrace(new TraceInfo
                     {
-                        TraceLevel     = TraceLevel.Info,
+                        TraceLevel = TraceLevel.Info,
                         DataConnection = this,
-                        Command        = Command,
-                        ExecutionTime  = DateTime.Now - now,
+                        Command = Command,
+                        ExecutionTime = DateTime.Now - now
                     });
                 }
 
@@ -117,10 +119,10 @@ namespace LinqToDB.Data
                 {
                     OnTrace(new TraceInfo
                     {
-                        TraceLevel     = TraceLevel.Error,
+                        TraceLevel = TraceLevel.Error,
                         DataConnection = this,
-                        Command        = Command,
-                        Exception      = ex,
+                        Command = Command,
+                        Exception = ex
                     });
                 }
 

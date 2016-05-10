@@ -70,9 +70,9 @@
     <Compile Include="SearchEngine\SearchEngineTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Source\LinqToDB.csproj">
+    <ProjectReference Include="..\..\Source\BarsToDb.csproj">
       <Project>{7cbd2975-3d0c-4bc3-bb4e-932f910778cf}</Project>
-      <Name>LinqToDB</Name>
+      <Name>BarsToDb</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

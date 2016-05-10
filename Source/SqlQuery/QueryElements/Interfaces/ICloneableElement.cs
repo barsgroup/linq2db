@@ -1,10 +1,11 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
-{
-    using System;
-    using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 
+namespace Bars2Db.SqlQuery.QueryElements.Interfaces
+{
     public interface ICloneableElement
     {
-        ICloneableElement Clone(Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone);
+        ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone);
     }
 }

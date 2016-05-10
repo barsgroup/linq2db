@@ -2,13 +2,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Bars2Db.Common;
+using Bars2Db.Properties;
 
-namespace LinqToDB.Reflection
+namespace Bars2Db.Reflection
 {
-    using Common;
-
-    using LinqToDB.Properties;
-
     [DebuggerDisplay("Type = {Type}")]
     public abstract class TypeAccessor
     {
@@ -18,7 +16,7 @@ namespace LinqToDB.Reflection
         {
             if (member == null) throw new ArgumentNullException(nameof(member));
 
-            _members.Add(member);
+            Members.Add(member);
             _membersByName[member.MemberInfo.Name] = member;
         }
 
@@ -43,16 +41,16 @@ namespace LinqToDB.Reflection
         #region Public Members
 
         public IObjectFactory ObjectFactory { get; set; }
-        public abstract Type  Type          { get; }
+        public abstract Type Type { get; }
 
         #endregion
 
         #region Items
 
-        readonly List<MemberAccessor> _members = new List<MemberAccessor>();
-        public   List<MemberAccessor>  Members => _members;
+        public List<MemberAccessor> Members { get; } = new List<MemberAccessor>();
 
-        readonly ConcurrentDictionary<string,MemberAccessor> _membersByName = new ConcurrentDictionary<string,MemberAccessor>();
+        private readonly ConcurrentDictionary<string, MemberAccessor> _membersByName =
+            new ConcurrentDictionary<string, MemberAccessor>();
 
         public MemberAccessor this[string memberName]
         {
@@ -67,13 +65,14 @@ namespace LinqToDB.Reflection
             }
         }
 
-        public MemberAccessor this[int index] => _members[index];
+        public MemberAccessor this[int index] => Members[index];
 
         #endregion
 
         #region Static Members
 
-        static readonly ConcurrentDictionary<Type,TypeAccessor> _accessors = new ConcurrentDictionary<Type,TypeAccessor>();
+        private static readonly ConcurrentDictionary<Type, TypeAccessor> _accessors =
+            new ConcurrentDictionary<Type, TypeAccessor>();
 
         public static TypeAccessor GetAccessor([NotNull] Type type)
         {
@@ -86,7 +85,7 @@ namespace LinqToDB.Reflection
 
             var accessorType = typeof(TypeAccessor<>).MakeGenericType(type);
 
-            accessor = (TypeAccessor)Activator.CreateInstance(accessorType);
+            accessor = (TypeAccessor) Activator.CreateInstance(accessorType);
 
             _accessors[type] = accessor;
 
@@ -98,9 +97,9 @@ namespace LinqToDB.Reflection
             TypeAccessor accessor;
 
             if (_accessors.TryGetValue(typeof(T), out accessor))
-                return (TypeAccessor<T>)accessor;
+                return (TypeAccessor<T>) accessor;
 
-            return (TypeAccessor<T>)(_accessors[typeof(T)] = new TypeAccessor<T>());
+            return (TypeAccessor<T>) (_accessors[typeof(T)] = new TypeAccessor<T>());
         }
 
         #endregion

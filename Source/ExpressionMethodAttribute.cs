@@ -1,8 +1,8 @@
-﻿namespace LinqToDB
-{
-    using System;
+﻿using System;
 
-    [AttributeUsageAttribute(AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+namespace Bars2Db
+{
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = true)]
     public class ExpressionMethodAttribute : Attribute
     {
         public ExpressionMethodAttribute(string methodName)
@@ -13,10 +13,10 @@
         public ExpressionMethodAttribute(string configuration, string methodName)
         {
             Configuration = configuration;
-            MethodName    = methodName;
+            MethodName = methodName;
         }
 
         public string Configuration { get; set; }
-        public string MethodName    { get; set; }
+        public string MethodName { get; set; }
     }
 }

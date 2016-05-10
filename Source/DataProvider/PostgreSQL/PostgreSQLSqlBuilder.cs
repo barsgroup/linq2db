@@ -1,27 +1,29 @@
 ﻿using System.Data;
 using System.Linq;
 using System.Text;
+using Bars2Db.Common;
+using Bars2Db.Mapping.DataTypes;
+using Bars2Db.SqlProvider;
+using Bars2Db.SqlQuery;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.DataProvider.PostgreSQL
+namespace Bars2Db.DataProvider.PostgreSQL
 {
-    using Common;
-
-    using LinqToDB.Mapping.DataTypes;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Predicates;
-    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    using SqlQuery;
-    using SqlProvider;
-
-    class PostgreSQLSqlBuilder : BasicSqlBuilder
+    internal class PostgreSQLSqlBuilder : BasicSqlBuilder
     {
-        public PostgreSQLSqlBuilder(ISqlOptimizer sqlOptimizer, SqlProviderFlags sqlProviderFlags, ValueToSqlConverter valueToSqlConverter)
+        public static PostgreSQLIdentifierQuoteMode IdentifierQuoteMode = PostgreSQLIdentifierQuoteMode.Auto;
+
+        public PostgreSQLSqlBuilder(ISqlOptimizer sqlOptimizer, SqlProviderFlags sqlProviderFlags,
+            ValueToSqlConverter valueToSqlConverter)
             : base(sqlOptimizer, sqlProviderFlags, valueToSqlConverter)
         {
         }
+
+        protected override string LimitFormat => "LIMIT {0}";
+
+        protected override string OffsetFormat => "OFFSET {0} ";
 
         public override int CommandCount(ISelectQuery selectQuery)
         {
@@ -33,8 +35,9 @@ namespace LinqToDB.DataProvider.PostgreSQL
             var into = SelectQuery.Insert.Into;
             var attr = GetSequenceNameAttribute(into, false);
             var name = attr != null
-                           ? attr.SequenceName
-                           : Convert(string.Format("{0}_{1}_seq", into.PhysicalName, into.GetIdentityField().PhysicalName), ConvertType.NameToQueryField);
+                ? attr.SequenceName
+                : Convert(string.Format("{0}_{1}_seq", into.PhysicalName, into.GetIdentityField().PhysicalName),
+                    ConvertType.NameToQueryField);
 
             name = Convert(name, ConvertType.NameToQueryTable);
 
@@ -52,10 +55,6 @@ namespace LinqToDB.DataProvider.PostgreSQL
         {
             return new PostgreSQLSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
         }
-
-        protected override string LimitFormat => "LIMIT {0}";
-
-        protected override string OffsetFormat => "OFFSET {0} ";
 
         protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
         {
@@ -115,8 +114,6 @@ namespace LinqToDB.DataProvider.PostgreSQL
             }
         }
 
-        public static PostgreSQLIdentifierQuoteMode IdentifierQuoteMode = PostgreSQLIdentifierQuoteMode.Auto;
-
         public override object Convert(object value, ConvertType convertType)
         {
             switch (convertType)
@@ -140,7 +137,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 #if NETFX_CORE
                                 .ToCharArray()
 #endif
-                                                                                              .Any(c => char.IsUpper(c) || char.IsWhiteSpace(c)))
+                            .Any(c => char.IsUpper(c) || char.IsWhiteSpace(c)))
                         {
                             return '"' + name + '"';
                         }
@@ -159,8 +156,8 @@ namespace LinqToDB.DataProvider.PostgreSQL
                     {
                         var str = value.ToString();
                         return str.Length > 0 && str[0] == ':'
-                                   ? str.Substring(1)
-                                   : str;
+                            ? str.Substring(1)
+                            : str;
                     }
 
                     break;

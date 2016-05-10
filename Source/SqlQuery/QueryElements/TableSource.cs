@@ -1,18 +1,20 @@
-namespace LinqToDB.SqlQuery.QueryElements
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class TableSource : BaseQueryElement, ITableSource
     {
+        // TODO: remove internal.
+        internal string _alias;
+
         public TableSource(ISqlTableSource source, string alias)
             : this(source, alias, null)
         {
@@ -44,17 +46,15 @@ namespace LinqToDB.SqlQuery.QueryElements
             }
         }
 
-        public ISqlTableSource Source       { get; set; }
+        public ISqlTableSource Source { get; set; }
 
-        public ESqlTableType    SqlTableType
+        public ESqlTableType SqlTableType
         {
             get { return Source.SqlTableType; }
-            set { throw new NotSupportedException();}
+            set { throw new NotSupportedException(); }
         }
 
-        // TODO: remove internal.
-        internal string _alias;
-        public   string  Alias
+        public string Alias
         {
             get
             {
@@ -74,16 +74,17 @@ namespace LinqToDB.SqlQuery.QueryElements
             set { _alias = value; }
         }
 
-        public ITableSource this[ISqlTableSource table, string alias] => Joins.Select(tj => SelectQuery.CheckTableSource(tj.Table, table, alias)).FirstOrDefault(t => t != null);
+        public ITableSource this[ISqlTableSource table, string alias]
+            => Joins.Select(tj => SelectQuery.CheckTableSource(tj.Table, table, alias)).FirstOrDefault(t => t != null);
 
-        public LinkedList<IJoinedTable>  Joins { get; } = new LinkedList<IJoinedTable>();
+        public LinkedList<IJoinedTable> Joins { get; } = new LinkedList<IJoinedTable>();
 
         public IEnumerable<ISqlTableSource> GetTables()
         {
             yield return Source;
 
             foreach (var join in Joins)
-                foreach (var table in @join.Table.GetTables())
+                foreach (var table in join.Table.GetTables())
                     yield return table;
         }
 
@@ -96,15 +97,6 @@ namespace LinqToDB.SqlQuery.QueryElements
             return n;
         }
 
-#if OVERRIDETOSTRING
-
-            public override string ToString()
-            {
-                return ((IQueryElement)this).ToString(new StringBuilder(), new Dictionary<IQueryElement,IQueryElement>()).ToString();
-            }
-
-#endif
-
         #region IEquatable<ISqlExpression> Members
 
         bool IEquatable<IQueryExpression>.Equals(IQueryExpression other)
@@ -116,9 +108,9 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #region ISqlExpressionWalkable Members
 
-        public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
+        public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
         {
-            Source = (ISqlTableSource)Source.Walk(skipColumns, func);
+            Source = (ISqlTableSource) Source.Walk(skipColumns, func);
 
             Joins.ForEach(node => node.Value.Walk(skipColumns, func));
 
@@ -127,22 +119,10 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         #endregion
 
-        #region ISqlTableSource Members
-
-        public int       SourceID => Source.SourceID;
-
-        public ISqlField All => Source.All;
-
-        IList<IQueryExpression> ISqlTableSource.GetKeys(bool allIfEmpty)
-        {
-            return Source.GetKeys(allIfEmpty);
-        }
-
-        #endregion
-
         #region ICloneableElement Members
 
-        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
         {
             if (!doClone(this))
                 return this;
@@ -151,17 +131,41 @@ namespace LinqToDB.SqlQuery.QueryElements
 
             if (!objectTree.TryGetValue(this, out clone))
             {
-                var ts = new TableSource((ISqlTableSource)Source.Clone(objectTree, doClone), _alias);
+                var ts = new TableSource((ISqlTableSource) Source.Clone(objectTree, doClone), _alias);
 
                 objectTree.Add(this, clone = ts);
 
-                foreach (var joinedTable in Joins.Select(jt => (IJoinedTable)jt.Clone(objectTree, doClone)))
+                foreach (var joinedTable in Joins.Select(jt => (IJoinedTable) jt.Clone(objectTree, doClone)))
                 {
                     ts.Joins.AddLast(joinedTable);
                 }
             }
 
             return clone;
+        }
+
+        #endregion
+
+#if OVERRIDETOSTRING
+
+        public override string ToString()
+        {
+            return
+                ((IQueryElement) this).ToString(new StringBuilder(), new Dictionary<IQueryElement, IQueryElement>())
+                    .ToString();
+        }
+
+#endif
+
+        #region ISqlTableSource Members
+
+        public int SourceID => Source.SourceID;
+
+        public ISqlField All => Source.All;
+
+        IList<IQueryExpression> ISqlTableSource.GetKeys(bool allIfEmpty)
+        {
+            return Source.GetKeys(allIfEmpty);
         }
 
         #endregion
@@ -196,7 +200,6 @@ namespace LinqToDB.SqlQuery.QueryElements
                     sb.AppendLine().Append('\t');
                     var len = sb.Length;
                     node.Value.ToString(sb, dic).Replace("\n", "\n\t", len, sb.Length - len);
-
                 });
 
             dic.Remove(this);
@@ -213,12 +216,12 @@ namespace LinqToDB.SqlQuery.QueryElements
             return Source.CanBeNull();
         }
 
-        public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
+        public bool Equals(IQueryExpression other, Func<IQueryExpression, IQueryExpression, bool> comparer)
         {
             return this == other;
         }
 
-        public int  Precedence => Source.Precedence;
+        public int Precedence => Source.Precedence;
 
         public Type SystemType => Source.SystemType;
 

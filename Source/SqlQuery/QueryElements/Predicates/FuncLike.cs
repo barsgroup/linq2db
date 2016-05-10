@@ -1,16 +1,15 @@
-namespace LinqToDB.SqlQuery.QueryElements.Predicates
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.Predicates
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class FuncLike : Predicate,
-                            IFuncLike
+        IFuncLike
     {
         public FuncLike(ISqlFunction func)
             : base(func.Precedence)
@@ -20,17 +19,20 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         public ISqlFunction Function { get; private set; }
 
-        protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
-        {
-            Function = (ISqlFunction)Function.Walk(skipColumns, func);
-        }
-
         public override bool CanBeNull()
         {
             return Function.CanBeNull();
         }
 
-        protected override ICloneableElement Clone(Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        public override EQueryElementType ElementType => EQueryElementType.FuncLikePredicate;
+
+        protected override void Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
+        {
+            Function = (ISqlFunction) Function.Walk(skipColumns, func);
+        }
+
+        protected override ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
         {
             if (!doClone(this))
                 return this;
@@ -38,12 +40,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             ICloneableElement clone;
 
             if (!objectTree.TryGetValue(this, out clone))
-                objectTree.Add(this, clone = new FuncLike((ISqlFunction)Function.Clone(objectTree, doClone)));
+                objectTree.Add(this, clone = new FuncLike((ISqlFunction) Function.Clone(objectTree, doClone)));
 
             return clone;
         }
-
-        public override EQueryElementType ElementType => EQueryElementType.FuncLikePredicate;
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {

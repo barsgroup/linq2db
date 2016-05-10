@@ -1,14 +1,14 @@
 ﻿using System;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-	public class InheritanceMapping
-	{
-		public object           Code;
-		public bool             IsDefault;
-		public Type             Type;
-		public ColumnDescriptor Discriminator;
+    public class InheritanceMapping
+    {
+        public object Code;
+        public ColumnDescriptor Discriminator;
+        public bool IsDefault;
+        public Type Type;
 
-		public string DiscriminatorName => Discriminator.MemberName;
-	}
+        public string DiscriminatorName => Discriminator.MemberName;
+    }
 }

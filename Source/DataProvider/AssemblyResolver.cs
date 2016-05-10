@@ -2,19 +2,22 @@
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
+using Bars2Db.Properties;
 
-namespace LinqToDB.DataProvider
+namespace Bars2Db.DataProvider
 {
-    using LinqToDB.Properties;
-
-    class AssemblyResolver
+    internal class AssemblyResolver
     {
+        private readonly string _path;
+        private readonly string _resolveName;
+        private Assembly _assembly;
+
         public AssemblyResolver([NotNull] string path, [NotNull] string resolveName)
         {
-            if (path        == null) throw new ArgumentNullException(nameof(path));
+            if (path == null) throw new ArgumentNullException(nameof(path));
             if (resolveName == null) throw new ArgumentNullException(nameof(resolveName));
 
-            _path        = path;
+            _path = path;
             _resolveName = resolveName;
 
             if (_path.StartsWith("file:///"))
@@ -25,16 +28,16 @@ namespace LinqToDB.DataProvider
 
         public AssemblyResolver([NotNull] Assembly assembly, [NotNull] string resolveName)
         {
-            if (assembly    == null) throw new ArgumentNullException(nameof(assembly));
+            if (assembly == null) throw new ArgumentNullException(nameof(assembly));
             if (resolveName == null) throw new ArgumentNullException(nameof(resolveName));
 
-            _assembly    = assembly;
+            _assembly = assembly;
             _resolveName = resolveName;
 
             SetResolver();
         }
 
-        void SetResolver()
+        private void SetResolver()
         {
             ResolveEventHandler resolver = Resolver;
 
@@ -50,14 +53,12 @@ namespace LinqToDB.DataProvider
 #endif
         }
 
-        readonly string   _path;
-        readonly string   _resolveName;
-                 Assembly _assembly;
-
         public Assembly Resolver(object sender, ResolveEventArgs args)
         {
             if (args.Name == _resolveName)
-                return _assembly ?? (_assembly = Assembly.LoadFile(File.Exists(_path) ? _path : Path.Combine(_path, args.Name, ".dll")));
+                return _assembly ??
+                       (_assembly =
+                           Assembly.LoadFile(File.Exists(_path) ? _path : Path.Combine(_path, args.Name, ".dll")));
             return null;
         }
     }

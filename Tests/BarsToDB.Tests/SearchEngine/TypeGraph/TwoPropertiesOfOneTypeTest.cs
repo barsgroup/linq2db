@@ -1,12 +1,11 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
+﻿using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
+using Xunit;
+
+namespace LinqToDB.Tests.SearchEngine.TypeGraph
 {
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
-
-    using Xunit;
-
     public class TwoPropertiesOfOneTypeTest : TypeGraphBaseTest
     {
         public interface IBase
@@ -43,10 +42,10 @@
             ////    IA -> []
             ////       ~> [IBase]
 
-            expectedGraph[baseVertex.Index].Children.AddRange(new[] { basea1, basea2 });
+            expectedGraph[baseVertex.Index].Children.AddRange(new[] {basea1, basea2});
             expectedGraph[baseVertex.Index].Casts.AddLast(new CastEdge(baseVertex, a));
 
-            expectedGraph[a.Index].Parents.AddRange(new[] { basea1, basea2 });
+            expectedGraph[a.Index].Parents.AddRange(new[] {basea1, basea2});
             expectedGraph[a.Index].Casts.AddLast(new CastEdge(a, baseVertex));
 
             var typeGraph = BuildTypeGraph<IBase>();

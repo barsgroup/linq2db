@@ -1,16 +1,20 @@
-namespace LinqToDB.SqlQuery.QueryElements.Predicates
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.Predicates
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public abstract class Predicate : BaseQueryElement,
-                                      ISqlPredicate
+        ISqlPredicate
     {
+        protected Predicate(int precedence)
+        {
+            Precedence = precedence;
+        }
+
         // { expression { = | <> | != | > | >= | ! > | < | <= | !< } expression
         //
 
@@ -35,35 +39,36 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
 #if OVERRIDETOSTRING
 
-            public override string ToString()
-            {
-                return ((IQueryElement)this).ToString(new StringBuilder(), new Dictionary<IQueryElement,IQueryElement>()).ToString();
-            }
+        public override string ToString()
+        {
+            return
+                ((IQueryElement) this).ToString(new StringBuilder(), new Dictionary<IQueryElement, IQueryElement>())
+                    .ToString();
+        }
 
 #endif
 
         #endregion
 
-        protected Predicate(int precedence)
-        {
-            Precedence = precedence;
-        }
-
         #region IPredicate Members
 
         public int Precedence { get; }
 
-        public    abstract bool              CanBeNull();
-        protected abstract ICloneableElement Clone    (Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone);
-        protected abstract void              Walk     (bool skipColumns, Func<IQueryExpression,IQueryExpression> action);
+        public abstract bool CanBeNull();
 
-        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
+        protected abstract ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone);
+
+        protected abstract void Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> action);
+
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
         {
             Walk(skipColumns, func);
             return null;
         }
 
-        ICloneableElement ICloneableElement.Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        ICloneableElement ICloneableElement.Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
         {
             if (!doClone(this))
                 return this;
@@ -75,10 +80,9 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         #region IQueryElement Members
 
-
         protected abstract void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic);
 
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
             if (dic.ContainsKey(this))
                 return sb.Append("...");

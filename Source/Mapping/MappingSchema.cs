@@ -7,31 +7,52 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
+using Bars2Db.Common;
+using Bars2Db.Expressions;
+using Bars2Db.Extensions;
+using Bars2Db.Mapping.DataTypes;
+using Bars2Db.Metadata;
+using Bars2Db.SqlProvider;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
 #if !SILVERLIGHT && !NETFX_CORE
-using System.Xml;
+
 #endif
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-    using Common;
-    using Expressions;
-    using Extensions;
-
-    using LinqToDB.Mapping.DataTypes;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    using Metadata;
-    using SqlProvider;
-
     public class MappingSchema
     {
+        #region Options
+
+        public StringComparison ColumnComparisonOption
+        {
+            get
+            {
+                if (_schemas[0].ColumnComparisonOption == null)
+                {
+                    _schemas[0].ColumnComparisonOption = _schemas
+                        .Select(s => s.ColumnComparisonOption)
+                        .FirstOrDefault(s => s != null)
+                                                         ??
+                                                         StringComparison.Ordinal;
+                }
+
+                return _schemas[0].ColumnComparisonOption.Value;
+            }
+
+            set { _schemas[0].ColumnComparisonOption = value; }
+        }
+
+        #endregion
+
         #region Init
 
         public MappingSchema()
-            : this(null, (MappingSchema[])null)
+            : this(null, (MappingSchema[]) null)
         {
         }
 
@@ -40,7 +61,7 @@ namespace LinqToDB.Mapping
         {
         }
 
-        public MappingSchema(string configuration/* ??? */)
+        public MappingSchema(string configuration /* ??? */)
             : this(configuration, null)
         {
         }
@@ -70,13 +91,13 @@ namespace LinqToDB.Mapping
                 ValueToSqlConverter = new ValueToSqlConverter(schemas.Select(s => s.ValueToSqlConverter).ToArray());
             }
 
-            _schemas    = new MappingSchemaInfo[ss.Length + 1];
+            _schemas = new MappingSchemaInfo[ss.Length + 1];
             _schemas[0] = new MappingSchemaInfo(configuration);
 
             Array.Copy(ss, 0, _schemas, 1, ss.Length);
         }
 
-        readonly MappingSchemaInfo[] _schemas;
+        private readonly MappingSchemaInfo[] _schemas;
 
         #endregion
 
@@ -84,7 +105,7 @@ namespace LinqToDB.Mapping
 
         public ValueToSqlConverter ValueToSqlConverter { get; }
 
-        public void SetValueToSqlConverter(Type type, Action<StringBuilder,ISqlDataType,object> converter)
+        public void SetValueToSqlConverter(Type type, Action<StringBuilder, ISqlDataType, object> converter)
         {
             ValueToSqlConverter.SetConverter(type, converter);
         }
@@ -93,7 +114,8 @@ namespace LinqToDB.Mapping
 
         #region Default Values
 
-        const FieldAttributes EnumField = FieldAttributes.Public | FieldAttributes.Static | FieldAttributes.Literal;
+        private const FieldAttributes EnumField =
+            FieldAttributes.Public | FieldAttributes.Static | FieldAttributes.Literal;
 
         public object GetDefaultValue(Type type)
         {
@@ -220,40 +242,42 @@ namespace LinqToDB.Mapping
             return Converter.ChangeType(value, toType, this);
         }
 
-        public virtual LambdaExpression TryGetConvertExpression(Type @from, Type to)
+        public virtual LambdaExpression TryGetConvertExpression(Type from, Type to)
         {
             return null;
         }
 
-        internal ConcurrentDictionary<object,Func<object,object>> Converters => _schemas[0].Converters;
+        internal ConcurrentDictionary<object, Func<object, object>> Converters => _schemas[0].Converters;
 
-        public Expression<Func<TFrom,TTo>> GetConvertExpression<TFrom,TTo>()
+        public Expression<Func<TFrom, TTo>> GetConvertExpression<TFrom, TTo>()
         {
             var li = GetConverter(typeof(TFrom), typeof(TTo), true);
-            return (Expression<Func<TFrom,TTo>>)ReduceDefaultValue(li.CheckNullLambda);
+            return (Expression<Func<TFrom, TTo>>) ReduceDefaultValue(li.CheckNullLambda);
         }
 
-        public LambdaExpression GetConvertExpression(Type from, Type to, bool checkNull = true, bool createDefault = true)
+        public LambdaExpression GetConvertExpression(Type from, Type to, bool checkNull = true,
+            bool createDefault = true)
         {
             var li = GetConverter(from, to, createDefault);
-            return li == null ? null : (LambdaExpression)ReduceDefaultValue(checkNull ? li.CheckNullLambda : li.Lambda);
+            return li == null ? null : (LambdaExpression) ReduceDefaultValue(checkNull ? li.CheckNullLambda : li.Lambda);
         }
 
-        public Func<TFrom,TTo> GetConverter<TFrom,TTo>()
+        public Func<TFrom, TTo> GetConverter<TFrom, TTo>()
         {
             var li = GetConverter(typeof(TFrom), typeof(TTo), true);
 
             if (li.Delegate == null)
             {
-                var rex = (Expression<Func<TFrom,TTo>>)ReduceDefaultValue(li.CheckNullLambda);
-                var l   = rex.Compile();
+                var rex = (Expression<Func<TFrom, TTo>>) ReduceDefaultValue(li.CheckNullLambda);
+                var l = rex.Compile();
 
-                _schemas[0].SetConvertInfo(typeof(TFrom), typeof(TTo), new ConvertInfo.LambdaInfo(li.CheckNullLambda, null, l, li.IsSchemaSpecific));
+                _schemas[0].SetConvertInfo(typeof(TFrom), typeof(TTo),
+                    new ConvertInfo.LambdaInfo(li.CheckNullLambda, null, l, li.IsSchemaSpecific));
 
                 return l;
             }
 
-            return (Func<TFrom,TTo>)li.Delegate;
+            return (Func<TFrom, TTo>) li.Delegate;
         }
 
         public void SetConvertExpression(
@@ -263,49 +287,50 @@ namespace LinqToDB.Mapping
             bool addNullCheck = true)
         {
             if (fromType == null) throw new ArgumentNullException(nameof(fromType));
-            if (toType   == null) throw new ArgumentNullException(nameof(toType));
-            if (expr     == null) throw new ArgumentNullException(nameof(expr));
+            if (toType == null) throw new ArgumentNullException(nameof(toType));
+            if (expr == null) throw new ArgumentNullException(nameof(expr));
 
-            var ex = addNullCheck && expr.Find(Converter.IsDefaultValuePlaceHolder) == null?
-                AddNullCheck(expr) :
-                expr;
+            var ex = addNullCheck && expr.Find(Converter.IsDefaultValuePlaceHolder) == null
+                ? AddNullCheck(expr)
+                : expr;
 
             _schemas[0].SetConvertInfo(fromType, toType, new ConvertInfo.LambdaInfo(ex, expr, null, false));
         }
 
-        public void SetConvertExpression<TFrom,TTo>(
-            [Properties.NotNull] Expression<Func<TFrom,TTo>> expr,
+        public void SetConvertExpression<TFrom, TTo>(
+            [Properties.NotNull] Expression<Func<TFrom, TTo>> expr,
             bool addNullCheck = true)
         {
             if (expr == null) throw new ArgumentNullException(nameof(expr));
 
-            var ex = addNullCheck && expr.Find(Converter.IsDefaultValuePlaceHolder) == null?
-                AddNullCheck(expr) :
-                expr;
+            var ex = addNullCheck && expr.Find(Converter.IsDefaultValuePlaceHolder) == null
+                ? AddNullCheck(expr)
+                : expr;
 
             _schemas[0].SetConvertInfo(typeof(TFrom), typeof(TTo), new ConvertInfo.LambdaInfo(ex, expr, null, false));
         }
 
-        public void SetConvertExpression<TFrom,TTo>(
-            [Properties.NotNull] Expression<Func<TFrom,TTo>> checkNullExpr,
-            [Properties.NotNull] Expression<Func<TFrom,TTo>> expr)
+        public void SetConvertExpression<TFrom, TTo>(
+            [Properties.NotNull] Expression<Func<TFrom, TTo>> checkNullExpr,
+            [Properties.NotNull] Expression<Func<TFrom, TTo>> expr)
         {
             if (expr == null) throw new ArgumentNullException(nameof(expr));
 
-            _schemas[0].SetConvertInfo(typeof(TFrom), typeof(TTo), new ConvertInfo.LambdaInfo(checkNullExpr, expr, null, false));
+            _schemas[0].SetConvertInfo(typeof(TFrom), typeof(TTo),
+                new ConvertInfo.LambdaInfo(checkNullExpr, expr, null, false));
         }
 
-        public void SetConverter<TFrom,TTo>([Properties.NotNull] Func<TFrom,TTo> func)
+        public void SetConverter<TFrom, TTo>([Properties.NotNull] Func<TFrom, TTo> func)
         {
             if (func == null) throw new ArgumentNullException(nameof(func));
 
-            var p  = Expression.Parameter(typeof(TFrom), "p");
-            var ex = Expression.Lambda<Func<TFrom,TTo>>(Expression.Invoke(Expression.Constant(func), p), p);
+            var p = Expression.Parameter(typeof(TFrom), "p");
+            var ex = Expression.Lambda<Func<TFrom, TTo>>(Expression.Invoke(Expression.Constant(func), p), p);
 
             _schemas[0].SetConvertInfo(typeof(TFrom), typeof(TTo), new ConvertInfo.LambdaInfo(ex, null, func, false));
         }
 
-        LambdaExpression AddNullCheck(LambdaExpression expr)
+        private LambdaExpression AddNullCheck(LambdaExpression expr)
         {
             var p = expr.Parameters[0];
 
@@ -328,27 +353,28 @@ namespace LinqToDB.Mapping
             return expr;
         }
 
-        ConvertInfo.LambdaInfo GetConverter(Type from, Type to, bool create)
+        private ConvertInfo.LambdaInfo GetConverter(Type from, Type to, bool create)
         {
             for (var i = 0; i < _schemas.Length; i++)
             {
                 var info = _schemas[i];
-                var li   = info.GetConvertInfo(@from, to);
+                var li = info.GetConvertInfo(from, to);
 
                 if (li != null && (i == 0 || !li.IsSchemaSpecific))
                     return i == 0 ? li : new ConvertInfo.LambdaInfo(li.CheckNullLambda, li.CheckNullLambda, null, false);
             }
 
             var isFromGeneric = from.IsGenericTypeEx() && !from.IsGenericTypeDefinitionEx();
-            var isToGeneric   = to.  IsGenericTypeEx() && !to.  IsGenericTypeDefinitionEx();
+            var isToGeneric = to.IsGenericTypeEx() && !to.IsGenericTypeDefinitionEx();
 
             if (isFromGeneric || isToGeneric)
             {
                 var fromGenericArgs = isFromGeneric ? from.GetGenericArgumentsEx() : Array<Type>.Empty;
-                var toGenericArgs   = isToGeneric   ? to.  GetGenericArgumentsEx() : Array<Type>.Empty;
+                var toGenericArgs = isToGeneric ? to.GetGenericArgumentsEx() : Array<Type>.Empty;
 
-                var args = fromGenericArgs.SequenceEqual(toGenericArgs) ?
-                    fromGenericArgs : fromGenericArgs.Concat(toGenericArgs).ToArray();
+                var args = fromGenericArgs.SequenceEqual(toGenericArgs)
+                    ? fromGenericArgs
+                    : fromGenericArgs.Concat(toGenericArgs).ToArray();
 
                 if (InitGenericConvertProvider(args))
                     return GetConverter(from, to, create);
@@ -357,10 +383,10 @@ namespace LinqToDB.Mapping
             if (create)
             {
                 var ufrom = from.ToNullableUnderlying();
-                var uto   = to.  ToNullableUnderlying();
+                var uto = to.ToNullableUnderlying();
 
                 LambdaExpression ex;
-                bool             ss = false;
+                var ss = false;
 
                 if (from != ufrom)
                 {
@@ -368,7 +394,7 @@ namespace LinqToDB.Mapping
 
                     if (li != null)
                     {
-                        var b  = li.CheckNullLambda.Body;
+                        var b = li.CheckNullLambda.Body;
                         var ps = li.CheckNullLambda.Parameters;
 
                         // For int? -> byte try to find int -> byte and convert int to int?
@@ -386,7 +412,7 @@ namespace LinqToDB.Mapping
 
                         if (li != null)
                         {
-                            var b  = li.CheckNullLambda.Body;
+                            var b = li.CheckNullLambda.Body;
                             var ps = li.CheckNullLambda.Parameters;
 
                             // For int? -> byte? try to find int -> byte and convert int to int? and result to byte?
@@ -414,7 +440,7 @@ namespace LinqToDB.Mapping
 
                     if (li != null)
                     {
-                        var b  = li.CheckNullLambda.Body;
+                        var b = li.CheckNullLambda.Body;
                         var ps = li.CheckNullLambda.Parameters;
 
                         ss = li.IsSchemaSpecific;
@@ -440,80 +466,80 @@ namespace LinqToDB.Mapping
             return null;
         }
 
-        Expression ReduceDefaultValue(Expression expr)
+        private Expression ReduceDefaultValue(Expression expr)
         {
             return expr.Transform(e =>
-                Converter.IsDefaultValuePlaceHolder(e) ?
-                    Expression.Constant(GetDefaultValue(e.Type), e.Type) :
-                    e);
+                Converter.IsDefaultValuePlaceHolder(e)
+                    ? Expression.Constant(GetDefaultValue(e.Type), e.Type)
+                    : e);
         }
 
         public void SetCultureInfo(CultureInfo info)
         {
-            SetConvertExpression((sbyte     v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((sbyte?    v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>             sbyte.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) =>     (sbyte?)sbyte.Parse(s, info.NumberFormat));
+            SetConvertExpression((sbyte v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((sbyte? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => sbyte.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (sbyte?) sbyte.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((short     v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((short?    v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>             short.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) =>     (short?)short.Parse(s, info.NumberFormat));
+            SetConvertExpression((short v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((short? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => short.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (short?) short.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((int     v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((int?    v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>             int.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) =>     (int?)int.Parse(s, info.NumberFormat));
+            SetConvertExpression((int v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((int? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => int.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (int?) int.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((long     v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((long?    v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>             long.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) =>     (long?)long.Parse(s, info.NumberFormat));
+            SetConvertExpression((long v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((long? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => long.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (long?) long.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((byte      v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((byte?     v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>              byte.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) =>       (byte?)byte.Parse(s, info.NumberFormat));
+            SetConvertExpression((byte v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((byte? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => byte.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (byte?) byte.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((ushort    v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((ushort?   v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>            ushort.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) =>   (ushort?)ushort.Parse(s, info.NumberFormat));
+            SetConvertExpression((ushort v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((ushort? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => ushort.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (ushort?) ushort.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((uint    v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((uint?   v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>            uint.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) =>   (uint?)uint.Parse(s, info.NumberFormat));
+            SetConvertExpression((uint v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((uint? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => uint.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (uint?) uint.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((ulong    v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((ulong?   v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>            ulong.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) =>   (ulong?)ulong.Parse(s, info.NumberFormat));
+            SetConvertExpression((ulong v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((ulong? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => ulong.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (ulong?) ulong.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((float    v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((float?   v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>            float.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) =>   (float?)float.Parse(s, info.NumberFormat));
+            SetConvertExpression((float v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((float? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => float.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (float?) float.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((double    v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((double?   v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>            double.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) =>   (double?)double.Parse(s, info.NumberFormat));
+            SetConvertExpression((double v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((double? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => double.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (double?) double.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((decimal   v) =>           v.      ToString(info.NumberFormat));
-            SetConvertExpression((decimal?  v) =>           v.Value.ToString(info.NumberFormat));
-            SetConvertExpression((string    s) =>           decimal.Parse(s, info.NumberFormat));
-            SetConvertExpression((string    s) => (decimal?)decimal.Parse(s, info.NumberFormat));
+            SetConvertExpression((decimal v) => v.ToString(info.NumberFormat));
+            SetConvertExpression((decimal? v) => v.Value.ToString(info.NumberFormat));
+            SetConvertExpression((string s) => decimal.Parse(s, info.NumberFormat));
+            SetConvertExpression((string s) => (decimal?) decimal.Parse(s, info.NumberFormat));
 
-            SetConvertExpression((DateTime  v) =>                       v.      ToString(info.DateTimeFormat));
-            SetConvertExpression((DateTime? v) =>                       v.Value.ToString(info.DateTimeFormat));
-            SetConvertExpression((string    s) =>                      DateTime.Parse(s, info.DateTimeFormat));
-            SetConvertExpression((string    s) =>           (DateTime?)DateTime.Parse(s, info.DateTimeFormat));
+            SetConvertExpression((DateTime v) => v.ToString(info.DateTimeFormat));
+            SetConvertExpression((DateTime? v) => v.Value.ToString(info.DateTimeFormat));
+            SetConvertExpression((string s) => DateTime.Parse(s, info.DateTimeFormat));
+            SetConvertExpression((string s) => (DateTime?) DateTime.Parse(s, info.DateTimeFormat));
 
-            SetConvertExpression((DateTimeOffset  v) =>                 v.      ToString(info.DateTimeFormat));
-            SetConvertExpression((DateTimeOffset? v) =>                 v.Value.ToString(info.DateTimeFormat));
-            SetConvertExpression((string  s) =>                  DateTimeOffset.Parse(s, info.DateTimeFormat));
-            SetConvertExpression((string  s) => (DateTimeOffset?)DateTimeOffset.Parse(s, info.DateTimeFormat));
+            SetConvertExpression((DateTimeOffset v) => v.ToString(info.DateTimeFormat));
+            SetConvertExpression((DateTimeOffset? v) => v.Value.ToString(info.DateTimeFormat));
+            SetConvertExpression((string s) => DateTimeOffset.Parse(s, info.DateTimeFormat));
+            SetConvertExpression((string s) => (DateTimeOffset?) DateTimeOffset.Parse(s, info.DateTimeFormat));
         }
 
         #endregion
@@ -535,8 +561,9 @@ namespace LinqToDB.Mapping
             MetadataReader = MetadataReader == null ? reader : new MetadataReader(reader, MetadataReader);
         }
 
-        IMetadataReader[] _metadataReaders;
-        IMetadataReader[]  MetadataReaders
+        private IMetadataReader[] _metadataReaders;
+
+        private IMetadataReader[] MetadataReaders
         {
             get
             {
@@ -592,10 +619,10 @@ namespace LinqToDB.Mapping
             return attrs.Length == 0 ? null : attrs[0];
         }
 
-        public T[] GetAttributes<T>(Type type, Func<T,string> configGetter, bool inherit = true)
+        public T[] GetAttributes<T>(Type type, Func<T, string> configGetter, bool inherit = true)
             where T : Attribute
         {
-            var list  = new List<T>();
+            var list = new List<T>();
             var attrs = GetAttributes<T>(type, inherit);
 
             foreach (var c in ConfigurationList)
@@ -606,10 +633,10 @@ namespace LinqToDB.Mapping
             return list.Concat(attrs.Where(a => string.IsNullOrEmpty(configGetter(a)))).ToArray();
         }
 
-        public T[] GetAttributes<T>(MemberInfo memberInfo, Func<T,string> configGetter, bool inherit = true)
+        public T[] GetAttributes<T>(MemberInfo memberInfo, Func<T, string> configGetter, bool inherit = true)
             where T : Attribute
         {
-            var list  = new List<T>();
+            var list = new List<T>();
             var attrs = GetAttributes<T>(memberInfo, inherit);
 
             foreach (var c in ConfigurationList)
@@ -620,14 +647,14 @@ namespace LinqToDB.Mapping
             return list.Concat(attrs.Where(a => string.IsNullOrEmpty(configGetter(a)))).ToArray();
         }
 
-        public T GetAttribute<T>(Type type, Func<T,string> configGetter, bool inherit = true)
+        public T GetAttribute<T>(Type type, Func<T, string> configGetter, bool inherit = true)
             where T : Attribute
         {
             var attrs = GetAttributes(type, configGetter, inherit);
             return attrs.Length == 0 ? null : attrs[0];
         }
 
-        public T GetAttribute<T>(MemberInfo memberInfo, Func<T,string> configGetter, bool inherit = true)
+        public T GetAttribute<T>(MemberInfo memberInfo, Func<T, string> configGetter, bool inherit = true)
             where T : Attribute
         {
             var attrs = GetAttributes(memberInfo, configGetter, inherit);
@@ -644,10 +671,11 @@ namespace LinqToDB.Mapping
         #region Configuration
 
         private string _configurationID;
-        public  string  ConfigurationID => _configurationID ?? (_configurationID = string.Join(".", ConfigurationList));
+        public string ConfigurationID => _configurationID ?? (_configurationID = string.Join(".", ConfigurationList));
 
         private string[] _configurationList;
-        public  string[]  ConfigurationList
+
+        public string[] ConfigurationList
         {
             get
             {
@@ -673,61 +701,61 @@ namespace LinqToDB.Mapping
 
         internal MappingSchema(MappingSchemaInfo mappingSchemaInfo)
         {
-            _schemas = new[] { mappingSchemaInfo };
+            _schemas = new[] {mappingSchemaInfo};
 
             ValueToSqlConverter = new ValueToSqlConverter();
         }
 
         public static MappingSchema Default = new DefaultMappingSchema();
 
-        class DefaultMappingSchema : MappingSchema
+        private class DefaultMappingSchema : MappingSchema
         {
             public DefaultMappingSchema()
-                : base(new MappingSchemaInfo("") { MetadataReader = Metadata.MetadataReader.Default })
+                : base(new MappingSchemaInfo("") {MetadataReader = Metadata.MetadataReader.Default})
             {
-                AddScalarType(typeof(char),            DataType.NChar);
-                AddScalarType(typeof(char?),           DataType.NChar);
-                AddScalarType(typeof(string),          DataType.NVarChar);
-                AddScalarType(typeof(decimal),         DataType.Decimal);
-                AddScalarType(typeof(decimal?),        DataType.Decimal);
-                AddScalarType(typeof(DateTime),        DataType.DateTime2);
-                AddScalarType(typeof(DateTime?),       DataType.DateTime2);
-                AddScalarType(typeof(DateTimeOffset),  DataType.DateTimeOffset);
+                AddScalarType(typeof(char), DataType.NChar);
+                AddScalarType(typeof(char?), DataType.NChar);
+                AddScalarType(typeof(string), DataType.NVarChar);
+                AddScalarType(typeof(decimal), DataType.Decimal);
+                AddScalarType(typeof(decimal?), DataType.Decimal);
+                AddScalarType(typeof(DateTime), DataType.DateTime2);
+                AddScalarType(typeof(DateTime?), DataType.DateTime2);
+                AddScalarType(typeof(DateTimeOffset), DataType.DateTimeOffset);
                 AddScalarType(typeof(DateTimeOffset?), DataType.DateTimeOffset);
-                AddScalarType(typeof(TimeSpan),        DataType.Time);
-                AddScalarType(typeof(TimeSpan?),       DataType.Time);
-                AddScalarType(typeof(byte[]),          DataType.VarBinary);
-                AddScalarType(typeof(Binary),          DataType.VarBinary);
-                AddScalarType(typeof(Guid),            DataType.Guid);
-                AddScalarType(typeof(Guid?),           DataType.Guid);
-                AddScalarType(typeof(object),          DataType.Variant);
+                AddScalarType(typeof(TimeSpan), DataType.Time);
+                AddScalarType(typeof(TimeSpan?), DataType.Time);
+                AddScalarType(typeof(byte[]), DataType.VarBinary);
+                AddScalarType(typeof(Binary), DataType.VarBinary);
+                AddScalarType(typeof(Guid), DataType.Guid);
+                AddScalarType(typeof(Guid?), DataType.Guid);
+                AddScalarType(typeof(object), DataType.Variant);
 #if !SILVERLIGHT && !NETFX_CORE
-                AddScalarType(typeof(XmlDocument),     DataType.Xml);
+                AddScalarType(typeof(XmlDocument), DataType.Xml);
 #endif
-                AddScalarType(typeof(XDocument),       DataType.Xml);
-                AddScalarType(typeof(bool),            DataType.Boolean);
-                AddScalarType(typeof(bool?),           DataType.Boolean);
-                AddScalarType(typeof(sbyte),           DataType.SByte);
-                AddScalarType(typeof(sbyte?),          DataType.SByte);
-                AddScalarType(typeof(short),           DataType.Int16);
-                AddScalarType(typeof(short?),          DataType.Int16);
-                AddScalarType(typeof(int),             DataType.Int32);
-                AddScalarType(typeof(int?),            DataType.Int32);
-                AddScalarType(typeof(long),            DataType.Int64);
-                AddScalarType(typeof(long?),           DataType.Int64);
-                AddScalarType(typeof(byte),            DataType.Byte);
-                AddScalarType(typeof(byte?),           DataType.Byte);
-                AddScalarType(typeof(ushort),          DataType.UInt16);
-                AddScalarType(typeof(ushort?),         DataType.UInt16);
-                AddScalarType(typeof(uint),            DataType.UInt32);
-                AddScalarType(typeof(uint?),           DataType.UInt32);
-                AddScalarType(typeof(ulong),           DataType.UInt64);
-                AddScalarType(typeof(ulong?),          DataType.UInt64);
-                AddScalarType(typeof(float),           DataType.Single);
-                AddScalarType(typeof(float?),          DataType.Single);
-                AddScalarType(typeof(double),          DataType.Double);
-                AddScalarType(typeof(double?),         DataType.Double);
-                AddScalarType(typeof(Hierarchical),         DataType.Hierarchical);
+                AddScalarType(typeof(XDocument), DataType.Xml);
+                AddScalarType(typeof(bool), DataType.Boolean);
+                AddScalarType(typeof(bool?), DataType.Boolean);
+                AddScalarType(typeof(sbyte), DataType.SByte);
+                AddScalarType(typeof(sbyte?), DataType.SByte);
+                AddScalarType(typeof(short), DataType.Int16);
+                AddScalarType(typeof(short?), DataType.Int16);
+                AddScalarType(typeof(int), DataType.Int32);
+                AddScalarType(typeof(int?), DataType.Int32);
+                AddScalarType(typeof(long), DataType.Int64);
+                AddScalarType(typeof(long?), DataType.Int64);
+                AddScalarType(typeof(byte), DataType.Byte);
+                AddScalarType(typeof(byte?), DataType.Byte);
+                AddScalarType(typeof(ushort), DataType.UInt16);
+                AddScalarType(typeof(ushort?), DataType.UInt16);
+                AddScalarType(typeof(uint), DataType.UInt32);
+                AddScalarType(typeof(uint?), DataType.UInt32);
+                AddScalarType(typeof(ulong), DataType.UInt64);
+                AddScalarType(typeof(ulong?), DataType.UInt64);
+                AddScalarType(typeof(float), DataType.Single);
+                AddScalarType(typeof(float?), DataType.Single);
+                AddScalarType(typeof(double), DataType.Double);
+                AddScalarType(typeof(double?), DataType.Double);
+                AddScalarType(typeof(Hierarchical), DataType.Hierarchical);
 
                 ValueToSqlConverter.SetDefauls();
             }
@@ -747,7 +775,7 @@ namespace LinqToDB.Mapping
             }
 
             var attr = GetAttribute<ScalarTypeAttribute>(type, a => a.Configuration);
-            var ret  = false;
+            var ret = false;
 
             if (attr != null)
             {
@@ -757,7 +785,8 @@ namespace LinqToDB.Mapping
             {
                 type = type.ToNullableUnderlying();
 
-                if (type.IsEnumEx() || type.IsPrimitiveEx() || (Configuration.IsStructIsScalarType && type.IsValueTypeEx()))
+                if (type.IsEnumEx() || type.IsPrimitiveEx() ||
+                    (Common.Configuration.IsStructIsScalarType && type.IsValueTypeEx()))
                     ret = true;
             }
 
@@ -773,7 +802,7 @@ namespace LinqToDB.Mapping
 
         public void AddScalarType(Type type, object defaultValue, DataType dataType = DataType.Undefined)
         {
-            SetScalarType  (type);
+            SetScalarType(type);
             SetDefaultValue(type, defaultValue);
 
             if (dataType != DataType.Undefined)
@@ -782,9 +811,9 @@ namespace LinqToDB.Mapping
 
         public void AddScalarType(Type type, object defaultValue, bool canBeNull, DataType dataType = DataType.Undefined)
         {
-            SetScalarType  (type);
+            SetScalarType(type);
             SetDefaultValue(type, defaultValue);
-            SetCanBeNull   (type, canBeNull);
+            SetCanBeNull(type, canBeNull);
 
             if (dataType != DataType.Undefined)
                 SetDataType(type, dataType);
@@ -835,13 +864,13 @@ namespace LinqToDB.Mapping
             if (underlyingType.IsEnumEx())
             {
                 var attrs =
-                (
-                    from f in underlyingType.GetFieldsEx()
-                    where (f.Attributes & EnumField) == EnumField
-                    from attr in GetAttributes<MapValueAttribute>(f, a => a.Configuration).Select(attr => attr)
-                    orderby attr.IsDefault ? 0 : 1
-                    select attr
-                ).ToList();
+                    (
+                        from f in underlyingType.GetFieldsEx()
+                        where (f.Attributes & EnumField) == EnumField
+                        from attr in GetAttributes<MapValueAttribute>(f, a => a.Configuration).Select(attr => attr)
+                        orderby attr.IsDefault ? 0 : 1
+                        select attr
+                        ).ToList();
 
                 if (attrs.Count == 0)
                 {
@@ -849,7 +878,7 @@ namespace LinqToDB.Mapping
                 }
                 else
                 {
-                    var  minLen    = 0;
+                    var minLen = 0;
                     Type valueType = null;
 
                     foreach (var attr in attrs)
@@ -901,19 +930,18 @@ namespace LinqToDB.Mapping
             return SqlDataType.Undefined;
         }
 
-
         #endregion
 
         #region GetMapValues
 
-        ConcurrentDictionary<Type,MapValue[]> _mapValues;
+        private ConcurrentDictionary<Type, MapValue[]> _mapValues;
 
         public virtual MapValue[] GetMapValues([Properties.NotNull] Type type)
         {
             if (type == null) throw new ArgumentNullException(nameof(type));
 
             if (_mapValues == null)
-                _mapValues = new ConcurrentDictionary<Type,MapValue[]>();
+                _mapValues = new ConcurrentDictionary<Type, MapValue[]>();
 
             MapValue[] mapValues;
 
@@ -925,12 +953,12 @@ namespace LinqToDB.Mapping
             if (underlyingType.IsEnumEx())
             {
                 var fields =
-                (
-                    from f in underlyingType.GetFieldsEx()
-                    where (f.Attributes & EnumField) == EnumField
-                    let attrs = GetAttributes<MapValueAttribute>(f, a => a.Configuration)
-                    select new MapValue(Enum.Parse(underlyingType, f.Name, false), attrs)
-                ).ToArray();
+                    (
+                        from f in underlyingType.GetFieldsEx()
+                        where (f.Attributes & EnumField) == EnumField
+                        let attrs = GetAttributes<MapValueAttribute>(f, a => a.Configuration)
+                        select new MapValue(Enum.Parse(underlyingType, f.Name, false), attrs)
+                        ).ToArray();
 
                 if (fields.Any(f => f.MapValues.Length > 0))
                     mapValues = fields;
@@ -943,35 +971,12 @@ namespace LinqToDB.Mapping
 
         #endregion
 
-        #region Options
-
-        public StringComparison ColumnComparisonOption
-        {
-            get
-            {
-                if (_schemas[0].ColumnComparisonOption == null)
-                {
-                    _schemas[0].ColumnComparisonOption = _schemas
-                        .Select        (s => s.ColumnComparisonOption)
-                        .FirstOrDefault(s => s != null)
-                        ??
-                        StringComparison.Ordinal;
-                }
-
-                return _schemas[0].ColumnComparisonOption.Value;
-            }
-
-            set { _schemas[0].ColumnComparisonOption = value; }
-        }
-
-        #endregion
-
         #region EntityDescriptor
 
-        ConcurrentDictionary<Type,EntityDescriptor> _entityDescriptors;
+        private ConcurrentDictionary<Type, EntityDescriptor> _entityDescriptors;
 
         public EntityDescriptor GetEntityDescriptor(Type type)
-            {
+        {
             if (_entityDescriptors == null)
                 _entityDescriptors = new ConcurrentDictionary<Type, EntityDescriptor>();
 

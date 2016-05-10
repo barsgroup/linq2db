@@ -1,4 +1,4 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
+namespace Bars2Db.SqlQuery.QueryElements.Interfaces
 {
     public interface IValueContainer
     {

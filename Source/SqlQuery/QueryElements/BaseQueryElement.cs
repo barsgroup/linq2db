@@ -1,12 +1,11 @@
-namespace LinqToDB.SqlQuery.QueryElements
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements
 {
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-
     [DebuggerDisplay("SQL = {SqlText}")]
     public abstract class BaseQueryElement : IQueryElement
     {
@@ -14,6 +13,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public abstract StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic);
 
-        public string SqlText => ToString(new StringBuilder(), new Dictionary<IQueryElement, IQueryElement>()).ToString();
+        public string SqlText
+            => ToString(new StringBuilder(), new Dictionary<IQueryElement, IQueryElement>()).ToString();
     }
 }

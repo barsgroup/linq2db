@@ -1,9 +1,9 @@
 ﻿using System.Collections.Specialized;
 
-namespace LinqToDB.DataProvider
+namespace Bars2Db.DataProvider
 {
     public interface IDataProviderFactory
     {
-        IDataProvider GetDataProvider (NameValueCollection attributes);
+        IDataProvider GetDataProvider(NameValueCollection attributes);
     }
 }

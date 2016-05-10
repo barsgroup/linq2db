@@ -1,22 +1,22 @@
-namespace LinqToDB.SqlQuery.QueryElements.Clauses
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Clauses.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.Clauses
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class DeleteClause : BaseQueryElement,
-                                IDeleteClause
+        IDeleteClause
     {
         public ISqlTable Table { get; set; }
 
         #region ICloneableElement Members
 
-        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
         {
             if (!doClone(this))
                 return this;
@@ -24,7 +24,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
             var clone = new DeleteClause();
 
             if (Table != null)
-                clone.Table = (ISqlTable)Table.Clone(objectTree, doClone);
+                clone.Table = (ISqlTable) Table.Clone(objectTree, doClone);
 
             objectTree.Add(this, clone);
 
@@ -36,7 +36,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         #region ISqlExpressionWalkable Members
 
         [Obsolete]
-        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
         {
             if (Table != null)
                 Table.Walk(skipColumns, func);
@@ -50,7 +50,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public override EQueryElementType ElementType => EQueryElementType.DeleteClause;
 
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
             sb.Append("DELETE FROM ");
 

@@ -1,25 +1,24 @@
 ﻿using System;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace LinqToDB.Data
+namespace Bars2Db.Data
 {
-    using System.Data;
-
     public class TraceInfo
     {
-        public bool           BeforeExecute   { get; set; }
-        public TraceLevel     TraceLevel      { get; set; }
-        public DataConnection DataConnection  { get; set; }
-        public IDbCommand     Command         { get; set; }
-        public TimeSpan?      ExecutionTime   { get; set; }
-        public int?           RecordsAffected { get; set; }
-        public Exception      Exception       { get; set; }
-        public string         CommandText     { get; set; }
-
         private string _sqlText;
-        public  string  SqlText
+        public bool BeforeExecute { get; set; }
+        public TraceLevel TraceLevel { get; set; }
+        public DataConnection DataConnection { get; set; }
+        public IDbCommand Command { get; set; }
+        public TimeSpan? ExecutionTime { get; set; }
+        public int? RecordsAffected { get; set; }
+        public Exception Exception { get; set; }
+        public string CommandText { get; set; }
+
+        public string SqlText
         {
             get
             {
@@ -32,7 +31,7 @@ namespace LinqToDB.Data
                         return _sqlText;
 
                     var sqlProvider = DataConnection.DataProvider.CreateSqlBuilder();
-                    var sb          = new StringBuilder();
+                    var sb = new StringBuilder();
 
                     sb.Append("-- ").Append(DataConnection.ConfigurationString);
 

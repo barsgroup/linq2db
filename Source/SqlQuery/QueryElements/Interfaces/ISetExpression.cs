@@ -1,9 +1,9 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
-{
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
 
-    public interface ISetExpression: ISqlExpressionWalkable, ICloneableElement, IQueryElement
+namespace Bars2Db.SqlQuery.QueryElements.Interfaces
+{
+    public interface ISetExpression : ISqlExpressionWalkable, ICloneableElement, IQueryElement
     {
         [SearchContainer]
         IQueryExpression Column { get; set; }

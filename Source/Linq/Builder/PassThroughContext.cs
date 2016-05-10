@@ -1,11 +1,10 @@
 ﻿using System.Linq.Expressions;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    abstract class PassThroughContext : IBuildContext
+    internal abstract class PassThroughContext : IBuildContext
     {
         protected PassThroughContext(IBuildContext context)
         {
@@ -22,10 +21,19 @@ namespace LinqToDB.Linq.Builder
 
         public virtual ExpressionBuilder Builder => Context.Builder;
 
-        public virtual Expression        Expression => Context.Expression;
+        public virtual Expression Expression => Context.Expression;
 
-        public virtual ISelectQuery Select { get { return Context.Select; } set { Context.Select = value; } }
-        public virtual IBuildContext     Parent      { get { return Context.Parent;      } set { Context.Parent      = value; } }
+        public virtual ISelectQuery Select
+        {
+            get { return Context.Select; }
+            set { Context.Select = value; }
+        }
+
+        public virtual IBuildContext Parent
+        {
+            get { return Context.Parent; }
+            set { Context.Parent = value; }
+        }
 
         public virtual void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
         {

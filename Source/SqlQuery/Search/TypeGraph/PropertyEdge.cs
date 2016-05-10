@@ -1,16 +1,10 @@
-﻿namespace LinqToDB.SqlQuery.Search.TypeGraph
-{
-    using System;
-    using System.Reflection;
+﻿using System;
+using System.Reflection;
 
+namespace Bars2Db.SqlQuery.Search.TypeGraph
+{
     public class PropertyEdge : IEquatable<PropertyEdge>
     {
-        public TypeVertex Parent { get; }
-
-        public TypeVertex Child { get; }
-
-        public PropertyInfo PropertyInfo { get; }
-
         public PropertyEdge(TypeVertex parent, PropertyInfo property, TypeVertex child)
         {
             Parent = parent;
@@ -18,9 +12,16 @@
             Child = child;
         }
 
+        public TypeVertex Parent { get; }
+
+        public TypeVertex Child { get; }
+
+        public PropertyInfo PropertyInfo { get; }
+
         public virtual bool Equals(PropertyEdge other)
         {
-            return Parent.Type == other.Parent.Type && PropertyInfo == other.PropertyInfo && Child.Type == other.Child.Type;
+            return Parent.Type == other.Parent.Type && PropertyInfo == other.PropertyInfo &&
+                   Child.Type == other.Child.Type;
         }
 
         public override bool Equals(object obj)
@@ -35,8 +36,8 @@
             unchecked
             {
                 var hashCode = Parent?.Type.GetHashCode() ?? 0;
-                hashCode = (hashCode * 397) ^ (Child?.Type.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ (PropertyInfo?.GetHashCode() ?? 0);
+                hashCode = (hashCode*397) ^ (Child?.Type.GetHashCode() ?? 0);
+                hashCode = (hashCode*397) ^ (PropertyInfo?.GetHashCode() ?? 0);
                 return hashCode;
             }
         }

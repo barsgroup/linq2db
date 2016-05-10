@@ -1,4 +1,4 @@
-namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Enums
+namespace Bars2Db.SqlQuery.QueryElements.SqlElements.Enums
 {
     public enum ESqlTableType
     {

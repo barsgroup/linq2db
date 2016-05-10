@@ -1,11 +1,11 @@
 ﻿
 #pragma warning disable 649
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    class ExpressionHoder<TP,TE>
+    internal class ExpressionHoder<TP, TE>
     {
-        public TP p;
         public TE ex;
+        public TP p;
     }
 }

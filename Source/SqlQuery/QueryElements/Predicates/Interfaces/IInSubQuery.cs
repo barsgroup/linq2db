@@ -1,9 +1,9 @@
-namespace LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces
-{
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
 
-    public interface IInSubQuery: INotExpr
+namespace Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces
+{
+    public interface IInSubQuery : INotExpr
     {
         [SearchContainer]
         ISelectQuery SubQuery { get; }

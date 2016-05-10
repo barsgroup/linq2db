@@ -1,21 +1,20 @@
-namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
-{
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
 
+namespace Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces
+{
     public interface IConditionBase<T1, out T2> : IConditionExpr<IExpr<T1, T2>>,
-                                                  IQueryElement
+        IQueryElement
         where T1 : IConditionBase<T1, T2>
     {
-        T2 GetNext();
-
         INot<T1, T2> Not { get; }
-
-        T1 SetOr(bool value);
-
-        T2 Exists(ISelectQuery subQuery);
 
         ISearchCondition Search { get; }
 
         bool IsEmpty { get; }
+        T2 GetNext();
+
+        T1 SetOr(bool value);
+
+        T2 Exists(ISelectQuery subQuery);
     }
 }

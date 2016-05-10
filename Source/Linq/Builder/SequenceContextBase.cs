@@ -1,11 +1,10 @@
 ﻿using System.Linq.Expressions;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    abstract class SequenceContextBase : IBuildContext
+    internal abstract class SequenceContextBase : IBuildContext
     {
         protected SequenceContextBase(IBuildContext parent, IBuildContext sequence, LambdaExpression lambda)
         {
@@ -20,19 +19,19 @@ namespace LinqToDB.Linq.Builder
             Builder.Contexts.Add(this);
         }
 
+        public IBuildContext Sequence { get; set; }
+
+        public LambdaExpression Lambda { get; set; }
+
 #if DEBUG
         public string _sqlQueryText => Select == null
-                                           ? ""
-                                           : Select.SqlText;
+            ? ""
+            : Select.SqlText;
 #endif
 
         public IBuildContext Parent { get; set; }
 
-        public IBuildContext Sequence { get; set; }
-
         public ExpressionBuilder Builder { get; set; }
-
-        public LambdaExpression Lambda { get; set; }
 
         public ISelectQuery Select { get; set; }
 
@@ -59,8 +58,8 @@ namespace LinqToDB.Linq.Builder
         public virtual int ConvertToParentIndex(int index, IBuildContext context)
         {
             return Parent == null
-                       ? index
-                       : Parent.ConvertToParentIndex(index, context);
+                ? index
+                : Parent.ConvertToParentIndex(index, context);
         }
 
         public virtual void SetAlias(string alias)

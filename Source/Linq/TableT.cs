@@ -1,9 +1,13 @@
 ﻿using System.Linq.Expressions;
 
-namespace LinqToDB.Linq
+namespace Bars2Db.Linq
 {
-    class Table<T> : ExpressionQuery<T>, ITable<T>, ITable
+    internal class Table<T> : ExpressionQuery<T>, ITable<T>, ITable
     {
+        public string DatabaseName;
+        public string SchemaName;
+        public string TableName;
+
         public Table(IDataContextInfo dataContextInfo)
         {
             Init(dataContextInfo, null);
@@ -27,9 +31,6 @@ namespace LinqToDB.Linq
         }
 
 #endif
-        public string DatabaseName;
-        public string SchemaName;
-        public string TableName;
 
         #region Overrides
 

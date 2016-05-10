@@ -1,12 +1,11 @@
-﻿namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
+﻿using Bars2Db.SqlQuery.Search.PathBuilder;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
+using LinqToDB.Tests.SearchEngine.TestInterfaces.CastFromBase;
+using Xunit;
+
+namespace LinqToDB.Tests.SearchEngine.PathBuilder.Find
 {
-    using LinqToDB.SqlQuery.Search.PathBuilder;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.PathBuilder.Find.Base;
-    using LinqToDB.Tests.SearchEngine.TestInterfaces.CastFromBase;
-
-    using Xunit;
-
     public class CastFromBaseTest : BaseFindTest
     {
         [Fact]
@@ -43,7 +42,7 @@
             vertexCD.Children.AddLast(vertexBC);
             vertexCD.Children.AddLast(vertexCD);
 
-            var expected = new[] { vertexAB };
+            var expected = new[] {vertexAB};
 
             Assert.True(IsEqual(expected, result));
         }

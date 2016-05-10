@@ -1,8 +1,8 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
-{
-    using LinqToDB.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search;
 
-    public interface IUnion: IQueryElement
+namespace Bars2Db.SqlQuery.QueryElements.Interfaces
+{
+    public interface IUnion : IQueryElement
     {
         [SearchContainer]
         ISelectQuery SelectQuery { get; }

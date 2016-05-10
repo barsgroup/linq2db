@@ -4,76 +4,24 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using Bars2Db.Expressions;
+using Bars2Db.Extensions;
+using Bars2Db.Reflection;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using Extensions;
-    using Reflection;
-
-    class SelectBuilder : MethodCallBuilder
+    internal class SelectBuilder : MethodCallBuilder
     {
-        #region SelectBuilder
-
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-        {
-            if (methodCall.IsQueryable("Select"))
-            {
-                switch (((LambdaExpression)methodCall.Arguments[1].Unwrap()).Parameters.Count)
-                {
-                    case 1 :
-                    case 2 : return true;
-                }
-            }
-
-            return false;
-        }
-
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-        {
-            var selector = (LambdaExpression)methodCall.Arguments[1].Unwrap();
-            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-
-            sequence.SetAlias(selector.Parameters[0].Name);
-
-            var body = selector.Body.Unwrap();
-
-            switch (body.NodeType)
-            {
-                case ExpressionType.Parameter : break;
-                default                       :
-                    sequence = CheckSubQueryForSelect(sequence);
-                    break;
-            }
-
-            var context = selector.Parameters.Count == 1 ?
-                new SelectContext (buildInfo.Parent, selector, sequence) :
-                new SelectContext2(buildInfo.Parent, selector, sequence);
-
-#if DEBUG
-            context.MethodCall = methodCall;
-#endif
-
-            return context;
-        }
-
-        static IBuildContext CheckSubQueryForSelect(IBuildContext context)
-        {
-            return context.Select.Select.IsDistinct ? new SubQueryContext(context) : context;
-        }
-
-        #endregion
-
         #region SelectContext2
 
-        class SelectContext2 : SelectContext
+        private class SelectContext2 : SelectContext
         {
+            private static readonly ParameterExpression _counterParam = Expression.Parameter(typeof(int), "counter");
+
             public SelectContext2(IBuildContext parent, LambdaExpression lambda, IBuildContext sequence)
                 : base(parent, lambda, sequence)
             {
             }
-
-            static readonly ParameterExpression _counterParam = Expression.Parameter(typeof(int), "counter");
 
             public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
             {
@@ -82,16 +30,11 @@ namespace LinqToDB.Linq.Builder
                 if (expr.Type != typeof(T))
                     expr = Expression.Convert(expr, typeof(T));
 
-                var mapper = Expression.Lambda<Func<QueryContext,IDataContext,IDataReader,Expression,object[],int,T>>(
-                    Builder.BuildBlock(expr), new []
-                    {
-                        ExpressionBuilder.ContextParam,
-                        ExpressionBuilder.DataContextParam,
-                        ExpressionBuilder.DataReaderParam,
-                        ExpressionBuilder.ExpressionParam,
-                        ExpressionBuilder.ParametersParam,
-                        _counterParam
-                    });
+                var mapper = Expression
+                    .Lambda<Func<QueryContext, IDataContext, IDataReader, Expression, object[], int, T>>(
+                        Builder.BuildBlock(expr), ExpressionBuilder.ContextParam, ExpressionBuilder.DataContextParam,
+                        ExpressionBuilder.DataReaderParam, ExpressionBuilder.ExpressionParam,
+                        ExpressionBuilder.ParametersParam, _counterParam);
 
                 query.SetQuery(mapper);
             }
@@ -100,8 +43,8 @@ namespace LinqToDB.Linq.Builder
             {
                 switch (requestFlag)
                 {
-                    case RequestFor.Expression :
-                    case RequestFor.Root       :
+                    case RequestFor.Expression:
+                    case RequestFor.Root:
                         if (expression == Lambda.Parameters[1])
                             return IsExpressionResult.True;
                         break;
@@ -121,20 +64,76 @@ namespace LinqToDB.Linq.Builder
 
         #endregion
 
+        #region SelectBuilder
+
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
+        {
+            if (methodCall.IsQueryable("Select"))
+            {
+                switch (((LambdaExpression) methodCall.Arguments[1].Unwrap()).Parameters.Count)
+                {
+                    case 1:
+                    case 2:
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
+        {
+            var selector = (LambdaExpression) methodCall.Arguments[1].Unwrap();
+            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+
+            sequence.SetAlias(selector.Parameters[0].Name);
+
+            var body = selector.Body.Unwrap();
+
+            switch (body.NodeType)
+            {
+                case ExpressionType.Parameter:
+                    break;
+                default:
+                    sequence = CheckSubQueryForSelect(sequence);
+                    break;
+            }
+
+            var context = selector.Parameters.Count == 1
+                ? new SelectContext(buildInfo.Parent, selector, sequence)
+                : new SelectContext2(buildInfo.Parent, selector, sequence);
+
+#if DEBUG
+            context.MethodCall = methodCall;
+#endif
+
+            return context;
+        }
+
+        private static IBuildContext CheckSubQueryForSelect(IBuildContext context)
+        {
+            return context.Select.Select.IsDistinct ? new SubQueryContext(context) : context;
+        }
+
+        #endregion
+
         #region Convert
 
         protected override SequenceConvertInfo Convert(
-            ExpressionBuilder builder, MethodCallExpression originalMethodCall, BuildInfo buildInfo, ParameterExpression param)
+            ExpressionBuilder builder, MethodCallExpression originalMethodCall, BuildInfo buildInfo,
+            ParameterExpression param)
         {
             var methodCall = originalMethodCall;
-            var selector   = (LambdaExpression)methodCall.Arguments[1].Unwrap();
-            var info       = builder.ConvertSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]), selector.Parameters[0]);
+            var selector = (LambdaExpression) methodCall.Arguments[1].Unwrap();
+            var info = builder.ConvertSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]), selector.Parameters[0]);
 
             if (info != null)
             {
-                methodCall = (MethodCallExpression)methodCall.Transform(
+                methodCall = (MethodCallExpression) methodCall.Transform(
                     ex => ConvertMethod(methodCall, 0, info, selector.Parameters[0], ex));
-                selector   = (LambdaExpression)methodCall.Arguments[1].Unwrap();
+                selector = (LambdaExpression) methodCall.Arguments[1].Unwrap();
             }
 
             if (param != null && !ReferenceEquals(param, builder.SequenceParameter))
@@ -144,7 +143,7 @@ namespace LinqToDB.Linq.Builder
                         from path in GetExpressions(selector.Parameters[0], param, 0, selector.Body.Unwrap())
                         orderby path.Level descending
                         select path
-                    ).ToList();
+                        ).ToList();
 
                 if (list.Count > 0)
                 {
@@ -157,12 +156,12 @@ namespace LinqToDB.Linq.Builder
 
                     if (p == null)
                     {
-                        var types  = methodCall.Method.GetGenericArguments();
-                        var mgen   = methodCall.Method.GetGenericMethodDefinition();
-                        var btype  = typeof(ExpressionHoder<,>).MakeGenericType(types[0], selector.Body.Type);
+                        var types = methodCall.Method.GetGenericArguments();
+                        var mgen = methodCall.Method.GetGenericMethodDefinition();
+                        var btype = typeof(ExpressionHoder<,>).MakeGenericType(types[0], selector.Body.Type);
                         var fields = btype.GetFieldsEx();
-                        var pold   = selector.Parameters[0];
-                        var psel   = Expression.Parameter(types[0], pold.Name);
+                        var pold = selector.Parameters[0];
+                        var psel = Expression.Parameter(types[0], pold.Name);
 
                         methodCall = Expression.Call(
                             methodCall.Object,
@@ -175,10 +174,15 @@ namespace LinqToDB.Linq.Builder
                                     Expression.Bind(fields[1], selector.Body.Transform(e => e == pold ? psel : e))),
                                 psel));
 
-                        selector = (LambdaExpression)methodCall.Arguments[1].Unwrap();
-                        param    = Expression.Parameter(selector.Body.Type, param.Name);
+                        selector = (LambdaExpression) methodCall.Arguments[1].Unwrap();
+                        param = Expression.Parameter(selector.Body.Type, param.Name);
 
-                        list.Add(new SequenceConvertPath { Path = param, Expr = Expression.MakeMemberAccess(param, fields[1]), Level = 1 });
+                        list.Add(new SequenceConvertPath
+                        {
+                            Path = param,
+                            Expr = Expression.MakeMemberAccess(param, fields[1]),
+                            Level = 1
+                        });
 
                         var expr = Expression.MakeMemberAccess(param, fields[0]);
 
@@ -187,8 +191,8 @@ namespace LinqToDB.Linq.Builder
 
                         return new SequenceConvertInfo
                         {
-                            Parameter            = param,
-                            Expression           = methodCall,
+                            Parameter = param,
+                            Expression = methodCall,
                             ExpressionsToReplace = list
                         };
                     }
@@ -214,10 +218,10 @@ namespace LinqToDB.Linq.Builder
                     {
                         return new SequenceConvertInfo
                         {
-                            Parameter            = param,
-                            Expression           = methodCall,
+                            Parameter = param,
+                            Expression = methodCall,
                             ExpressionsToReplace = list
-                                .Where (e => !ReferenceEquals(e, p))
+                                .Where(e => !ReferenceEquals(e, p))
                                 .Select(ei =>
                                 {
                                     ei.Expr = ei.Expr.Transform(e => ReferenceEquals(e, p.Expr) ? p.Path : e);
@@ -232,77 +236,81 @@ namespace LinqToDB.Linq.Builder
             if (!ReferenceEquals(methodCall, originalMethodCall))
                 return new SequenceConvertInfo
                 {
-                    Parameter  = param,
-                    Expression = methodCall,
+                    Parameter = param,
+                    Expression = methodCall
                 };
 
             return null;
         }
 
-        static IEnumerable<SequenceConvertPath> GetExpressions(ParameterExpression param, Expression path, int level, Expression expression)
+        private static IEnumerable<SequenceConvertPath> GetExpressions(ParameterExpression param, Expression path,
+            int level, Expression expression)
         {
             switch (expression.NodeType)
             {
                 // new { ... }
                 //
-                case ExpressionType.New        :
-                    {
-                        var expr = (NewExpression)expression;
+                case ExpressionType.New:
+                {
+                    var expr = (NewExpression) expression;
 
-                        if (expr.Members != null) for (var i = 0; i < expr.Members.Count; i++)
+                    if (expr.Members != null)
+                        for (var i = 0; i < expr.Members.Count; i++)
                         {
-                            var q = GetExpressions(param, Expression.MakeMemberAccess(path, expr.Members[i]), level + 1, expr.Arguments[i]);
+                            var q = GetExpressions(param, Expression.MakeMemberAccess(path, expr.Members[i]), level + 1,
+                                expr.Arguments[i]);
                             foreach (var e in q)
                                 yield return e;
                         }
 
-                        break;
-                    }
+                    break;
+                }
 
                 // new MyObject { ... }
                 //
-                case ExpressionType.MemberInit :
+                case ExpressionType.MemberInit:
+                {
+                    var expr = (MemberInitExpression) expression;
+                    var dic = TypeAccessor.GetAccessor(expr.Type).Members
+                        .Select((m, i) => new {m, i})
+                        .ToDictionary(_ => _.m.MemberInfo.Name, _ => _.i);
+
+                    foreach (var binding in expr.Bindings.Cast<MemberAssignment>().OrderBy(b => dic[b.Member.Name]))
                     {
-                        var expr = (MemberInitExpression)expression;
-                        var dic  = TypeAccessor.GetAccessor(expr.Type).Members
-                            .Select((m,i) => new { m, i })
-                            .ToDictionary(_ => _.m.MemberInfo.Name, _ => _.i);
-
-                        foreach (var binding in expr.Bindings.Cast<MemberAssignment>().OrderBy(b => dic[b.Member.Name]))
-                        {
-                            var q = GetExpressions(param, Expression.MakeMemberAccess(path, binding.Member), level + 1, binding.Expression);
-                            foreach (var e in q)
-                                yield return e;
-                        }
-
-                        break;
+                        var q = GetExpressions(param, Expression.MakeMemberAccess(path, binding.Member), level + 1,
+                            binding.Expression);
+                        foreach (var e in q)
+                            yield return e;
                     }
+
+                    break;
+                }
 
                 // parameter
                 //
-                case ExpressionType.Parameter  :
+                case ExpressionType.Parameter:
                     if (ReferenceEquals(expression, param))
-                        yield return new SequenceConvertPath { Path = path, Expr = expression, Level = level };
+                        yield return new SequenceConvertPath {Path = path, Expr = expression, Level = level};
                     break;
 
-                case ExpressionType.TypeAs     :
-                    yield return new SequenceConvertPath { Path = path, Expr = expression, Level = level };
+                case ExpressionType.TypeAs:
+                    yield return new SequenceConvertPath {Path = path, Expr = expression, Level = level};
                     break;
 
                 // Queriable method.
                 //
-                case ExpressionType.Call       :
-                    {
-                        var call = (MethodCallExpression)expression;
+                case ExpressionType.Call:
+                {
+                    var call = (MethodCallExpression) expression;
 
-                        if (call.IsQueryable())
-                            if (typeof(IEnumerable).IsSameOrParentOf(call.Type) ||
-                                typeof(IQueryable). IsSameOrParentOf(call.Type) ||
-                                FirstSingleBuilder.MethodNames.Contains(call.Method.Name))
-                                yield return new SequenceConvertPath { Path = path, Expr = expression, Level = level };
+                    if (call.IsQueryable())
+                        if (typeof(IEnumerable).IsSameOrParentOf(call.Type) ||
+                            typeof(IQueryable).IsSameOrParentOf(call.Type) ||
+                            FirstSingleBuilder.MethodNames.Contains(call.Method.Name))
+                            yield return new SequenceConvertPath {Path = path, Expr = expression, Level = level};
 
-                        break;
-                    }
+                    break;
+                }
             }
         }
 

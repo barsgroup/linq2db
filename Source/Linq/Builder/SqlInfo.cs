@@ -1,20 +1,18 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using Extensions;
-
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class SqlInfo
     {
-        public IQueryExpression   Sql;
-        public ISelectQuery      Query;
-        public int              Index = -1;
         public readonly List<MemberInfo> Members = new List<MemberInfo>();
+        public int Index = -1;
+        public ISelectQuery Query;
+        public IQueryExpression Sql;
 
         public SqlInfo()
         {
@@ -32,7 +30,7 @@ namespace LinqToDB.Linq.Builder
 
         public SqlInfo Clone()
         {
-            return new SqlInfo(Members) { Sql = Sql, Query = Query, Index = Index };
+            return new SqlInfo(Members) {Sql = Sql, Query = Query, Index = Index};
         }
 
         public SqlInfo Clone(MemberInfo mi)
@@ -47,7 +45,7 @@ namespace LinqToDB.Linq.Builder
 
         public bool CompareMembers(SqlInfo info)
         {
-            return Members.Count == info.Members.Count && !Members.Where((t,i) => !t.EqualsTo(info.Members[i])).Any();
+            return Members.Count == info.Members.Count && !Members.Where((t, i) => !t.EqualsTo(info.Members[i])).Any();
         }
 
         public bool CompareLastMember(SqlInfo info)

@@ -1,13 +1,12 @@
-﻿namespace LinqToDB.SqlEntities
+﻿using System;
+using System.Reflection;
+using Bars2Db.Extensions;
+using Bars2Db.SqlQuery;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlEntities
 {
-    using System;
-    using System.Reflection;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     partial class Sql
     {
         [Serializable]

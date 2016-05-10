@@ -1,137 +1,31 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using Bars2Db.Expressions;
+using Bars2Db.SqlQuery.QueryElements;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    class InsertBuilder : MethodCallBuilder
+    internal class InsertBuilder : MethodCallBuilder
     {
-        #region InsertBuilder
-
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-        {
-            return methodCall.IsQueryable("Insert", "InsertWithIdentity");
-        }
-
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-        {
-            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-
-            var isSubQuery = sequence.Select.Select.IsDistinct;
-
-            if (isSubQuery)
-                sequence = new SubQueryContext(sequence);
-
-            switch (methodCall.Arguments.Count)
-            {
-                case 1 : 
-                    // static int Insert<T>              (this IValueInsertable<T> source)
-                    // static int Insert<TSource,TTarget>(this ISelectInsertable<TSource,TTarget> source)
-                    {
-                        foreach (var item in sequence.Select.Insert.Items)
-                            sequence.Select.Select.Expr(item.Expression);
-                        break;
-                    }
-
-                case 2 : // static int Insert<T>(this Table<T> target, Expression<Func<T>> setter)
-                    {
-                        UpdateBuilder.BuildSetter(
-                            builder,
-                            buildInfo,
-                            (LambdaExpression)methodCall.Arguments[1].Unwrap(),
-                            sequence,
-                            sequence.Select.Insert.Items,
-                            sequence);
-
-                        sequence.Select.Insert.Into  = ((TableBuilder.TableContext)sequence).SqlTable;
-                        sequence.Select.From.Tables.Clear();
-
-                        break;
-                    }
-
-                case 3 : // static int Insert<TSource,TTarget>(this IQueryable<TSource> source, Table<TTarget> target, Expression<Func<TSource,TTarget>> setter)
-                    {
-                        var into = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQuery()));
-
-                        UpdateBuilder.BuildSetter(
-                            builder,
-                            buildInfo,
-                            (LambdaExpression)methodCall.Arguments[2].Unwrap(),
-                            into,
-                            sequence.Select.Insert.Items,
-                            sequence);
-
-                        sequence.Select.Select.Columns.Clear();
-
-                        foreach (var item in sequence.Select.Insert.Items)
-                            sequence.Select.Select.Columns.Add(new Column(sequence.Select, item.Expression));
-
-                        sequence.Select.Insert.Into = ((TableBuilder.TableContext)into).SqlTable;
-
-                        break;
-                    }
-            }
-
-            var insert = sequence.Select.Insert;
-
-            var q = insert.Into.Fields.Values
-#if SL4
-                .Cast<ISqlExpression>()
-#endif
-                .Except(insert.Items.Select(e => e.Column))
-                .OfType<ISqlField>()
-                .Where(f => f.IsIdentity);
-
-            foreach (var field in q)
-            {
-                var expr = builder.DataContextInfo.CreateSqlBuilder().GetIdentityExpression(insert.Into);
-
-                if (expr != null)
-                {
-                    insert.Items.AddFirst(new SetExpression(field, expr));
-
-                    if (methodCall.Arguments.Count == 3)
-                    {
-                        sequence.Select.Select.Columns.Insert(0, new Column(sequence.Select, insert.Items.First.Value.Expression));
-                    }
-                }
-            }
-
-            sequence.Select.EQueryType           = EQueryType.Insert;
-            sequence.Select.Insert.WithIdentity = methodCall.Method.Name == "InsertWithIdentity";
-
-            return new InsertContext(buildInfo.Parent, sequence, sequence.Select.Insert.WithIdentity);
-        }
-
-        protected override SequenceConvertInfo Convert(
-            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
-        {
-            return null;
-        }
-
-        #endregion
-
         #region InsertContext
 
-        class InsertContext : SequenceContextBase
+        private class InsertContext : SequenceContextBase
         {
+            private readonly bool _insertWithIdentity;
+
             public InsertContext(IBuildContext parent, IBuildContext sequence, bool insertWithIdentity)
                 : base(parent, sequence, null)
             {
                 _insertWithIdentity = insertWithIdentity;
             }
 
-            readonly bool _insertWithIdentity;
-
             public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
             {
                 if (_insertWithIdentity) query.SetScalarQuery<object>();
-                else                     query.SetNonQueryQuery();
+                else query.SetNonQueryQuery();
             }
 
             public override Expression BuildExpression(Expression expression, int level)
@@ -166,28 +60,30 @@ namespace LinqToDB.Linq.Builder
 
         internal class Into : MethodCallBuilder
         {
-            protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+            protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+                BuildInfo buildInfo)
             {
                 return methodCall.IsQueryable("Into");
             }
 
-            protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+            protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+                BuildInfo buildInfo)
             {
                 var source = methodCall.Arguments[0].Unwrap();
-                var into   = methodCall.Arguments[1].Unwrap();
+                var into = methodCall.Arguments[1].Unwrap();
 
                 IBuildContext sequence;
 
                 // static IValueInsertable<T> Into<T>(this IDataContext dataContext, Table<T> target)
                 //
-                if (source.NodeType == ExpressionType.Constant && ((ConstantExpression)source).Value == null)
+                if (source.NodeType == ExpressionType.Constant && ((ConstantExpression) source).Value == null)
                 {
-                    sequence = builder.BuildSequence(new BuildInfo((IBuildContext)null, into, new SelectQuery()));
+                    sequence = builder.BuildSequence(new BuildInfo((IBuildContext) null, into, new SelectQuery()));
 
                     if (sequence.Select.Select.IsDistinct)
                         sequence = new SubQueryContext(sequence);
 
-                    sequence.Select.Insert.Into = ((TableBuilder.TableContext)sequence).SqlTable;
+                    sequence.Select.Insert.Into = ((TableBuilder.TableContext) sequence).SqlTable;
                     sequence.Select.From.Tables.Clear();
                 }
                 // static ISelectInsertable<TSource,TTarget> Into<TSource,TTarget>(this IQueryable<TSource> source, Table<TTarget> target)
@@ -199,8 +95,8 @@ namespace LinqToDB.Linq.Builder
                     if (sequence.Select.Select.IsDistinct)
                         sequence = new SubQueryContext(sequence);
 
-                    var tbl = builder.BuildSequence(new BuildInfo((IBuildContext)null, into, new SelectQuery()));
-                    sequence.Select.Insert.Into = ((TableBuilder.TableContext)tbl).SqlTable;
+                    var tbl = builder.BuildSequence(new BuildInfo((IBuildContext) null, into, new SelectQuery()));
+                    sequence.Select.Insert.Into = ((TableBuilder.TableContext) tbl).SqlTable;
                 }
 
                 sequence.Select.Select.Columns.Clear();
@@ -209,7 +105,8 @@ namespace LinqToDB.Linq.Builder
             }
 
             protected override SequenceConvertInfo Convert(
-                ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+                ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo,
+                ParameterExpression param)
             {
                 return null;
             }
@@ -221,20 +118,22 @@ namespace LinqToDB.Linq.Builder
 
         internal class Value : MethodCallBuilder
         {
-            protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+            protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+                BuildInfo buildInfo)
             {
                 return methodCall.IsQueryable("Value");
             }
 
-            protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+            protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+                BuildInfo buildInfo)
             {
                 var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-                var extract  = (LambdaExpression)methodCall.Arguments[1].Unwrap();
-                var update   =                   methodCall.Arguments[2].Unwrap();
+                var extract = (LambdaExpression) methodCall.Arguments[1].Unwrap();
+                var update = methodCall.Arguments[2].Unwrap();
 
                 if (sequence.Select.Insert.Into == null)
                 {
-                    sequence.Select.Insert.Into = (ISqlTable)sequence.Select.From.Tables.First.Value.Source;
+                    sequence.Select.Insert.Into = (ISqlTable) sequence.Select.From.Tables.First.Value.Source;
                     sequence.Select.From.Tables.Clear();
                 }
 
@@ -243,7 +142,7 @@ namespace LinqToDB.Linq.Builder
                         builder,
                         buildInfo,
                         extract,
-                        (LambdaExpression)update,
+                        (LambdaExpression) update,
                         sequence,
                         sequence.Select.Insert.Into,
                         sequence.Select.Insert.Items);
@@ -260,10 +159,121 @@ namespace LinqToDB.Linq.Builder
             }
 
             protected override SequenceConvertInfo Convert(
-                ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+                ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo,
+                ParameterExpression param)
             {
                 return null;
             }
+        }
+
+        #endregion
+
+        #region InsertBuilder
+
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
+        {
+            return methodCall.IsQueryable("Insert", "InsertWithIdentity");
+        }
+
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
+        {
+            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
+
+            var isSubQuery = sequence.Select.Select.IsDistinct;
+
+            if (isSubQuery)
+                sequence = new SubQueryContext(sequence);
+
+            switch (methodCall.Arguments.Count)
+            {
+                case 1:
+                    // static int Insert<T>              (this IValueInsertable<T> source)
+                    // static int Insert<TSource,TTarget>(this ISelectInsertable<TSource,TTarget> source)
+                {
+                    foreach (var item in sequence.Select.Insert.Items)
+                        sequence.Select.Select.Expr(item.Expression);
+                    break;
+                }
+
+                case 2: // static int Insert<T>(this Table<T> target, Expression<Func<T>> setter)
+                {
+                    UpdateBuilder.BuildSetter(
+                        builder,
+                        buildInfo,
+                        (LambdaExpression) methodCall.Arguments[1].Unwrap(),
+                        sequence,
+                        sequence.Select.Insert.Items,
+                        sequence);
+
+                    sequence.Select.Insert.Into = ((TableBuilder.TableContext) sequence).SqlTable;
+                    sequence.Select.From.Tables.Clear();
+
+                    break;
+                }
+
+                case 3:
+                    // static int Insert<TSource,TTarget>(this IQueryable<TSource> source, Table<TTarget> target, Expression<Func<TSource,TTarget>> setter)
+                {
+                    var into =
+                        builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQuery()));
+
+                    UpdateBuilder.BuildSetter(
+                        builder,
+                        buildInfo,
+                        (LambdaExpression) methodCall.Arguments[2].Unwrap(),
+                        into,
+                        sequence.Select.Insert.Items,
+                        sequence);
+
+                    sequence.Select.Select.Columns.Clear();
+
+                    foreach (var item in sequence.Select.Insert.Items)
+                        sequence.Select.Select.Columns.Add(new Column(sequence.Select, item.Expression));
+
+                    sequence.Select.Insert.Into = ((TableBuilder.TableContext) into).SqlTable;
+
+                    break;
+                }
+            }
+
+            var insert = sequence.Select.Insert;
+
+            var q = insert.Into.Fields.Values
+#if SL4
+                .Cast<ISqlExpression>()
+#endif
+                .Except(insert.Items.Select(e => e.Column))
+                .OfType<ISqlField>()
+                .Where(f => f.IsIdentity);
+
+            foreach (var field in q)
+            {
+                var expr = builder.DataContextInfo.CreateSqlBuilder().GetIdentityExpression(insert.Into);
+
+                if (expr != null)
+                {
+                    insert.Items.AddFirst(new SetExpression(field, expr));
+
+                    if (methodCall.Arguments.Count == 3)
+                    {
+                        sequence.Select.Select.Columns.Insert(0,
+                            new Column(sequence.Select, insert.Items.First.Value.Expression));
+                    }
+                }
+            }
+
+            sequence.Select.EQueryType = EQueryType.Insert;
+            sequence.Select.Insert.WithIdentity = methodCall.Method.Name == "InsertWithIdentity";
+
+            return new InsertContext(buildInfo.Parent, sequence, sequence.Select.Insert.WithIdentity);
+        }
+
+        protected override SequenceConvertInfo Convert(
+            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+        {
+            return null;
         }
 
         #endregion

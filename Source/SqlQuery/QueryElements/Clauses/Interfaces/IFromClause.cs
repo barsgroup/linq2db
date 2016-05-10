@@ -1,24 +1,23 @@
-namespace LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces
+using System.Collections.Generic;
+using Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
+
+namespace Bars2Db.SqlQuery.QueryElements.Clauses.Interfaces
 {
-    using System.Collections.Generic;
-
-    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
-
-    public interface IFromClause: IClauseWithConditionBase, ISqlExpressionWalkable
+    public interface IFromClause : IClauseWithConditionBase, ISqlExpressionWalkable
     {
-        IFromClause Table(ISqlTableSource table, params IJoin[] joins);
-
         ITableSource this[ISqlTableSource table] { get; }
 
         ITableSource this[ISqlTableSource table, string alias] { get; }
 
-        bool IsChild(ISqlTableSource table);
-
         [SearchContainer]
         LinkedList<ITableSource> Tables { get; }
+
+        IFromClause Table(ISqlTableSource table, params IJoin[] joins);
+
+        bool IsChild(ISqlTableSource table);
 
         ISqlTableSource FindTableSource(ISqlTable table);
     }

@@ -3,114 +3,116 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Bars2Db.Common;
+using Bars2Db.Extensions;
 
-namespace LinqToDB.Reflection
+namespace Bars2Db.Reflection
 {
-	using Common;
-	using Extensions;
+    public class TypeAccessor<T> : TypeAccessor
+    {
+        private static readonly List<MemberInfo> _members = new List<MemberInfo>();
+        private static readonly IObjectFactory _objectFactory;
 
-	public class TypeAccessor<T> : TypeAccessor
-	{
-		static TypeAccessor()
-		{
-			// Create Instance.
-			//
-			var type = typeof(T);
+        private static readonly Func<T> _createInstance;
 
-			if (type.IsValueTypeEx())
-			{
-				_createInstance = () => default(T);
-			}
-			else
-			{
-				var ctor = type.IsAbstractEx() ? null : type.GetDefaultConstructorEx();
+        static TypeAccessor()
+        {
+            // Create Instance.
+            //
+            var type = typeof(T);
 
-				if (ctor == null)
-				{
-					Expression<Func<T>> mi;
+            if (type.IsValueTypeEx())
+            {
+                _createInstance = () => default(T);
+            }
+            else
+            {
+                var ctor = type.IsAbstractEx() ? null : type.GetDefaultConstructorEx();
 
-					if (type.IsAbstractEx()) mi = () => ThrowAbstractException();
-					else                     mi = () => ThrowException();
+                if (ctor == null)
+                {
+                    Expression<Func<T>> mi;
 
-					var body = Expression.Call(null, ((MethodCallExpression)mi.Body).Method);
+                    if (type.IsAbstractEx()) mi = () => ThrowAbstractException();
+                    else mi = () => ThrowException();
 
-					_createInstance = Expression.Lambda<Func<T>>(body).Compile();
-				}
-				else
-				{
-					_createInstance = Expression.Lambda<Func<T>>(Expression.New(ctor)).Compile();
-				}
-			}
+                    var body = Expression.Call(null, ((MethodCallExpression) mi.Body).Method);
 
-			foreach (var memberInfo in type.GetPublicInstanceMembersEx())
-			{
-				if (memberInfo.IsFieldEx() || memberInfo.IsPropertyEx() && ((PropertyInfo)memberInfo).GetIndexParameters().Length == 0)
-					_members.Add(memberInfo);
-			}
+                    _createInstance = Expression.Lambda<Func<T>>(body).Compile();
+                }
+                else
+                {
+                    _createInstance = Expression.Lambda<Func<T>>(Expression.New(ctor)).Compile();
+                }
+            }
 
-			// Add explicit iterface implementation properties support
-			// Or maybe we should support all private fields/properties?
-			//
-			var interfaceMethods = type.GetInterfacesEx().SelectMany(ti => type.GetInterfaceMapEx(ti).TargetMethods).ToList();
+            foreach (var memberInfo in type.GetPublicInstanceMembersEx())
+            {
+                if (memberInfo.IsFieldEx() ||
+                    memberInfo.IsPropertyEx() && ((PropertyInfo) memberInfo).GetIndexParameters().Length == 0)
+                    _members.Add(memberInfo);
+            }
 
-			if (interfaceMethods.Count > 0)
-			{
-				foreach (var pi in type.GetNonPublicPropertiesEx())
-				{
-					if (pi.GetIndexParameters().Length == 0)
-					{
-						var getMethod = pi.GetGetMethodEx(true);
-						var setMethod = pi.GetSetMethodEx(true);
+            // Add explicit iterface implementation properties support
+            // Or maybe we should support all private fields/properties?
+            //
+            var interfaceMethods =
+                type.GetInterfacesEx().SelectMany(ti => type.GetInterfaceMapEx(ti).TargetMethods).ToList();
 
-						if ((getMethod == null || interfaceMethods.Contains(getMethod)) &&
-							(setMethod == null || interfaceMethods.Contains(setMethod)))
-						{
-							_members.Add(pi);
-						}
-					}
-				}
-			}
+            if (interfaceMethods.Count > 0)
+            {
+                foreach (var pi in type.GetNonPublicPropertiesEx())
+                {
+                    if (pi.GetIndexParameters().Length == 0)
+                    {
+                        var getMethod = pi.GetGetMethodEx(true);
+                        var setMethod = pi.GetSetMethodEx(true);
 
-			// ObjectFactory
-			//
-			var attr = type.GetFirstAttribute<ObjectFactoryAttribute>();
+                        if ((getMethod == null || interfaceMethods.Contains(getMethod)) &&
+                            (setMethod == null || interfaceMethods.Contains(setMethod)))
+                        {
+                            _members.Add(pi);
+                        }
+                    }
+                }
+            }
 
-			if (attr != null)
-				_objectFactory = attr.ObjectFactory;
-		}
+            // ObjectFactory
+            //
+            var attr = type.GetFirstAttribute<ObjectFactoryAttribute>();
 
-		static T ThrowException()
-		{
-			throw new LinqToDBException("The '{0}' type must have default or init constructor.".Args(typeof(T).FullName));
-		}
+            if (attr != null)
+                _objectFactory = attr.ObjectFactory;
+        }
 
-		static T ThrowAbstractException()
-		{
-			throw new LinqToDBException("Cant create an instance of abstract class '{0}'.".Args(typeof(T).FullName));
-		}
+        public TypeAccessor()
+        {
+            foreach (var member in _members)
+                AddMember(new MemberAccessor(this, member));
 
-		static readonly List<MemberInfo> _members = new List<MemberInfo>();
-		static readonly IObjectFactory   _objectFactory;
+            ObjectFactory = _objectFactory;
+        }
 
-		public TypeAccessor()
-		{
-			foreach (var member in _members)
-				AddMember(new MemberAccessor(this, member));
+        public override Type Type => typeof(T);
 
-			ObjectFactory = _objectFactory;
-		}
+        private static T ThrowException()
+        {
+            throw new LinqToDBException("The '{0}' type must have default or init constructor.".Args(typeof(T).FullName));
+        }
 
-		static readonly Func<T> _createInstance;
-		public override object   CreateInstance()
-		{
-			return _createInstance();
-		}
+        private static T ThrowAbstractException()
+        {
+            throw new LinqToDBException("Cant create an instance of abstract class '{0}'.".Args(typeof(T).FullName));
+        }
 
-		public T Create()
-		{
-			return _createInstance();
-		}
+        public override object CreateInstance()
+        {
+            return _createInstance();
+        }
 
-		public override Type Type => typeof(T);
-	}
+        public T Create()
+        {
+            return _createInstance();
+        }
+    }
 }

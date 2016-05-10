@@ -1,12 +1,11 @@
-﻿namespace LinqToDB.Tests.SearchEngine.TypeGraphEx
+﻿using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.Search;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
+using Xunit;
+
+namespace LinqToDB.Tests.SearchEngine.TypeGraph
 {
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.Search;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-    using LinqToDB.Tests.SearchEngine.TypeGraph.Base;
-
-    using Xunit;
-
     public class HierarchyPropertyTest : TypeGraphBaseTest
     {
         public interface IBase
@@ -53,7 +52,8 @@
             ////    IC -> []
             ////       ~> [IBase, IB]
 
-            expectedGraph[baseVertex.Index].Casts.AddRange(new[] { new CastEdge(baseVertex, a), new CastEdge(baseVertex, b), new CastEdge(baseVertex, c) });
+            expectedGraph[baseVertex.Index].Casts.AddRange(new[]
+            {new CastEdge(baseVertex, a), new CastEdge(baseVertex, b), new CastEdge(baseVertex, c)});
 
             expectedGraph[a.Index].Children.AddLast(ac);
             expectedGraph[a.Index].Casts.AddLast(new CastEdge(a, baseVertex));

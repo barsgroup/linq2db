@@ -1,22 +1,22 @@
 ﻿using System.Linq.Expressions;
 
-namespace LinqToDB.Expressions
+namespace Bars2Db.Expressions
 {
     public struct TransformInfo
     {
         public TransformInfo(Expression expression, bool stop)
         {
             Expression = expression;
-            Stop       = stop;
+            Stop = stop;
         }
 
         public TransformInfo(Expression expression)
         {
             Expression = expression;
-            Stop       = false;
+            Stop = false;
         }
 
         public Expression Expression;
-        public bool       Stop;
+        public bool Stop;
     }
 }

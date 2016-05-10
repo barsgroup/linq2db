@@ -1,9 +1,9 @@
-﻿namespace LinqToDB.SqlQuery.Search.Utils
-{
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
+namespace Bars2Db.SqlQuery.Search.Utils
+{
     public static class CollectionUtils
     {
         public static Type GetElementType(Type sourceType)
@@ -51,7 +51,6 @@
             var coll = collection as ICollection;
             if (coll != null)
             {
-
                 resultArray = new object[coll.Count];
                 coll.CopyTo(resultArray, 0);
                 return resultArray;
