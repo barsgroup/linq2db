@@ -672,8 +672,8 @@ namespace Bars2Db.Linq.Builder
 
                     expr = Expression.MemberInit(
                         Expression.New(type),
-                        Expression.Bind(fields[0], expr),
-                        Expression.Bind(fields[1], ex));
+                        Expression.Bind(fields[0], ex),
+                        Expression.Bind(fields[1], expr));
                 }
 
                 var dic = new Dictionary<Expression, Expression>();
