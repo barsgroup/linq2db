@@ -1,19 +1,14 @@
 NUGET
-  remote: https://www.nuget.org/api/v2
+  remote: https://barsgroup.myget.org/F/common/auth/3ef5eaa4-6139-4997-ad92-71947dcc67c0
   specs:
-    Castle.Core (3.3.3)
-    DynamicExpresso.Core (1.3.1)
-    FirebirdSql.Data.FirebirdClient (4.8.1.1) - framework: >= net45
-    Microsoft.Bcl.Immutable (1.0.34) - framework: >= net45
-    Microsoft.SqlServer.Compact (4.0.8876.1) - framework: >= net40
-    Microsoft.SqlServer.Types (11.0.2)
-    MiniProfiler (3.1.1.140) - framework: >= net45
-    MySql.Data (6.9.8) - framework: >= net45
-    Npgsql (2.2.5) - framework: >= net45
-    NuGet.CommandLine (3.3.0)
-    NUnit (2.6.4) - framework: >= net45
-    odp.net.x86 (112.3.20) - framework: >= net40
-    System.Data.SQLite.Core (1.0.97) - framework: >= net45
-    xunit (1.9.1) - framework: >= net45
-    xunit.extensions (1.9.1) - framework: >= net45
-      xunit (1.9.1)
+    xunit (2.0.0)
+      xunit.assert (2.0)
+      xunit.core (2.0)
+    xunit.abstractions (2.0.0)
+    xunit.assert (2.0.0)
+    xunit.core (2.0.0)
+      xunit.extensibility.core (2.0)
+    xunit.extensibility.core (2.0.0)
+      xunit.abstractions (2.0)
+    xunit.extensions (2.0.0)
+      xunit (2.0)
