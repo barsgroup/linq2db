@@ -1,13 +1,12 @@
-﻿namespace LinqToDB.SqlEntities
+﻿using System;
+using System.Linq;
+using System.Reflection;
+using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlEntities
 {
-    using System;
-    using System.Linq;
-    using System.Reflection;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     partial class Sql
     {
         [Serializable]
@@ -25,29 +24,29 @@
 
             public FunctionAttribute(string name, params int[] argIndices)
             {
-                Name       = name;
+                Name = name;
                 ArgIndices = argIndices;
             }
 
             public FunctionAttribute(string configuration, string name)
             {
                 Configuration = configuration;
-                Name          = name;
+                Name = name;
             }
 
             public FunctionAttribute(string configuration, string name, params int[] argIndices)
             {
                 Configuration = configuration;
-                Name          = name;
-                ArgIndices    = argIndices;
+                Name = name;
+                ArgIndices = argIndices;
             }
 
-            public string Configuration    { get; set; }
-            public string Name             { get; set; }
-            public bool   ServerSideOnly   { get; set; }
-            public bool   PreferServerSide { get; set; }
-            public bool   InlineParameters { get; set; }
-            public int[]  ArgIndices       { get; set; }
+            public string Configuration { get; set; }
+            public string Name { get; set; }
+            public bool ServerSideOnly { get; set; }
+            public bool PreferServerSide { get; set; }
+            public bool InlineParameters { get; set; }
+            public int[] ArgIndices { get; set; }
 
             protected IQueryExpression[] ConvertArgs(MemberInfo member, IQueryExpression[] args)
             {
@@ -55,10 +54,16 @@
                 if (methodInfo != null)
                 {
                     if (methodInfo.DeclaringType.IsGenericTypeEx())
-                        args = args.Concat(methodInfo.DeclaringType.GetGenericArgumentsEx().Select(t => (IQueryExpression)SqlDataType.GetDataType(t))).ToArray();
+                        args =
+                            args.Concat(
+                                methodInfo.DeclaringType.GetGenericArgumentsEx()
+                                    .Select(t => (IQueryExpression) SqlDataType.GetDataType(t))).ToArray();
 
                     if (methodInfo.IsGenericMethod)
-                        args = args.Concat(methodInfo.GetGenericArguments().Select(t => (IQueryExpression)SqlDataType.GetDataType(t))).ToArray();
+                        args =
+                            args.Concat(
+                                methodInfo.GetGenericArguments()
+                                    .Select(t => (IQueryExpression) SqlDataType.GetDataType(t))).ToArray();
                 }
 
                 if (ArgIndices != null)

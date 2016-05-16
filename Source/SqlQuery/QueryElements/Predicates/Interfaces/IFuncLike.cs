@@ -1,9 +1,9 @@
-namespace LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces
-{
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
 
-    public interface IFuncLike: ISqlPredicate
+namespace Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces
+{
+    public interface IFuncLike : ISqlPredicate
     {
         [SearchContainer]
         ISqlFunction Function { get; }

@@ -2,38 +2,37 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
+using Bars2Db.Expressions;
+using Bars2Db.Extensions;
+using Bars2Db.Mapping;
 
-namespace LinqToDB.Common
+namespace Bars2Db.Common
 {
-    using Expressions;
-    using Extensions;
-    using Mapping;
-
     public static class DefaultValue
     {
+        private static readonly ConcurrentDictionary<Type, object> _values = new ConcurrentDictionary<Type, object>();
+
         static DefaultValue()
         {
-            _values[typeof(int)]            = default(int);
-            _values[typeof(uint)]           = default(uint);
-            _values[typeof(byte)]           = default(byte);
-            _values[typeof(char)]           = default(char);
-            _values[typeof(bool)]           = default(bool);
-            _values[typeof(sbyte)]          = default(sbyte);
-            _values[typeof(short)]          = default(short);
-            _values[typeof(long)]           = default(long);
-            _values[typeof(ushort)]         = default(ushort);
-            _values[typeof(ulong)]          = default(ulong);
-            _values[typeof(float)]          = default(float);
-            _values[typeof(double)]         = default(double);
-            _values[typeof(decimal)]        = default(decimal);
-            _values[typeof(DateTime)]       = default(DateTime);
-            _values[typeof(TimeSpan)]       = default(TimeSpan);
+            _values[typeof(int)] = default(int);
+            _values[typeof(uint)] = default(uint);
+            _values[typeof(byte)] = default(byte);
+            _values[typeof(char)] = default(char);
+            _values[typeof(bool)] = default(bool);
+            _values[typeof(sbyte)] = default(sbyte);
+            _values[typeof(short)] = default(short);
+            _values[typeof(long)] = default(long);
+            _values[typeof(ushort)] = default(ushort);
+            _values[typeof(ulong)] = default(ulong);
+            _values[typeof(float)] = default(float);
+            _values[typeof(double)] = default(double);
+            _values[typeof(decimal)] = default(decimal);
+            _values[typeof(DateTime)] = default(DateTime);
+            _values[typeof(TimeSpan)] = default(TimeSpan);
             _values[typeof(DateTimeOffset)] = default(DateTimeOffset);
-            _values[typeof(Guid)]           = default(Guid);
-            _values[typeof(string)]         = default(string);
+            _values[typeof(Guid)] = default(Guid);
+            _values[typeof(string)] = default(string);
         }
-
-        static readonly ConcurrentDictionary<Type,object> _values = new ConcurrentDictionary<Type,object>();
 
         public static object GetValue([Properties.NotNull] Type type, MappingSchema mappingSchema = null)
         {
@@ -83,7 +82,7 @@ namespace LinqToDB.Common
             object value;
 
             if (_values.TryGetValue(typeof(T), out value))
-                return (T)value;
+                return (T) value;
 
             _values[typeof(T)] = default(T);
 
@@ -98,7 +97,7 @@ namespace LinqToDB.Common
 
     public static class DefaultValue<T>
     {
-        static T _value = DefaultValue.GetValue<T>();
+        private static T _value = DefaultValue.GetValue<T>();
 
         public static T Value
         {

@@ -1,42 +1,16 @@
-namespace LinqToDB.SqlQuery.QueryElements.Conditions
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.Conditions
 {
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class Join : ConditionBase<IJoin, Join.Next>,
-                        IJoin
+        IJoin
     {
-        public class Next
-        {
-            internal Next(IJoin parent)
-            {
-                _parent = parent;
-            }
-
-            readonly IJoin _parent;
-
-            public static implicit operator Join(Next next)
-            {
-                return (Join)next._parent;
-            }
-        }
-
-        public override ISearchCondition Search
-        {
-            get { return JoinedTable.Condition; }
-            protected set { throw new System.NotSupportedException(); }
-        }
-
-        public override Next GetNext()
-        {
-            return new Next(this);
-        }
-
         internal Join(EJoinType joinType, ISqlTableSource table, string alias, bool isWeak, IReadOnlyList<IJoin> joins)
         {
             JoinedTable = new JoinedTable(joinType, table, alias, isWeak);
@@ -50,6 +24,17 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
             }
         }
 
+        public override ISearchCondition Search
+        {
+            get { return JoinedTable.Condition; }
+            protected set { throw new NotSupportedException(); }
+        }
+
+        public override Next GetNext()
+        {
+            return new Next(this);
+        }
+
         public IJoinedTable JoinedTable { get; }
 
         public override EQueryElementType ElementType => EQueryElementType.None;
@@ -57,6 +42,21 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions
         public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
             return sb;
+        }
+
+        public class Next
+        {
+            private readonly IJoin _parent;
+
+            internal Next(IJoin parent)
+            {
+                _parent = parent;
+            }
+
+            public static implicit operator Join(Next next)
+            {
+                return (Join) next._parent;
+            }
         }
     }
 }

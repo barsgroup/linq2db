@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Text;
 
-namespace LinqToDB.DataProvider
+namespace Bars2Db.DataProvider
 {
-    class DataTools
+    internal class DataTools
     {
-        static readonly char[] _escapes = { '\x0', '\'' };
+        private static readonly char[] _escapes = {'\x0', '\''};
 
-        public static void ConvertStringToSql(StringBuilder stringBuilder, string plusOperator, string startString, Action<StringBuilder,int> appendConversion, string value)
+        public static void ConvertStringToSql(StringBuilder stringBuilder, string plusOperator, string startString,
+            Action<StringBuilder, int> appendConversion, string value)
         {
             if (value.Length > 0 && value.IndexOfAny(_escapes) >= 0)
             {
@@ -19,7 +20,7 @@ namespace LinqToDB.DataProvider
 
                     switch (c)
                     {
-                        case '\x0' :
+                        case '\x0':
                             if (isInString)
                             {
                                 isInString = false;
@@ -35,7 +36,7 @@ namespace LinqToDB.DataProvider
 
                             break;
 
-                        case '\''  :
+                        case '\'':
                             if (!isInString)
                             {
                                 isInString = true;
@@ -54,7 +55,7 @@ namespace LinqToDB.DataProvider
 
                             break;
 
-                        default   :
+                        default:
                             if (!isInString)
                             {
                                 isInString = true;
@@ -88,15 +89,16 @@ namespace LinqToDB.DataProvider
             }
         }
 
-        public static void ConvertCharToSql(StringBuilder stringBuilder, string startString, Action<StringBuilder,int> appendConversion, char value)
+        public static void ConvertCharToSql(StringBuilder stringBuilder, string startString,
+            Action<StringBuilder, int> appendConversion, char value)
         {
             switch (value)
             {
-                case '\x0' :
-                    appendConversion(stringBuilder,value);
+                case '\x0':
+                    appendConversion(stringBuilder, value);
                     break;
 
-                case '\''  :
+                case '\'':
                     stringBuilder
                         .Append(startString)
                         .Append("''")
@@ -104,7 +106,7 @@ namespace LinqToDB.DataProvider
                         ;
                     break;
 
-                default    :
+                default:
                     stringBuilder
                         .Append(startString)
                         .Append(value)

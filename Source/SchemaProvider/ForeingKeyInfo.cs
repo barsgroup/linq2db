@@ -1,12 +1,12 @@
-﻿namespace LinqToDB.SchemaProvider
+﻿namespace Bars2Db.SchemaProvider
 {
     public class ForeingKeyInfo
     {
         public string Name;
-        public string ThisTableID;
-        public string ThisColumn;
-        public string OtherTableID;
+        public int Ordinal;
         public string OtherColumn;
-        public int    Ordinal;
+        public string OtherTableID;
+        public string ThisColumn;
+        public string ThisTableID;
     }
 }

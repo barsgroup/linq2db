@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Reflection;
+using Bars2Db.Extensions;
 
-namespace LinqToDB.Metadata
+namespace Bars2Db.Metadata
 {
-    using Extensions;
-
     public class AttributeReader : IMetadataReader
     {
         public T[] GetAttributes<T>(Type type, bool inherit = true)
             where T : Attribute
         {
             var attrs = type.GetCustomAttributesEx(typeof(T), inherit);
-            var arr   = new T[attrs.Length];
+            var arr = new T[attrs.Length];
 
             for (var i = 0; i < attrs.Length; i++)
-                arr[i] = (T)attrs[i];
+                arr[i] = (T) attrs[i];
 
             return arr;
         }
@@ -23,10 +22,10 @@ namespace LinqToDB.Metadata
             where T : Attribute
         {
             var attrs = memberInfo.GetCustomAttributesEx(typeof(T), inherit);
-            var arr   = new T[attrs.Length];
+            var arr = new T[attrs.Length];
 
             for (var i = 0; i < attrs.Length; i++)
-                arr[i] = (T)attrs[i];
+                arr[i] = (T) attrs[i];
 
             return arr;
         }

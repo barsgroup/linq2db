@@ -1,17 +1,18 @@
 ﻿using System.Linq.Expressions;
+using Bars2Db.Expressions;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-
-    class CastBuilder : MethodCallBuilder
+    internal class CastBuilder : MethodCallBuilder
     {
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             return methodCall.IsQueryable("Cast");
         }
 
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
 
@@ -24,19 +25,19 @@ namespace LinqToDB.Linq.Builder
             return null;
         }
 
-        class CastContext : PassThroughContext
+        private class CastContext : PassThroughContext
         {
+            private readonly MethodCallExpression _methodCall;
+
             public CastContext(IBuildContext context, MethodCallExpression methodCall)
                 : base(context)
             {
                 _methodCall = methodCall;
             }
 
-            private readonly MethodCallExpression _methodCall;
-
             public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
             {
-                var expr   = BuildExpression(null, 0);
+                var expr = BuildExpression(null, 0);
                 var mapper = Builder.BuildMapper<T>(expr);
 
                 query.SetQuery(mapper);

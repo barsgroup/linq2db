@@ -1,12 +1,12 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
-{
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
 
+namespace Bars2Db.SqlQuery.QueryElements.Interfaces
+{
     public interface ICreateTableStatement : IQueryElement,
-                                             ISqlExpressionWalkable,
-                                             ICloneableElement
+        ISqlExpressionWalkable,
+        ICloneableElement
     {
         [SearchContainer]
         ISqlTable Table { get; set; }

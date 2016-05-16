@@ -5,15 +5,15 @@ using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LinqToDB.Data
+namespace Bars2Db.Data
 {
 #if !NOASYNC
 
     public class DataReaderAsync : IDisposable
     {
-        public   CommandInfo       CommandInfo       { get; set; }
-        public   DbDataReader      Reader            { get; set; }
-        internal int               ReadNumber        { get; set; }
+        public CommandInfo CommandInfo { get; set; }
+        public DbDataReader Reader { get; set; }
+        internal int ReadNumber { get; set; }
         internal CancellationToken CancellationToken { get; set; }
 
         public void Dispose()
@@ -24,36 +24,39 @@ namespace LinqToDB.Data
 
         #region Query with object reader
 
-        public Task<List<T>> QueryToListAsync<T>(Func<IDataReader,T> objectReader)
+        public Task<List<T>> QueryToListAsync<T>(Func<IDataReader, T> objectReader)
         {
             return QueryToListAsync(objectReader, CancellationToken.None);
         }
 
-        public async Task<List<T>> QueryToListAsync<T>(Func<IDataReader,T> objectReader, CancellationToken cancellationToken)
+        public async Task<List<T>> QueryToListAsync<T>(Func<IDataReader, T> objectReader,
+            CancellationToken cancellationToken)
         {
             var list = new List<T>();
             await QueryForEachAsync(objectReader, list.Add, cancellationToken);
             return list;
         }
 
-        public Task<T[]> QueryToArrayAsync<T>(Func<IDataReader,T> objectReader)
+        public Task<T[]> QueryToArrayAsync<T>(Func<IDataReader, T> objectReader)
         {
             return QueryToArrayAsync(objectReader, CancellationToken.None);
         }
 
-        public async Task<T[]> QueryToArrayAsync<T>(Func<IDataReader,T> objectReader, CancellationToken cancellationToken)
+        public async Task<T[]> QueryToArrayAsync<T>(Func<IDataReader, T> objectReader,
+            CancellationToken cancellationToken)
         {
             var list = new List<T>();
             await QueryForEachAsync(objectReader, list.Add, cancellationToken);
             return list.ToArray();
         }
 
-        public Task QueryForEachAsync<T>(Func<IDataReader,T> objectReader, Action<T> action)
+        public Task QueryForEachAsync<T>(Func<IDataReader, T> objectReader, Action<T> action)
         {
             return QueryForEachAsync(objectReader, action, CancellationToken.None);
         }
 
-        public async Task QueryForEachAsync<T>(Func<IDataReader,T> objectReader, Action<T> action, CancellationToken cancellationToken)
+        public async Task QueryForEachAsync<T>(Func<IDataReader, T> objectReader, Action<T> action,
+            CancellationToken cancellationToken)
         {
             while (await Reader.ReadAsync(cancellationToken))
                 action(objectReader(Reader));
@@ -100,7 +103,9 @@ namespace LinqToDB.Data
 
             ReadNumber++;
 
-            await CommandInfo.ExecuteQueryAsync(Reader, CommandInfo.DataConnection.Command.CommandText + "$$$" + ReadNumber, action, cancellationToken);
+            await
+                CommandInfo.ExecuteQueryAsync(Reader,
+                    CommandInfo.DataConnection.Command.CommandText + "$$$" + ReadNumber, action, cancellationToken);
         }
 
         #endregion

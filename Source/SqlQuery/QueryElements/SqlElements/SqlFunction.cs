@@ -1,17 +1,15 @@
-﻿namespace LinqToDB.SqlQuery.QueryElements.SqlElements
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.SqlElements
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class SqlFunction : BaseQueryElement,
-                               ISqlFunction
+        ISqlFunction
 
         //ISqlTableSource
     {
@@ -30,37 +28,20 @@
                 if (p == null) throw new ArgumentNullException(nameof(parameters));
 
             SystemType = systemType;
-            Name       = name;
+            Name = name;
             Precedence = precedence;
             Parameters = parameters;
         }
 
-        public Type             SystemType { get; }
-        public string           Name       { get; }
-        public int              Precedence { get; }
+        public Type SystemType { get; }
+        public string Name { get; }
+        public int Precedence { get; }
 
         public IQueryExpression[] Parameters { get; }
 
-        public static ISqlFunction CreateCount (Type type, ISqlTableSource table) { return new SqlFunction(type, "Count",  new SqlExpression("*")); }
-
-        public static ISqlFunction CreateExists(ISelectQuery subQuery) { return new SqlFunction(typeof(bool), "EXISTS", SqlQuery.Precedence.Comparison, subQuery); }
-
-        #region Overrides
-
-#if OVERRIDETOSTRING
-
-        public override string ToString()
-        {
-            return ((IQueryElement)this).ToString(new StringBuilder(), new Dictionary<IQueryElement,IQueryElement>()).ToString();
-        }
-
-#endif
-
-        #endregion
-
         #region ISqlExpressionWalkable Members
 
-        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> action)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> action)
         {
             for (var i = 0; i < Parameters.Length; i++)
                 Parameters[i] = Parameters[i].Walk(skipColumns, action);
@@ -88,9 +69,35 @@
 
         #endregion
 
+        public static ISqlFunction CreateCount(Type type, ISqlTableSource table)
+        {
+            return new SqlFunction(type, "Count", new SqlExpression("*"));
+        }
+
+        public static ISqlFunction CreateExists(ISelectQuery subQuery)
+        {
+            return new SqlFunction(typeof(bool), "EXISTS", SqlQuery.Precedence.Comparison, subQuery);
+        }
+
+        #region Overrides
+
+#if OVERRIDETOSTRING
+
+        public override string ToString()
+        {
+            return
+                ((IQueryElement) this).ToString(new StringBuilder(), new Dictionary<IQueryElement, IQueryElement>())
+                    .ToString();
+        }
+
+#endif
+
+        #endregion
+
         #region ICloneableElement Members
 
-        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
         {
             if (!doClone(this))
                 return this;
@@ -103,20 +110,21 @@
                     SystemType,
                     Name,
                     Precedence,
-                    Parameters.Select(e => (IQueryExpression)e.Clone(objectTree, doClone)).ToArray()));
+                    Parameters.Select(e => (IQueryExpression) e.Clone(objectTree, doClone)).ToArray()));
             }
 
             return clone;
         }
 
-        public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
+        public bool Equals(IQueryExpression other, Func<IQueryExpression, IQueryExpression, bool> comparer)
         {
             if (this == other)
                 return true;
 
             var func = other as ISqlFunction;
 
-            if (func == null || Name != func.Name || Parameters.Length != func.Parameters.Length && SystemType != func.SystemType)
+            if (func == null || Name != func.Name ||
+                Parameters.Length != func.Parameters.Length && SystemType != func.SystemType)
                 return false;
 
             for (var i = 0; i < Parameters.Length; i++)
@@ -132,7 +140,7 @@
 
         public override EQueryElementType ElementType => EQueryElementType.SqlFunction;
 
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
             sb
                 .Append(Name)

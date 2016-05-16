@@ -1,12 +1,11 @@
-﻿namespace LinqToDB.SqlEntities
+﻿using System;
+using System.Reflection;
+using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlEntities
 {
-    using System;
-    using System.Reflection;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     partial class Sql
     {
         [Serializable]
@@ -41,7 +40,7 @@
 
             public string Expression
             {
-                get { return base.Name;  }
+                get { return base.Name; }
                 set { base.Name = value; }
             }
 
@@ -49,7 +48,8 @@
 
             public override IQueryExpression GetExpression(MemberInfo member, params IQueryExpression[] args)
             {
-                return new SqlExpression(member.GetMemberType(), Expression ?? member.Name, Precedence, ConvertArgs(member, args));
+                return new SqlExpression(member.GetMemberType(), Expression ?? member.Name, Precedence,
+                    ConvertArgs(member, args));
             }
         }
     }

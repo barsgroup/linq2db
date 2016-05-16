@@ -1,8 +1,8 @@
-﻿namespace LinqToDB.Linq
-{
-    using System.Collections;
-    using System.Linq.Expressions;
+﻿using System.Collections;
+using System.Linq.Expressions;
 
+namespace Bars2Db.Linq
+{
     public interface IExpressionQuery
     {
         string SqlText { get; }

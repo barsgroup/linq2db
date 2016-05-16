@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Text;
+using Bars2Db.Mapping;
 
-namespace LinqToDB.DataProvider.PostgreSQL
+namespace Bars2Db.DataProvider.PostgreSQL
 {
-    using Mapping;
-
     public class PostgreSQLMappingSchema : MappingSchema
     {
         public PostgreSQLMappingSchema() : this(ProviderName.PostgreSQL)
@@ -17,13 +16,13 @@ namespace LinqToDB.DataProvider.PostgreSQL
 
             SetDataType(typeof(string), DataType.Undefined);
 
-            SetValueToSqlConverter(typeof(bool), (sb,dt,v) => sb.Append(v));
+            SetValueToSqlConverter(typeof(bool), (sb, dt, v) => sb.Append(v));
 
-            SetValueToSqlConverter(typeof(string),   (sb,dt,v) => ConvertStringToSql  (sb, v.ToString()));
-            SetValueToSqlConverter(typeof(char),     (sb,dt,v) => ConvertCharToSql    (sb, (char)v));
+            SetValueToSqlConverter(typeof(string), (sb, dt, v) => ConvertStringToSql(sb, v.ToString()));
+            SetValueToSqlConverter(typeof(char), (sb, dt, v) => ConvertCharToSql(sb, (char) v));
         }
 
-        static void AppendConversion(StringBuilder stringBuilder, int value)
+        private static void AppendConversion(StringBuilder stringBuilder, int value)
         {
             stringBuilder
                 .Append("chr(")
@@ -32,12 +31,12 @@ namespace LinqToDB.DataProvider.PostgreSQL
                 ;
         }
 
-        static void ConvertStringToSql(StringBuilder stringBuilder, string value)
+        private static void ConvertStringToSql(StringBuilder stringBuilder, string value)
         {
             DataTools.ConvertStringToSql(stringBuilder, "||", "'", AppendConversion, value);
         }
 
-        static void ConvertCharToSql(StringBuilder stringBuilder, char value)
+        private static void ConvertCharToSql(StringBuilder stringBuilder, char value)
         {
             DataTools.ConvertCharToSql(stringBuilder, "'", AppendConversion, value);
         }

@@ -1,33 +1,12 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Bars2Db.Expressions;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-    using Expressions;
-
     public class PropertyMappingBuilder<T>
     {
-        #region Init
-
-        public PropertyMappingBuilder(
-            [Properties.NotNull] EntityMappingBuilder<T>    entity,
-            [Properties.NotNull] Expression<Func<T,object>> memberGetter)
-        {
-            if (entity       == null) throw new ArgumentNullException(nameof(entity));
-            if (memberGetter == null) throw new ArgumentNullException(nameof(memberGetter));
-
-            _entity       = entity;
-            _memberGetter = memberGetter;
-            _memberInfo   = MemberHelper.MemberOf(memberGetter);
-        }
-
-        readonly Expression<Func<T,object>> _memberGetter;
-        readonly MemberInfo                 _memberInfo;
-        readonly EntityMappingBuilder<T>    _entity;
-
-        #endregion
-
         public PropertyMappingBuilder<T> HasAttribute(Attribute attribute)
         {
             _entity.HasAttribute(_memberInfo, attribute);
@@ -39,7 +18,7 @@ namespace LinqToDB.Mapping
             return _entity.Entity<TE>(configuration);
         }
 
-        public PropertyMappingBuilder<T> Property(Expression<Func<T,object>> func)
+        public PropertyMappingBuilder<T> Property(Expression<Func<T, object>> func)
         {
             return _entity.Property(func);
         }
@@ -56,18 +35,18 @@ namespace LinqToDB.Mapping
             return this;
         }
 
-        PropertyMappingBuilder<T> SetColumn(Action<ColumnAttribute> setColumn)
+        private PropertyMappingBuilder<T> SetColumn(Action<ColumnAttribute> setColumn)
         {
             _entity.SetAttribute(
                 _memberGetter,
                 false,
-                 _ =>
-                 {
-                    var a = new ColumnAttribute { Configuration = _entity.Configuration };
+                _ =>
+                {
+                    var a = new ColumnAttribute {Configuration = _entity.Configuration};
                     setColumn(a);
                     return a;
-                 },
-                (_,a) => setColumn(a),
+                },
+                (_, a) => setColumn(a),
                 a => a.Configuration,
                 a => new ColumnAttribute(a));
 
@@ -138,5 +117,25 @@ namespace LinqToDB.Mapping
         {
             return SetColumn(a => a.Scale = scale);
         }
+
+        #region Init
+
+        public PropertyMappingBuilder(
+            [Properties.NotNull] EntityMappingBuilder<T> entity,
+            [Properties.NotNull] Expression<Func<T, object>> memberGetter)
+        {
+            if (entity == null) throw new ArgumentNullException(nameof(entity));
+            if (memberGetter == null) throw new ArgumentNullException(nameof(memberGetter));
+
+            _entity = entity;
+            _memberGetter = memberGetter;
+            _memberInfo = MemberHelper.MemberOf(memberGetter);
+        }
+
+        private readonly Expression<Func<T, object>> _memberGetter;
+        private readonly MemberInfo _memberInfo;
+        private readonly EntityMappingBuilder<T> _entity;
+
+        #endregion
     }
 }

@@ -1,42 +1,38 @@
-namespace LinqToDB.SqlQuery.QueryElements.Clauses
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.QueryElements.Clauses.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.Clauses
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class InsertClause : BaseQueryElement,
-                                IInsertClause
+        IInsertClause
     {
-
         public LinkedList<ISetExpression> Items { get; } = new LinkedList<ISetExpression>();
 
-        public ISqlTable             Into         { get; set; }
+        public ISqlTable Into { get; set; }
 
-        public bool                WithIdentity { get; set; }
+        public bool WithIdentity { get; set; }
 
         #region ICloneableElement Members
 
-        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
         {
             if (!doClone(this))
                 return this;
 
-            var clone = new InsertClause { WithIdentity = WithIdentity };
+            var clone = new InsertClause {WithIdentity = WithIdentity};
 
             if (Into != null)
-                clone.Into = (ISqlTable)Into.Clone(objectTree, doClone);
+                clone.Into = (ISqlTable) Into.Clone(objectTree, doClone);
 
             Items.ForEach(
-                node =>
-                {
-                    clone.Items.AddLast((ISetExpression)node.Value.Clone(objectTree, doClone));
-                });
+                node => { clone.Items.AddLast((ISetExpression) node.Value.Clone(objectTree, doClone)); });
 
             objectTree.Add(this, clone);
 
@@ -47,7 +43,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region ISqlExpressionWalkable Members
 
-        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
         {
             if (Into != null)
                 Into.Walk(skipColumns, func);
@@ -64,7 +60,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         public override EQueryElementType ElementType => EQueryElementType.InsertClause;
 
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
             sb.Append("VALUES ");
 

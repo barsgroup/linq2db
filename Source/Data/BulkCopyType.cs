@@ -1,4 +1,4 @@
-﻿namespace LinqToDB.Data
+﻿namespace Bars2Db.Data
 {
     public enum BulkCopyType
     {

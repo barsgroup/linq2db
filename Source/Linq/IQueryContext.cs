@@ -1,15 +1,14 @@
 ﻿using System.Collections.Generic;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.Linq
+namespace Bars2Db.Linq
 {
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public interface IQueryContext
     {
-        ISelectQuery   SelectQuery { get; }
-        object         Context     { get; set; }
-        List<string>   QueryHints  { get; }
+        ISelectQuery SelectQuery { get; }
+        object Context { get; set; }
+        List<string> QueryHints { get; }
         ISqlParameter[] GetParameters();
     }
 }

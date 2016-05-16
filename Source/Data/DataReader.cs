@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
-namespace LinqToDB.Data
+namespace Bars2Db.Data
 {
     public class DataReader : IDisposable
     {
-        public   CommandInfo CommandInfo { get; set; }
-        public   IDataReader Reader      { get; set; }
-        internal int         ReadNumber  { get; set; }
+        public CommandInfo CommandInfo { get; set; }
+        public IDataReader Reader { get; set; }
+        internal int ReadNumber { get; set; }
 
         public void Dispose()
         {
@@ -19,7 +19,7 @@ namespace LinqToDB.Data
 
         #region Query with object reader
 
-        public IEnumerable<T> Query<T>(Func<IDataReader,T> objectReader)
+        public IEnumerable<T> Query<T>(Func<IDataReader, T> objectReader)
         {
             while (Reader.Read())
                 yield return objectReader(Reader);
@@ -37,7 +37,8 @@ namespace LinqToDB.Data
 
             ReadNumber++;
 
-            return CommandInfo.ExecuteQuery<T>(Reader, CommandInfo.DataConnection.Command.CommandText + "$$$" + ReadNumber);
+            return CommandInfo.ExecuteQuery<T>(Reader,
+                CommandInfo.DataConnection.Command.CommandText + "$$$" + ReadNumber);
         }
 
         #endregion

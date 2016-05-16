@@ -1,10 +1,10 @@
-﻿namespace LinqToDB.SqlEntities
-{
-    using System;
+﻿using System;
 
+namespace Bars2Db.SqlEntities
+{
     partial class Sql
     {
-        [AttributeUsage(AttributeTargets.Enum, AllowMultiple = false, Inherited = false)]
+        [AttributeUsage(AttributeTargets.Enum)]
         public class EnumAttribute : Attribute
         {
         }

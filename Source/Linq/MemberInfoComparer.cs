@@ -1,11 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
+using Bars2Db.Extensions;
 
-namespace LinqToDB.Linq
+namespace Bars2Db.Linq
 {
-    using Extensions;
-
-    class MemberInfoComparer : IEqualityComparer<MemberInfo>
+    internal class MemberInfoComparer : IEqualityComparer<MemberInfo>
     {
         public bool Equals(MemberInfo x, MemberInfo y)
         {

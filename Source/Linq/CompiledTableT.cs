@@ -1,46 +1,46 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Bars2Db.Linq.Builder;
+using Bars2Db.Mapping;
 
-namespace LinqToDB.Linq
+namespace Bars2Db.Linq
 {
-    using Builder;
-    using Mapping;
-
-    class CompiledTable<T>
+    internal class CompiledTable<T>
     {
+        private readonly Expression _expression;
+
+        private readonly Dictionary<object, Query<T>> _infos = new Dictionary<object, Query<T>>();
+
+        private readonly LambdaExpression _lambda;
+        private readonly object _sync = new object();
+
+        private string _lastContextID;
+        private MappingSchema _lastMappingSchema;
+        private Query<T> _lastQuery;
+
         public CompiledTable(LambdaExpression lambda, Expression expression)
         {
-            _lambda     = lambda;
+            _lambda = lambda;
             _expression = expression;
         }
 
-        readonly LambdaExpression _lambda;
-        readonly Expression       _expression;
-        readonly object           _sync = new object();
-
-        string        _lastContextID;
-        MappingSchema _lastMappingSchema;
-        Query<T>      _lastQuery;
-
-        readonly Dictionary<object,Query<T>> _infos = new Dictionary<object, Query<T>>();
-
-        Query<T> GetInfo(IDataContext dataContext)
+        private Query<T> GetInfo(IDataContext dataContext)
         {
             var dataContextInfo = DataContextInfo.Create(dataContext);
 
-            string        lastContextID;
+            string lastContextID;
             MappingSchema lastMappingSchema;
-            Query<T>      query;
+            Query<T> query;
 
             lock (_sync)
             {
-                lastContextID     = _lastContextID;
+                lastContextID = _lastContextID;
                 lastMappingSchema = _lastMappingSchema;
-                query             = _lastQuery;
+                query = _lastQuery;
             }
 
-            var contextID     = dataContextInfo.ContextID;
+            var contextID = dataContextInfo.ContextID;
             var mappingSchema = dataContextInfo.MappingSchema;
 
             if (lastContextID != contextID || lastMappingSchema != mappingSchema)
@@ -48,7 +48,7 @@ namespace LinqToDB.Linq
 
             if (query == null)
             {
-                var key = new { contextID, mappingSchema };
+                var key = new {contextID, mappingSchema};
 
                 lock (_sync)
                     _infos.TryGetValue(key, out query);
@@ -61,14 +61,16 @@ namespace LinqToDB.Linq
 
                         if (query == null)
                         {
-                            query = new ExpressionBuilder(new Query<T>(), dataContextInfo, _expression, _lambda.Parameters.ToArray())
-                                .Build<T>();
+                            query =
+                                new ExpressionBuilder(new Query<T>(), dataContextInfo, _expression,
+                                    _lambda.Parameters.ToArray())
+                                    .Build<T>();
 
                             _infos.Add(key, query);
 
-                            _lastContextID     = contextID;
+                            _lastContextID = contextID;
                             _lastMappingSchema = mappingSchema;
-                            _lastQuery         = query;
+                            _lastQuery = query;
                         }
                     }
                 }
@@ -79,17 +81,17 @@ namespace LinqToDB.Linq
 
         public IQueryable<T> Create(object[] parameters)
         {
-            var db = (IDataContext)parameters[0];
-            return new Table<T>(db, _expression) { Info = GetInfo(db), Parameters = parameters };
+            var db = (IDataContext) parameters[0];
+            return new Table<T>(db, _expression) {Info = GetInfo(db), Parameters = parameters};
         }
 
         public T Execute(object[] parameters)
         {
-            var db    = (IDataContext)parameters[0];
-            var ctx   = DataContextInfo.Create(db);
+            var db = (IDataContext) parameters[0];
+            var ctx = DataContextInfo.Create(db);
             var query = GetInfo(db);
 
-            return (T)query.GetElement(null, ctx, _expression, parameters);
+            return (T) query.GetElement(null, ctx, _expression, parameters);
         }
     }
 }

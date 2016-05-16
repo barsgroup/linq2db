@@ -1,29 +1,30 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Bars2Db.Expressions;
+using Bars2Db.SqlQuery.QueryElements;
+using Bars2Db.SqlQuery.QueryElements.Conditions;
+using Bars2Db.SqlQuery.QueryElements.Predicates;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.QueryElements.Conditions;
-    using LinqToDB.SqlQuery.QueryElements.Predicates;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    class AllAnyBuilder : MethodCallBuilder
+    internal class AllAnyBuilder : MethodCallBuilder
     {
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             return methodCall.IsQueryable("All", "Any");
         }
 
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
-            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]) { CopyTable = true });
+            var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]) {CopyTable = true});
 
             if (methodCall.Arguments.Count == 2)
             {
-                var condition = (LambdaExpression)methodCall.Arguments[1].Unwrap();
+                var condition = (LambdaExpression) methodCall.Arguments[1].Unwrap();
 
                 if (methodCall.Method.Name == "All")
                     condition = Expression.Lambda(Expression.Not(condition.Body), condition.Name, condition.Parameters);
@@ -40,13 +41,15 @@ namespace LinqToDB.Linq.Builder
         {
             if (methodCall.Arguments.Count == 2)
             {
-                var predicate = (LambdaExpression)methodCall.Arguments[1].Unwrap();
-                var info      = builder.ConvertSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]), predicate.Parameters[0]);
+                var predicate = (LambdaExpression) methodCall.Arguments[1].Unwrap();
+                var info = builder.ConvertSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]),
+                    predicate.Parameters[0]);
 
                 if (info != null)
                 {
-                    info.Expression = methodCall.Transform(ex => ConvertMethod(methodCall, 0, info, predicate.Parameters[0], ex));
-                    info.Parameter  = param;
+                    info.Expression =
+                        methodCall.Transform(ex => ConvertMethod(methodCall, 0, info, predicate.Parameters[0], ex));
+                    info.Parameter = param;
 
                     return info;
                 }
@@ -58,7 +61,7 @@ namespace LinqToDB.Linq.Builder
                 if (info != null)
                 {
                     info.Expression = methodCall.Transform(ex => ConvertMethod(methodCall, 0, info, null, ex));
-                    info.Parameter  = param;
+                    info.Parameter = param;
 
                     return info;
                 }
@@ -67,9 +70,11 @@ namespace LinqToDB.Linq.Builder
             return null;
         }
 
-        class AllAnyContext : SequenceContextBase
+        private class AllAnyContext : SequenceContextBase
         {
-            readonly MethodCallExpression _methodCall;
+            private readonly MethodCallExpression _methodCall;
+
+            private IQueryExpression _subQuerySql;
 
             public AllAnyContext(IBuildContext parent, MethodCallExpression methodCall, IBuildContext sequence)
                 : base(parent, sequence, null)
@@ -84,7 +89,7 @@ namespace LinqToDB.Linq.Builder
                 query.Queries[0].SelectQuery = new SelectQuery();
                 query.Queries[0].SelectQuery.Select.Add(sql);
 
-                var expr   = Builder.BuildSql(typeof(bool), 0);
+                var expr = Builder.BuildSql(typeof(bool), 0);
                 var mapper = Builder.BuildMapper<object>(expr);
 
                 query.SetElementQuery(mapper.Compile());
@@ -100,13 +105,13 @@ namespace LinqToDB.Linq.Builder
             {
                 if (expression == null)
                 {
-                    var sql   = GetSubQuery(null);
+                    var sql = GetSubQuery(null);
                     var query = Select;
 
                     if (Parent != null)
                         query = Parent.Select;
 
-                    return new[] { new SqlInfo { Query = query, Sql = sql } };
+                    return new[] {new SqlInfo {Query = query, Sql = sql}};
                 }
 
                 throw new NotImplementedException();
@@ -128,8 +133,9 @@ namespace LinqToDB.Linq.Builder
                 {
                     switch (requestFlag)
                     {
-                        case RequestFor.Expression :
-                        case RequestFor.Field      : return IsExpressionResult.False;
+                        case RequestFor.Expression:
+                        case RequestFor.Field:
+                            return IsExpressionResult.False;
                     }
                 }
 
@@ -140,8 +146,6 @@ namespace LinqToDB.Linq.Builder
             {
                 throw new NotImplementedException();
             }
-
-            IQueryExpression _subQuerySql;
 
             public override IQueryExpression GetSubQuery(IBuildContext context)
             {

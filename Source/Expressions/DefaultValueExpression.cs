@@ -1,35 +1,33 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Bars2Db.Common;
+using Bars2Db.Mapping;
 
-namespace LinqToDB.Expressions
+namespace Bars2Db.Expressions
 {
-	using Common;
-	using Mapping;
+    public class DefaultValueExpression : Expression
+    {
+        private readonly MappingSchema _mappingSchema;
 
-	public class DefaultValueExpression : Expression
-	{
-		public DefaultValueExpression(MappingSchema mappingSchema, Type type)
-		{
-			_mappingSchema = mappingSchema;
-			_type          = type;
-		}
+        public DefaultValueExpression(MappingSchema mappingSchema, Type type)
+        {
+            _mappingSchema = mappingSchema;
+            Type = type;
+        }
 
-		readonly MappingSchema _mappingSchema;
-		readonly Type          _type;
+        public override Type Type { get; }
 
-		public override Type           Type => _type;
+        public override ExpressionType NodeType => ExpressionType.Extension;
 
-	    public override ExpressionType NodeType => ExpressionType.Extension;
+        public override bool CanReduce => true;
 
-	    public override bool           CanReduce => true;
-
-	    public override Expression Reduce()
-		{
-			return Constant(
-				_mappingSchema == null ?
-					DefaultValue.GetValue(Type) :
-					_mappingSchema.GetDefaultValue(Type),
-				Type);
-		}
-	}
+        public override Expression Reduce()
+        {
+            return Constant(
+                _mappingSchema == null
+                    ? DefaultValue.GetValue(Type)
+                    : _mappingSchema.GetDefaultValue(Type),
+                Type);
+        }
+    }
 }

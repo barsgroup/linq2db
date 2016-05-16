@@ -1,20 +1,21 @@
 ﻿using System.Linq.Expressions;
+using Bars2Db.Expressions;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-
-    class DistinctBuilder : MethodCallBuilder
+    internal class DistinctBuilder : MethodCallBuilder
     {
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             return methodCall.IsQueryable("Distinct");
         }
 
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-            var sql      = sequence.Select;
+            var sql = sequence.Select;
 
             if (sql.Select.TakeValue != null || sql.Select.SkipValue != null)
                 sequence = new SubQueryContext(sequence);

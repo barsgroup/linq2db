@@ -1,37 +1,25 @@
-namespace LinqToDB.SqlQuery.QueryElements.Clauses
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Clauses.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Conditions;
+using Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
+
+namespace Bars2Db.SqlQuery.QueryElements.Clauses
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Clauses.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Conditions;
-    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
-
     public interface IWhereClause : IClauseBase, ISqlExpressionWalkable, IConditionBase<IWhereClause, WhereClause.Next>
     {
         [SearchContainer]
         ISearchCondition Search { get; }
-
     }
 
     public class WhereClause : ClauseBase<IWhereClause, WhereClause.Next>,
-                               IWhereClause
+        IWhereClause
     {
-        public class Next : ClauseBase
-        {
-            internal Next(IWhereClause parent) : base(parent.SelectQuery)
-            {
-                _parent = parent;
-            }
-
-            readonly IWhereClause _parent;
-        }
-
         internal WhereClause(ISelectQuery selectQuery) : base(selectQuery)
         {
             Search = new SearchCondition();
@@ -40,11 +28,11 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
         internal WhereClause(
             ISelectQuery selectQuery,
             IWhereClause clone,
-            Dictionary<ICloneableElement,ICloneableElement> objectTree,
+            Dictionary<ICloneableElement, ICloneableElement> objectTree,
             Predicate<ICloneableElement> doClone)
             : base(selectQuery)
         {
-            Search = (ISearchCondition)clone.Search.Clone(objectTree, doClone);
+            Search = (ISearchCondition) clone.Search.Clone(objectTree, doClone);
         }
 
         internal WhereClause(ISearchCondition searchCondition) : base(null)
@@ -61,19 +49,29 @@ namespace LinqToDB.SqlQuery.QueryElements.Clauses
 
         #region ISqlExpressionWalkable Members
 
-        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> action)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> action)
         {
-            Search = (ISearchCondition)Search.Walk(skipColumns, action);
+            Search = (ISearchCondition) Search.Walk(skipColumns, action);
             return null;
         }
 
         #endregion
 
+        public class Next : ClauseBase
+        {
+            private readonly IWhereClause _parent;
+
+            internal Next(IWhereClause parent) : base(parent.SelectQuery)
+            {
+                _parent = parent;
+            }
+        }
+
         #region IQueryElement Members
 
         public override EQueryElementType ElementType => EQueryElementType.WhereClause;
 
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
             if (Search.Conditions.Count == 0)
                 return sb;

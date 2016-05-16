@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Bars2Db.SqlProvider;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using SqlProvider;
-
-    class ContextParser : ISequenceBuilder
+    internal class ContextParser : ISequenceBuilder
     {
         public int BuildCounter { get; set; }
 
@@ -17,7 +16,7 @@ namespace LinqToDB.Linq.Builder
 
         public IBuildContext BuildSequence(ExpressionBuilder builder, BuildInfo buildInfo)
         {
-            var call = (MethodCallExpression)buildInfo.Expression;
+            var call = (MethodCallExpression) buildInfo.Expression;
             return new Context(builder.BuildSequence(new BuildInfo(buildInfo, call.Arguments[0])));
         }
 
@@ -28,26 +27,28 @@ namespace LinqToDB.Linq.Builder
 
         public bool IsSequence(ExpressionBuilder builder, BuildInfo buildInfo)
         {
-            return builder.IsSequence(new BuildInfo(buildInfo, ((MethodCallExpression)buildInfo.Expression).Arguments[0]));
+            return
+                builder.IsSequence(new BuildInfo(buildInfo, ((MethodCallExpression) buildInfo.Expression).Arguments[0]));
         }
 
         public class Context : PassThroughContext
         {
+            public Action SetParameters;
+
+            public ISqlOptimizer SqlOptimizer;
+
             public Context(IBuildContext context) : base(context)
             {
             }
-
-            public ISqlOptimizer SqlOptimizer;
-            public Action        SetParameters;
 
             public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
             {
                 query.SetNonQueryQuery();
 
-                SqlOptimizer  = query.SqlOptimizer;
+                SqlOptimizer = query.SqlOptimizer;
                 SetParameters = () => query.SetParameters(Builder.Expression, null, 0);
 
-                query.GetElement = (ctx,db,expr,ps) => this;
+                query.GetElement = (ctx, db, expr, ps) => this;
             }
         }
     }

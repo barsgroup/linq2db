@@ -1,10 +1,10 @@
-namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
-{
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
+namespace Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces
+{
     public interface IConditionExpr<out T>
     {
-        T Expr    (IQueryExpression expr);
-        T Field   (ISqlField field);
+        T Expr(IQueryExpression expr);
+        T Field(ISqlField field);
     }
 }

@@ -1,9 +1,9 @@
-﻿namespace LinqToDB.SqlQuery.Search.PathBuilder
-{
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
+namespace Bars2Db.SqlQuery.Search.PathBuilder
+{
     public class CompositPropertyVertex
     {
         public LinkedList<PropertyInfo> PropertyList { get; } = new LinkedList<PropertyInfo>();

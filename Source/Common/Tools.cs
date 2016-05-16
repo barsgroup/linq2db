@@ -1,9 +1,8 @@
 ﻿using System.Collections;
+using Bars2Db.Properties;
 
-namespace LinqToDB.Common
+namespace Bars2Db.Common
 {
-    using LinqToDB.Properties;
-
     public static class Tools
     {
         [StringFormatMethod("format")]

@@ -1,8 +1,8 @@
-﻿namespace LinqToDB.SqlEntities
+﻿namespace Bars2Db.SqlEntities
 {
     partial class Sql
     {
-        [Sql.EnumAttribute]
+        [Enum]
         public enum GroupBy
         {
             None

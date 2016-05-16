@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
+using Bars2Db.Data;
 
-namespace LinqToDB.DataProvider.PostgreSQL
+namespace Bars2Db.DataProvider.PostgreSQL
 {
-    using Data;
-
     public static class PostgreSQLTools
     {
-        static readonly PostgreSQLDataProvider _postgreSQLDataProvider = new PostgreSQLDataProvider();
+        private static readonly PostgreSQLDataProvider _postgreSQLDataProvider = new PostgreSQLDataProvider();
 
         static PostgreSQLTools()
         {
@@ -31,18 +30,65 @@ namespace LinqToDB.DataProvider.PostgreSQL
             new AssemblyResolver(assembly, "Npgsql");
         }
 
-        public static Type GetBitStringType       () { return _postgreSQLDataProvider.BitStringType;        }
-        public static Type GetNpgsqlIntervalType  () { return _postgreSQLDataProvider.NpgsqlIntervalType;   }
-        public static Type GetNpgsqlInetType      () { return _postgreSQLDataProvider.NpgsqlInetType;       }
-        public static Type GetNpgsqlTimeTZType    () { return _postgreSQLDataProvider.NpgsqlTimeTZType;     }
-        public static Type GetNpgsqlTimeType      () { return _postgreSQLDataProvider.NpgsqlTimeType;       }
-        public static Type GetNpgsqlPointType     () { return _postgreSQLDataProvider.NpgsqlPointType;      }
-        public static Type GetNpgsqlLSegType      () { return _postgreSQLDataProvider.NpgsqlLSegType;       }
-        public static Type GetNpgsqlBoxType       () { return _postgreSQLDataProvider.NpgsqlBoxType;        }
-        public static Type GetNpgsqlPathType      () { return _postgreSQLDataProvider.NpgsqlPathType;       }
-        public static Type GetNpgsqlPolygonType   () { return _postgreSQLDataProvider.NpgsqlPolygonType;    }
-        public static Type GetNpgsqlCircleType    () { return _postgreSQLDataProvider.NpgsqlCircleType;     }
-        public static Type GetNpgsqlMacAddressType() { return _postgreSQLDataProvider.NpgsqlMacAddressType; }
+        public static Type GetBitStringType()
+        {
+            return _postgreSQLDataProvider.BitStringType;
+        }
+
+        public static Type GetNpgsqlIntervalType()
+        {
+            return _postgreSQLDataProvider.NpgsqlIntervalType;
+        }
+
+        public static Type GetNpgsqlInetType()
+        {
+            return _postgreSQLDataProvider.NpgsqlInetType;
+        }
+
+        public static Type GetNpgsqlTimeTZType()
+        {
+            return _postgreSQLDataProvider.NpgsqlTimeTZType;
+        }
+
+        public static Type GetNpgsqlTimeType()
+        {
+            return _postgreSQLDataProvider.NpgsqlTimeType;
+        }
+
+        public static Type GetNpgsqlPointType()
+        {
+            return _postgreSQLDataProvider.NpgsqlPointType;
+        }
+
+        public static Type GetNpgsqlLSegType()
+        {
+            return _postgreSQLDataProvider.NpgsqlLSegType;
+        }
+
+        public static Type GetNpgsqlBoxType()
+        {
+            return _postgreSQLDataProvider.NpgsqlBoxType;
+        }
+
+        public static Type GetNpgsqlPathType()
+        {
+            return _postgreSQLDataProvider.NpgsqlPathType;
+        }
+
+        public static Type GetNpgsqlPolygonType()
+        {
+            return _postgreSQLDataProvider.NpgsqlPolygonType;
+        }
+
+        public static Type GetNpgsqlCircleType()
+        {
+            return _postgreSQLDataProvider.NpgsqlCircleType;
+        }
+
+        public static Type GetNpgsqlMacAddressType()
+        {
+            return _postgreSQLDataProvider.NpgsqlMacAddressType;
+        }
 
         #region CreateDataConnection
 
@@ -65,25 +111,20 @@ namespace LinqToDB.DataProvider.PostgreSQL
 
         #region BulkCopy
 
-        private static BulkCopyType _defaultBulkCopyType = BulkCopyType.MultipleRows;
-        public  static BulkCopyType  DefaultBulkCopyType
-        {
-            get { return _defaultBulkCopyType;  }
-            set { _defaultBulkCopyType = value; }
-        }
+        public static BulkCopyType DefaultBulkCopyType { get; set; } = BulkCopyType.MultipleRows;
 
         public static BulkCopyRowsCopied MultipleRowsCopy<T>(
-            DataConnection             dataConnection,
-            IEnumerable<T>             source,
-            int                        maxBatchSize       = 1000,
+            DataConnection dataConnection,
+            IEnumerable<T> source,
+            int maxBatchSize = 1000,
             Action<BulkCopyRowsCopied> rowsCopiedCallback = null)
         {
             return dataConnection.BulkCopy(
                 new BulkCopyOptions
                 {
-                    BulkCopyType       = BulkCopyType.MultipleRows,
-                    MaxBatchSize       = maxBatchSize,
-                    RowsCopiedCallback = rowsCopiedCallback,
+                    BulkCopyType = BulkCopyType.MultipleRows,
+                    MaxBatchSize = maxBatchSize,
+                    RowsCopiedCallback = rowsCopiedCallback
                 }, source);
         }
 

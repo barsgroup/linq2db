@@ -1,10 +1,10 @@
-namespace LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces
-{
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
 
-    public interface IExprExpr: IExpr
+namespace Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces
+{
+    public interface IExprExpr : IExpr
     {
         EOperator EOperator { get; }
 

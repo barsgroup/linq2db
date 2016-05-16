@@ -1,29 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace LinqToDB.Linq
+namespace Bars2Db.Linq
 {
     public class QueryContext
     {
-        public class DataContextContext
-        {
-            public IDataContextInfo DataContextInfo;
-            public bool             InUse;
-        }
+        private List<DataContextContext> _contexts;
+        public object[] CompiledParameters;
+        public int Counter;
+        public Expression Expression;
+
+        public IDataContextInfo RootDataContext;
 
         public QueryContext(IDataContextInfo dataContext, Expression expr, object[] compiledParameters)
         {
-            RootDataContext    = dataContext;
-            Expression         = expr;
+            RootDataContext = dataContext;
+            Expression = expr;
             CompiledParameters = compiledParameters;
         }
-
-        public IDataContextInfo RootDataContext;
-        public Expression       Expression;
-        public object[]         CompiledParameters;
-        public int              Counter;
-
-        List<DataContextContext> _contexts;
 
         public DataContextContext GetDataContext()
         {
@@ -39,7 +33,7 @@ namespace LinqToDB.Linq
                 }
             }
 
-            var ctx = new DataContextContext { DataContextInfo = RootDataContext.Clone(true), InUse = true };
+            var ctx = new DataContextContext {DataContextInfo = RootDataContext.Clone(true), InUse = true};
 
             _contexts.Add(ctx);
 
@@ -65,6 +59,12 @@ namespace LinqToDB.Linq
         public void AfterQuery()
         {
             Counter++;
+        }
+
+        public class DataContextContext
+        {
+            public IDataContextInfo DataContextInfo;
+            public bool InUse;
         }
     }
 }

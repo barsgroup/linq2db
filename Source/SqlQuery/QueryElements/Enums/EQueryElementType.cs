@@ -1,4 +1,4 @@
-namespace LinqToDB.SqlQuery.QueryElements.Enums
+namespace Bars2Db.SqlQuery.QueryElements.Enums
 {
     public enum EQueryElementType
     {
@@ -14,6 +14,7 @@ namespace LinqToDB.SqlQuery.QueryElements.Enums
         ExprPredicate,
         NotExprPredicate,
         ExprExprPredicate,
+        HierarhicalPredicate,
         LikePredicate,
         BetweenPredicate,
         IsNullPredicate,
@@ -22,24 +23,24 @@ namespace LinqToDB.SqlQuery.QueryElements.Enums
         FuncLikePredicate,
 
         SqlQuery,
-            Column,
-            SearchCondition,
-                Condition,
-            TableSource,
-                JoinedTable,
+        Column,
+        SearchCondition,
+        Condition,
+        TableSource,
+        JoinedTable,
 
-            SelectClause,
-            InsertClause,
-            UpdateClause,
-                SetExpression,
-            DeleteClause,
-            FromClause,
-            WhereClause,
-            GroupByClause,
-            OrderByClause,
-                OrderByItem,
-            Union,
-            CreateTableStatement,
+        SelectClause,
+        InsertClause,
+        UpdateClause,
+        SetExpression,
+        DeleteClause,
+        FromClause,
+        WhereClause,
+        GroupByClause,
+        OrderByClause,
+        OrderByItem,
+        Union,
+        CreateTableStatement,
 
         None
     }

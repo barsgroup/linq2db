@@ -1,6 +1,6 @@
 using System.Configuration;
 
-namespace LinqToDB.Configuration
+namespace Bars2Db.Configuration
 {
     [ConfigurationCollection(typeof(DataProviderElement))]
     public class DataProviderElementCollection : ElementCollectionBase<DataProviderElement>

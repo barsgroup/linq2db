@@ -1,11 +1,11 @@
-namespace LinqToDB.SqlQuery.QueryElements.Interfaces
-{
-    using LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-    using LinqToDB.SqlQuery.Search;
+using Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.Search;
 
-    public interface IJoinedTable: ISqlExpressionWalkable, ICloneableElement, IQueryElement
+namespace Bars2Db.SqlQuery.QueryElements.Interfaces
+{
+    public interface IJoinedTable : ISqlExpressionWalkable, ICloneableElement, IQueryElement
     {
         EJoinType JoinType { get; set; }
 

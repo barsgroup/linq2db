@@ -1,25 +1,29 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Data;
+using System.Data.Linq.SqlClient;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Bars2Db.Expressions;
+using Bars2Db.SqlEntities;
 
-namespace LinqToDB.Linq
+namespace Bars2Db.Linq
 {
-    using LinqToDB.Expressions;
-    using LinqToDB.SqlEntities;
-
-    class ReflectionHelper
+    internal class ReflectionHelper
     {
+        public static MethodInfo ExprItem = IndexExpressor<Expression>.Item;
+        public static MethodInfo ParamItem = IndexExpressor<ParameterExpression>.Item;
+        public static MethodInfo ElemItem = IndexExpressor<ElementInit>.Item;
+
         public class Expressor<T>
         {
-            public static FieldInfo FieldOf(Expression<Func<T,object>> func)
+            public static FieldInfo FieldOf(Expression<Func<T, object>> func)
             {
                 return MemberHelper.FieldOf(func);
             }
 
-            public static MethodInfo MethodOf(Expression<Func<T,object>> func)
+            public static MethodInfo MethodOf(Expression<Func<T, object>> func)
             {
                 return MemberHelper.MethodOf(func);
             }
@@ -28,8 +32,8 @@ namespace LinqToDB.Linq
         public class Binary : Expressor<BinaryExpression>
         {
             public static MethodInfo Conversion = MethodOf(e => e.Conversion);
-            public static MethodInfo Left       = MethodOf(e => e.Left);
-            public static MethodInfo Right      = MethodOf(e => e.Right);
+            public static MethodInfo Left = MethodOf(e => e.Left);
+            public static MethodInfo Right = MethodOf(e => e.Right);
         }
 
         public class Unary : Expressor<UnaryExpression>
@@ -39,7 +43,7 @@ namespace LinqToDB.Linq
 
         public class LambdaExpr : Expressor<LambdaExpression>
         {
-            public static MethodInfo Body       = MethodOf(e => e.Body);
+            public static MethodInfo Body = MethodOf(e => e.Body);
             public static MethodInfo Parameters = MethodOf(e => e.Parameters);
         }
 
@@ -55,27 +59,27 @@ namespace LinqToDB.Linq
 
         public class MethodCall : Expressor<MethodCallExpression>
         {
-            public static MethodInfo Object    = MethodOf(e => e.Object);
+            public static MethodInfo Object = MethodOf(e => e.Object);
             public static MethodInfo Arguments = MethodOf(e => e.Arguments);
         }
 
         public class Conditional : Expressor<ConditionalExpression>
         {
-            public static MethodInfo Test    = MethodOf(e => e.Test);
-            public static MethodInfo IfTrue  = MethodOf(e => e.IfTrue);
+            public static MethodInfo Test = MethodOf(e => e.Test);
+            public static MethodInfo IfTrue = MethodOf(e => e.IfTrue);
             public static MethodInfo IfFalse = MethodOf(e => e.IfFalse);
         }
 
         public class Invocation : Expressor<InvocationExpression>
         {
             public static MethodInfo Expression = MethodOf(e => e.Expression);
-            public static MethodInfo Arguments  = MethodOf(e => e.Arguments);
+            public static MethodInfo Arguments = MethodOf(e => e.Arguments);
         }
 
         public class ListInit : Expressor<ListInitExpression>
         {
             public static MethodInfo NewExpression = MethodOf(e => e.NewExpression);
-            public static MethodInfo Initializers  = MethodOf(e => e.Initializers);
+            public static MethodInfo Initializers = MethodOf(e => e.Initializers);
         }
 
         public class ElementInit : Expressor<System.Linq.Expressions.ElementInit>
@@ -91,7 +95,7 @@ namespace LinqToDB.Linq
         public class MemberInit : Expressor<MemberInitExpression>
         {
             public static MethodInfo NewExpression = MethodOf(e => e.NewExpression);
-            public static MethodInfo Bindings      = MethodOf(e => e.Bindings);
+            public static MethodInfo Bindings = MethodOf(e => e.Bindings);
         }
 
         public class New : Expressor<NewExpression>
@@ -111,12 +115,12 @@ namespace LinqToDB.Linq
 
         public class IndexExpressor<T>
         {
+            public static MethodInfo Item = IndexerExpressor(c => c[0]);
+
             public static MethodInfo IndexerExpressor(Expression<Func<ReadOnlyCollection<T>, object>> func)
             {
-                return ((MethodCallExpression)((UnaryExpression)func.Body).Operand).Method;
+                return ((MethodCallExpression) ((UnaryExpression) func.Body).Operand).Method;
             }
-
-            public static MethodInfo Item = IndexerExpressor(c => c[0]);
         }
 
         public class MemberAssignmentBind : Expressor<MemberAssignment>
@@ -137,12 +141,8 @@ namespace LinqToDB.Linq
         public class Block : Expressor<BlockExpression>
         {
             public static MethodInfo Expressions = MethodOf(e => e.Expressions);
-            public static MethodInfo Variables   = MethodOf(e => e.Variables);
+            public static MethodInfo Variables = MethodOf(e => e.Variables);
         }
-
-        public static MethodInfo ExprItem  = IndexExpressor<Expression>         .Item;
-        public static MethodInfo ParamItem = IndexExpressor<ParameterExpression>.Item;
-        public static MethodInfo ElemItem  = IndexExpressor<ElementInit>        .Item;
 
         public class DataReader : Expressor<IDataReader>
         {
@@ -154,13 +154,12 @@ namespace LinqToDB.Linq
         {
             public class String : Expressor<string>
             {
-#if !SILVERLIGHT && !NETFX_CORE
-                public static MethodInfo Like11 = MethodOf(s => System.Data.Linq.SqlClient.SqlMethods.Like("", ""));
-                public static MethodInfo Like12 = MethodOf(s => System.Data.Linq.SqlClient.SqlMethods.Like("", "", ' '));
-#endif
-
                 public static MethodInfo Like21 = MethodOf(s => Sql.Like(s, ""));
                 public static MethodInfo Like22 = MethodOf(s => Sql.Like(s, "", ' '));
+#if !SILVERLIGHT && !NETFX_CORE
+                public static MethodInfo Like11 = MethodOf(s => SqlMethods.Like("", ""));
+                public static MethodInfo Like12 = MethodOf(s => SqlMethods.Like("", "", ' '));
+#endif
             }
         }
     }

@@ -1,4 +1,4 @@
-namespace LinqToDB.Reflection
+namespace Bars2Db.Reflection
 {
     public interface IObjectFactory
     {

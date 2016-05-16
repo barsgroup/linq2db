@@ -1,229 +1,235 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using Bars2Db.Common;
+using Bars2Db.Extensions;
+using Bars2Db.Linq;
+using Bars2Db.Reflection;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-	using System.Threading;
+    public class EntityDescriptor
+    {
+        private readonly Dictionary<string, ColumnDescriptor> _columnNames = new Dictionary<string, ColumnDescriptor>();
 
-	using Common;
-	using Extensions;
-	using Linq;
-	using Reflection;
+        private readonly MappingSchema _mappingSchema;
 
-	public class EntityDescriptor
-	{
-		public EntityDescriptor(MappingSchema mappingSchema, Type type)
-		{
-			_mappingSchema = mappingSchema;
+        private readonly ManualResetEvent _mre = new ManualResetEvent(false);
 
-			TypeAccessor = TypeAccessor.GetAccessor(type);
-			Associations = new List<AssociationDescriptor>();
-			Columns      = new List<ColumnDescriptor>();
+        private List<InheritanceMapping> _inheritanceMappings;
 
-			Init();
-		}
+        public EntityDescriptor(MappingSchema mappingSchema, Type type)
+        {
+            _mappingSchema = mappingSchema;
 
-		readonly MappingSchema _mappingSchema;
+            TypeAccessor = TypeAccessor.GetAccessor(type);
+            Associations = new List<AssociationDescriptor>();
+            Columns = new List<ColumnDescriptor>();
 
-		public TypeAccessor                TypeAccessor              { get; }
-		public string                      TableName                 { get; private set; }
-		public string                      SchemaName                { get; private set; }
-		public string                      DatabaseName              { get; private set; }
-		public bool                        IsColumnAttributeRequired { get; private set; }
-		public List<ColumnDescriptor>      Columns                   { get; }
-		public List<AssociationDescriptor> Associations              { get; }
-		public Dictionary<string,string>   Aliases                   { get; private set; }
+            Init();
+        }
 
-		readonly ManualResetEvent _mre = new ManualResetEvent(false);
+        public TypeAccessor TypeAccessor { get; }
+        public string TableName { get; private set; }
+        public string SchemaName { get; private set; }
+        public string DatabaseName { get; private set; }
+        public bool IsColumnAttributeRequired { get; private set; }
+        public List<ColumnDescriptor> Columns { get; }
+        public List<AssociationDescriptor> Associations { get; }
+        public Dictionary<string, string> Aliases { get; private set; }
 
-		private List<InheritanceMapping> _inheritanceMappings;
-		public  List<InheritanceMapping>  InheritanceMapping
-		{
-			get
-			{
-				if (_inheritanceMappings == null)
-				{
-					_mre.WaitOne();
-					_mre.Close();
-				}
+        public List<InheritanceMapping> InheritanceMapping
+        {
+            get
+            {
+                if (_inheritanceMappings == null)
+                {
+                    _mre.WaitOne();
+                    _mre.Close();
+                }
 
-				return _inheritanceMappings;
-			}
-		}
+                return _inheritanceMappings;
+            }
+        }
 
-		public Type ObjectType => TypeAccessor.Type;
+        public Type ObjectType => TypeAccessor.Type;
 
-	    void Init()
-		{
-			var ta = _mappingSchema.GetAttribute<TableAttribute>(TypeAccessor.Type, a => a.Configuration);
+        public ColumnDescriptor this[string memberName]
+        {
+            get
+            {
+                ColumnDescriptor cd;
 
-			if (ta != null)
-			{
-				TableName                 = ta.Name;
-				SchemaName                = ta.Schema;
-				DatabaseName              = ta.Database;
-				IsColumnAttributeRequired = ta.IsColumnAttributeRequired;
-			}
+                if (!_columnNames.TryGetValue(memberName, out cd))
+                {
+                    string alias;
 
-			if (TableName == null)
-			{
-				TableName = TypeAccessor.Type.Name;
+                    if (Aliases != null && Aliases.TryGetValue(memberName, out alias) && memberName != alias)
+                        return this[alias];
+                }
 
-				if (TypeAccessor.Type.IsInterfaceEx() && TableName.Length > 1 && TableName[0] == 'I')
-					TableName = TableName.Substring(1);
-			}
+                return cd;
+            }
+        }
 
-			var attrs = new List<ColumnAttribute>();
+        private void Init()
+        {
+            var ta = _mappingSchema.GetAttribute<TableAttribute>(TypeAccessor.Type, a => a.Configuration);
 
-			foreach (var member in TypeAccessor.Members)
-			{
-				var aa = _mappingSchema.GetAttribute<AssociationAttribute>(member.MemberInfo, attr => attr.Configuration);
+            if (ta != null)
+            {
+                TableName = ta.Name;
+                SchemaName = ta.Schema;
+                DatabaseName = ta.Database;
+                IsColumnAttributeRequired = ta.IsColumnAttributeRequired;
+            }
 
-				if (aa != null)
-				{
-					Associations.Add(new AssociationDescriptor(
-						TypeAccessor.Type, member.MemberInfo, aa.GetThisKeys(), aa.GetOtherKeys(), aa.Storage, aa.CanBeNull));
-				}
+            if (TableName == null)
+            {
+                TableName = TypeAccessor.Type.Name;
 
-				var ca = _mappingSchema.GetAttribute<ColumnAttribute>(member.MemberInfo, attr => attr.Configuration);
+                if (TypeAccessor.Type.IsInterfaceEx() && TableName.Length > 1 && TableName[0] == 'I')
+                    TableName = TableName.Substring(1);
+            }
 
-				if (ca != null)
-				{
-					if (ca.IsColumn)
-					{
-						if (ca.MemberName != null)
-						{
-							attrs.Add(new ColumnAttribute(member.Name, ca));
-						}
-						else
-						{
-							var cd = new ColumnDescriptor(_mappingSchema, ca, member);
-							Columns.Add(cd);
-							_columnNames.Add(member.Name, cd);
-						}
-					}
-				}
-				else if (
-					!IsColumnAttributeRequired && _mappingSchema.IsScalarType(member.Type) ||
-					_mappingSchema.GetAttribute<IdentityAttribute>(member.MemberInfo, attr => attr.Configuration) != null ||
-					_mappingSchema.GetAttribute<PrimaryKeyAttribute>(member.MemberInfo, attr => attr.Configuration) != null)
-				{
-					var cd = new ColumnDescriptor(_mappingSchema, new ColumnAttribute(), member);
-					Columns.Add(cd);
-					_columnNames.Add(member.Name, cd);
-				}
-				else
-				{
-					var caa = _mappingSchema.GetAttribute<ColumnAliasAttribute>(member.MemberInfo, attr => attr.Configuration);
+            var attrs = new List<ColumnAttribute>();
 
-					if (caa != null)
-					{
-						if (Aliases == null)
-							Aliases = new Dictionary<string,string>();
+            foreach (var member in TypeAccessor.Members)
+            {
+                var aa = _mappingSchema.GetAttribute<AssociationAttribute>(member.MemberInfo, attr => attr.Configuration);
 
-						Aliases.Add(member.Name, caa.MemberName);
-					}
-				}
-			}
+                if (aa != null)
+                {
+                    Associations.Add(new AssociationDescriptor(
+                        TypeAccessor.Type, member.MemberInfo, aa.GetThisKeys(), aa.GetOtherKeys(), aa.Storage,
+                        aa.CanBeNull));
+                }
 
-			var typeColumnAttrs = _mappingSchema.GetAttributes<ColumnAttribute>(TypeAccessor.Type, a => a.Configuration);
+                var ca = _mappingSchema.GetAttribute<ColumnAttribute>(member.MemberInfo, attr => attr.Configuration);
 
-			foreach (var attr in typeColumnAttrs.Concat(attrs))
-				if (attr.IsColumn)
-					SetColumn(attr);
-		}
+                if (ca != null)
+                {
+                    if (ca.IsColumn)
+                    {
+                        if (ca.MemberName != null)
+                        {
+                            attrs.Add(new ColumnAttribute(member.Name, ca));
+                        }
+                        else
+                        {
+                            var cd = new ColumnDescriptor(_mappingSchema, ca, member);
+                            Columns.Add(cd);
+                            _columnNames.Add(member.Name, cd);
+                        }
+                    }
+                }
+                else if (
+                    !IsColumnAttributeRequired && _mappingSchema.IsScalarType(member.Type) ||
+                    _mappingSchema.GetAttribute<IdentityAttribute>(member.MemberInfo, attr => attr.Configuration) !=
+                    null ||
+                    _mappingSchema.GetAttribute<PrimaryKeyAttribute>(member.MemberInfo, attr => attr.Configuration) !=
+                    null)
+                {
+                    var cd = new ColumnDescriptor(_mappingSchema, new ColumnAttribute(), member);
+                    Columns.Add(cd);
+                    _columnNames.Add(member.Name, cd);
+                }
+                else
+                {
+                    var caa = _mappingSchema.GetAttribute<ColumnAliasAttribute>(member.MemberInfo,
+                        attr => attr.Configuration);
 
-		void SetColumn(ColumnAttribute attr)
-		{
-			if (attr.MemberName == null)
-				throw new LinqToDBException("The Column attribute of the '{0}' type must have MemberName.".Args(TypeAccessor.Type));
+                    if (caa != null)
+                    {
+                        if (Aliases == null)
+                            Aliases = new Dictionary<string, string>();
 
-			if (attr.MemberName.IndexOf('.') < 0)
-			{
-				var ex = TypeAccessor[attr.MemberName];
-				var cd = new ColumnDescriptor(_mappingSchema, attr, ex);
+                        Aliases.Add(member.Name, caa.MemberName);
+                    }
+                }
+            }
 
-				Columns.Add(cd);
-				_columnNames.Add(attr.MemberName, cd);
-			}
-			else
-			{
-				var cd = new ColumnDescriptor(_mappingSchema, attr, new MemberAccessor(TypeAccessor, attr.MemberName));
+            var typeColumnAttrs = _mappingSchema.GetAttributes<ColumnAttribute>(TypeAccessor.Type, a => a.Configuration);
 
-				if (!string.IsNullOrWhiteSpace(attr.MemberName))
-				{
-					Columns.Add(cd);
-					_columnNames.Add(attr.MemberName, cd);
-				}
-			}
-		}
+            foreach (var attr in typeColumnAttrs.Concat(attrs))
+                if (attr.IsColumn)
+                    SetColumn(attr);
+        }
 
-		readonly Dictionary<string,ColumnDescriptor> _columnNames = new Dictionary<string, ColumnDescriptor>();
+        private void SetColumn(ColumnAttribute attr)
+        {
+            if (attr.MemberName == null)
+                throw new LinqToDBException(
+                    "The Column attribute of the '{0}' type must have MemberName.".Args(TypeAccessor.Type));
 
-		public ColumnDescriptor this[string memberName]
-		{
-			get
-			{
-				ColumnDescriptor cd;
+            if (attr.MemberName.IndexOf('.') < 0)
+            {
+                var ex = TypeAccessor[attr.MemberName];
+                var cd = new ColumnDescriptor(_mappingSchema, attr, ex);
 
-				if (!_columnNames.TryGetValue(memberName, out cd))
-				{
-					string alias;
+                Columns.Add(cd);
+                _columnNames.Add(attr.MemberName, cd);
+            }
+            else
+            {
+                var cd = new ColumnDescriptor(_mappingSchema, attr, new MemberAccessor(TypeAccessor, attr.MemberName));
 
-					if (Aliases != null && Aliases.TryGetValue(memberName, out alias) && memberName != alias)
-						return this[alias];
-				}
+                if (!string.IsNullOrWhiteSpace(attr.MemberName))
+                {
+                    Columns.Add(cd);
+                    _columnNames.Add(attr.MemberName, cd);
+                }
+            }
+        }
 
-				return cd;
-			}
-		}
+        internal void InitInheritanceMapping()
+        {
+            var mappingAttrs = _mappingSchema.GetAttributes<InheritanceMappingAttribute>(ObjectType,
+                a => a.Configuration, false);
+            var result = new List<InheritanceMapping>(mappingAttrs.Length);
 
-		internal void InitInheritanceMapping()
-		{
-			var mappingAttrs = _mappingSchema.GetAttributes<InheritanceMappingAttribute>(ObjectType, a => a.Configuration, false);
-			var result       = new List<InheritanceMapping>(mappingAttrs.Length);
+            if (mappingAttrs.Length > 0)
+            {
+                foreach (var m in mappingAttrs)
+                {
+                    var mapping = new InheritanceMapping
+                    {
+                        Code = m.Code,
+                        IsDefault = m.IsDefault,
+                        Type = m.Type
+                    };
 
-			if (mappingAttrs.Length > 0)
-			{
-				foreach (var m in mappingAttrs)
-				{
-					var mapping = new InheritanceMapping
-					{
-						Code      = m.Code,
-						IsDefault = m.IsDefault,
-						Type      = m.Type,
-					};
+                    var ed = _mappingSchema.GetEntityDescriptor(mapping.Type);
 
-					var ed = _mappingSchema.GetEntityDescriptor(mapping.Type);
+                    foreach (var column in ed.Columns)
+                    {
+                        if (Columns.All(f => f.MemberName != column.MemberName))
+                            Columns.Add(column);
 
-					foreach (var column in ed.Columns)
-					{
-						if (Columns.All(f => f.MemberName != column.MemberName))
-							Columns.Add(column);
+                        if (column.IsDiscriminator)
+                            mapping.Discriminator = column;
+                    }
 
-						if (column.IsDiscriminator)
-							mapping.Discriminator = column;
-					}
+                    result.Add(mapping);
+                }
 
-					result.Add(mapping);
-				}
+                var discriminator = result.Select(m => m.Discriminator).FirstOrDefault(d => d != null);
 
-				var discriminator = result.Select(m => m.Discriminator).FirstOrDefault(d => d != null);
+                if (discriminator == null)
+                    throw new LinqException("Inheritance Discriminator is not defined for the '{0}' hierarchy.",
+                        ObjectType);
 
-				if (discriminator == null)
-					throw new LinqException("Inheritance Discriminator is not defined for the '{0}' hierarchy.", ObjectType);
+                foreach (var mapping in result)
+                    if (mapping.Discriminator == null)
+                        mapping.Discriminator = discriminator;
+            }
 
-				foreach (var mapping in result)
-					if (mapping.Discriminator == null)
-						mapping.Discriminator = discriminator;
-			}
-
-			if (_inheritanceMappings == null)
-			{
-				_inheritanceMappings = result;
-				_mre.Set();
-			}
-		}
-	}
+            if (_inheritanceMappings == null)
+            {
+                _inheritanceMappings = result;
+                _mre.Set();
+            }
+        }
+    }
 }

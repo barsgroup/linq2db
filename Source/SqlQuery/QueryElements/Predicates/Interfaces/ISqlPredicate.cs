@@ -1,9 +1,9 @@
-﻿namespace LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces
-{
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+﻿using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-    public interface ISqlPredicate : IQueryElement, ISqlExpressionWalkable, ICloneableElement,  IOperation
+namespace Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces
+{
+    public interface ISqlPredicate : IQueryElement, ISqlExpressionWalkable, ICloneableElement, IOperation
     {
     }
 }

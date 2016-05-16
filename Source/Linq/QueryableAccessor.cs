@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace LinqToDB.Linq
+namespace Bars2Db.Linq
 {
-    class QueryableAccessor
+    internal class QueryableAccessor
     {
-        public IQueryable                  Queryable;
-        public Func<Expression,IQueryable> Accessor;
+        public Func<Expression, IQueryable> Accessor;
+        public IQueryable Queryable;
     }
 }

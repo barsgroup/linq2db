@@ -1,16 +1,14 @@
-﻿namespace LinqToDB.DataProvider.PostgreSQL
+﻿using Bars2Db.Extensions;
+using Bars2Db.SqlProvider;
+using Bars2Db.SqlQuery;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.DataProvider.PostgreSQL
 {
-    using Extensions;
-
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    using SqlProvider;
-    using SqlQuery;
-
-    class PostgreSQLSqlOptimizer : BasicSqlOptimizer
+    internal class PostgreSQLSqlOptimizer : BasicSqlOptimizer
     {
         public PostgreSQLSqlOptimizer(SqlProviderFlags sqlProviderFlags) : base(sqlProviderFlags)
         {
@@ -24,9 +22,12 @@
 
             switch (selectQuery.EQueryType)
             {
-                case EQueryType.Delete : return GetAlternativeDelete(selectQuery);
-                case EQueryType.Update : return GetAlternativeUpdate(selectQuery);
-                default               : return selectQuery;
+                case EQueryType.Delete:
+                    return GetAlternativeDelete(selectQuery);
+                case EQueryType.Update:
+                    return GetAlternativeUpdate(selectQuery);
+                default:
+                    return selectQuery;
             }
         }
 
@@ -39,8 +40,14 @@
             {
                 switch (sqlBinaryExpression.Operation)
                 {
-                    case "^": return new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "#", sqlBinaryExpression.Expr2);
-                    case "+": return sqlBinaryExpression.SystemType == typeof(string)? new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "||", sqlBinaryExpression.Expr2, sqlBinaryExpression.Precedence): expr;
+                    case "^":
+                        return new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "#",
+                            sqlBinaryExpression.Expr2);
+                    case "+":
+                        return sqlBinaryExpression.SystemType == typeof(string)
+                            ? new SqlBinaryExpression(sqlBinaryExpression.SystemType, sqlBinaryExpression.Expr1, "||",
+                                sqlBinaryExpression.Expr2, sqlBinaryExpression.Precedence)
+                            : expr;
                 }
             }
             else
@@ -50,7 +57,7 @@
                 {
                     switch (sqlFunction.Name)
                     {
-                        case "Convert"   :
+                        case "Convert":
                             if (sqlFunction.SystemType.ToUnderlying() == typeof(bool))
                             {
                                 var ex = AlternativeConvertToBoolean(sqlFunction, 1);
@@ -58,18 +65,23 @@
                                     return ex;
                             }
 
-                            return new SqlExpression(sqlFunction.SystemType, "Cast({0} as {1})", Precedence.Primary, FloorBeforeConvert(sqlFunction), sqlFunction.Parameters[0]);
+                            return new SqlExpression(sqlFunction.SystemType, "Cast({0} as {1})", Precedence.Primary,
+                                FloorBeforeConvert(sqlFunction), sqlFunction.Parameters[0]);
 
-                        case "CharIndex" :
-                            return sqlFunction.Parameters.Length == 2?
-                                       new SqlExpression(sqlFunction.SystemType, "Position({0} in {1})", Precedence.Primary, sqlFunction.Parameters[0], sqlFunction.Parameters[1]):
-                                       Add<int>(
-                                           new SqlExpression(sqlFunction.SystemType, "Position({0} in {1})", Precedence.Primary, sqlFunction.Parameters[0],
-                                           ConvertExpression(new SqlFunction(typeof(string), "Substring",
-                                           sqlFunction.Parameters[1],
-                                           sqlFunction.Parameters[2],
-                                           Sub<int>(ConvertExpression(new SqlFunction(typeof(int), "Length", sqlFunction.Parameters[1])), sqlFunction.Parameters[2])))),
-                                           Sub(sqlFunction.Parameters[2], 1));
+                        case "CharIndex":
+                            return sqlFunction.Parameters.Length == 2
+                                ? new SqlExpression(sqlFunction.SystemType, "Position({0} in {1})", Precedence.Primary,
+                                    sqlFunction.Parameters[0], sqlFunction.Parameters[1])
+                                : Add<int>(
+                                    new SqlExpression(sqlFunction.SystemType, "Position({0} in {1})", Precedence.Primary,
+                                        sqlFunction.Parameters[0],
+                                        ConvertExpression(new SqlFunction(typeof(string), "Substring",
+                                            sqlFunction.Parameters[1],
+                                            sqlFunction.Parameters[2],
+                                            Sub<int>(
+                                                ConvertExpression(new SqlFunction(typeof(int), "Length",
+                                                    sqlFunction.Parameters[1])), sqlFunction.Parameters[2])))),
+                                    Sub(sqlFunction.Parameters[2], 1));
                     }
                 }
                 else
@@ -78,16 +90,18 @@
                     if (sqlExpression != null)
                     {
                         if (sqlExpression.Expr.StartsWith("Extract(DOW"))
-                            return Inc(new SqlExpression(sqlExpression.SystemType, sqlExpression.Expr.Replace("Extract(DOW", "Extract(Dow"), sqlExpression.Parameters));
+                            return
+                                Inc(new SqlExpression(sqlExpression.SystemType,
+                                    sqlExpression.Expr.Replace("Extract(DOW", "Extract(Dow"), sqlExpression.Parameters));
 
                         if (sqlExpression.Expr.StartsWith("Extract(Millisecond"))
-                            return new SqlExpression(sqlExpression.SystemType, "Cast(To_Char({0}, 'MS') as int)", sqlExpression.Parameters);
+                            return new SqlExpression(sqlExpression.SystemType, "Cast(To_Char({0}, 'MS') as int)",
+                                sqlExpression.Parameters);
                     }
                 }
             }
 
             return expr;
         }
-
     }
 }

@@ -1,8 +1,8 @@
-namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
-{
-    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
+namespace Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces
+{
     public interface IExpr<T1, out T2>
         where T1 : IConditionBase<T1, T2>
     {
@@ -19,6 +19,5 @@ namespace LinqToDB.SqlQuery.QueryElements.Conditions.Interfaces
         T2 IsNotNull { get; }
 
         T2 Add(ISqlPredicate predicate);
-
     }
 }

@@ -1,19 +1,19 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Bars2Db.Expressions;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-
-    class ExpressionContext : SequenceContextBase
+    internal class ExpressionContext : SequenceContextBase
     {
         public ExpressionContext(IBuildContext parent, IBuildContext sequence, LambdaExpression lambda)
             : base(parent, sequence, lambda)
         {
         }
 
-        public ExpressionContext(IBuildContext parent, IBuildContext sequence, LambdaExpression lambda, ISelectQuery selectQuery)
+        public ExpressionContext(IBuildContext parent, IBuildContext sequence, LambdaExpression lambda,
+            ISelectQuery selectQuery)
             : base(parent, sequence, lambda)
         {
             Select = selectQuery;
@@ -30,29 +30,29 @@ namespace LinqToDB.Linq.Builder
             {
                 switch (flags)
                 {
-                    case ConvertFlags.Field :
-                    case ConvertFlags.Key   :
-                    case ConvertFlags.All   :
+                    case ConvertFlags.Field:
+                    case ConvertFlags.Key:
+                    case ConvertFlags.All:
+                    {
+                        var root = expression.GetRootObject();
+
+                        if (root.NodeType == ExpressionType.Parameter)
                         {
-                            var root = expression.GetRootObject();
+                            var ctx = Builder.GetContext(this, root);
 
-                            if (root.NodeType == ExpressionType.Parameter)
+                            if (ctx != null)
                             {
-                                var ctx = Builder.GetContext(this, root);
+                                if (ctx != this)
+                                    return ctx.ConvertToSql(expression, 0, flags);
 
-                                if (ctx != null)
-                                {
-                                    if (ctx != this)
-                                        return ctx.ConvertToSql(expression, 0, flags);
-
-                                    return root == expression ?
-                                        Sequence.ConvertToSql(null,       0,         flags) :
-                                        Sequence.ConvertToSql(expression, level + 1, flags);
-                                }
+                                return root == expression
+                                    ? Sequence.ConvertToSql(null, 0, flags)
+                                    : Sequence.ConvertToSql(expression, level + 1, flags);
                             }
-
-                            break;
                         }
+
+                        break;
+                    }
                 }
 
                 throw new LinqException("'{0}' cannot be converted to SQL.", expression);
@@ -70,21 +70,24 @@ namespace LinqToDB.Linq.Builder
         {
             switch (requestFlag)
             {
-                case RequestFor.Root        : return new IsExpressionResult(Lambda.Parameters.Count > 0 && ReferenceEquals(expression, Lambda.Parameters[0]));
+                case RequestFor.Root:
+                    return
+                        new IsExpressionResult(Lambda.Parameters.Count > 0 &&
+                                               ReferenceEquals(expression, Lambda.Parameters[0]));
 
-                case RequestFor.Table       :
-                case RequestFor.Association :
-                case RequestFor.Object      :
-                case RequestFor.GroupJoin   :
-                case RequestFor.Field       :
-                case RequestFor.Expression  :
-                    {
-                        var levelExpression = expression.GetLevelExpression(level);
+                case RequestFor.Table:
+                case RequestFor.Association:
+                case RequestFor.Object:
+                case RequestFor.GroupJoin:
+                case RequestFor.Field:
+                case RequestFor.Expression:
+                {
+                    var levelExpression = expression.GetLevelExpression(level);
 
-                        return ReferenceEquals(levelExpression, expression) ?
-                            Sequence.IsExpression(null,       0,         requestFlag) :
-                            Sequence.IsExpression(expression, level + 1, requestFlag);
-                    }
+                    return ReferenceEquals(levelExpression, expression)
+                        ? Sequence.IsExpression(null, 0, requestFlag)
+                        : Sequence.IsExpression(expression, level + 1, requestFlag);
+                }
             }
 
             return IsExpressionResult.False;
@@ -97,9 +100,10 @@ namespace LinqToDB.Linq.Builder
 
             switch (expression.NodeType)
             {
-                case ExpressionType.Constant   :
-                case ExpressionType.New        :
-                case ExpressionType.MemberInit : return null;
+                case ExpressionType.Constant:
+                case ExpressionType.New:
+                case ExpressionType.MemberInit:
+                    return null;
             }
 
             return Sequence.GetContext(expression, level + 1, buildInfo);

@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple=false)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field)]
     public class AssociationAttribute : Attribute
     {
         public AssociationAttribute()
@@ -10,16 +10,23 @@ namespace LinqToDB.Mapping
             CanBeNull = true;
         }
 
-        public string Configuration     { get; set; }
-        public string ThisKey           { get; set; }
-        public string OtherKey          { get; set; }
-        public string Storage           { get; set; }
-        public bool   CanBeNull         { get; set; }
-        public string KeyName           { get; set; }
+        public string Configuration { get; set; }
+        public string ThisKey { get; set; }
+        public string OtherKey { get; set; }
+        public string Storage { get; set; }
+        public bool CanBeNull { get; set; }
+        public string KeyName { get; set; }
         public string BackReferenceName { get; set; }
-        public bool   IsBackReference   { get; set; }
+        public bool IsBackReference { get; set; }
 
-        public string[] GetThisKeys () { return AssociationDescriptor.ParseKeys(ThisKey);  }
-        public string[] GetOtherKeys() { return AssociationDescriptor.ParseKeys(OtherKey); }
+        public string[] GetThisKeys()
+        {
+            return AssociationDescriptor.ParseKeys(ThisKey);
+        }
+
+        public string[] GetOtherKeys()
+        {
+            return AssociationDescriptor.ParseKeys(OtherKey);
+        }
     }
 }

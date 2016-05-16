@@ -2,53 +2,52 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Bars2Db.Data;
+using Bars2Db.Mapping;
+using Bars2Db.SqlProvider;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.DataProvider
+namespace Bars2Db.DataProvider
 {
-    using Data;
-
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    using Mapping;
-    using SqlProvider;
-
-    class MultipleRowsHelper<T>
+    internal class MultipleRowsHelper<T>
     {
+        public readonly ColumnDescriptor[] Columns;
+        public readonly ISqlDataType[] ColumnTypes;
+        public readonly DataConnection DataConnection;
+        public readonly EntityDescriptor Descriptor;
+        public readonly BulkCopyOptions Options;
+        public readonly string ParameterName;
+
+        public readonly List<DataParameter> Parameters = new List<DataParameter>();
+        public readonly BulkCopyRowsCopied RowsCopied = new BulkCopyRowsCopied();
+
+        public readonly ISqlBuilder SqlBuilder;
+        public readonly StringBuilder StringBuilder = new StringBuilder();
+        public readonly string TableName;
+        public readonly ValueToSqlConverter ValueConverter;
+        public int BatchSize;
+
+        public int CurrentCount;
+        public int HeaderSize;
+        public int ParameterIndex;
+
         public MultipleRowsHelper(DataConnection dataConnection, BulkCopyOptions options, bool enforceKeepIdentity)
         {
             DataConnection = dataConnection;
-            Options        = options;
-            SqlBuilder     = dataConnection.DataProvider.CreateSqlBuilder();
+            Options = options;
+            SqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
             ValueConverter = dataConnection.MappingSchema.ValueToSqlConverter;
-            Descriptor     = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
-            Columns        = Descriptor.Columns
+            Descriptor = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
+            Columns = Descriptor.Columns
                 .Where(c => !c.SkipOnInsert || enforceKeepIdentity && options.KeepIdentity == true && c.IsIdentity)
                 .ToArray();
-            ColumnTypes    = Columns.Select(c => new SqlDataType(c.DataType, c.MemberType, c.Length, c.Precision, c.Scale)).ToArray();
-            ParameterName  = SqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
-            TableName      = BasicBulkCopy.GetTableName(SqlBuilder, options, Descriptor);
-            BatchSize      = Math.Max(10, Options.MaxBatchSize ?? 1000);
+            ColumnTypes =
+                Columns.Select(c => new SqlDataType(c.DataType, c.MemberType, c.Length, c.Precision, c.Scale)).ToArray();
+            ParameterName = SqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
+            TableName = BasicBulkCopy.GetTableName(SqlBuilder, options, Descriptor);
+            BatchSize = Math.Max(10, Options.MaxBatchSize ?? 1000);
         }
-
-        public readonly ISqlBuilder         SqlBuilder;
-        public readonly DataConnection      DataConnection;
-        public readonly BulkCopyOptions     Options;
-        public readonly ValueToSqlConverter ValueConverter;
-        public readonly EntityDescriptor    Descriptor;
-        public readonly ColumnDescriptor[]  Columns;
-        public readonly ISqlDataType[]       ColumnTypes;
-        public readonly string              TableName;
-        public readonly string              ParameterName;
-
-        public readonly List<DataParameter> Parameters    = new List<DataParameter>();
-        public readonly StringBuilder       StringBuilder = new StringBuilder();
-        public readonly BulkCopyRowsCopied  RowsCopied    = new BulkCopyRowsCopied();
-
-        public int CurrentCount;
-        public int ParameterIndex;
-        public int HeaderSize;
-        public int BatchSize;
 
         public void SetHeader()
         {
@@ -60,7 +59,7 @@ namespace LinqToDB.DataProvider
             for (var i = 0; i < Columns.Length; i++)
             {
                 var column = Columns[i];
-                var value  = column.GetValue(item);
+                var value = column.GetValue(item);
 
                 if (!ValueConverter.TryConvert(StringBuilder, ColumnTypes[i], value))
                 {
@@ -70,7 +69,7 @@ namespace LinqToDB.DataProvider
 
                     if (value is DataParameter)
                     {
-                        value = ((DataParameter)value).Value;
+                        value = ((DataParameter) value).Value;
                     }
 
                     Parameters.Add(new DataParameter(ParameterName == "?" ? ParameterName : "p" + ParameterIndex, value,
@@ -96,8 +95,8 @@ namespace LinqToDB.DataProvider
             }
 
             Parameters.Clear();
-            ParameterIndex       = 0;
-            CurrentCount         = 0;
+            ParameterIndex = 0;
+            CurrentCount = 0;
             StringBuilder.Length = HeaderSize;
 
             return true;

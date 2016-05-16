@@ -1,31 +1,36 @@
 ﻿using System.Linq.Expressions;
-using LinqToDB.Common;
+using Bars2Db.Common;
+using Bars2Db.Expressions;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Enums;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Enums;
-
-    class WithTableExpressionBuilder : MethodCallBuilder
+    internal class WithTableExpressionBuilder : MethodCallBuilder
     {
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             return methodCall.IsQueryable("With", "WithTableExpression");
         }
 
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-            var table    = (TableBuilder.TableContext)sequence;
-            var value    = (string)((ConstantExpression)methodCall.Arguments[1]).Value;
+            var table = (TableBuilder.TableContext) sequence;
+            var value = (string) ((ConstantExpression) methodCall.Arguments[1]).Value;
 
-            table.SqlTable.SqlTableType   = ESqlTableType.Expression;
+            table.SqlTable.SqlTableType = ESqlTableType.Expression;
             table.SqlTable.TableArguments.Clear();
 
             switch (methodCall.Method.Name)
             {
-                case "With"                : table.SqlTable.Name = "{{0}} {{1}} WITH ({0})".Args(value); break;
-                case "WithTableExpression" : table.SqlTable.Name = value;                                break;
+                case "With":
+                    table.SqlTable.Name = "{{0}} {{1}} WITH ({0})".Args(value);
+                    break;
+                case "WithTableExpression":
+                    table.SqlTable.Name = value;
+                    break;
             }
 
             return sequence;

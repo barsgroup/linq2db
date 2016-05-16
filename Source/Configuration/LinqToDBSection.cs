@@ -1,52 +1,60 @@
 ﻿using System.Configuration;
 using System.Security;
 
-namespace LinqToDB.Configuration
+namespace Bars2Db.Configuration
 {
-	/// <summary>
-	/// Implementation of custom configuration section.
-	/// </summary>
-	public class LinqToDBSection : ConfigurationSection
-	{
-		static readonly ConfigurationPropertyCollection _properties               = new ConfigurationPropertyCollection();
-		static readonly ConfigurationProperty           _propDataProviders        = new ConfigurationProperty("dataProviders",        typeof(DataProviderElementCollection), new DataProviderElementCollection(), ConfigurationPropertyOptions.None);
-		static readonly ConfigurationProperty           _propDefaultConfiguration = new ConfigurationProperty("defaultConfiguration", typeof(string),                        null,                                ConfigurationPropertyOptions.None);
-		static readonly ConfigurationProperty           _propDefaultDataProvider  = new ConfigurationProperty("defaultDataProvider",  typeof(string),                        null,                                ConfigurationPropertyOptions.None);
+    /// <summary>
+    ///     Implementation of custom configuration section.
+    /// </summary>
+    public class LinqToDBSection : ConfigurationSection
+    {
+        private static readonly ConfigurationPropertyCollection _properties = new ConfigurationPropertyCollection();
 
-		static LinqToDBSection()
-		{
-			_properties.Add(_propDataProviders);
-			_properties.Add(_propDefaultConfiguration);
-			_properties.Add(_propDefaultDataProvider);
-		}
+        private static readonly ConfigurationProperty _propDataProviders = new ConfigurationProperty("dataProviders",
+            typeof(DataProviderElementCollection), new DataProviderElementCollection(),
+            ConfigurationPropertyOptions.None);
 
-		private static LinqToDBSection _instance;
-		public  static LinqToDBSection  Instance
-		{
-			get
-			{
-				if (_instance == null)
-				{
-					try
-					{
-						_instance = (LinqToDBSection)ConfigurationManager.GetSection("linq2db");
-					}
-					catch (SecurityException)
-					{
-						return null;
-					}
-				}
+        private static readonly ConfigurationProperty _propDefaultConfiguration =
+            new ConfigurationProperty("defaultConfiguration", typeof(string), null, ConfigurationPropertyOptions.None);
 
-				return _instance;
-			}
-		}
+        private static readonly ConfigurationProperty _propDefaultDataProvider =
+            new ConfigurationProperty("defaultDataProvider", typeof(string), null, ConfigurationPropertyOptions.None);
 
-		protected override ConfigurationPropertyCollection Properties => _properties;
+        private static LinqToDBSection _instance;
 
-	    public DataProviderElementCollection DataProviders => (DataProviderElementCollection) base[_propDataProviders];
+        static LinqToDBSection()
+        {
+            _properties.Add(_propDataProviders);
+            _properties.Add(_propDefaultConfiguration);
+            _properties.Add(_propDefaultDataProvider);
+        }
 
-	    public string DefaultConfiguration => (string)base[_propDefaultConfiguration];
+        public static LinqToDBSection Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    try
+                    {
+                        _instance = (LinqToDBSection) ConfigurationManager.GetSection("linq2db");
+                    }
+                    catch (SecurityException)
+                    {
+                        return null;
+                    }
+                }
 
-	    public string DefaultDataProvider => (string)base[_propDefaultDataProvider];
-	}
+                return _instance;
+            }
+        }
+
+        protected override ConfigurationPropertyCollection Properties => _properties;
+
+        public DataProviderElementCollection DataProviders => (DataProviderElementCollection) base[_propDataProviders];
+
+        public string DefaultConfiguration => (string) base[_propDefaultConfiguration];
+
+        public string DefaultDataProvider => (string) base[_propDefaultDataProvider];
+    }
 }

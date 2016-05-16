@@ -1,14 +1,16 @@
-﻿namespace LinqToDB.SchemaProvider
-{
-    using System.Diagnostics;
+﻿using System.Diagnostics;
 
-    [DebuggerDisplay("TypeName = {TypeName}, DataType = {DataType}, CreateFormat = {CreateFormat}, CreateParameters = {CreateParameters}")]
+namespace Bars2Db.SchemaProvider
+{
+    [DebuggerDisplay(
+        "TypeName = {TypeName}, DataType = {DataType}, CreateFormat = {CreateFormat}, CreateParameters = {CreateParameters}"
+        )]
     public class DataTypeInfo
     {
-        public string TypeName;
-        public string DataType;
         public string CreateFormat;
         public string CreateParameters;
-        public int    ProviderDbType;
+        public string DataType;
+        public int ProviderDbType;
+        public string TypeName;
     }
 }

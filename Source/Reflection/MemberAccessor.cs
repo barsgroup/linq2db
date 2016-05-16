@@ -1,310 +1,301 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Linq;
+using Bars2Db.Expressions;
+using Bars2Db.Extensions;
+using Bars2Db.Mapping;
 
-namespace LinqToDB.Reflection
+namespace Bars2Db.Reflection
 {
-	using Expressions;
-	using Extensions;
-	using Mapping;
+    public class MemberAccessor
+    {
+        public MemberAccessor(TypeAccessor typeAccessor, string memberName)
+        {
+            TypeAccessor = typeAccessor;
 
-	public class MemberAccessor
-	{
-		public MemberAccessor(TypeAccessor typeAccessor, string memberName)
-		{
-			TypeAccessor = typeAccessor;
+            if (memberName.IndexOf('.') < 0)
+            {
+                SetSimple(Expression.PropertyOrField(Expression.Constant(null, typeAccessor.Type), memberName).Member);
+            }
+            else
+            {
+                IsComplex = true;
+                HasGetter = true;
+                HasSetter = true;
 
-			if (memberName.IndexOf('.') < 0)
-			{
-				SetSimple(Expression.PropertyOrField(Expression.Constant(null, typeAccessor.Type), memberName).Member);
-			}
-			else
-			{
-				IsComplex = true;
-				HasGetter = true;
-				HasSetter = true;
+                var members = memberName.Split('.');
+                var objParam = Expression.Parameter(TypeAccessor.Type, "obj");
+                var expr = (Expression) objParam;
+                var infos = members.Select(m =>
+                {
+                    expr = Expression.PropertyOrField(expr, m);
+                    return new
+                    {
+                        member = ((MemberExpression) expr).Member,
+                        type = expr.Type
+                    };
+                }).ToArray();
 
-				var members  = memberName.Split('.');
-				var objParam = Expression.Parameter(TypeAccessor.Type, "obj");
-				var expr     = (Expression)objParam;
-				var infos    = members.Select(m =>
-				{
-					expr = Expression.PropertyOrField(expr, m);
-					return new
-					{
-						member = ((MemberExpression)expr).Member,
-						type   = expr.Type,
-					};
-				}).ToArray();
+                var lastInfo = infos[infos.Length - 1];
 
-				var lastInfo = infos[infos.Length - 1];
+                MemberInfo = lastInfo.member;
+                Type = lastInfo.type;
 
-				MemberInfo = lastInfo.member;
-				Type       = lastInfo.type;
+                var checkNull = infos.Take(infos.Length - 1)
+                    .Any(info => info.type.IsClassEx() || info.type.IsNullable());
 
-				var checkNull = infos.Take(infos.Length - 1).Any(info => info.type.IsClassEx() || info.type.IsNullable());
+                // Build getter.
+                //
+                {
+                    if (checkNull)
+                    {
+                        var ret = Expression.Variable(Type, "ret");
 
-				// Build getter.
-				//
-				{
-					if (checkNull)
-					{
-						var ret = Expression.Variable(Type, "ret");
+                        Func<Expression, int, Expression> makeGetter = null;
+                        makeGetter = (ex, i) =>
+                        {
+                            var info = infos[i];
+                            var next = Expression.MakeMemberAccess(ex, info.member);
 
-						Func<Expression,int,Expression> makeGetter = null; makeGetter = (ex, i) =>
-						{
-							var info = infos[i];
-							var next = Expression.MakeMemberAccess(ex, info.member);
+                            if (i == infos.Length - 1)
+                                return Expression.Assign(ret, next);
 
-							if (i == infos.Length - 1)
-								return Expression.Assign(ret, next);
+                            if (next.Type.IsClassEx() || next.Type.IsNullable())
+                            {
+                                var local = Expression.Variable(next.Type);
 
-							if (next.Type.IsClassEx() || next.Type.IsNullable())
-							{
-								var local = Expression.Variable(next.Type);
+                                return Expression.Block(
+                                    new[] {local}, Expression.Assign(local, next) as Expression, Expression.IfThen(
+                                        Expression.NotEqual(local, Expression.Constant(null)),
+                                        makeGetter(local, i + 1)));
+                            }
 
-								return Expression.Block(
-									new[] { local },
-									new[]
-									{
-										Expression.Assign(local, next) as Expression,
-										Expression.IfThen(
-											Expression.NotEqual(local, Expression.Constant(null)),
-											makeGetter(local, i + 1))
-									});
-							}
+                            return makeGetter(next, i + 1);
+                        };
 
-							return makeGetter(next, i + 1);
-						};
+                        expr = Expression.Block(
+                            new[] {ret}, Expression.Assign(ret, new DefaultValueExpression(MappingSchema.Default, Type)),
+                            makeGetter(objParam, 0), ret);
+                    }
+                    else
+                    {
+                        expr = objParam;
+                        foreach (var info in infos)
+                            expr = Expression.MakeMemberAccess(expr, info.member);
+                    }
 
-						expr = Expression.Block(
-							new[] { ret },
-							new[]
-							{
-								Expression.Assign(ret, new DefaultValueExpression(MappingSchema.Default, Type)),
-								makeGetter(objParam, 0),
-								ret
-							});
-					}
-					else
-					{
-						expr = objParam;
-						foreach (var info in infos)
-							expr = Expression.MakeMemberAccess(expr, info.member);
-					}
+                    GetterExpression = Expression.Lambda(expr, objParam);
+                }
 
-					GetterExpression = Expression.Lambda(expr, objParam);
-				}
+                // Build setter.
+                //
+                {
+                    HasSetter = !infos.Any(
+                        info =>
+                        {
+                            var propertyInfo = info.member as PropertyInfo;
+                            return propertyInfo != null && propertyInfo.GetSetMethodEx(true) == null;
+                        });
 
-				// Build setter.
-				//
-				{
-					HasSetter = !infos.Any(
-					    info =>
-					    {
-					        var propertyInfo = info.member as PropertyInfo;
-					        return propertyInfo != null && propertyInfo.GetSetMethodEx(true) == null;
-					    });
+                    var valueParam = Expression.Parameter(Type, "value");
 
-					var valueParam = Expression.Parameter(Type, "value");
+                    if (HasSetter)
+                    {
+                        if (checkNull)
+                        {
+                            var vars = new List<ParameterExpression>();
+                            var exprs = new List<Expression>();
 
-					if (HasSetter)
-					{
-						if (checkNull)
-						{
-							var vars  = new List<ParameterExpression>();
-							var exprs = new List<Expression>();
+                            Action<Expression, int> makeSetter = null;
+                            makeSetter = (ex, i) =>
+                            {
+                                var info = infos[i];
+                                var next = Expression.MakeMemberAccess(ex, info.member);
 
-							Action<Expression,int> makeSetter = null; makeSetter = (ex, i) =>
-							{
-								var info = infos[i];
-								var next = Expression.MakeMemberAccess(ex, info.member);
+                                if (i == infos.Length - 1)
+                                {
+                                    exprs.Add(Expression.Assign(next, valueParam));
+                                }
+                                else
+                                {
+                                    if (next.Type.IsClassEx() || next.Type.IsNullable())
+                                    {
+                                        var local = Expression.Variable(next.Type);
 
-								if (i == infos.Length - 1)
-								{
-									exprs.Add(Expression.Assign(next, valueParam));
-								}
-								else
-								{
-									if (next.Type.IsClassEx() || next.Type.IsNullable())
-									{
-										var local = Expression.Variable(next.Type);
+                                        vars.Add(local);
 
-										vars.Add(local);
+                                        exprs.Add(Expression.Assign(local, next));
+                                        exprs.Add(
+                                            Expression.IfThen(
+                                                Expression.Equal(local, Expression.Constant(null)),
+                                                Expression.Block(
+                                                    Expression.Assign(local, Expression.New(local.Type)),
+                                                    Expression.Assign(next, local))));
 
-										exprs.Add(Expression.Assign(local, next));
-										exprs.Add(
-											Expression.IfThen(
-												Expression.Equal(local, Expression.Constant(null)),
-												Expression.Block(
-													Expression.Assign(local, Expression.New(local.Type)),
-													Expression.Assign(next, local))));
+                                        makeSetter(local, i + 1);
+                                    }
+                                    else
+                                    {
+                                        makeSetter(next, i + 1);
+                                    }
+                                }
+                            };
 
-										makeSetter(local, i + 1);
-									}
-									else
-									{
-										makeSetter(next, i + 1);
-									}
-								}
-							};
+                            makeSetter(objParam, 0);
 
-							makeSetter(objParam, 0);
+                            expr = Expression.Block(vars, exprs);
+                        }
+                        else
+                        {
+                            expr = objParam;
+                            foreach (var info in infos)
+                                expr = Expression.MakeMemberAccess(expr, info.member);
+                            expr = Expression.Assign(expr, valueParam);
+                        }
 
-							expr = Expression.Block(vars, exprs);
-						}
-						else
-						{
-							expr = objParam;
-							foreach (var info in infos)
-								expr = Expression.MakeMemberAccess(expr, info.member);
-							expr = Expression.Assign(expr, valueParam);
-						}
+                        SetterExpression = Expression.Lambda(expr, objParam, valueParam);
+                    }
+                    else
+                    {
+                        var fakeParam = Expression.Parameter(typeof(int));
 
-						SetterExpression = Expression.Lambda(expr, objParam, valueParam);
-					}
-					else
-					{
-						var fakeParam = Expression.Parameter(typeof(int));
+                        SetterExpression = Expression.Lambda(
+                            Expression.Block(
+                                new[] {fakeParam}, Expression.Assign(fakeParam, Expression.Constant(0))),
+                            objParam,
+                            valueParam);
+                    }
+                }
+            }
 
-						SetterExpression = Expression.Lambda(
-							Expression.Block(
-								new[] { fakeParam },
-								new Expression[] { Expression.Assign(fakeParam, Expression.Constant(0)) }),
-							objParam,
-							valueParam);
-					}
-				}
-			}
+            SetExpressions();
+        }
 
-			SetExpressions();
-		}
+        public MemberAccessor(TypeAccessor typeAccessor, MemberInfo memberInfo)
+        {
+            TypeAccessor = typeAccessor;
 
-		public MemberAccessor(TypeAccessor typeAccessor, MemberInfo memberInfo)
-		{
-			TypeAccessor = typeAccessor;
+            SetSimple(memberInfo);
+            SetExpressions();
+        }
 
-			SetSimple(memberInfo);
-			SetExpressions();
-		}
+        private void SetSimple(MemberInfo memberInfo)
+        {
+            MemberInfo = memberInfo;
+            var propertyInfo = MemberInfo as PropertyInfo;
+            Type = propertyInfo?.PropertyType ?? ((FieldInfo) MemberInfo).FieldType;
 
-		void SetSimple(MemberInfo memberInfo)
-		{
-			MemberInfo = memberInfo;
-		    var propertyInfo = MemberInfo as PropertyInfo;
-		    Type       = propertyInfo?.PropertyType ?? ((FieldInfo)MemberInfo).FieldType;
+            HasGetter = true;
 
-			HasGetter = true;
+            var info = memberInfo as PropertyInfo;
+            if (info != null)
+                HasSetter = info.GetSetMethodEx(true) != null;
+            else
+                HasSetter = !((FieldInfo) memberInfo).IsInitOnly;
 
-		    var info = memberInfo as PropertyInfo;
-		    if (info != null)
-				HasSetter = info.GetSetMethodEx(true) != null;
-			else
-				HasSetter = !((FieldInfo)memberInfo).IsInitOnly;
+            var objParam = Expression.Parameter(TypeAccessor.Type, "obj");
+            var valueParam = Expression.Parameter(Type, "value");
 
-			var objParam   = Expression.Parameter(TypeAccessor.Type, "obj");
-			var valueParam = Expression.Parameter(Type, "value");
+            GetterExpression = Expression.Lambda(Expression.MakeMemberAccess(objParam, memberInfo), objParam);
 
-			GetterExpression = Expression.Lambda(Expression.MakeMemberAccess(objParam, memberInfo), objParam);
+            if (HasSetter)
+            {
+                SetterExpression = Expression.Lambda(
+                    Expression.Assign(GetterExpression.Body, valueParam),
+                    objParam,
+                    valueParam);
+            }
+            else
+            {
+                var fakeParam = Expression.Parameter(typeof(int));
 
-			if (HasSetter)
-			{
-				SetterExpression = Expression.Lambda(
-					Expression.Assign(GetterExpression.Body, valueParam),
-					objParam,
-					valueParam);
-			}
-			else
-			{
-				var fakeParam = Expression.Parameter(typeof(int));
+                SetterExpression = Expression.Lambda(
+                    Expression.Block(
+                        new[] {fakeParam}, Expression.Assign(fakeParam, Expression.Constant(0))),
+                    objParam,
+                    valueParam);
+            }
+        }
 
-				SetterExpression = Expression.Lambda(
-					Expression.Block(
-						new[] { fakeParam },
-						new Expression[] { Expression.Assign(fakeParam, Expression.Constant(0)) }),
-					objParam,
-					valueParam);
-			}
-		}
+        private void SetExpressions()
+        {
+            var objParam = Expression.Parameter(typeof(object), "obj");
+            var getterExpr = GetterExpression.GetBody(Expression.Convert(objParam, TypeAccessor.Type));
+            var getter = Expression.Lambda<Func<object, object>>(Expression.Convert(getterExpr, typeof(object)),
+                objParam);
 
-		void SetExpressions()
-		{
-			var objParam   = Expression.Parameter(typeof(object), "obj");
-			var getterExpr = GetterExpression.GetBody(Expression.Convert(objParam, TypeAccessor.Type));
-			var getter     = Expression.Lambda<Func<object,object>>(Expression.Convert(getterExpr, typeof(object)), objParam);
+            Getter = getter.Compile();
 
-			Getter = getter.Compile();
+            var valueParam = Expression.Parameter(typeof(object), "value");
+            var setterExpr = SetterExpression.GetBody(
+                Expression.Convert(objParam, TypeAccessor.Type),
+                Expression.Convert(valueParam, Type));
+            var setter = Expression.Lambda<Action<object, object>>(setterExpr, objParam, valueParam);
 
-			var valueParam = Expression.Parameter(typeof(object), "value");
-			var setterExpr = SetterExpression.GetBody(
-				Expression.Convert(objParam,   TypeAccessor.Type),
-				Expression.Convert(valueParam, Type));
-			var setter = Expression.Lambda<Action<object,object>>(setterExpr, objParam, valueParam);
+            Setter = setter.Compile();
+        }
 
-			Setter = setter.Compile();
-		}
+        #region Public Properties
 
-		#region Public Properties
+        public MemberInfo MemberInfo { get; private set; }
+        public TypeAccessor TypeAccessor { get; }
+        public bool HasGetter { get; private set; }
+        public bool HasSetter { get; private set; }
+        public Type Type { get; private set; }
+        public bool IsComplex { get; private set; }
+        public LambdaExpression GetterExpression { get; private set; }
+        public LambdaExpression SetterExpression { get; private set; }
+        public Func<object, object> Getter { get; private set; }
+        public Action<object, object> Setter { get; private set; }
 
-		public MemberInfo            MemberInfo       { get; private set; }
-		public TypeAccessor          TypeAccessor     { get; }
-		public bool                  HasGetter        { get; private set; }
-		public bool                  HasSetter        { get; private set; }
-		public Type                  Type             { get; private set; }
-		public bool                  IsComplex        { get; private set; }
-		public LambdaExpression      GetterExpression { get; private set; }
-		public LambdaExpression      SetterExpression { get; private set; }
-		public Func  <object,object> Getter           { get; private set; }
-		public Action<object,object> Setter           { get; private set; }
+        public string Name => MemberInfo.Name;
 
-		public string Name => MemberInfo.Name;
+        #endregion
 
-	    #endregion
+        #region Public Methods
 
-		#region Public Methods
+        public T GetAttribute<T>() where T : Attribute
+        {
+            var attrs = MemberInfo.GetCustomAttributesEx(typeof(T), true);
 
-		public T GetAttribute<T>() where T : Attribute
-		{
-			var attrs = MemberInfo.GetCustomAttributesEx(typeof(T), true);
+            return attrs.Length > 0 ? (T) attrs[0] : null;
+        }
 
-			return attrs.Length > 0? (T)attrs[0]: null;
-		}
+        public T[] GetAttributes<T>() where T : Attribute
+        {
+            Array attrs = MemberInfo.GetCustomAttributesEx(typeof(T), true);
 
-		public T[] GetAttributes<T>() where T : Attribute
-		{
-			Array attrs = MemberInfo.GetCustomAttributesEx(typeof(T), true);
+            return attrs.Length > 0 ? (T[]) attrs : null;
+        }
 
-			return attrs.Length > 0? (T[])attrs: null;
-		}
+        public object[] GetAttributes()
+        {
+            var attrs = MemberInfo.GetCustomAttributesEx(true);
 
-		public object[] GetAttributes()
-		{
-			var attrs = MemberInfo.GetCustomAttributesEx(true);
+            return attrs.Length > 0 ? attrs : null;
+        }
 
-			return attrs.Length > 0? attrs: null;
-		}
+        public T[] GetTypeAttributes<T>() where T : Attribute
+        {
+            return TypeAccessor.Type.GetAttributes<T>();
+        }
 
-		public T[] GetTypeAttributes<T>() where T : Attribute
-		{
-			return TypeAccessor.Type.GetAttributes<T>();
-		}
+        #endregion
 
-		#endregion
+        #region Set/Get Value
 
-		#region Set/Get Value
+        public virtual object GetValue(object o)
+        {
+            return Getter(o);
+        }
 
-		public virtual object GetValue(object o)
-		{
-			return Getter(o);
-		}
+        public virtual void SetValue(object o, object value)
+        {
+            Setter(o, value);
+        }
 
-		public virtual void SetValue(object o, object value)
-		{
-			Setter(o, value);
-		}
-
-		#endregion
-	}
+        #endregion
+    }
 }

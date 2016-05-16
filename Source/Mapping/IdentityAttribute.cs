@@ -1,6 +1,6 @@
 using System;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
     [Serializable]
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]

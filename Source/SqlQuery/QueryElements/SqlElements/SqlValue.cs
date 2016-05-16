@@ -1,26 +1,24 @@
-﻿namespace LinqToDB.SqlQuery.QueryElements.SqlElements
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.SqlElements
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public interface ISqlValue : IQueryExpression,
-                                 IValueContainer
+        IValueContainer
     {
     }
 
     public class SqlValue : BaseQueryElement,
-                            ISqlValue
+        ISqlValue
     {
         public SqlValue(Type systemType, object value)
         {
             SystemType = systemType;
-            Value      = value;
+            Value = value;
         }
 
         public SqlValue(object value)
@@ -31,21 +29,8 @@
                 SystemType = value.GetType();
         }
 
-        public object Value      { get;  set; }
-        public Type   SystemType { get; }
-
-        #region Overrides
-
-#if OVERRIDETOSTRING
-
-        public override string ToString()
-        {
-            return ((IQueryElement)this).ToString(new StringBuilder(), new Dictionary<IQueryElement,IQueryElement>()).ToString();
-        }
-
-#endif
-
-        #endregion
+        public object Value { get; set; }
+        public Type SystemType { get; }
 
         #region ISqlExpression Members
 
@@ -55,7 +40,7 @@
 
         #region ISqlExpressionWalkable Members
 
-        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
+        IQueryExpression ISqlExpressionWalkable.Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
         {
             return func(this);
         }
@@ -71,30 +56,17 @@
 
             var value = other as ISqlValue;
             return
-                value       != null              &&
+                value != null &&
                 SystemType == value.SystemType &&
                 (Value == null && value.Value == null || Value != null && Value.Equals(value.Value));
         }
 
         #endregion
 
-        #region ISqlExpression Members
-
-        public bool CanBeNull()
-        {
-            return Value == null;
-        }
-
-        public bool Equals(IQueryExpression other, Func<IQueryExpression,IQueryExpression,bool> comparer)
-        {
-            return ((IQueryExpression)this).Equals(other) && comparer(this, other);
-        }
-
-        #endregion
-
         #region ICloneableElement Members
 
-        public ICloneableElement Clone(Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
         {
             if (!doClone(this))
                 return this;
@@ -109,22 +81,50 @@
 
         #endregion
 
+        #region Overrides
+
+#if OVERRIDETOSTRING
+
+        public override string ToString()
+        {
+            return
+                ((IQueryElement) this).ToString(new StringBuilder(), new Dictionary<IQueryElement, IQueryElement>())
+                    .ToString();
+        }
+
+#endif
+
+        #endregion
+
+        #region ISqlExpression Members
+
+        public bool CanBeNull()
+        {
+            return Value == null;
+        }
+
+        public bool Equals(IQueryExpression other, Func<IQueryExpression, IQueryExpression, bool> comparer)
+        {
+            return ((IQueryExpression) this).Equals(other) && comparer(this, other);
+        }
+
+        #endregion
+
         #region IQueryElement Members
 
         public override EQueryElementType ElementType => EQueryElementType.SqlValue;
 
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
-            return 
-                Value == null ?
-                    sb.Append("NULL") :
-                Value is string ?
-                    sb
-                        .Append('\'')
-                        .Append(Value.ToString().Replace("\'", "''"))
-                        .Append('\'')
-                :
-                    sb.Append(Value);
+            return
+                Value == null
+                    ? sb.Append("NULL")
+                    : Value is string
+                        ? sb
+                            .Append('\'')
+                            .Append(Value.ToString().Replace("\'", "''"))
+                            .Append('\'')
+                        : sb.Append(Value);
         }
 
         #endregion

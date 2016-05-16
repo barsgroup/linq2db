@@ -1,34 +1,20 @@
-﻿namespace LinqToDB.SqlQuery.Search.TypeGraph
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.Search.Utils;
+
+namespace Bars2Db.SqlQuery.Search.TypeGraph
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.Search.Utils;
-
     public class TypeGraph<TBaseSearchInterface>
     {
-        private readonly Dictionary<Type, TypeVertex> _searchVertices = new Dictionary<Type, TypeVertex>();
-
         private readonly HashSet<PropertyInfo> _allPropertyInfos = new HashSet<PropertyInfo>();
+        private readonly Dictionary<Type, TypeVertex> _searchVertices = new Dictionary<Type, TypeVertex>();
 
         private readonly Connection[][] _transitiveClosure;
 
         public readonly TypeVertex[] Vertices;
-
-        private int VertexCount => Vertices.Length;
-
-        public TypeVertex GetTypeVertex(Type type)
-        {
-            if (!_searchVertices.ContainsKey(type))
-            {
-                throw new ArgumentException("Type is not in graph");
-            }
-
-            return _searchVertices[type];
-        }
 
         public TypeGraph(IEnumerable<Type> types)
         {
@@ -47,7 +33,9 @@
                     Vertices[vertex.Index] = vertex;
                 }
 
-                var castTypes = SearchHelper<TBaseSearchInterface>.FindBase(intType).Concat(SearchHelper<TBaseSearchInterface>.FindDerived(intType));
+                var castTypes =
+                    SearchHelper<TBaseSearchInterface>.FindBase(intType)
+                        .Concat(SearchHelper<TBaseSearchInterface>.FindDerived(intType));
 
                 foreach (var castType in castTypes)
                 {
@@ -61,7 +49,8 @@
                     vertex.Casts.AddLast(new CastEdge(vertex, childVertex));
                 }
 
-                var propertyInfos = intType.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null);
+                var propertyInfos =
+                    intType.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null);
                 foreach (var info in propertyInfos)
                 {
                     var propertyType = CollectionUtils.GetElementType(info.PropertyType);
@@ -105,6 +94,18 @@
             FillTransitiveClosure(_transitiveClosure);
         }
 
+        private int VertexCount => Vertices.Length;
+
+        public TypeVertex GetTypeVertex(Type type)
+        {
+            if (!_searchVertices.ContainsKey(type))
+            {
+                throw new ArgumentException("Type is not in graph");
+            }
+
+            return _searchVertices[type];
+        }
+
         public bool PathExists(TypeVertex from, TypeVertex to)
         {
             return !_transitiveClosure[from.Index][to.Index].IsEmpty();
@@ -128,7 +129,8 @@
                             continue;
                         }
 
-                        if (ik.EndsWith(ConnectionType.Property) || kj.StartsWith(ConnectionType.Property)) // Запрещаем 2 последовательных каста
+                        if (ik.EndsWith(ConnectionType.Property) || kj.StartsWith(ConnectionType.Property))
+                            // Запрещаем 2 последовательных каста
                         {
                             matrix[i][j] = matrix[i][j].Union(ik.StartType, kj.EndType);
                         }
@@ -152,20 +154,23 @@
             {
                 var vertex = Vertices[i];
 
-                vertex.Casts.ForEach(egde =>
+                vertex.Casts.ForEach(
+                    egde =>
                     {
-                        matrix[vertex.Index][egde.Value.CastTo.Index] = matrix[vertex.Index][egde.Value.CastTo.Index].Union(ConnectionType.Cast, ConnectionType.Cast);
+                        matrix[vertex.Index][egde.Value.CastTo.Index] =
+                            matrix[vertex.Index][egde.Value.CastTo.Index].Union(ConnectionType.Cast, ConnectionType.Cast);
                     });
 
-                vertex.Children.ForEach(egde =>
+                vertex.Children.ForEach(
+                    egde =>
                     {
-                        matrix[vertex.Index][egde.Value.Child.Index] = matrix[vertex.Index][egde.Value.Child.Index].Union(ConnectionType.Property, ConnectionType.Property);
+                        matrix[vertex.Index][egde.Value.Child.Index] =
+                            matrix[vertex.Index][egde.Value.Child.Index].Union(ConnectionType.Property,
+                                ConnectionType.Property);
                     });
             }
 
             return matrix;
         }
-
-       
     }
 }

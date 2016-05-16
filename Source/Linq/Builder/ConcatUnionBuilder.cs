@@ -3,54 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Bars2Db.Expressions;
+using Bars2Db.Extensions;
+using Bars2Db.Reflection;
+using Bars2Db.SqlQuery.QueryElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using Extensions;
-
-    using LinqToDB.SqlQuery.QueryElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-
-    using Reflection;
-
-    class ConcatUnionBuilder : MethodCallBuilder
+    internal class ConcatUnionBuilder : MethodCallBuilder
     {
-        #region Builder
-
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-        {
-            return methodCall.Arguments.Count == 2 && methodCall.IsQueryable("Concat", "Union");
-        }
-
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
-        {
-            var sequence1 = new SubQueryContext(builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0])));
-            var sequence2 = new SubQueryContext(builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQuery())));
-            var union     = new Union(sequence2.Select, methodCall.Method.Name == "Concat");
-
-            sequence1.Select.Unions.AddLast(union);
-
-            return new UnionContext(sequence1, sequence2, methodCall);
-        }
-
-        protected override SequenceConvertInfo Convert(
-            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
-        {
-            return null;
-        }
-
-        #endregion
-
         #region Context
 
-        sealed class UnionContext : SubQueryContext
+        private sealed class UnionContext : SubQueryContext
         {
+            private readonly bool _isObject;
+
+            private readonly Dictionary<MemberInfo, Member> _members =
+                new Dictionary<MemberInfo, Member>(new MemberInfoComparer());
+
+            private readonly MethodCallExpression _methodCall;
+            private readonly SubQueryContext _sequence1;
+            private readonly SubQueryContext _sequence2;
+
+            private readonly Type _type;
+            private readonly ParameterExpression _unionParameter;
+
             public UnionContext(SubQueryContext sequence1, SubQueryContext sequence2, MethodCallExpression methodCall)
                 : base(sequence1)
             {
-                _sequence1  = sequence1;
-                _sequence2  = sequence2;
+                _sequence1 = sequence1;
+                _sequence2 = sequence2;
                 _methodCall = methodCall;
 
                 _sequence2.Parent = this;
@@ -61,36 +44,14 @@ namespace LinqToDB.Linq.Builder
 
                 if (_isObject)
                 {
-                    _type           = _methodCall.Method.GetGenericArguments()[0];
+                    _type = _methodCall.Method.GetGenericArguments()[0];
                     _unionParameter = Expression.Parameter(_type, "t");
                 }
 
                 Init();
             }
 
-            readonly Type                          _type;
-            readonly bool                          _isObject;
-            readonly MethodCallExpression          _methodCall;
-            readonly ParameterExpression           _unionParameter;
-            readonly Dictionary<MemberInfo,Member> _members = new Dictionary<MemberInfo,Member>(new MemberInfoComparer());
-            readonly SubQueryContext               _sequence1;
-            readonly SubQueryContext               _sequence2;
-
-            class Member
-            {
-                public SqlInfo          SequenceInfo;
-                public SqlInfo          SqlQueryInfo;
-                public MemberExpression MemberExpression;
-            }
-
-            class UnionMember
-            {
-                public Member  Member;
-                public SqlInfo Info1;
-                public SqlInfo Info2;
-            }
-
-            void Init()
+            private void Init()
             {
                 var info1 = _sequence1.ConvertToIndex(null, 0, ConvertFlags.All).ToList();
                 var info2 = _sequence2.ConvertToIndex(null, 0, ConvertFlags.All).ToList();
@@ -107,11 +68,11 @@ namespace LinqToDB.Linq.Builder
 
                     var member = new Member
                     {
-                        SequenceInfo     = info,
+                        SequenceInfo = info,
                         MemberExpression = Expression.MakeMemberAccess(_unionParameter, info.Members[0])
                     };
 
-                    members.Add(new UnionMember { Member = member, Info1 = info });
+                    members.Add(new UnionMember {Member = member, Info1 = info});
                 }
 
                 foreach (var info in info2)
@@ -125,12 +86,16 @@ namespace LinqToDB.Linq.Builder
 
                     if (em == null)
                     {
-                        var member = new Member { MemberExpression = Expression.MakeMemberAccess(_unionParameter, info.Members[0]) };
+                        var member = new Member
+                        {
+                            MemberExpression = Expression.MakeMemberAccess(_unionParameter, info.Members[0])
+                        };
 
                         if (_sequence2.IsExpression(member.MemberExpression, 1, RequestFor.Object).Result)
-                            throw new LinqException("Types in {0} are constructed incompatibly.", _methodCall.Method.Name);
+                            throw new LinqException("Types in {0} are constructed incompatibly.",
+                                _methodCall.Method.Name);
 
-                        members.Add(new UnionMember { Member = member, Info2 = info });
+                        members.Add(new UnionMember {Member = member, Info2 = info});
                     }
                     else
                     {
@@ -149,8 +114,8 @@ namespace LinqToDB.Linq.Builder
                     {
                         member.Info1 = new SqlInfo(member.Info2.Members)
                         {
-                            Sql   = new SqlValue(null),
-                            Query = _sequence1.Select,
+                            Sql = new SqlValue(null),
+                            Query = _sequence1.Select
                         };
 
                         member.Member.SequenceInfo = member.Info1;
@@ -160,8 +125,8 @@ namespace LinqToDB.Linq.Builder
                     {
                         member.Info2 = new SqlInfo(member.Info1.Members)
                         {
-                            Sql   = new SqlValue(null),
-                            Query = _sequence2.Select,
+                            Sql = new SqlValue(null),
+                            Query = _sequence2.Select
                         };
                     }
 
@@ -182,7 +147,7 @@ namespace LinqToDB.Linq.Builder
 
             public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
             {
-                var expr   = BuildExpression(null, 0);
+                var expr = BuildExpression(null, 0);
                 var mapper = Builder.BuildMapper<T>(expr);
 
                 query.SetQuery(mapper);
@@ -194,8 +159,8 @@ namespace LinqToDB.Linq.Builder
                 {
                     if (expression == null)
                     {
-                        var type  = _methodCall.Method.GetGenericArguments()[0];
-                        var nctor = (NewExpression)Expression.Find(e =>
+                        var type = _methodCall.Method.GetGenericArguments()[0];
+                        var nctor = (NewExpression) Expression.Find(e =>
                         {
                             var newExpression = e as NewExpression;
                             if (newExpression != null && e.Type == type)
@@ -216,8 +181,8 @@ namespace LinqToDB.Linq.Builder
                                     {
                                         var methodInfo = m as MethodInfo;
                                         return methodInfo != null
-                                                   ? methodInfo.GetPropertyInfo()
-                                                   : m;
+                                            ? methodInfo.GetPropertyInfo()
+                                            : m;
                                     })
                                 .ToList();
 
@@ -234,7 +199,8 @@ namespace LinqToDB.Linq.Builder
                             expr = Expression.MemberInit(
                                 Expression.New(ta.Type),
                                 _members
-                                    .Select(m => Expression.Bind(m.Value.MemberExpression.Member, m.Value.MemberExpression)));
+                                    .Select(
+                                        m => Expression.Bind(m.Value.MemberExpression.Member, m.Value.MemberExpression)));
                         }
 
                         var ex = Builder.BuildExpression(this, expr);
@@ -246,10 +212,11 @@ namespace LinqToDB.Linq.Builder
                     {
                         var levelExpression = expression.GetLevelExpression(1);
 
-                        if (ReferenceEquals(expression, levelExpression) && !IsExpression(expression, 1, RequestFor.Object).Result)
+                        if (ReferenceEquals(expression, levelExpression) &&
+                            !IsExpression(expression, 1, RequestFor.Object).Result)
                         {
                             var idx = ConvertToIndex(expression, level, ConvertFlags.Field);
-                            var n   = idx[0].Index;
+                            var n = idx[0].Index;
 
                             if (Parent != null)
                                 n = Parent.ConvertToParentIndex(n, this);
@@ -309,8 +276,8 @@ namespace LinqToDB.Linq.Builder
                 {
                     switch (flags)
                     {
-                        case ConvertFlags.All   :
-                        case ConvertFlags.Key   :
+                        case ConvertFlags.All:
+                        case ConvertFlags.Key:
 
                             if (expression == null)
                             {
@@ -321,15 +288,16 @@ namespace LinqToDB.Linq.Builder
 
                             break;
 
-                        case ConvertFlags.Field :
+                        case ConvertFlags.Field:
 
-                            if (expression != null && (level == 0 || level == 1) && expression.NodeType == ExpressionType.MemberAccess)
+                            if (expression != null && (level == 0 || level == 1) &&
+                                expression.NodeType == ExpressionType.MemberAccess)
                             {
                                 var levelExpression = expression.GetLevelExpression(1);
 
                                 if (expression == levelExpression)
                                 {
-                                    var ma = (MemberExpression)expression;
+                                    var ma = (MemberExpression) expression;
 
                                     Member member;
 
@@ -360,12 +328,12 @@ namespace LinqToDB.Linq.Builder
                                         member.SqlQueryInfo = new SqlInfo(member.MemberExpression.Member)
                                         {
                                             Index = -2,
-                                            Sql   = SubQuery.Select.Select.Columns[member.SequenceInfo.Index],
-                                            Query = Select,
+                                            Sql = SubQuery.Select.Select.Columns[member.SequenceInfo.Index],
+                                            Query = Select
                                         };
                                     }
 
-                                    return new[] { member.SqlQueryInfo };
+                                    return new[] {member.SqlQueryInfo};
                                 }
                             }
 
@@ -377,6 +345,50 @@ namespace LinqToDB.Linq.Builder
 
                 return base.ConvertToSql(expression, level, flags);
             }
+
+            private class Member
+            {
+                public MemberExpression MemberExpression;
+                public SqlInfo SequenceInfo;
+                public SqlInfo SqlQueryInfo;
+            }
+
+            private class UnionMember
+            {
+                public SqlInfo Info1;
+                public SqlInfo Info2;
+                public Member Member;
+            }
+        }
+
+        #endregion
+
+        #region Builder
+
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
+        {
+            return methodCall.Arguments.Count == 2 && methodCall.IsQueryable("Concat", "Union");
+        }
+
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
+        {
+            var sequence1 = new SubQueryContext(builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0])));
+            var sequence2 =
+                new SubQueryContext(
+                    builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQuery())));
+            var union = new Union(sequence2.Select, methodCall.Method.Name == "Concat");
+
+            sequence1.Select.Unions.AddLast(union);
+
+            return new UnionContext(sequence1, sequence2, methodCall);
+        }
+
+        protected override SequenceConvertInfo Convert(
+            ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo, ParameterExpression param)
+        {
+            return null;
         }
 
         #endregion

@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Bars2Db.Expressions;
+using Bars2Db.SqlQuery.QueryElements;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements;
-
-    class IntersectBuilder : MethodCallBuilder
+    internal class IntersectBuilder : MethodCallBuilder
     {
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             return methodCall.Arguments.Count == 2 && methodCall.IsQueryable("Except", "Intersect");
         }
 
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             var sequence = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]));
-            var query    = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQuery()));
-            var except   = query.Select;
+            var query = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[1], new SelectQuery()));
+            var except = query.Select;
 
             sequence = new SubQueryContext(sequence);
 
@@ -31,7 +32,7 @@ namespace LinqToDB.Linq.Builder
                 sql.Where.Exists(except);
 
             var keys1 = sequence.ConvertToSql(null, 0, ConvertFlags.Key);
-            var keys2 = query.   ConvertToSql(null, 0, ConvertFlags.Key);
+            var keys2 = query.ConvertToSql(null, 0, ConvertFlags.Key);
 
             if (keys1.Length != keys2.Length)
                 throw new InvalidOperationException();

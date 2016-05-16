@@ -2,31 +2,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Bars2Db.Common;
+using Bars2Db.Extensions;
 
-namespace LinqToDB.Metadata
+namespace Bars2Db.Metadata
 {
-    using Common;
-    using Extensions;
-
-    class AttributeInfo
+    internal class AttributeInfo
     {
-        public AttributeInfo(string name, Dictionary<string,object> values)
+        private Func<Attribute> _func;
+
+        public string Name;
+        public Dictionary<string, object> Values;
+
+        public AttributeInfo(string name, Dictionary<string, object> values)
         {
-            Name   = name;
+            Name = name;
             Values = values;
         }
-
-        public string                    Name;
-        public Dictionary<string,object> Values;
-
-        Func<Attribute> _func;
 
         public Attribute MakeAttribute(Type type)
         {
             if (_func == null)
             {
                 var ctors = type.GetConstructorsEx();
-                var ctor  = ctors.FirstOrDefault(c => c.GetParameters().Length == 0);
+                var ctor = ctors.FirstOrDefault(c => c.GetParameters().Length == 0);
 
                 if (ctor != null)
                 {
@@ -37,7 +36,7 @@ namespace LinqToDB.Metadata
                                 Values.Select(k =>
                                 {
                                     var member = type.GetPublicMemberEx(k.Key)[0];
-                                    var mtype  = member.GetMemberType();
+                                    var mtype = member.GetMemberType();
 
                                     return Expression.Bind(
                                         member,

@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using Bars2Db.Expressions;
+using Bars2Db.Metadata;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-    using Expressions;
-    using Metadata;
-
     public class FluentMappingBuilder
     {
+        public EntityMappingBuilder<T> Entity<T>(string configuration = null)
+        {
+            return new EntityMappingBuilder<T>(this, configuration);
+        }
+
         #region Init
 
         public FluentMappingBuilder([Properties.NotNull] MappingSchema mappingSchema)
@@ -21,7 +25,7 @@ namespace LinqToDB.Mapping
 
         public MappingSchema MappingSchema { get; }
 
-        readonly FluentMetadataReader _reader = new FluentMetadataReader();
+        private readonly FluentMetadataReader _reader = new FluentMetadataReader();
 
         #endregion
 
@@ -68,7 +72,7 @@ namespace LinqToDB.Mapping
             return this;
         }
 
-        public FluentMappingBuilder HasAttribute<T>(Expression<Func<T,object>> func, Attribute attribute)
+        public FluentMappingBuilder HasAttribute<T>(Expression<Func<T, object>> func, Attribute attribute)
         {
             var memberInfo = MemberHelper.MemberOf(func);
             _reader.AddAttribute(memberInfo, attribute);
@@ -76,10 +80,5 @@ namespace LinqToDB.Mapping
         }
 
         #endregion
-
-        public EntityMappingBuilder<T> Entity<T>(string configuration = null)
-        {
-            return new EntityMappingBuilder<T>(this, configuration);
-        }
     }
 }

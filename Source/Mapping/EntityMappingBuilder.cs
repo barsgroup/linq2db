@@ -2,294 +2,293 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Bars2Db.Extensions;
 
-using LinqToDB.Extensions;
-
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-	public class EntityMappingBuilder<T>
-	{
-		#region Init
+    public class EntityMappingBuilder<T>
+    {
+        public EntityMappingBuilder<TE> Entity<TE>(string configuration = null)
+        {
+            return _builder.Entity<TE>(configuration);
+        }
 
-		public EntityMappingBuilder([Properties.NotNull] FluentMappingBuilder builder, string configuration)
-		{
-			if (builder == null) throw new ArgumentNullException(nameof(builder));
+        public PropertyMappingBuilder<T> Property(Expression<Func<T, object>> func)
+        {
+            return new PropertyMappingBuilder<T>(this, func);
+        }
 
-			_builder      = builder;
-			Configuration = configuration;
-		}
+        public EntityMappingBuilder<T> HasPrimaryKey(Expression<Func<T, object>> func, int order = -1)
+        {
+            var n = 0;
 
-		readonly FluentMappingBuilder _builder;
+            return SetAttribute(
+                func,
+                true,
+                m => new PrimaryKeyAttribute(Configuration, order + n++ + (m && order == -1 ? 1 : 0)),
+                (m, a) => a.Order = order + n++ + (m && order == -1 ? 1 : 0),
+                a => a.Configuration);
+        }
 
-		public string Configuration { get; }
+        public EntityMappingBuilder<T> HasIdentity(Expression<Func<T, object>> func)
+        {
+            return SetAttribute(
+                func,
+                false,
+                _ => new IdentityAttribute(Configuration),
+                (_, a) => { },
+                a => a.Configuration);
+        }
 
-		#endregion
+        public EntityMappingBuilder<T> HasColumn(Expression<Func<T, object>> func, int order = -1)
+        {
+            return SetAttribute(
+                func,
+                true,
+                _ => new ColumnAttribute(Configuration),
+                (_, a) => a.IsColumn = true,
+                a => a.Configuration);
+        }
 
-		#region GetAttributes
+        public EntityMappingBuilder<T> Ignore(Expression<Func<T, object>> func, int order = -1)
+        {
+            return SetAttribute(
+                func,
+                true,
+                _ => new NotColumnAttribute {Configuration = Configuration},
+                (_, a) => a.IsColumn = false,
+                a => a.Configuration);
+        }
 
-		public TA[] GetAttributes<TA>()
-			where TA : Attribute
-		{
-			return _builder.GetAttributes<TA>(typeof(T));
-		}
+        public EntityMappingBuilder<T> HasTableName(string tableName)
+        {
+            return SetTable(a => a.Name = tableName);
+        }
 
-		public TA[] GetAttributes<TA>(Type type)
-			where TA : Attribute
-		{
-			return _builder.GetAttributes<TA>(type);
-		}
+        public EntityMappingBuilder<T> HasSchemaName(string schemaName)
+        {
+            return SetTable(a => a.Schema = schemaName);
+        }
 
-		public TA[] GetAttributes<TA>(MemberInfo memberInfo)
-			where TA : Attribute
-		{
-			return _builder.GetAttributes<TA>(memberInfo);
-		}
+        public EntityMappingBuilder<T> HasDatabaseName(string databaseName)
+        {
+            return SetTable(a => a.Database = databaseName);
+        }
 
-		public TA[] GetAttributes<TA>(Func<TA,string> configGetter)
-			where TA : Attribute
-		{
-			var attrs = GetAttributes<TA>();
+        private EntityMappingBuilder<T> SetTable(Action<TableAttribute> setColumn)
+        {
+            return SetAttribute(
+                () =>
+                {
+                    var a = new TableAttribute {Configuration = Configuration, IsColumnAttributeRequired = false};
+                    setColumn(a);
+                    return a;
+                },
+                setColumn,
+                a => a.Configuration,
+                a => new TableAttribute
+                {
+                    Configuration = a.Configuration,
+                    Name = a.Name,
+                    Schema = a.Schema,
+                    Database = a.Database,
+                    IsColumnAttributeRequired = a.IsColumnAttributeRequired
+                });
+        }
 
-			return string.IsNullOrEmpty(Configuration) ?
-				attrs.Where(a => string.IsNullOrEmpty(configGetter(a))).ToArray() :
-				attrs.Where(a => Configuration ==    configGetter(a)). ToArray();
-		}
+        private EntityMappingBuilder<T> SetAttribute<TA>(
+            Func<TA> getNew,
+            Action<TA> modifyExisting,
+            Func<TA, string> configGetter,
+            Func<TA, TA> overrideAttribute)
+            where TA : Attribute
+        {
+            var attrs = GetAttributes(typeof(T), configGetter);
 
-		public TA[] GetAttributes<TA>(Type type, Func<TA,string> configGetter)
-			where TA : Attribute
-		{
-			var attrs = GetAttributes<TA>(type);
+            if (attrs.Length == 0)
+            {
+                var attr = _builder.MappingSchema.GetAttribute(typeof(T), configGetter);
 
-			return string.IsNullOrEmpty(Configuration) ?
-				attrs.Where(a => string.IsNullOrEmpty(configGetter(a))).ToArray() :
-				attrs.Where(a => Configuration ==    configGetter(a)). ToArray();
-		}
+                if (attr != null)
+                {
+                    var na = overrideAttribute(attr);
 
-		public TA[] GetAttributes<TA>(MemberInfo memberInfo, Func<TA,string> configGetter)
-			where TA : Attribute
-		{
-			var attrs = GetAttributes<TA>(memberInfo);
+                    modifyExisting(na);
+                    _builder.HasAttribute(typeof(T), na);
 
-			return string.IsNullOrEmpty(Configuration) ?
-				attrs.Where(a => string.IsNullOrEmpty(configGetter(a))).ToArray() :
-				attrs.Where(a => Configuration ==    configGetter(a)). ToArray();
-		}
+                    return this;
+                }
 
-		#endregion
+                _builder.HasAttribute(typeof(T), getNew());
+            }
+            else
+                modifyExisting(attrs[0]);
 
-		#region HasAttribute
+            return this;
+        }
 
-		public EntityMappingBuilder<T> HasAttribute(Attribute attribute)
-		{
-			_builder.HasAttribute(typeof(T), attribute);
-			return this;
-		}
+        internal EntityMappingBuilder<T> SetAttribute<TA>(
+            Expression<Func<T, object>> func,
+            bool processNewExpression,
+            Func<bool, TA> getNew,
+            Action<bool, TA> modifyExisting,
+            Func<TA, string> configGetter,
+            Func<TA, TA> overrideAttribute = null)
+            where TA : Attribute
+        {
+            var ex = func.Body;
 
-		public EntityMappingBuilder<T> HasAttribute(MemberInfo memberInfo, Attribute attribute)
-		{
-			_builder.HasAttribute(memberInfo, attribute);
-			return this;
-		}
+            if (ex is UnaryExpression)
+                ex = ((UnaryExpression) ex).Operand;
 
-		public EntityMappingBuilder<T> HasAttribute(LambdaExpression func, Attribute attribute)
-		{
-			_builder.HasAttribute(func, attribute);
-			return this;
-		}
+            Action<Expression, bool> setAttr = (e, m) =>
+            {
+                var memberExpression = e as MemberExpression;
+                var memberInfo =
+                    memberExpression?.Member ?? (e as MethodCallExpression)?.Method;
 
-		public EntityMappingBuilder<T> HasAttribute(Expression<Func<T,object>> func, Attribute attribute)
-		{
-			_builder.HasAttribute(func, attribute);
-			return this;
-		}
+                if (e is MemberExpression && memberInfo.ReflectedTypeEx() != typeof(T))
+                    memberInfo = typeof(T).GetPropertyEx(memberInfo.Name);
 
-		#endregion
+                if (memberInfo == null)
+                    throw new ArgumentException(string.Format("'{0}' cant be converted to a class member.", e));
 
-		public EntityMappingBuilder<TE> Entity<TE>(string configuration = null)
-		{
-			return _builder.Entity<TE>(configuration);
-		}
+                var attrs = GetAttributes(memberInfo, configGetter);
 
-		public PropertyMappingBuilder<T> Property(Expression<Func<T,object>> func)
-		{
-			return new PropertyMappingBuilder<T>(this, func);
-		}
+                if (attrs.Length == 0)
+                {
+                    if (overrideAttribute != null)
+                    {
+                        var attr = _builder.MappingSchema.GetAttribute(memberInfo, configGetter);
 
-		public EntityMappingBuilder<T> HasPrimaryKey(Expression<Func<T,object>> func, int order = -1)
-		{
-			var n = 0;
+                        if (attr != null)
+                        {
+                            var na = overrideAttribute(attr);
 
-			return SetAttribute(
-				func,
-				true,
-				m => new PrimaryKeyAttribute(Configuration, order + n++ + (m && order == -1 ? 1 : 0)),
-				(m,a) => a.Order = order + n++ + (m && order == -1 ? 1 : 0),
-				a => a.Configuration);
-		}
+                            modifyExisting(m, na);
+                            _builder.HasAttribute(memberInfo, na);
 
-		public EntityMappingBuilder<T> HasIdentity(Expression<Func<T,object>> func)
-		{
-			return SetAttribute(
-				func,
-				false,
-				 _    => new IdentityAttribute(Configuration),
-				(_,a) => {},
-				a => a.Configuration);
-		}
+                            return;
+                        }
+                    }
 
-		public EntityMappingBuilder<T> HasColumn(Expression<Func<T,object>> func, int order = -1)
-		{
-			return SetAttribute(
-				func,
-				true,
-				 _    => new ColumnAttribute(Configuration),
-				(_,a) => a.IsColumn = true,
-				a => a.Configuration);
-		}
+                    _builder.HasAttribute(memberInfo, getNew(m));
+                }
+                else
+                    modifyExisting(m, attrs[0]);
+            };
 
-		public EntityMappingBuilder<T> Ignore(Expression<Func<T,object>> func, int order = -1)
-		{
-			return SetAttribute(
-				func,
-				true,
-				 _    => new NotColumnAttribute { Configuration = Configuration },
-				(_,a) => a.IsColumn = false,
-				a => a.Configuration);
-		}
+            if (processNewExpression && ex.NodeType == ExpressionType.New)
+            {
+                var nex = (NewExpression) ex;
 
-		public EntityMappingBuilder<T> HasTableName(string tableName)
-		{
-			return SetTable(a => a.Name = tableName);
-		}
+                if (nex.Arguments.Count > 0)
+                {
+                    foreach (var arg in nex.Arguments)
+                        setAttr(arg, true);
+                    return this;
+                }
+            }
 
-		public EntityMappingBuilder<T> HasSchemaName(string schemaName)
-		{
-			return SetTable(a => a.Schema = schemaName);
-		}
+            setAttr(ex, false);
 
-		public EntityMappingBuilder<T> HasDatabaseName(string databaseName)
-		{
-			return SetTable(a => a.Database = databaseName);
-		}
+            return this;
+        }
 
-		EntityMappingBuilder<T> SetTable(Action<TableAttribute> setColumn)
-		{
-			return SetAttribute(
-				() =>
-				{
-					var a = new TableAttribute { Configuration = Configuration, IsColumnAttributeRequired = false };
-					setColumn(a);
-					return a;
-				},
-				setColumn,
-				a => a.Configuration,
-				a => new TableAttribute
-				{
-					Configuration             = a.Configuration,
-					Name                      = a.Name,
-					Schema                    = a.Schema,
-					Database                  = a.Database,
-					IsColumnAttributeRequired = a.IsColumnAttributeRequired,
-				});
-		}
+        #region Init
 
-		EntityMappingBuilder<T> SetAttribute<TA>(
-			Func<TA>        getNew,
-			Action<TA>      modifyExisting,
-			Func<TA,string> configGetter,
-			Func<TA,TA>     overrideAttribute)
-			where TA : Attribute
-		{
-			var attrs = GetAttributes(typeof(T), configGetter);
+        public EntityMappingBuilder([Properties.NotNull] FluentMappingBuilder builder, string configuration)
+        {
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
 
-			if (attrs.Length == 0)
-			{
-				var attr = _builder.MappingSchema.GetAttribute(typeof(T), configGetter);
+            _builder = builder;
+            Configuration = configuration;
+        }
 
-				if (attr != null)
-				{
-					var na = overrideAttribute(attr);
+        private readonly FluentMappingBuilder _builder;
 
-					modifyExisting(na);
-					_builder.HasAttribute(typeof(T), na);
+        public string Configuration { get; }
 
-					return this;
-				}
+        #endregion
 
-				_builder.HasAttribute(typeof(T), getNew());
-			}
-			else
-				modifyExisting(attrs[0]);
+        #region GetAttributes
 
-			return this;
-		}
+        public TA[] GetAttributes<TA>()
+            where TA : Attribute
+        {
+            return _builder.GetAttributes<TA>(typeof(T));
+        }
 
-		internal EntityMappingBuilder<T> SetAttribute<TA>(
-			Expression<Func<T,object>> func,
-			bool                       processNewExpression,
-			Func<bool,TA>              getNew,
-			Action<bool,TA>            modifyExisting,
-			Func<TA,string>            configGetter,
-			Func<TA,TA>                overrideAttribute = null)
-			where TA : Attribute
-		{
-			var ex = func.Body;
+        public TA[] GetAttributes<TA>(Type type)
+            where TA : Attribute
+        {
+            return _builder.GetAttributes<TA>(type);
+        }
 
-			if (ex is UnaryExpression)
-				ex = ((UnaryExpression)ex).Operand;
+        public TA[] GetAttributes<TA>(MemberInfo memberInfo)
+            where TA : Attribute
+        {
+            return _builder.GetAttributes<TA>(memberInfo);
+        }
 
-			Action<Expression,bool> setAttr = (e,m) =>
-			{
-			    var memberExpression = e as MemberExpression;
-			    var memberInfo =
-					memberExpression?.Member ?? (e as MethodCallExpression)?.Method;
+        public TA[] GetAttributes<TA>(Func<TA, string> configGetter)
+            where TA : Attribute
+        {
+            var attrs = GetAttributes<TA>();
 
-				if (e is MemberExpression && memberInfo.ReflectedTypeEx() != typeof(T))
-					memberInfo = typeof(T).GetPropertyEx(memberInfo.Name);
+            return string.IsNullOrEmpty(Configuration)
+                ? attrs.Where(a => string.IsNullOrEmpty(configGetter(a))).ToArray()
+                : attrs.Where(a => Configuration == configGetter(a)).ToArray();
+        }
 
-				if (memberInfo == null)
-					throw new ArgumentException(string.Format("'{0}' cant be converted to a class member.", e));
+        public TA[] GetAttributes<TA>(Type type, Func<TA, string> configGetter)
+            where TA : Attribute
+        {
+            var attrs = GetAttributes<TA>(type);
 
-				var attrs = GetAttributes(memberInfo, configGetter);
+            return string.IsNullOrEmpty(Configuration)
+                ? attrs.Where(a => string.IsNullOrEmpty(configGetter(a))).ToArray()
+                : attrs.Where(a => Configuration == configGetter(a)).ToArray();
+        }
 
-				if (attrs.Length == 0)
-				{
-					if (overrideAttribute != null)
-					{
-						var attr = _builder.MappingSchema.GetAttribute(memberInfo, configGetter);
+        public TA[] GetAttributes<TA>(MemberInfo memberInfo, Func<TA, string> configGetter)
+            where TA : Attribute
+        {
+            var attrs = GetAttributes<TA>(memberInfo);
 
-						if (attr != null)
-						{
-							var na = overrideAttribute(attr);
+            return string.IsNullOrEmpty(Configuration)
+                ? attrs.Where(a => string.IsNullOrEmpty(configGetter(a))).ToArray()
+                : attrs.Where(a => Configuration == configGetter(a)).ToArray();
+        }
 
-							modifyExisting(m, na);
-							_builder.HasAttribute(memberInfo, na);
+        #endregion
 
-							return;
-						}
-					}
+        #region HasAttribute
 
-					_builder.HasAttribute(memberInfo, getNew(m));
-				}
-				else
-					modifyExisting(m, attrs[0]);
-			};
+        public EntityMappingBuilder<T> HasAttribute(Attribute attribute)
+        {
+            _builder.HasAttribute(typeof(T), attribute);
+            return this;
+        }
 
-			if (processNewExpression && ex.NodeType == ExpressionType.New)
-			{
-				var nex = (NewExpression)ex;
+        public EntityMappingBuilder<T> HasAttribute(MemberInfo memberInfo, Attribute attribute)
+        {
+            _builder.HasAttribute(memberInfo, attribute);
+            return this;
+        }
 
-				if (nex.Arguments.Count > 0)
-				{
-					foreach (var arg in nex.Arguments)
-						setAttr(arg, true);
-					return this;
-				}
-			}
+        public EntityMappingBuilder<T> HasAttribute(LambdaExpression func, Attribute attribute)
+        {
+            _builder.HasAttribute(func, attribute);
+            return this;
+        }
 
-			setAttr(ex, false);
+        public EntityMappingBuilder<T> HasAttribute(Expression<Func<T, object>> func, Attribute attribute)
+        {
+            _builder.HasAttribute(func, attribute);
+            return this;
+        }
 
-			return this;
-		}
-	}
+        #endregion
+    }
 }

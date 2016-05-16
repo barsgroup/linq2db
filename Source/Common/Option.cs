@@ -1,23 +1,22 @@
-﻿namespace LinqToDB.Common
+﻿namespace Bars2Db.Common
 {
-	class Option<T>
-	{
-		public readonly T Value;
+    internal class Option<T>
+    {
+        public static Option<T> None = new Option<T>(default(T));
+        public readonly T Value;
 
-		public Option(T value)
-		{
-			Value = value;
-		}
+        public Option(T value)
+        {
+            Value = value;
+        }
 
-		public bool IsNone => this == None;
+        public bool IsNone => this == None;
 
-	    public bool IsSome => this != None;
+        public bool IsSome => this != None;
 
-	    static public Option<T> Some(T value)
-		{
-			return new Option<T>(value);
-		}
-
-		static public Option<T> None = new Option<T>(default(T));
-	}
+        public static Option<T> Some(T value)
+        {
+            return new Option<T>(value);
+        }
+    }
 }

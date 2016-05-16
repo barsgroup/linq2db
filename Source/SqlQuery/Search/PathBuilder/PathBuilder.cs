@@ -1,24 +1,25 @@
-﻿namespace LinqToDB.SqlQuery.Search.PathBuilder
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Bars2Db.Extensions;
+using Bars2Db.SqlQuery.Search.TypeGraph;
+
+namespace Bars2Db.SqlQuery.Search.PathBuilder
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.Search.TypeGraph;
-
     public class PathBuilder<TBaseSearchInterface>
     {
-        private readonly TypeGraph<TBaseSearchInterface> _typeGraph;
+        private readonly Dictionary<Tuple<Type, Type>, PathBuilderSearchCache> _cache =
+            new Dictionary<Tuple<Type, Type>, PathBuilderSearchCache>();
 
-        private readonly Dictionary<Tuple<Type, Type>, PathBuilderSearchCache> _cache = new Dictionary<Tuple<Type, Type>, PathBuilderSearchCache>(); 
+        private readonly TypeGraph<TBaseSearchInterface> _typeGraph;
 
         public PathBuilder(TypeGraph<TBaseSearchInterface> typeGraph)
         {
             _typeGraph = typeGraph;
         }
 
-        public static LinkedList<CompositPropertyVertex> OptimizePaths(HashSet<PropertyInfoVertex> propertyPaths, PathBuilderSearchCache cache)
+        public static LinkedList<CompositPropertyVertex> OptimizePaths(HashSet<PropertyInfoVertex> propertyPaths,
+            PathBuilderSearchCache cache)
         {
             var optimizePaths = new LinkedList<CompositPropertyVertex>();
 
@@ -59,11 +60,12 @@
             return optimized;
         }
 
-        public HashSet<PropertyInfoVertex> GetOrBuildPaths(IEnumerable<Type> sourceTypes, Type searchType, PathBuilderSearchCache cache)
+        public HashSet<PropertyInfoVertex> GetOrBuildPaths(IEnumerable<Type> sourceTypes, Type searchType,
+            PathBuilderSearchCache cache)
         {
             var propertyPathsSet = new HashSet<PropertyInfoVertex>();
             var searchVertex = _typeGraph.GetTypeVertex(searchType);
-            
+
             foreach (var sourceType in sourceTypes)
             {
                 var sourceVertex = _typeGraph.GetTypeVertex(sourceType);
@@ -85,7 +87,7 @@
                 {
                     throw new InvalidOperationException("Не найден ни один путь");
                 }
-                
+
                 propertyPathsSet.UnionWith(properties);
             }
 
@@ -93,7 +95,7 @@
             {
                 throw new InvalidOperationException("Не найден ни один путь");
             }
-            
+
             foreach (var node in propertyPathsSet)
             {
                 node.IsRoot = true;
@@ -138,14 +140,14 @@
             allEdges.AddRange(currentVertex.Children);
             currentVertex.Casts.ForEach(
                 castEdge =>
+                {
+                    if (!_typeGraph.PathExists(castEdge.Value.CastTo, searchVertex))
                     {
-                        if (!_typeGraph.PathExists(castEdge.Value.CastTo, searchVertex))
-                        {
-                            return;
-                        }
+                        return;
+                    }
 
-                        allEdges.AddRange(castEdge.Value.CastTo.Children);
-                    });
+                    allEdges.AddRange(castEdge.Value.CastTo.Children);
+                });
 
             allEdges.ForEach(
                 searchNode =>

@@ -1,26 +1,29 @@
 ﻿using System.Data;
 using System.Linq;
 using System.Text;
+using Bars2Db.Common;
+using Bars2Db.Mapping.DataTypes;
+using Bars2Db.SqlProvider;
+using Bars2Db.SqlQuery;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.DataProvider.PostgreSQL
+namespace Bars2Db.DataProvider.PostgreSQL
 {
-    using Common;
-
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Predicates;
-    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    using SqlQuery;
-    using SqlProvider;
-
-    class PostgreSQLSqlBuilder : BasicSqlBuilder
+    internal class PostgreSQLSqlBuilder : BasicSqlBuilder
     {
-        public PostgreSQLSqlBuilder(ISqlOptimizer sqlOptimizer, SqlProviderFlags sqlProviderFlags, ValueToSqlConverter valueToSqlConverter)
+        public static PostgreSQLIdentifierQuoteMode IdentifierQuoteMode = PostgreSQLIdentifierQuoteMode.Auto;
+
+        public PostgreSQLSqlBuilder(ISqlOptimizer sqlOptimizer, SqlProviderFlags sqlProviderFlags,
+            ValueToSqlConverter valueToSqlConverter)
             : base(sqlOptimizer, sqlProviderFlags, valueToSqlConverter)
         {
         }
+
+        protected override string LimitFormat => "LIMIT {0}";
+
+        protected override string OffsetFormat => "OFFSET {0} ";
 
         public override int CommandCount(ISelectQuery selectQuery)
         {
@@ -32,8 +35,9 @@ namespace LinqToDB.DataProvider.PostgreSQL
             var into = SelectQuery.Insert.Into;
             var attr = GetSequenceNameAttribute(into, false);
             var name = attr != null
-                           ? attr.SequenceName
-                           : Convert(string.Format("{0}_{1}_seq", @into.PhysicalName, @into.GetIdentityField().PhysicalName), ConvertType.NameToQueryField);
+                ? attr.SequenceName
+                : Convert(string.Format("{0}_{1}_seq", into.PhysicalName, into.GetIdentityField().PhysicalName),
+                    ConvertType.NameToQueryField);
 
             name = Convert(name, ConvertType.NameToQueryTable);
 
@@ -51,10 +55,6 @@ namespace LinqToDB.DataProvider.PostgreSQL
         {
             return new PostgreSQLSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
         }
-
-        protected override string LimitFormat => "LIMIT {0}";
-
-        protected override string OffsetFormat => "OFFSET {0} ";
 
         protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
         {
@@ -91,6 +91,9 @@ namespace LinqToDB.DataProvider.PostgreSQL
                         StringBuilder.Append('(').Append(type.Length).Append(')');
                     }
                     break;
+                case DataType.Hierarchical:
+                    StringBuilder.Append("ltree");
+                    break;
                 case DataType.Undefined:
                     if (type.Type == typeof(string))
                     {
@@ -110,8 +113,6 @@ namespace LinqToDB.DataProvider.PostgreSQL
                 base.BuildFromClause();
             }
         }
-
-        public static PostgreSQLIdentifierQuoteMode IdentifierQuoteMode = PostgreSQLIdentifierQuoteMode.Auto;
 
         public override object Convert(object value, ConvertType convertType)
         {
@@ -136,7 +137,7 @@ namespace LinqToDB.DataProvider.PostgreSQL
 #if NETFX_CORE
                                 .ToCharArray()
 #endif
-                                                                                              .Any(c => char.IsUpper(c) || char.IsWhiteSpace(c)))
+                            .Any(c => char.IsUpper(c) || char.IsWhiteSpace(c)))
                         {
                             return '"' + name + '"';
                         }
@@ -155,8 +156,8 @@ namespace LinqToDB.DataProvider.PostgreSQL
                     {
                         var str = value.ToString();
                         return str.Length > 0 && str[0] == ':'
-                                   ? str.Substring(1)
-                                   : str;
+                            ? str.Substring(1)
+                            : str;
                     }
 
                     break;
@@ -186,6 +187,16 @@ namespace LinqToDB.DataProvider.PostgreSQL
             return base.GetIdentityExpression(table);
         }
 
+        protected override void BuildParameter(ISqlParameter parm)
+        {
+            base.BuildParameter(parm);
+            if (parm.DataType == DataType.Hierarchical)
+            {
+                StringBuilder.Append(" ::");
+                BuildDataType(new SqlDataType(parm.DataType, parm.SystemType, parm.DbSize, parm.DbSize, parm.DbSize));
+            }
+        }
+
         protected override void BuildCreateTableFieldType(ISqlField field)
         {
             if (field.IsIdentity)
@@ -206,151 +217,13 @@ namespace LinqToDB.DataProvider.PostgreSQL
             base.BuildCreateTableFieldType(field);
         }
 
-        protected override void BuildLikePredicate(ILike predicate)
+        protected override void BuildColumnExpression(IColumn col, ref bool addAlias)
         {
-            var expr1 = predicate.Expr1;
-            var sqlField = expr1 as ISqlField;
-            if (sqlField == null)
+            base.BuildColumnExpression(col, ref addAlias);
+            if (col.SystemType == typeof(Hierarchical))
             {
-                var column = expr1 as IColumn;
-                if (column != null)
-                {
-                    sqlField = column.Expression as ISqlField;
-                }
+                StringBuilder.Append("::TEXT");
             }
-
-            if (sqlField != null && sqlField.ColumnDescriptor.IsHierarchical)
-            {
-                var expr2 = predicate.Expr2;
-
-                var sqlValue = expr2 as ISqlValue;
-                if (sqlValue != null)
-                {
-                    var str = (string)sqlValue.Value;
-                    var vStart = str[0] == '%'
-                                     ? "%"
-                                     : string.Empty;
-                    var vEnd = str[str.Length - 1] == '%'
-                                   ? "%"
-                                   : string.Empty;
-                    str = str.Substring(vStart.Length, str.Length - vStart.Length - vEnd.Length);
-
-                    var vNewPredicate = new HierarhicalLike(expr1, new SqlValue(str), vStart, vEnd);
-
-                    base.BuildLikePredicate(vNewPredicate);
-                    return;
-                }
-
-                var sqlParameter = expr2 as ISqlParameter;
-                if (sqlParameter != null)
-                {
-                    var pStart = sqlParameter.LikeStart;
-                    var pEnd = sqlParameter.LikeEnd;
-                    sqlParameter.LikeStart = string.Empty;
-                    sqlParameter.LikeEnd = string.Empty;
-
-                    var pNewPredicate = new HierarhicalLike(expr1, sqlParameter, pStart, pEnd);
-                    base.BuildLikePredicate(pNewPredicate);
-                    return;
-                }
-
-                IQueryExpression value = null;
-                var hasLikeStart = false;
-                var hasLikeEnd = false;
-                var fun = predicate.Expr2 as ISqlFunction;
-                if (fun != null)
-                {
-                    value = GetSqlExpressionFromFunction(fun);
-                }
-                else
-                {
-                    var sqlBinary = predicate.Expr2 as ISqlBinaryExpression;
-                    if (sqlBinary != null)
-                    {
-                        var function = GetFunctionFromBinary(sqlBinary, out hasLikeStart, out hasLikeEnd);
-                        if (function != null)
-                        {
-                            value = GetSqlExpressionFromFunction(function);
-                        }
-                    }
-                }
-
-                if (value != null)
-                {
-                    var ePredicate = new HierarhicalLike(expr1, value, hasLikeStart
-                                                                           ? "%"
-                                                                           : string.Empty, hasLikeEnd
-                                                                                               ? "%"
-                                                                                               : string.Empty);
-                    base.BuildLikePredicate(ePredicate);
-                    return;
-                }
-            }
-
-            base.BuildLikePredicate(predicate);
-        }
-
-        private ISqlFunction GetFunctionFromBinary(ISqlBinaryExpression sqlBinary, out bool hasLikeStart, out bool hasLikeEnd)
-        {
-            hasLikeStart = false;
-            hasLikeEnd = false;
-            ISqlFunction function = null;
-            var list = new[] { sqlBinary.Expr1, sqlBinary.Expr2 };
-            foreach (var expression in list)
-            {
-                var fun = expression as ISqlFunction;
-                if (fun != null)
-                {
-                    function = fun;
-                }
-
-                var binary = expression as ISqlBinaryExpression;
-                if (binary != null)
-                {
-                    function = GetFunctionFromBinary(binary, out hasLikeStart, out hasLikeEnd);
-                }
-
-                var sqlValue = expression as ISqlValue;
-                if (sqlValue != null)
-                {
-                    if (sqlBinary.Expr1 == expression)
-                    {
-                        hasLikeStart = true;
-                    }
-                    else
-                    {
-                        hasLikeEnd = true;
-                    }
-                }
-            }
-
-            return function;
-        }
-
-        private IQueryExpression GetSqlExpressionFromFunction(ISqlFunction sqlFunction)
-        {
-            foreach (var parameter in sqlFunction.Parameters)
-            {
-                var fun = parameter as ISqlFunction;
-                if (fun != null)
-                {
-                    return GetSqlExpressionFromFunction(fun);
-                }
-
-                var field = parameter as ISqlField;
-                if (field != null)
-                {
-                    return field;
-                }
-
-                var column = parameter as IColumn;
-                if (column != null)
-                {
-                    return column;
-                }
-            }
-
-            return null;
         }
 
 #if !SILVERLIGHT

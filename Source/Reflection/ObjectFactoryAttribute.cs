@@ -1,23 +1,21 @@
 using System;
+using Bars2Db.Common;
 
-namespace LinqToDB.Reflection
+namespace Bars2Db.Reflection
 {
-	using Common;
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
+    public class ObjectFactoryAttribute : Attribute
+    {
+        public ObjectFactoryAttribute(Type type)
+        {
+            if (type == null) throw new ArgumentNullException(nameof(type));
 
-	[AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface)]
-	public class ObjectFactoryAttribute : Attribute
-	{
-		public ObjectFactoryAttribute(Type type)
-		{
-			if (type == null) throw new ArgumentNullException(nameof(type));
+            ObjectFactory = Activator.CreateInstance(type) as IObjectFactory;
 
-			_objectFactory = Activator.CreateInstance(type) as IObjectFactory;
+            if (ObjectFactory == null)
+                throw new ArgumentException("Type '{0}' does not implement IObjectFactory interface.".Args(type));
+        }
 
-			if (_objectFactory == null)
-				throw new ArgumentException("Type '{0}' does not implement IObjectFactory interface.".Args(type));
-		}
-
-		private readonly IObjectFactory _objectFactory;
-		public           IObjectFactory  ObjectFactory => _objectFactory;
-	}
+        public IObjectFactory ObjectFactory { get; }
+    }
 }

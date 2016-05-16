@@ -1,4 +1,4 @@
-﻿namespace LinqToDB.DataProvider.PostgreSQL
+﻿namespace Bars2Db.DataProvider.PostgreSQL
 {
     public enum PostgreSQLIdentifierQuoteMode
     {

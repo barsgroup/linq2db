@@ -1,25 +1,23 @@
 ﻿using System;
 using System.Reflection;
+using Bars2Db.Common;
+using JNotNull = Bars2Db.Properties.NotNullAttribute;
 
-using JNotNull = LinqToDB.Properties.NotNullAttribute;
-
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
-    using Common;
-
     public class AssociationDescriptor
     {
         public AssociationDescriptor(
-            [JNotNull] Type       type,
+            [JNotNull] Type type,
             [JNotNull] MemberInfo memberInfo,
-            [JNotNull] string[]   thisKey,
-            [JNotNull] string[]   otherKey,
-                       string     storage,
-                       bool       canBeNull)
+            [JNotNull] string[] thisKey,
+            [JNotNull] string[] otherKey,
+            string storage,
+            bool canBeNull)
         {
             if (memberInfo == null) throw new ArgumentNullException(nameof(memberInfo));
-            if (thisKey    == null) throw new ArgumentNullException(nameof(thisKey));
-            if (otherKey   == null) throw new ArgumentNullException(nameof(otherKey));
+            if (thisKey == null) throw new ArgumentNullException(nameof(thisKey));
+            if (otherKey == null) throw new ArgumentNullException(nameof(otherKey));
 
             if (thisKey.Length == 0)
                 throw new ArgumentOutOfRangeException(
@@ -33,17 +31,17 @@ namespace LinqToDB.Mapping
                         type.Name, memberInfo.Name));
 
             MemberInfo = memberInfo;
-            ThisKey    = thisKey;
-            OtherKey   = otherKey;
-            Storage    = storage;
-            CanBeNull  = canBeNull;
+            ThisKey = thisKey;
+            OtherKey = otherKey;
+            Storage = storage;
+            CanBeNull = canBeNull;
         }
 
         public MemberInfo MemberInfo { get; set; }
-        public string[]   ThisKey    { get; set; }
-        public string[]   OtherKey   { get; set; }
-        public string     Storage    { get; set; }
-        public bool       CanBeNull  { get; set; }
+        public string[] ThisKey { get; set; }
+        public string[] OtherKey { get; set; }
+        public string Storage { get; set; }
+        public bool CanBeNull { get; set; }
 
         public static string[] ParseKeys(string keys)
         {

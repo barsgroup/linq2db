@@ -1,12 +1,12 @@
-﻿namespace LinqToDB.SqlQuery.Search.TypeGraph
-{
-    using System;
+﻿using System;
 
+namespace Bars2Db.SqlQuery.Search.TypeGraph
+{
     public struct Connection : IEquatable<Connection>
     {
         public Connection(ConnectionType startType, ConnectionType endType)
         {
-            if ((startType == ConnectionType.None && endType != ConnectionType.None) || 
+            if ((startType == ConnectionType.None && endType != ConnectionType.None) ||
                 (startType != ConnectionType.None && endType == ConnectionType.None))
             {
                 throw new ArgumentException("start type and end type mismatch");
@@ -24,7 +24,7 @@
         {
             return StartType == ConnectionType.None && EndType == ConnectionType.None;
         }
-        
+
         public Connection Union(ConnectionType startType, ConnectionType endType)
         {
             return new Connection(StartType | startType, EndType | endType);
@@ -52,14 +52,14 @@
                 return false;
             }
 
-            return obj is Connection && Equals((Connection)obj);
+            return obj is Connection && Equals((Connection) obj);
         }
 
         public override int GetHashCode()
         {
             unchecked
             {
-                return ((int)StartType * 397) ^ (int)EndType;
+                return ((int) StartType*397) ^ (int) EndType;
             }
         }
 

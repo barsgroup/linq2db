@@ -1,17 +1,16 @@
-namespace LinqToDB.SqlQuery.QueryElements.Predicates
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.Properties;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.Predicates.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.Predicates
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.Properties;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.Predicates.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class Expr : Predicate,
-                        IExpr
+        IExpr
     {
         public Expr([NotNull] IQueryExpression exp1, int precedence)
             : base(precedence)
@@ -31,7 +30,14 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
 
         public IQueryExpression Expr1 { get; set; }
 
-        protected override void Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
+        public override bool CanBeNull()
+        {
+            return Expr1.CanBeNull();
+        }
+
+        public override EQueryElementType ElementType => EQueryElementType.ExprPredicate;
+
+        protected override void Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
         {
             Expr1 = Expr1.Walk(skipColumns, func);
 
@@ -39,12 +45,8 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
                 throw new InvalidOperationException();
         }
 
-        public override bool CanBeNull()
-        {
-            return Expr1.CanBeNull();
-        }
-
-        protected override ICloneableElement Clone(Dictionary<ICloneableElement,ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        protected override ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
         {
             if (!doClone(this))
                 return this;
@@ -52,12 +54,10 @@ namespace LinqToDB.SqlQuery.QueryElements.Predicates
             ICloneableElement clone;
 
             if (!objectTree.TryGetValue(this, out clone))
-                objectTree.Add(this, clone = new Expr((IQueryExpression)Expr1.Clone(objectTree, doClone), Precedence));
+                objectTree.Add(this, clone = new Expr((IQueryExpression) Expr1.Clone(objectTree, doClone), Precedence));
 
             return clone;
         }
-
-        public override EQueryElementType ElementType => EQueryElementType.ExprPredicate;
 
         protected override void ToStringInternal(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {

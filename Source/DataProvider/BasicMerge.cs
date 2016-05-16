@@ -3,40 +3,32 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using Bars2Db.Common;
+using Bars2Db.Data;
+using Bars2Db.Extensions;
+using Bars2Db.Linq;
+using Bars2Db.Mapping;
+using Bars2Db.SqlProvider;
+using Bars2Db.SqlQuery;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.DataProvider
+namespace Bars2Db.DataProvider
 {
-    using Common;
-    using Data;
-    using Linq;
-
-    using LinqToDB.Extensions;
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    using Mapping;
-    using SqlQuery;
-    using SqlProvider;
-
-    class BasicMerge
+    internal class BasicMerge
     {
-        protected class ColumnInfo
-        {
-            public string           Name;
-            public ColumnDescriptor Column;
-        }
-
         protected string ByTargetText;
+        protected List<ColumnInfo> Columns;
+        protected List<DataParameter> Parameters = new List<DataParameter>();
 
-        protected StringBuilder       StringBuilder = new StringBuilder();
-        protected List<DataParameter> Parameters    = new List<DataParameter>();
-        protected List<ColumnInfo>    Columns;
+        protected StringBuilder StringBuilder = new StringBuilder();
 
         protected virtual bool IsIdentitySupported => false;
 
-        public virtual int Merge<T>(DataConnection dataConnection, Expression<Func<T,bool>> predicate, bool delete, IEnumerable<T> source,
+        public virtual int Merge<T>(DataConnection dataConnection, Expression<Func<T, bool>> predicate, bool delete,
+            IEnumerable<T> source,
             string tableName, string databaseName, string schemaName)
             where T : class
         {
@@ -47,26 +39,26 @@ namespace LinqToDB.DataProvider
         }
 
         protected virtual bool BuildCommand<T>(
-            DataConnection dataConnection, Expression<Func<T,bool>> deletePredicate, bool delete, IEnumerable<T> source,
+            DataConnection dataConnection, Expression<Func<T, bool>> deletePredicate, bool delete, IEnumerable<T> source,
             string tableName, string databaseName, string schemaName)
             where T : class
         {
-            var table      = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
+            var table = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
             var sqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
 
             Columns = table.Columns
                 .Select(c => new ColumnInfo
                 {
                     Column = c,
-                    Name   = (string)sqlBuilder.Convert(c.ColumnName, ConvertType.NameToQueryField)
+                    Name = (string) sqlBuilder.Convert(c.ColumnName, ConvertType.NameToQueryField)
                 })
                 .ToList();
 
             StringBuilder.Append("MERGE INTO ");
             sqlBuilder.BuildTableName(StringBuilder,
-                (string)sqlBuilder.Convert(databaseName ?? table.DatabaseName, ConvertType.NameToDatabase),
-                (string)sqlBuilder.Convert(schemaName   ?? table.SchemaName,   ConvertType.NameToOwner),
-                (string)sqlBuilder.Convert(tableName    ?? table.TableName,    ConvertType.NameToQueryTable));
+                (string) sqlBuilder.Convert(databaseName ?? table.DatabaseName, ConvertType.NameToDatabase),
+                (string) sqlBuilder.Convert(schemaName ?? table.SchemaName, ConvertType.NameToOwner),
+                (string) sqlBuilder.Convert(tableName ?? table.TableName, ConvertType.NameToQueryTable));
 
             StringBuilder
                 .AppendLine(" Target")
@@ -95,7 +87,11 @@ namespace LinqToDB.DataProvider
                 .AppendLine(")")
                 ;
 
-            var updateColumns = Columns.Where(c => !c.Column.IsPrimaryKey && (IsIdentitySupported && c.Column.IsIdentity || !c.Column.SkipOnUpdate)).ToList();
+            var updateColumns =
+                Columns.Where(
+                    c =>
+                        !c.Column.IsPrimaryKey && (IsIdentitySupported && c.Column.IsIdentity || !c.Column.SkipOnUpdate))
+                    .ToList();
 
             if (updateColumns.Count > 0)
             {
@@ -125,7 +121,8 @@ namespace LinqToDB.DataProvider
                 StringBuilder.Length -= 1 + Environment.NewLine.Length;
             }
 
-            var insertColumns = Columns.Where(c => IsIdentitySupported && c.Column.IsIdentity || !c.Column.SkipOnInsert).ToList();
+            var insertColumns =
+                Columns.Where(c => IsIdentitySupported && c.Column.IsIdentity || !c.Column.SkipOnInsert).ToList();
 
             StringBuilder
                 .AppendLine()
@@ -169,36 +166,35 @@ namespace LinqToDB.DataProvider
                     {
                         dataConnection.InlineParameters = true;
 
-                        var q   = dataConnection.GetTable<T>().Where(deletePredicate);
+                        var q = dataConnection.GetTable<T>().Where(deletePredicate);
                         var ctx = q.GetContext();
                         var sql = ctx.Select;
 
-                        var tableSet  = new HashSet<ISqlTable>();
-                        var tables    = new List<ISqlTable>();
+                        var tableSet = new HashSet<ISqlTable>();
+                        var tables = new List<ISqlTable>();
 
-                        var fromTable = (ISqlTable)sql.From.Tables.First.Value.Source;
+                        var fromTable = (ISqlTable) sql.From.Tables.First.Value.Source;
 
                         foreach (var tableSource in QueryVisitor.FindOnce<ITableSource>(sql.From))
                         {
-                            tableSet.Add((ISqlTable)tableSource.Source);
-                            tables.Add((ISqlTable)tableSource.Source);
+                            tableSet.Add((ISqlTable) tableSource.Source);
+                            tables.Add((ISqlTable) tableSource.Source);
                         }
 
                         var whereClause = new QueryVisitor().Convert(sql.Where, e =>
                         {
                             if (e.ElementType == EQueryElementType.SqlQuery)
                             {
-                                
                             }
 
                             if (e.ElementType == EQueryElementType.SqlField)
                             {
-                                var fld = (ISqlField)e;
-                                var tbl = (ISqlTable)fld.Table;
+                                var fld = (ISqlField) e;
+                                var tbl = (ISqlTable) fld.Table;
 
                                 if (tbl != fromTable && tableSet.Contains(tbl))
                                 {
-                                    var tempCopy   = sql.Clone();
+                                    var tempCopy = sql.Clone();
                                     var tempTables = new List<ITableSource>();
 
                                     tempTables.AddRange(QueryVisitor.FindOnce<ITableSource>(tempCopy.From));
@@ -206,7 +202,7 @@ namespace LinqToDB.DataProvider
                                     var tt = tempTables[tables.IndexOf(tbl)];
 
                                     tempCopy.Select.Columns.Clear();
-                                    tempCopy.Select.Add(((SqlTable)tt.Source).Fields[fld.Name]);
+                                    tempCopy.Select.Add(((SqlTable) tt.Source).Fields[fld.Name]);
 
                                     tempCopy.Where.Search.Conditions.Clear();
 
@@ -231,11 +227,12 @@ namespace LinqToDB.DataProvider
 
                         ctx.SetParameters();
 
-                        var pq = (DataConnection.PreparedQuery)((IDataContext)dataConnection).SetQuery(new QueryContext
-                        {
-                            SelectQuery   = sql,
-                            SqlParameters = sql.Parameters.ToArray(),
-                        });
+                        var pq =
+                            (DataConnection.PreparedQuery) ((IDataContext) dataConnection).SetQuery(new QueryContext
+                            {
+                                SelectQuery = sql,
+                                SqlParameters = sql.Parameters.ToArray()
+                            });
 
                         var cmd = pq.Commands[0];
 
@@ -257,24 +254,11 @@ namespace LinqToDB.DataProvider
             return true;
         }
 
-        class QueryContext : IQueryContext
-        {
-            public ISelectQuery SelectQuery { get; set; }
-            public object         Context     { get; set; }
-            public ISqlParameter[] SqlParameters;
-            public List<string>   QueryHints  { get; set; }
-
-            public ISqlParameter[] GetParameters()
-            {
-                return SqlParameters;
-            }
-        }
-
         protected virtual bool BuildUsing<T>(DataConnection dataConnection, IEnumerable<T> source)
         {
-            var table          = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
-            var sqlBuilder     = dataConnection.DataProvider.CreateSqlBuilder();
-            var pname          = sqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
+            var table = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
+            var sqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
+            var pname = sqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
             var valueConverter = dataConnection.MappingSchema.ValueToSqlConverter;
 
             StringBuilder
@@ -283,9 +267,9 @@ namespace LinqToDB.DataProvider
                 .AppendLine("\tVALUES")
                 ;
 
-            var pidx  = 0;
+            var pidx = 0;
 
-            var hasData     = false;
+            var hasData = false;
             var columnTypes = table.Columns
                 .Select(c => new SqlDataType(c.DataType, c.MemberType, c.Length, c.Precision, c.Scale))
                 .ToArray();
@@ -299,7 +283,7 @@ namespace LinqToDB.DataProvider
                 for (var i = 0; i < table.Columns.Count; i++)
                 {
                     var column = table.Columns[i];
-                    var value  = column.GetValue(item);
+                    var value = column.GetValue(item);
 
                     if (!valueConverter.TryConvert(StringBuilder, columnTypes[i], value))
                     {
@@ -320,7 +304,9 @@ namespace LinqToDB.DataProvider
             if (hasData)
             {
                 var idx = StringBuilder.Length;
-                while (StringBuilder[--idx] != ',') {}
+                while (StringBuilder[--idx] != ',')
+                {
+                }
                 StringBuilder.Remove(idx, 1);
 
                 StringBuilder
@@ -343,11 +329,12 @@ namespace LinqToDB.DataProvider
             return hasData;
         }
 
-        protected bool BuildUsing2<T>(DataConnection dataConnection, IEnumerable<T> source, string top, string fromDummyTable)
+        protected bool BuildUsing2<T>(DataConnection dataConnection, IEnumerable<T> source, string top,
+            string fromDummyTable)
         {
-            var table          = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
-            var sqlBuilder     = dataConnection.DataProvider.CreateSqlBuilder();
-            var pname          = sqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
+            var table = dataConnection.MappingSchema.GetEntityDescriptor(typeof(T));
+            var sqlBuilder = dataConnection.DataProvider.CreateSqlBuilder();
+            var pname = sqlBuilder.Convert("p", ConvertType.NameToQueryParameter).ToString();
             var valueConverter = dataConnection.MappingSchema.ValueToSqlConverter;
 
             StringBuilder
@@ -355,9 +342,9 @@ namespace LinqToDB.DataProvider
                 .AppendLine("(")
                 ;
 
-            var pidx  = 0;
+            var pidx = 0;
 
-            var hasData     = false;
+            var hasData = false;
             var columnTypes = table.Columns
                 .Select(c => new SqlDataType(c.DataType, c.MemberType, c.Length, c.Precision, c.Scale))
                 .ToArray();
@@ -375,7 +362,7 @@ namespace LinqToDB.DataProvider
                 for (var i = 0; i < Columns.Count; i++)
                 {
                     var column = Columns[i];
-                    var value  = column.Column.GetValue(item);
+                    var value = column.Column.GetValue(item);
 
                     if (!valueConverter.TryConvert(StringBuilder, columnTypes[i], value))
                     {
@@ -416,6 +403,25 @@ namespace LinqToDB.DataProvider
             var cmd = StringBuilder.AppendLine().ToString();
 
             return dataConnection.Execute(cmd, Parameters.ToArray());
+        }
+
+        protected class ColumnInfo
+        {
+            public ColumnDescriptor Column;
+            public string Name;
+        }
+
+        private class QueryContext : IQueryContext
+        {
+            public ISqlParameter[] SqlParameters;
+            public ISelectQuery SelectQuery { get; set; }
+            public object Context { get; set; }
+            public List<string> QueryHints { get; set; }
+
+            public ISqlParameter[] GetParameters()
+            {
+                return SqlParameters;
+            }
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿namespace LinqToDB.Expressions
-{
-    using System.Collections.Generic;
-    using System.Linq.Expressions;
+﻿using System.Collections.Generic;
+using System.Linq.Expressions;
 
+namespace Bars2Db.Expressions
+{
     public class ExpressionEqualityComparer : IEqualityComparer<Expression>
     {
         public bool Equals(Expression x, Expression y)
@@ -10,9 +10,101 @@
             return EqualsRecursive(x, y);
         }
 
+        public int GetHashCode(Expression x)
+        {
+            var lambdaExpressionX = x as LambdaExpression;
+
+            if (lambdaExpressionX != null)
+            {
+                return XorHashCodes(lambdaExpressionX.Parameters) ^
+                       GetHashCode(lambdaExpressionX.Body);
+            }
+
+            var binaryExpressionX = x as BinaryExpression;
+
+            if (binaryExpressionX != null)
+            {
+                var methodHashCode = binaryExpressionX.Method != null
+                    ? binaryExpressionX.Method.GetHashCode()
+                    : binaryExpressionX.NodeType.GetHashCode();
+                return methodHashCode ^
+                       GetHashCode(binaryExpressionX.Left) ^
+                       GetHashCode(binaryExpressionX.Right);
+            }
+
+            var unaryExpressionX = x as UnaryExpression;
+
+            if (unaryExpressionX != null)
+            {
+                var methodHashCode = unaryExpressionX.Method != null
+                    ? unaryExpressionX.Method.GetHashCode()
+                    : unaryExpressionX.NodeType.GetHashCode();
+                return methodHashCode ^
+                       GetHashCode(unaryExpressionX.Operand);
+            }
+
+            var methodCallExpressionX = x as MethodCallExpression;
+
+            if (methodCallExpressionX != null)
+            {
+                return XorHashCodes(methodCallExpressionX.Arguments) ^
+                       methodCallExpressionX.Method.GetHashCode() ^
+                       GetHashCode(methodCallExpressionX.Object);
+            }
+
+            var conditionalExpressionX = x as ConditionalExpression;
+
+            if (conditionalExpressionX != null)
+            {
+                return
+                    GetHashCode(conditionalExpressionX.Test) ^
+                    GetHashCode(conditionalExpressionX.IfTrue) ^
+                    GetHashCode(conditionalExpressionX.IfFalse);
+            }
+
+            var invocationExpressionX = x as InvocationExpression;
+
+            if (invocationExpressionX != null)
+            {
+                return
+                    XorHashCodes(invocationExpressionX.Arguments) ^
+                    GetHashCode(invocationExpressionX.Expression);
+            }
+
+            var memberExpressionX = x as MemberExpression;
+
+            if (memberExpressionX != null)
+            {
+                return
+                    memberExpressionX.Member.GetHashCode() ^
+                    GetHashCode(memberExpressionX.Expression);
+            }
+
+            var constantExpressionX = x as ConstantExpression;
+
+            if (constantExpressionX != null)
+            {
+                var valueHash = constantExpressionX.Value != null
+                    ? constantExpressionX.Value.GetHashCode()
+                    : constantExpressionX.GetHashCode();
+                return valueHash;
+            }
+
+            var newExpressionX = x as NewExpression;
+
+            if (newExpressionX != null)
+            {
+                return
+                    XorHashCodes(newExpressionX.Arguments) ^
+                    newExpressionX.Constructor.GetHashCode();
+            }
+
+            return 0;
+        }
+
         private bool EqualsRecursive(Expression x, Expression y)
         {
-            if (object.ReferenceEquals(x, y))
+            if (ReferenceEquals(x, y))
                 return true;
 
             if (x.GetType() != y.GetType() ||
@@ -22,95 +114,95 @@
                 return false;
             }
 
-            LambdaExpression lambdaExpressionX = x as LambdaExpression;
-            LambdaExpression lambdaExpressionY = y as LambdaExpression;
+            var lambdaExpressionX = x as LambdaExpression;
+            var lambdaExpressionY = y as LambdaExpression;
 
             if (lambdaExpressionX != null && lambdaExpressionY != null)
             {
                 return AreAllArgumentsEqual(lambdaExpressionX.Parameters, lambdaExpressionY.Parameters) &&
-                    Equals(lambdaExpressionX.Body, lambdaExpressionY.Body);
+                       Equals(lambdaExpressionX.Body, lambdaExpressionY.Body);
             }
 
-            BinaryExpression binaryExpressionX = x as BinaryExpression;
-            BinaryExpression binaryExpressionY = y as BinaryExpression;
+            var binaryExpressionX = x as BinaryExpression;
+            var binaryExpressionY = y as BinaryExpression;
 
             if (binaryExpressionX != null && binaryExpressionY != null)
             {
                 return binaryExpressionX.Method == binaryExpressionY.Method &&
-                    Equals(binaryExpressionX.Left, binaryExpressionY.Left) &&
-                    Equals(binaryExpressionX.Right, binaryExpressionY.Right);
+                       Equals(binaryExpressionX.Left, binaryExpressionY.Left) &&
+                       Equals(binaryExpressionX.Right, binaryExpressionY.Right);
             }
 
-            UnaryExpression unaryExpressionX = x as UnaryExpression;
-            UnaryExpression unaryExpressionY = y as UnaryExpression;
+            var unaryExpressionX = x as UnaryExpression;
+            var unaryExpressionY = y as UnaryExpression;
 
             if (unaryExpressionX != null && unaryExpressionY != null)
             {
                 return unaryExpressionX.Method == unaryExpressionY.Method &&
-                    Equals(unaryExpressionX.Operand, unaryExpressionY.Operand);
+                       Equals(unaryExpressionX.Operand, unaryExpressionY.Operand);
             }
 
-            MethodCallExpression methodCallExpressionX = x as MethodCallExpression;
-            MethodCallExpression methodCallExpressionY = y as MethodCallExpression;
+            var methodCallExpressionX = x as MethodCallExpression;
+            var methodCallExpressionY = y as MethodCallExpression;
 
             if (methodCallExpressionX != null && methodCallExpressionY != null)
             {
                 return AreAllArgumentsEqual(methodCallExpressionX.Arguments, methodCallExpressionY.Arguments) &&
-                    methodCallExpressionX.Method == methodCallExpressionY.Method &&
-                    Equals(methodCallExpressionX.Object, methodCallExpressionY.Object);
+                       methodCallExpressionX.Method == methodCallExpressionY.Method &&
+                       Equals(methodCallExpressionX.Object, methodCallExpressionY.Object);
             }
 
-            ConditionalExpression conditionalExpressionX = x as ConditionalExpression;
-            ConditionalExpression conditionalExpressionY = y as ConditionalExpression;
+            var conditionalExpressionX = x as ConditionalExpression;
+            var conditionalExpressionY = y as ConditionalExpression;
 
             if (conditionalExpressionX != null && conditionalExpressionY != null)
             {
                 return Equals(conditionalExpressionX.Test, conditionalExpressionY.Test) &&
-                    Equals(conditionalExpressionX.IfTrue, conditionalExpressionY.IfTrue) &&
-                    Equals(conditionalExpressionX.IfFalse, conditionalExpressionY.IfFalse);
+                       Equals(conditionalExpressionX.IfTrue, conditionalExpressionY.IfTrue) &&
+                       Equals(conditionalExpressionX.IfFalse, conditionalExpressionY.IfFalse);
             }
 
-            InvocationExpression invocationExpressionX = x as InvocationExpression;
-            InvocationExpression invocationExpressionY = y as InvocationExpression;
+            var invocationExpressionX = x as InvocationExpression;
+            var invocationExpressionY = y as InvocationExpression;
 
             if (invocationExpressionX != null && invocationExpressionY != null)
             {
                 return AreAllArgumentsEqual(invocationExpressionX.Arguments, invocationExpressionY.Arguments) &&
-                    Equals(invocationExpressionX.Expression, invocationExpressionY.Expression);
+                       Equals(invocationExpressionX.Expression, invocationExpressionY.Expression);
             }
 
-            MemberExpression memberExpressionX = x as MemberExpression;
-            MemberExpression memberExpressionY = y as MemberExpression;
+            var memberExpressionX = x as MemberExpression;
+            var memberExpressionY = y as MemberExpression;
 
             if (memberExpressionX != null && memberExpressionY != null)
             {
                 return memberExpressionX.Member == memberExpressionY.Member &&
-                    Equals(memberExpressionX.Expression, memberExpressionY.Expression);
+                       Equals(memberExpressionX.Expression, memberExpressionY.Expression);
             }
 
-            ConstantExpression constantExpressionX = x as ConstantExpression;
-            ConstantExpression constantExpressionY = y as ConstantExpression;
+            var constantExpressionX = x as ConstantExpression;
+            var constantExpressionY = y as ConstantExpression;
 
             if (constantExpressionX != null && constantExpressionY != null)
             {
                 return constantExpressionX.Value.Equals(constantExpressionY.Value);
             }
 
-            ParameterExpression parameterExpressionX = x as ParameterExpression;
-            ParameterExpression parameterExpressionY = y as ParameterExpression;
+            var parameterExpressionX = x as ParameterExpression;
+            var parameterExpressionY = y as ParameterExpression;
 
             if (parameterExpressionX != null && parameterExpressionY != null)
             {
                 return parameterExpressionX.Name == parameterExpressionY.Name;
             }
 
-            NewExpression newExpressionX = x as NewExpression;
-            NewExpression newExpressionY = y as NewExpression;
+            var newExpressionX = x as NewExpression;
+            var newExpressionY = y as NewExpression;
 
             if (newExpressionX != null && newExpressionY != null)
             {
                 return AreAllArgumentsEqual(newExpressionX.Arguments, newExpressionY.Arguments) &&
-                    newExpressionX.Constructor == newExpressionY.Constructor;
+                       newExpressionX.Constructor == newExpressionY.Constructor;
             }
 
             //MemberInitExpression memberInitExpressionX = x as MemberInitExpression;
@@ -127,16 +219,17 @@
 
             return false;
         }
+
         private bool AreAllArgumentsEqual<T>(IEnumerable<T> xArguments, IEnumerable<T> yArguments)
             where T : Expression
         {
             var argumentEnumeratorX = xArguments.GetEnumerator();
             var argumentEnumeratorY = yArguments.GetEnumerator();
 
-            bool haveNotEnumeratedAllOfX = argumentEnumeratorX.MoveNext();
-            bool haveNotEnumeratedAllOfY = argumentEnumeratorY.MoveNext();
+            var haveNotEnumeratedAllOfX = argumentEnumeratorX.MoveNext();
+            var haveNotEnumeratedAllOfY = argumentEnumeratorY.MoveNext();
 
-            bool areAllArgumentsEqual = true;
+            var areAllArgumentsEqual = true;
             while (haveNotEnumeratedAllOfX && haveNotEnumeratedAllOfY && areAllArgumentsEqual)
             {
                 areAllArgumentsEqual = Equals(argumentEnumeratorX.Current, argumentEnumeratorY.Current);
@@ -152,97 +245,10 @@
             return areAllArgumentsEqual;
         }
 
-        public int GetHashCode(Expression x)
-        {
-            LambdaExpression lambdaExpressionX = x as LambdaExpression;
-
-            if (lambdaExpressionX != null)
-            {
-                return XorHashCodes(lambdaExpressionX.Parameters) ^
-                    GetHashCode(lambdaExpressionX.Body);
-            }
-
-            BinaryExpression binaryExpressionX = x as BinaryExpression;
-
-            if (binaryExpressionX != null)
-            {
-                int methodHashCode = binaryExpressionX.Method != null ? binaryExpressionX.Method.GetHashCode() : binaryExpressionX.NodeType.GetHashCode();
-                return methodHashCode ^
-                    GetHashCode(binaryExpressionX.Left) ^
-                    GetHashCode(binaryExpressionX.Right);
-            }
-
-            UnaryExpression unaryExpressionX = x as UnaryExpression;
-
-            if (unaryExpressionX != null)
-            {
-                int methodHashCode = unaryExpressionX.Method != null ? unaryExpressionX.Method.GetHashCode() : unaryExpressionX.NodeType.GetHashCode();
-                return methodHashCode ^
-                    GetHashCode(unaryExpressionX.Operand);
-            }
-
-            MethodCallExpression methodCallExpressionX = x as MethodCallExpression;
-
-            if (methodCallExpressionX != null)
-            {
-                return XorHashCodes(methodCallExpressionX.Arguments) ^
-                    methodCallExpressionX.Method.GetHashCode() ^
-                    GetHashCode(methodCallExpressionX.Object);
-            }
-
-            ConditionalExpression conditionalExpressionX = x as ConditionalExpression;
-
-            if (conditionalExpressionX != null)
-            {
-                return
-                    GetHashCode(conditionalExpressionX.Test) ^
-                    GetHashCode(conditionalExpressionX.IfTrue) ^
-                    GetHashCode(conditionalExpressionX.IfFalse);
-            }
-
-            InvocationExpression invocationExpressionX = x as InvocationExpression;
-
-            if (invocationExpressionX != null)
-            {
-                return
-                    XorHashCodes(invocationExpressionX.Arguments) ^
-                    GetHashCode(invocationExpressionX.Expression);
-            }
-
-            MemberExpression memberExpressionX = x as MemberExpression;
-
-            if (memberExpressionX != null)
-            {
-                return
-                    memberExpressionX.Member.GetHashCode() ^
-                    GetHashCode(memberExpressionX.Expression);
-            }
-
-            ConstantExpression constantExpressionX = x as ConstantExpression;
-
-            if (constantExpressionX != null)
-            {
-                int valueHash = constantExpressionX.Value != null ? constantExpressionX.Value.GetHashCode() : constantExpressionX.GetHashCode();
-                return valueHash;
-            }
-
-            NewExpression newExpressionX = x as NewExpression;
-
-            if (newExpressionX != null)
-            {
-
-                return
-                    XorHashCodes(newExpressionX.Arguments) ^
-                    newExpressionX.Constructor.GetHashCode();
-            }
-
-            return 0;
-        }
-
         private int XorHashCodes<T>(IEnumerable<T> expressions)
             where T : Expression
         {
-            int accumulatedHashCode = 0;
+            var accumulatedHashCode = 0;
             foreach (var expression in expressions)
             {
                 accumulatedHashCode ^= GetHashCode(expression);

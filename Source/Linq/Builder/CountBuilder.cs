@@ -1,25 +1,27 @@
 ﻿using System;
 using System.Linq.Expressions;
+using Bars2Db.Expressions;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
 
-namespace LinqToDB.Linq.Builder
+namespace Bars2Db.Linq.Builder
 {
-    using LinqToDB.Expressions;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
-    class CountBuilder : MethodCallBuilder
+    internal class CountBuilder : MethodCallBuilder
     {
-        public static readonly string[] MethodNames = { "Count", "LongCount" };
+        public static readonly string[] MethodNames = {"Count", "LongCount"};
 
-        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override bool CanBuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             return methodCall.IsQueryable(MethodNames);
         }
 
-        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall, BuildInfo buildInfo)
+        protected override IBuildContext BuildMethodCall(ExpressionBuilder builder, MethodCallExpression methodCall,
+            BuildInfo buildInfo)
         {
             var returnType = methodCall.Method.ReturnType;
-            var sequence   = builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]) { CreateSubQuery = true });
+            var sequence =
+                builder.BuildSequence(new BuildInfo(buildInfo, methodCall.Arguments[0]) {CreateSubQuery = true});
 
             if (sequence.Select != buildInfo.SelectQuery)
             {
@@ -27,13 +29,13 @@ namespace LinqToDB.Linq.Builder
                 {
                     return new CountContext(buildInfo.Parent, sequence, returnType)
                     {
-                        Sql        = SqlFunction.CreateCount(returnType, sequence.Select),
+                        Sql = SqlFunction.CreateCount(returnType, sequence.Select),
                         FieldIndex = -1
                     };
                 }
             }
 
-            if (sequence.Select.Select.IsDistinct        ||
+            if (sequence.Select.Select.IsDistinct ||
                 sequence.Select.Select.TakeValue != null ||
                 sequence.Select.Select.SkipValue != null)
             {
@@ -61,7 +63,7 @@ namespace LinqToDB.Linq.Builder
 
             var context = new CountContext(buildInfo.Parent, sequence, returnType);
 
-            context.Sql        = context.Select;
+            context.Sql = context.Select;
             context.FieldIndex = context.Select.Select.Add(SqlFunction.CreateCount(returnType, context.Select), "cnt");
 
             return context;
@@ -75,21 +77,21 @@ namespace LinqToDB.Linq.Builder
 
         internal class CountContext : SequenceContextBase
         {
+            private readonly Type _returnType;
+            private SqlInfo[] _index;
+
+            public int FieldIndex;
+            public IQueryExpression Sql;
+
             public CountContext(IBuildContext parent, IBuildContext sequence, Type returnType)
                 : base(parent, sequence, null)
             {
                 _returnType = returnType;
             }
 
-            readonly Type      _returnType;
-            private  SqlInfo[] _index;
-
-            public int            FieldIndex;
-            public IQueryExpression Sql;
-
             public override void BuildQuery<T>(Query<T> query, ParameterExpression queryParameter)
             {
-                var expr   = Builder.BuildSql(_returnType, FieldIndex);
+                var expr = Builder.BuildSql(_returnType, FieldIndex);
                 var mapper = Builder.BuildMapper<object>(expr);
 
                 query.SetElementQuery(mapper.Compile());
@@ -104,7 +106,8 @@ namespace LinqToDB.Linq.Builder
             {
                 switch (flags)
                 {
-                    case ConvertFlags.Field : return new[] { new SqlInfo { Query = Parent.Select, Sql = Sql } };
+                    case ConvertFlags.Field:
+                        return new[] {new SqlInfo {Query = Parent.Select, Sql = Sql}};
                 }
 
                 throw new NotImplementedException();
@@ -114,10 +117,10 @@ namespace LinqToDB.Linq.Builder
             {
                 switch (flags)
                 {
-                    case ConvertFlags.Field :
+                    case ConvertFlags.Field:
                         return _index ?? (_index = new[]
                         {
-                            new SqlInfo { Query = Parent.Select, Index = Parent.Select.Select.Add(Sql), Sql = Sql, }
+                            new SqlInfo {Query = Parent.Select, Index = Parent.Select.Select.Add(Sql), Sql = Sql}
                         });
                 }
 
@@ -128,7 +131,8 @@ namespace LinqToDB.Linq.Builder
             {
                 switch (requestFlag)
                 {
-                    case RequestFor.Expression : return IsExpressionResult.True;
+                    case RequestFor.Expression:
+                        return IsExpressionResult.True;
                 }
 
                 return IsExpressionResult.False;

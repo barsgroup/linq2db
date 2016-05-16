@@ -1,15 +1,12 @@
 ﻿using System;
+using Bars2Db.Common;
+using Bars2Db.Mapping;
+using Bars2Db.SqlEntities;
+using Bars2Db.SqlQuery.QueryElements.SqlElements;
 
-namespace LinqToDB.Extensions
+namespace Bars2Db.Extensions
 {
-    using Common;
-
-    using LinqToDB.SqlEntities;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements;
-
-    using Mapping;
-
-    static class MappingExtensions
+    internal static class MappingExtensions
     {
         public static ISqlValue GetSqlValue(this MappingSchema mappingSchema, object value)
         {

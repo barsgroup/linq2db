@@ -1,11 +1,10 @@
-namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
+using System;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces
 {
-    using System;
-
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-
     public interface ISqlParameter : IQueryExpression,
-                                     IValueContainer
+        IValueContainer
     {
         string Name { get; set; }
 
@@ -13,18 +12,14 @@ namespace LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces
 
         DataType DataType { get; set; }
 
-        int DbSize { get;  }
+        int DbSize { get; }
 
         string LikeStart { get; set; }
 
-        string LikeEnd { get; set; }
-
         bool ReplaceLike { get; set; }
-
-        void SetTakeConverter(int take);
 
         Func<object, object> ValueConverter { set; }
 
-        object RawValue { get; }
+        void SetTakeConverter(int take);
     }
 }

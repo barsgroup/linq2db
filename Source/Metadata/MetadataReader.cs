@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using Bars2Db.Properties;
 
-namespace LinqToDB.Metadata
+namespace Bars2Db.Metadata
 {
-    using LinqToDB.Properties;
-
     public class MetadataReader : IMetadataReader
     {
         public static MetadataReader Default = new MetadataReader(
             new AttributeReader()
 #if !SILVERLIGHT && !NETFX_CORE
-            ,new SystemDataLinqAttributeReader()
+            , new SystemDataLinqAttributeReader()
 #endif
-        );
+            );
+
+        private readonly IMetadataReader[] _readers;
 
         public MetadataReader([NotNull] params IMetadataReader[] readers)
         {
@@ -21,8 +22,6 @@ namespace LinqToDB.Metadata
 
             _readers = readers;
         }
-
-        readonly IMetadataReader[] _readers;
 
         public T[] GetAttributes<T>(Type type, bool inherit)
             where T : Attribute

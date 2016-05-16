@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
     public sealed class NotNullAttribute : NullableAttribute

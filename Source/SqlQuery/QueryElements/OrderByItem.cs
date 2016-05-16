@@ -1,34 +1,34 @@
-namespace LinqToDB.SqlQuery.QueryElements
+using System;
+using System.Collections.Generic;
+using System.Text;
+using Bars2Db.SqlQuery.QueryElements.Enums;
+using Bars2Db.SqlQuery.QueryElements.Interfaces;
+using Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces;
+
+namespace Bars2Db.SqlQuery.QueryElements
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    using LinqToDB.SqlQuery.QueryElements.Enums;
-    using LinqToDB.SqlQuery.QueryElements.Interfaces;
-    using LinqToDB.SqlQuery.QueryElements.SqlElements.Interfaces;
-
     public class OrderByItem : BaseQueryElement,
-                               IOrderByItem
+        IOrderByItem
     {
         public OrderByItem(IQueryExpression expression, bool isDescending)
         {
-            Expression   = expression;
+            Expression = expression;
             IsDescending = isDescending;
         }
 
-        public IQueryExpression Expression   { get;  set; }
+        public IQueryExpression Expression { get; set; }
 
-        public bool           IsDescending { get; }
+        public bool IsDescending { get; }
 
-        public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression,IQueryExpression> func)
+        public IQueryExpression Walk(bool skipColumns, Func<IQueryExpression, IQueryExpression> func)
         {
             Expression = Expression.Walk(skipColumns, func);
 
             return null;
         }
 
-        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree, Predicate<ICloneableElement> doClone)
+        public ICloneableElement Clone(Dictionary<ICloneableElement, ICloneableElement> objectTree,
+            Predicate<ICloneableElement> doClone)
         {
             if (!doClone(this))
                 return this;
@@ -36,7 +36,8 @@ namespace LinqToDB.SqlQuery.QueryElements
             ICloneableElement clone;
 
             if (!objectTree.TryGetValue(this, out clone))
-                objectTree.Add(this, clone = new OrderByItem((IQueryExpression)Expression.Clone(objectTree, doClone), IsDescending));
+                objectTree.Add(this,
+                    clone = new OrderByItem((IQueryExpression) Expression.Clone(objectTree, doClone), IsDescending));
 
             return clone;
         }
@@ -45,10 +46,12 @@ namespace LinqToDB.SqlQuery.QueryElements
 
 #if OVERRIDETOSTRING
 
-            public override string ToString()
-            {
-                return ((IQueryElement)this).ToString(new StringBuilder(), new Dictionary<IQueryElement,IQueryElement>()).ToString();
-            }
+        public override string ToString()
+        {
+            return
+                ((IQueryElement) this).ToString(new StringBuilder(), new Dictionary<IQueryElement, IQueryElement>())
+                    .ToString();
+        }
 
 #endif
 
@@ -58,7 +61,7 @@ namespace LinqToDB.SqlQuery.QueryElements
 
         public override EQueryElementType ElementType => EQueryElementType.OrderByItem;
 
-        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement,IQueryElement> dic)
+        public override StringBuilder ToString(StringBuilder sb, Dictionary<IQueryElement, IQueryElement> dic)
         {
             Expression.ToString(sb, dic);
 

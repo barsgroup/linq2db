@@ -1,4 +1,4 @@
-namespace LinqToDB.Common
+namespace Bars2Db.Common
 {
     public static class Configuration
     {

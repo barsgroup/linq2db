@@ -1,6 +1,6 @@
-﻿namespace LinqToDB.Linq
+﻿namespace Bars2Db.Linq
 {
-    interface ITable
+    internal interface ITable
     {
     }
 }

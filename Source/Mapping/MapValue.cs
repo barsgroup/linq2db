@@ -1,4 +1,4 @@
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
     public class MapValue
     {
@@ -8,7 +8,7 @@ namespace LinqToDB.Mapping
             MapValues = mapValues;
         }
 
-        public object              OrigValue { get; private set; }
+        public object OrigValue { get; private set; }
         public MapValueAttribute[] MapValues { get; private set; }
     }
 }

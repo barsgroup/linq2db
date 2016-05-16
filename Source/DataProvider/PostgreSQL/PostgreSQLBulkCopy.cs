@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
+using Bars2Db.Data;
 
-namespace LinqToDB.DataProvider.PostgreSQL
+namespace Bars2Db.DataProvider.PostgreSQL
 {
-    using Data;
-
-    class PostgreSQLBulkCopy : BasicBulkCopy
+    internal class PostgreSQLBulkCopy : BasicBulkCopy
     {
         protected override BulkCopyRowsCopied MultipleRowsCopy<T>(
             DataConnection dataConnection, BulkCopyOptions options, IEnumerable<T> source)

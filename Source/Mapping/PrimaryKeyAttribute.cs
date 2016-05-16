@@ -1,6 +1,6 @@
 using System;
 
-namespace LinqToDB.Mapping
+namespace Bars2Db.Mapping
 {
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true)]
     public sealed class PrimaryKeyAttribute : Attribute
@@ -18,10 +18,10 @@ namespace LinqToDB.Mapping
         public PrimaryKeyAttribute(string configuration, int order)
         {
             Configuration = configuration;
-            Order         = order;
+            Order = order;
         }
 
         public string Configuration { get; set; }
-        public int    Order         { get; set; }
+        public int Order { get; set; }
     }
 }

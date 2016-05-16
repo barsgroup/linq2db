@@ -1,10 +1,9 @@
-﻿namespace LinqToDB.SqlQuery.Search
-{
-    using System;
+﻿using System;
 
+namespace Bars2Db.SqlQuery.Search
+{
     [AttributeUsage(AttributeTargets.Property)]
-    public class SearchContainerAttribute: Attribute
+    public class SearchContainerAttribute : Attribute
     {
-         
     }
 }
