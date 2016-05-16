@@ -13,19 +13,34 @@
 
         public virtual string Content { get; protected set; }
 
-        public virtual bool IsChildOf(Hierarchical content)
+        public virtual bool IsChildOf(Hierarchical hierarchical)
         {
-            return false;
+            return Content.StartsWith(hierarchical.Content);
         }
 
-        public virtual bool IsParentOf(Hierarchical content)
+        public virtual bool IsParentOf(Hierarchical hierarchical)
         {
-            return false;
+            return hierarchical.IsChildOf(this);
         }
 
-        public virtual bool Contains(Hierarchical content)
+        public override bool Equals(object obj)
         {
-            return false;
+            return base.Equals(obj);
+        }
+
+        protected bool Equals(Hierarchical other)
+        {
+            return string.Equals(Content, other.Content);
+        }
+
+        public override int GetHashCode()
+        {
+            return Content?.GetHashCode() ?? 0;
+        }
+
+        public virtual bool Contains(Hierarchical hierarchical)
+        {
+            return Content.Contains(hierarchical.Content);
         }
 
         /// <summary>Returns a string that represents the current object.</summary>
