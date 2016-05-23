@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{C474BCD7-FAD1-4B62-B30E-2D6F7703083B}</ProjectGuid>
+    <ProjectGuid>{A9E1BBC7-073F-4AA4-95D8-5083C2254FE4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LinqToDB.Tests</RootNamespace>
-    <AssemblyName>LinqToDB.Tests</AssemblyName>
+    <RootNamespace>Bars2Db.IntegrationTests</RootNamespace>
+    <AssemblyName>Bars2Db.IntegrationTests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +20,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +28,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -43,40 +40,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\Bars2dbRepository.cs" />
+    <Compile Include="Data\Entities\Actor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SearchEngine\DelegateConstructors\Base\BaseDelegateConstructorTest.cs" />
-    <Compile Include="SearchEngine\DelegateConstructors\CollectionDelegateConstructorTest.cs" />
-    <Compile Include="SearchEngine\DelegateConstructors\CastFromBaseDelegateConstructorTest.cs" />
-    <Compile Include="SearchEngine\DelegateConstructors\CyclicDelegateConstructorTest.cs" />
-    <Compile Include="SearchEngine\DelegateConstructors\DelegateConstructorTest.cs" />
-    <Compile Include="SearchEngine\PathBuilder\Find\Base\BaseFindTest.cs" />
-    <Compile Include="SearchEngine\PathBuilder\Find\CyclicTest.cs" />
-    <Compile Include="SearchEngine\PathBuilder\Find\OptimizeTest.cs" />
-    <Compile Include="SearchEngine\PathBuilder\Find\TreeWithCommonPartTest.cs" />
-    <Compile Include="SearchEngine\PathBuilder\Find\TwoSeparatePathsTest.cs" />
-    <Compile Include="SearchEngine\PathBuilder\Find\CastFromBaseTest.cs" />
-    <Compile Include="SearchEngine\PathBuilder\Find\CollectionTest.cs" />
-    <Compile Include="SearchEngine\PathBuilder\Find\WrongPathsTest.cs" />
-    <Compile Include="SearchEngine\TestInterfaces\CastFromBase\CastFromBaseInterfaces.cs" />
-    <Compile Include="SearchEngine\TestInterfaces\CyclicDependency\CyclicDependencyInterfaces.cs" />
-    <Compile Include="SearchEngine\TypeGraph\Base\TypeGraphBaseTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\CyclicDependencyTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\CyclicTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\HierarchyPropertyTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\PropertiesWithoutAttributeTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\PropertyInChildInterfaceTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\PropertyInParentInterfaceTest.cs" />
-    <Compile Include="SearchEngine\TypeGraph\TwoPropertiesOfOneTypeTest.cs" />
-    <Compile Include="SearchEngine\SearchEngineTest.cs" />
+    <Compile Include="Tests\SelectTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\dvdrental.tar" />
+    <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Source\BarsToDb.csproj">
       <Project>{7cbd2975-3d0c-4bc3-bb4e-932f910778cf}</Project>
       <Name>BarsToDb</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="paket.references" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Choose>
@@ -127,7 +104,64 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <Import Project="..\..\.paket\paket.targets" />
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v3.5'">
+      <ItemGroup>
+        <Reference Include="Mono.Security">
+          <HintPath>..\..\packages\Npgsql\lib\net35\Mono.Security.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Npgsql">
+          <HintPath>..\..\packages\Npgsql\lib\net35\Npgsql.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v2.0' Or $(TargetFrameworkVersion) == 'v3.0')">
+      <ItemGroup>
+        <Reference Include="Mono.Security">
+          <HintPath>..\..\packages\Npgsql\lib\net20\Mono.Security.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Npgsql">
+          <HintPath>..\..\packages\Npgsql\lib\net20\Npgsql.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0')">
+      <ItemGroup>
+        <Reference Include="Mono.Security">
+          <HintPath>..\..\packages\Npgsql\lib\net40\Mono.Security.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Npgsql">
+          <HintPath>..\..\packages\Npgsql\lib\net40\Npgsql.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2')">
+      <ItemGroup>
+        <Reference Include="Mono.Security">
+          <HintPath>..\..\packages\Npgsql\lib\net45\Mono.Security.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Npgsql">
+          <HintPath>..\..\packages\Npgsql\lib\net45\Npgsql.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v3.5' Or $(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2')">
       <ItemGroup>

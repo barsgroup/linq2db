@@ -77,6 +77,7 @@
     <Compile Include="Extensions\HashSetExtentions.cs" />
     <Compile Include="Extensions\LinkedListExtentions.cs" />
     <Compile Include="Extensions\TypeSwitch.cs" />
+    <Compile Include="Ioc\Container.cs" />
     <Compile Include="KeepConnectionAliveScope.cs" />
     <Compile Include="DataProvider\BasicMerge.cs" />
     <Compile Include="DataProvider\BasicBulkCopy.cs" />
@@ -120,6 +121,51 @@
     <Compile Include="Linq\Builder\WithTableExpressionBuilder.cs" />
     <Compile Include="Linq\IExpressionInfo.cs" />
     <Compile Include="Linq\IExpressionQuery.cs" />
+    <Compile Include="Linq\Joiner\Interfaces\IExpressionExecuteService.cs" />
+    <Compile Include="Linq\Joiner\Interfaces\IFullPathVisitor.cs" />
+    <Compile Include="Linq\Joiner\Interfaces\IJoinService.cs" />
+    <Compile Include="Linq\Joiner\Interfaces\IRootQueryProvider.cs" />
+    <Compile Include="Linq\Joiner\Interfaces\ISmartJoiner.cs" />
+    <Compile Include="Linq\Joiner\Interfaces\ISmartQuery.cs" />
+    <Compile Include="Linq\Joiner\JoinService.cs" />
+    <Compile Include="Linq\Joiner\PropertyJoiner\Attributes\BaseJoinPropertyAttribute.cs" />
+    <Compile Include="Linq\Joiner\PropertyJoiner\Attributes\IdConventionJoinPropertyAttribute.cs" />
+    <Compile Include="Linq\Joiner\PropertyJoiner\Attributes\MetaIdConventionJoinPropertyAttribute.cs" />
+    <Compile Include="Linq\Joiner\PropertyJoiner\Entities\JoinResultObject.cs" />
+    <Compile Include="Linq\Joiner\PropertyJoiner\GetAllWithoutReferencesSelectExtensions.cs" />
+    <Compile Include="Linq\Joiner\PropertyJoiner\JoinByLinkFieldQueryCreator.cs" />
+    <Compile Include="Linq\Joiner\PropertyJoiner\QueryProviderExtensions.cs" />
+    <Compile Include="Linq\Joiner\Graph\ReferenceEdge.cs" />
+    <Compile Include="Linq\Joiner\Graph\ReferenceGraph.cs" />
+    <Compile Include="Linq\Joiner\Graph\ReferenceGraphVertex.cs" />
+    <Compile Include="Linq\Joiner\RootQueryProvider.cs" />
+    <Compile Include="Linq\Joiner\SmartJoiner.cs" />
+    <Compile Include="Linq\Joiner\SmartJoinerExtensions.cs" />
+    <Compile Include="Linq\Joiner\SmartQuery.cs" />
+    <Compile Include="Linq\Joiner\Visitors\DirectMethodCallVisitor.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Entities\FullPathBinding.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Entities\FullPathInfo.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Entities\PropertyBindingInfo.cs" />
+    <Compile Include="Linq\Joiner\Visitors\FullPathVisitor.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\BaseFilterMethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\DefaultMethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\GroupByWithoutSelectorMethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\GroupByWithSelectorMethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\GroupJoinMethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\HandlerExpressionExtensions.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\JoinMethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\LambdaExpressionHelper.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\MapMethodHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\MethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\ScalarMethodHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\SelectManyMethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\SelectMethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Handlers\UnionOrConcatMethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Interfaces\IDefaultMethodHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Interfaces\ILambdaExpressionHelper.cs" />
+    <Compile Include="Linq\Joiner\Visitors\Interfaces\IMethodCallHandler.cs" />
+    <Compile Include="Linq\Joiner\Visitors\ReplaceQueryVisitor.cs" />
+    <Compile Include="Linq\Joiner\Visitors\RestructQueryVisitor.cs" />
     <Compile Include="Mapping\ColumnAliasAttribute.cs" />
     <Compile Include="Expressions\IGenericInfoProvider.cs" />
     <Compile Include="Mapping\DataTypes\Hierarchical.cs" />
@@ -448,6 +494,9 @@
     <None Include="linq2db.snk" />
     <None Include="paket.references" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Linq\Interfaces\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -456,4 +505,146 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v3.5'">
+      <ItemGroup>
+        <Reference Include="DryIoc">
+          <HintPath>..\packages\DryIoc.dll\lib\net35\DryIoc.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0')">
+      <ItemGroup>
+        <Reference Include="DryIoc">
+          <HintPath>..\packages\DryIoc.dll\lib\net40\DryIoc.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2')">
+      <ItemGroup>
+        <Reference Include="DryIoc">
+          <HintPath>..\packages\DryIoc.dll\lib\net45\DryIoc.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="($(TargetFrameworkIdentifier) == 'Silverlight' And $(TargetFrameworkVersion) == 'v5.0') Or ($(TargetFrameworkProfile) == 'Profile5') Or ($(TargetFrameworkProfile) == 'Profile6') Or ($(TargetFrameworkProfile) == 'Profile14') Or ($(TargetFrameworkProfile) == 'Profile19') Or ($(TargetFrameworkProfile) == 'Profile24') Or ($(TargetFrameworkProfile) == 'Profile37') Or ($(TargetFrameworkProfile) == 'Profile42') Or ($(TargetFrameworkProfile) == 'Profile47') Or ($(TargetFrameworkProfile) == 'Profile92') Or ($(TargetFrameworkProfile) == 'Profile102') Or ($(TargetFrameworkProfile) == 'Profile136') Or ($(TargetFrameworkProfile) == 'Profile147') Or ($(TargetFrameworkProfile) == 'Profile158') Or ($(TargetFrameworkProfile) == 'Profile225') Or ($(TargetFrameworkProfile) == 'Profile240') Or ($(TargetFrameworkProfile) == 'Profile255') Or ($(TargetFrameworkProfile) == 'Profile328') Or ($(TargetFrameworkProfile) == 'Profile336') Or ($(TargetFrameworkProfile) == 'Profile344')">
+      <ItemGroup>
+        <Reference Include="DryIoc">
+          <HintPath>..\packages\DryIoc.dll\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\DryIoc.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="($(TargetFrameworkIdentifier) == 'WindowsPhoneApp') Or ($(TargetFrameworkIdentifier) == '.NETCore') Or ($(TargetFrameworkIdentifier) == 'WindowsPhone' And ($(TargetFrameworkVersion) == 'v8.0' Or $(TargetFrameworkVersion) == 'v8.1')) Or ($(TargetFrameworkIdentifier) == 'MonoAndroid') Or ($(TargetFrameworkIdentifier) == 'MonoTouch') Or ($(TargetFrameworkIdentifier) == 'Xamarin.iOS') Or ($(TargetFrameworkIdentifier) == 'Xamarin.Mac') Or ($(TargetFrameworkProfile) == 'Profile7') Or ($(TargetFrameworkProfile) == 'Profile31') Or ($(TargetFrameworkProfile) == 'Profile32') Or ($(TargetFrameworkProfile) == 'Profile44') Or ($(TargetFrameworkProfile) == 'Profile49') Or ($(TargetFrameworkProfile) == 'Profile78') Or ($(TargetFrameworkProfile) == 'Profile84') Or ($(TargetFrameworkProfile) == 'Profile111') Or ($(TargetFrameworkProfile) == 'Profile151') Or ($(TargetFrameworkProfile) == 'Profile157') Or ($(TargetFrameworkProfile) == 'Profile259')">
+      <ItemGroup>
+        <Reference Include="DryIoc">
+          <HintPath>..\packages\DryIoc.dll\lib\portable-net45+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\DryIoc.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v3.5'">
+      <ItemGroup>
+        <Reference Include="Mono.Security">
+          <HintPath>..\packages\Npgsql\lib\net35\Mono.Security.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Npgsql">
+          <HintPath>..\packages\Npgsql\lib\net35\Npgsql.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v2.0' Or $(TargetFrameworkVersion) == 'v3.0')">
+      <ItemGroup>
+        <Reference Include="Mono.Security">
+          <HintPath>..\packages\Npgsql\lib\net20\Mono.Security.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Npgsql">
+          <HintPath>..\packages\Npgsql\lib\net20\Npgsql.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0')">
+      <ItemGroup>
+        <Reference Include="Mono.Security">
+          <HintPath>..\packages\Npgsql\lib\net40\Mono.Security.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Npgsql">
+          <HintPath>..\packages\Npgsql\lib\net40\Npgsql.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2')">
+      <ItemGroup>
+        <Reference Include="Mono.Security">
+          <HintPath>..\packages\Npgsql\lib\net45\Mono.Security.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="Npgsql">
+          <HintPath>..\packages\Npgsql\lib\net45\Npgsql.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2')">
+      <ItemGroup>
+        <Reference Include="QuickGraph.Data">
+          <HintPath>..\packages\QuickGraph\lib\net4\QuickGraph.Data.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="QuickGraph.Graphviz">
+          <HintPath>..\packages\QuickGraph\lib\net4\QuickGraph.Graphviz.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="QuickGraph.Serialization">
+          <HintPath>..\packages\QuickGraph\lib\net4\QuickGraph.Serialization.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="QuickGraph">
+          <HintPath>..\packages\QuickGraph\lib\net4\QuickGraph.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2')">
+      <ItemGroup>
+        <Reference Include="Seterlund.CodeGuard">
+          <HintPath>..\packages\Seterlund.CodeGuard\lib\net40\Seterlund.CodeGuard.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
 </Project>
