@@ -7,6 +7,7 @@ using Bars2Db.Common;
 using Bars2Db.Data;
 using Bars2Db.Extensions;
 using Bars2Db.Linq;
+using Bars2Db.Linq.Interfaces;
 using Bars2Db.Mapping;
 using Bars2Db.SqlProvider;
 using Bars2Db.SqlQuery;

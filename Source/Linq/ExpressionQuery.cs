@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Bars2Db.Extensions;
+using Bars2Db.Linq.Interfaces;
 using Bars2Db.Properties;
 
 namespace Bars2Db.Linq

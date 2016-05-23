@@ -1,4 +1,5 @@
 ﻿using Bars2Db.Linq;
+using Bars2Db.Linq.Interfaces;
 
 namespace Bars2Db
 {

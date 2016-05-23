@@ -5,6 +5,7 @@ using System.Reflection;
 using Bars2Db.Expressions;
 using Bars2Db.Linq;
 using Bars2Db.Linq.Builder;
+using Bars2Db.Linq.Interfaces;
 using Bars2Db.Properties;
 
 namespace Bars2Db

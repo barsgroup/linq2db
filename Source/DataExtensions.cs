@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Bars2Db.Extensions;
 using Bars2Db.Linq;
+using Bars2Db.Linq.Interfaces;
 using Bars2Db.Properties;
 using Bars2Db.SqlQuery.QueryElements.Enums;
 

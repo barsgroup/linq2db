@@ -119,8 +119,8 @@
     <Compile Include="Linq\Builder\DropBuilder.cs" />
     <Compile Include="Linq\Builder\LoadWithBuilder.cs" />
     <Compile Include="Linq\Builder\WithTableExpressionBuilder.cs" />
-    <Compile Include="Linq\IExpressionInfo.cs" />
-    <Compile Include="Linq\IExpressionQuery.cs" />
+    <Compile Include="Linq\Interfaces\IExpressionInfo.cs" />
+    <Compile Include="Linq\Interfaces\IExpressionQuery.cs" />
     <Compile Include="Linq\Joiner\Interfaces\IExpressionExecuteService.cs" />
     <Compile Include="Linq\Joiner\Interfaces\IFullPathVisitor.cs" />
     <Compile Include="Linq\Joiner\Interfaces\IJoinService.cs" />
@@ -228,7 +228,7 @@
     <Compile Include="Extensions\MappingExtensions.cs" />
     <Compile Include="Linq\Builder\ExpressionTestGenerator.cs" />
     <Compile Include="Linq\QueryableAccessor.cs" />
-    <Compile Include="Linq\ITable.cs" />
+    <Compile Include="Linq\Interfaces\ITable.cs" />
     <Compile Include="Linq\ExpressionQueryImpl.cs" />
     <Compile Include="Mapping\IdentityAttribute.cs">
       <SubType>Code</SubType>
@@ -311,15 +311,15 @@
     <Compile Include="DataContext.cs" />
     <Compile Include="Linq\DataContextInfo.cs" />
     <Compile Include="DataContextTransaction.cs" />
-    <Compile Include="Linq\IExpressionQueryT.cs" />
+    <Compile Include="Linq\Interfaces\IExpressionQueryT.cs" />
     <Compile Include="Linq\Expressions.cs" />
     <Compile Include="DataExtensions.cs" />
     <Compile Include="IDataContext.cs" />
-    <Compile Include="Linq\IDataContextInfo.cs" />
-    <Compile Include="Linq\IQueryContext.cs" />
-    <Compile Include="Linq\ISelectInsertable.cs" />
-    <Compile Include="Linq\IUpdatable.cs" />
-    <Compile Include="Linq\IValueInsertable.cs" />
+    <Compile Include="Linq\Interfaces\IDataContextInfo.cs" />
+    <Compile Include="Linq\Interfaces\IQueryContext.cs" />
+    <Compile Include="Linq\Interfaces\ISelectInsertable.cs" />
+    <Compile Include="Linq\Interfaces\IUpdatable.cs" />
+    <Compile Include="Linq\Interfaces\IValueInsertable.cs" />
     <Compile Include="Linq\LinqException.cs" />
     <Compile Include="LinqExtensions.cs" />
     <Compile Include="Linq\MemberInfoComparer.cs" />
@@ -494,9 +494,7 @@
     <None Include="linq2db.snk" />
     <None Include="paket.references" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Linq\Interfaces\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

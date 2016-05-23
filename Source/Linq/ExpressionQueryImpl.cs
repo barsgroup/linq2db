@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using Bars2Db.Linq.Interfaces;
 
 namespace Bars2Db.Linq
 {

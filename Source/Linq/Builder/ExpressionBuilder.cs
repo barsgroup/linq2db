@@ -8,6 +8,7 @@ using System.Reflection;
 using Bars2Db.Common;
 using Bars2Db.Expressions;
 using Bars2Db.Extensions;
+using Bars2Db.Linq.Interfaces;
 using Bars2Db.Mapping;
 using Bars2Db.SqlQuery.QueryElements;
 

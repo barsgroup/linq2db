@@ -1,4 +1,5 @@
-﻿using Bars2Db.Mapping;
+﻿using Bars2Db.Linq.Interfaces;
+using Bars2Db.Mapping;
 using Bars2Db.SqlProvider;
 
 namespace Bars2Db.Linq

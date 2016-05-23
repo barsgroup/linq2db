@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using Bars2Db.Data;
 using Bars2Db.DataProvider;
 using Bars2Db.Linq;
+using Bars2Db.Linq.Interfaces;
 using Bars2Db.Mapping;
 using Bars2Db.SqlProvider;
 
