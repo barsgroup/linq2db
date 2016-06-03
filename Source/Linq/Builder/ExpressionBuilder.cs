@@ -13,6 +13,8 @@ using Bars2Db.SqlQuery.QueryElements;
 
 namespace Bars2Db.Linq.Builder
 {
+    using System.Diagnostics;
+
     public partial class ExpressionBuilder
     {
         #region Sequence
@@ -160,6 +162,7 @@ namespace Bars2Db.Linq.Builder
         }
 
         [Properties.NotNull]
+        [DebuggerHidden]
         public IBuildContext BuildSequence(BuildInfo buildInfo)
         {
             buildInfo.Expression = buildInfo.Expression.Unwrap();
