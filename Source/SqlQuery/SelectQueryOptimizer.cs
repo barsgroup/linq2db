@@ -294,7 +294,7 @@ namespace Bars2Db.SqlQuery
         private static bool CheckColumn(IColumn column, IQueryExpression expr, ISelectQuery query, bool optimizeValues,
             bool optimizeColumns)
         {
-            if (expr is ISqlField || expr is IColumn)
+            if (expr is ISqlField || expr is IColumn || expr is ISqlParameter)
             {
                 return false;
             }
