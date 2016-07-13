@@ -1452,8 +1452,10 @@ namespace Bars2Db.SqlProvider
             var precedence = GetPrecedence(predicate);
 
             BuildExpression(precedence, predicate.Expr1);
+            StringBuilder.Append("::LTREE");
             StringBuilder.AppendFormat(" {0} ", predicate.GetOperator());
             BuildExpression(precedence, predicate.Expr2);
+            StringBuilder.Append("::LTREE");
         }
 
 
