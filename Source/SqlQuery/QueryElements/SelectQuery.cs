@@ -495,7 +495,6 @@ namespace Bars2Db.SqlQuery.QueryElements
             Predicate<ICloneableElement> doClone)
         {
             objectTree.Add(clone, this);
-            objectTree.Add(clone.All, All);
 
             SourceID = Interlocked.Increment(ref SourceIDCounter);
 
@@ -765,9 +764,6 @@ namespace Bars2Db.SqlQuery.QueryElements
             get { return ESqlTableType.Table; }
             set { throw new NotSupportedException(); }
         }
-
-        private ISqlField _all;
-        public ISqlField All => _all ?? (_all = new SqlField {Name = "*", PhysicalName = "*", Table = this});
 
         private List<IQueryExpression> _keys;
 

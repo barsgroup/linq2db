@@ -234,8 +234,6 @@
     <Compile Include="Linq\Builder\FirstSingleBuilder.cs" />
     <Compile Include="Linq\Builder\GroupByBuilder.cs" />
     <Compile Include="Linq\Builder\IBuildContext.cs" />
-    <Compile Include="Linq\Builder\InsertBuilder.cs" />
-    <Compile Include="Linq\Builder\InsertOrUpdateBuilder.cs" />
     <Compile Include="Linq\Builder\IntersectBuilder.cs" />
     <Compile Include="Linq\Builder\ISequenceBuilder.cs" />
     <Compile Include="Linq\Builder\IsExpressionResult.cs" />
@@ -258,7 +256,6 @@
     <Compile Include="Linq\Builder\TableAttributeBuilder.cs" />
     <Compile Include="Linq\Builder\TableBuilder.cs" />
     <Compile Include="Linq\Builder\TakeSkipBuilder.cs" />
-    <Compile Include="Linq\Builder\UpdateBuilder.cs" />
     <Compile Include="Linq\Builder\WhereBuilder.cs" />
     <Compile Include="CompiledQuery.cs" />
     <Compile Include="Linq\CompiledTableT.cs" />

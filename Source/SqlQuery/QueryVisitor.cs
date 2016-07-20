@@ -426,8 +426,6 @@ namespace Bars2Db.SqlQuery
                         }
 
                         newElement = new SqlTable(table, fields2, targs ?? table.TableArguments);
-
-                        _visitedElements[((ISqlTable) newElement).All] = table.All;
                     }
 
                     break;
@@ -874,7 +872,6 @@ namespace Bars2Db.SqlQuery
                     };
 
                     _visitedElements.Add(q, nq);
-                    _visitedElements.Add(q.All, nq.All);
 
                     var fc = (IFromClause) ConvertInternal(q.From, action) ?? q.From;
                     var sc = (ISelectClause) ConvertInternal(q.Select, action) ?? q.Select;

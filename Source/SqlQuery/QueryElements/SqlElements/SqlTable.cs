@@ -77,7 +77,6 @@ namespace Bars2Db.SqlQuery.QueryElements.SqlElements
                     }
                 }
                 objectTree.Add(this, table);
-                objectTree.Add(All, table.All);
 
                 clone = table;
             }
@@ -270,15 +269,7 @@ namespace Bars2Db.SqlQuery.QueryElements.SqlElements
 
         public SequenceNameAttribute[] SequenceAttributes { get; private set; }
 
-        private ISqlField _all;
-
-        public ISqlField All => _all ?? (_all = new SqlField
-        {
-            Name = "*",
-            PhysicalName = "*",
-            Table = this
-        });
-
+       
         public ISqlField GetIdentityField()
         {
             foreach (var field in Fields)

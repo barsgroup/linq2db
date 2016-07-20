@@ -161,8 +161,6 @@ namespace Bars2Db.SqlQuery.QueryElements
 
         public int SourceID => Source.SourceID;
 
-        public ISqlField All => Source.All;
-
         IList<IQueryExpression> ISqlTableSource.GetKeys(bool allIfEmpty)
         {
             return Source.GetKeys(allIfEmpty);

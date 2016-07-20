@@ -5,8 +5,6 @@ namespace Bars2Db.SqlQuery.QueryElements.SqlElements.Interfaces
 {
     public interface ISqlTableSource : IQueryExpression
     {
-        ISqlField All { get; }
-
         int SourceID { get; }
 
         ESqlTableType SqlTableType { get; set; }

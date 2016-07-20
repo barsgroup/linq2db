@@ -734,12 +734,7 @@ namespace Bars2Db.Data
             }
         }
 
-        internal IDataReader ExecuteReader()
-        {
-            return ExecuteReader(CommandBehavior.Default);
-        }
-
-        protected internal virtual IDataReader ExecuteReader(CommandBehavior commandBehavior)
+        protected internal virtual IDataReader ExecuteReader(CommandBehavior commandBehavior = CommandBehavior.Default)
         {
             if (TraceSwitch.Level == TraceLevel.Off)
                 return Command.ExecuteReader(commandBehavior);

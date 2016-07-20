@@ -139,11 +139,9 @@ namespace Bars2Db.Linq.Builder
             if (param != null && !ReferenceEquals(param, builder.SequenceParameter))
             {
                 var list =
-                    (
-                        from path in GetExpressions(selector.Parameters[0], param, 0, selector.Body.Unwrap())
-                        orderby path.Level descending
-                        select path
-                        ).ToList();
+                    GetExpressions(selector.Parameters[0], param, 0, selector.Body.Unwrap())
+                        .OrderByDescending(path => path.Level)
+                        .ToList();
 
                 if (list.Count > 0)
                 {
@@ -197,21 +195,18 @@ namespace Bars2Db.Linq.Builder
                         };
                     }
 
-                    if (info != null)
+                    if (info?.ExpressionsToReplace != null)
                     {
-                        if (info.ExpressionsToReplace != null)
+                        foreach (var path in info.ExpressionsToReplace)
                         {
-                            foreach (var path in info.ExpressionsToReplace)
-                            {
-                                path.Path = path.Path.Transform(e => ReferenceEquals(e, info.Parameter) ? p.Path : e);
-                                path.Expr = path.Expr.Transform(e => ReferenceEquals(e, info.Parameter) ? p.Path : e);
-                                path.Level += p.Level;
+                            path.Path = path.Path.Transform(e => ReferenceEquals(e, info.Parameter) ? p.Path : e);
+                            path.Expr = path.Expr.Transform(e => ReferenceEquals(e, info.Parameter) ? p.Path : e);
+                            path.Level += p.Level;
 
-                                list.Add(path);
-                            }
-
-                            list = list.OrderByDescending(path => path.Level).ToList();
+                            list.Add(path);
                         }
+
+                        list = list.OrderByDescending(path => path.Level).ToList();
                     }
 
                     if (list.Count > 1)

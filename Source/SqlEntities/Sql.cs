@@ -59,12 +59,6 @@ namespace Bars2Db.SqlEntities
 
         #region Common Functions
 
-        [Expression("*", ServerSideOnly = true)]
-        public static object[] AllColumns()
-        {
-            throw new LinqException("'FreeText' is only server-side method.");
-        }
-
         [CLSCompliant(false)]
         [Expression("{0}", 0, ServerSideOnly = true)]
         public static T AsSql<T>(T obj)

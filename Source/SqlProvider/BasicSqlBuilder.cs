@@ -8,7 +8,6 @@ using Bars2Db.Common;
 using Bars2Db.Extensions;
 using Bars2Db.Mapping;
 using Bars2Db.SqlQuery;
-using Bars2Db.SqlQuery.QueryElements;
 using Bars2Db.SqlQuery.QueryElements.Conditions.Interfaces;
 using Bars2Db.SqlQuery.QueryElements.Enums;
 using Bars2Db.SqlQuery.QueryElements.Interfaces;
@@ -1903,8 +1902,7 @@ namespace Bars2Db.SqlProvider
                 .Append(Convert(column.Alias, ConvertType.NameToQueryField));
         }
 
-        protected virtual void BuildSqlField(bool buildTableName, string alias, out bool addAlias,
-            bool throwExceptionIfTableNotFound, ISqlField field)
+        protected virtual void BuildSqlField(bool buildTableName, string alias, out bool addAlias, bool throwExceptionIfTableNotFound, ISqlField field)
         {
             addAlias = false;
 
@@ -1914,19 +1912,16 @@ namespace Bars2Db.SqlProvider
 
                 if (ts == null)
                 {
-                    if (field != field.Table.All)
-                    {
-                        if (throwExceptionIfTableNotFound)
-                            throw new SqlException("Table '{0}' not found.", field.Table);
-                    }
+                    if (throwExceptionIfTableNotFound)
+                        throw new SqlException("Table '{0}' not found.", field.Table);
                 }
                 else
                 {
                     var table = GetTableAlias(ts);
 
                     table = table == null
-                        ? GetPhysicalTableName(field.Table, null)
-                        : Convert(table, ConvertType.NameToQueryTableAlias).ToString();
+                                ? GetPhysicalTableName(field.Table, null)
+                                : Convert(table, ConvertType.NameToQueryTableAlias).ToString();
 
                     if (string.IsNullOrEmpty(table))
                         throw new SqlException("Table {0} should have an alias.", field.Table);
@@ -1937,14 +1932,7 @@ namespace Bars2Db.SqlProvider
                 }
             }
 
-            if (field == field.Table.All)
-            {
-                StringBuilder.Append("*");
-            }
-            else
-            {
-                StringBuilder.Append(Convert(field.PhysicalName, ConvertType.NameToQueryField));
-            }
+            StringBuilder.Append(Convert(field.PhysicalName, ConvertType.NameToQueryField));
         }
 
         private void BuildExpression(int parentPrecedence, IQueryExpression expr, string alias, ref bool addAlias)
@@ -2183,231 +2171,7 @@ namespace Bars2Db.SqlProvider
             StringBuilder.AppendLine();
         }
 
-        protected void AlternativeBuildSql(bool implementOrderBy, Action buildSql)
-        {
-            if (NeedSkip)
-            {
-                var aliases = GetTempAliases(2, "t");
-                var rnaliase = GetTempAliases(1, "rn")[0];
-
-                AppendIndent().Append("SELECT *").AppendLine();
-                AppendIndent().Append("FROM").AppendLine();
-                AppendIndent().Append("(").AppendLine();
-                Indent++;
-
-                AppendIndent().Append("SELECT").AppendLine();
-
-                Indent++;
-                AppendIndent().AppendFormat("{0}.*,", aliases[0]).AppendLine();
-                AppendIndent().Append("ROW_NUMBER() OVER");
-
-                if (!SelectQuery.OrderBy.IsEmpty && !implementOrderBy)
-                    StringBuilder.Append("()");
-                else
-                {
-                    StringBuilder.AppendLine();
-                    AppendIndent().Append("(").AppendLine();
-
-                    Indent++;
-
-                    if (SelectQuery.OrderBy.IsEmpty)
-                    {
-                        AppendIndent().Append("ORDER BY").AppendLine();
-                        BuildAliases(aliases[0], SelectQuery.Select.Columns.Take(1).ToList(), null);
-                    }
-                    else
-                        BuildAlternativeOrderBy(true);
-
-                    Indent--;
-                    AppendIndent().Append(")");
-                }
-
-                StringBuilder.Append(" as ").Append(rnaliase).AppendLine();
-                Indent--;
-
-                AppendIndent().Append("FROM").AppendLine();
-                AppendIndent().Append("(").AppendLine();
-
-                Indent++;
-                buildSql();
-                Indent--;
-
-                AppendIndent().AppendFormat(") {0}", aliases[0]).AppendLine();
-
-                Indent--;
-
-                AppendIndent().AppendFormat(") {0}", aliases[1]).AppendLine();
-                AppendIndent().Append("WHERE").AppendLine();
-
-                Indent++;
-
-                if (NeedTake)
-                {
-                    var expr1 = Add(SelectQuery.Select.SkipValue, 1);
-                    var expr2 = Add<int>(SelectQuery.Select.SkipValue, SelectQuery.Select.TakeValue);
-
-                    var sqlValue1 = expr1 as ISqlValue;
-                    var sqlValue2 = expr2 as ISqlValue;
-                    if (sqlValue1 != null && sqlValue2 != null && Equals(sqlValue1.Value, sqlValue2.Value))
-                    {
-                        AppendIndent().AppendFormat("{0}.{1} = ", aliases[1], rnaliase);
-                        BuildExpression(sqlValue1);
-                    }
-                    else
-                    {
-                        AppendIndent().AppendFormat("{0}.{1} BETWEEN ", aliases[1], rnaliase);
-                        BuildExpression(expr1);
-                        StringBuilder.Append(" AND ");
-                        BuildExpression(expr2);
-                    }
-                }
-                else
-                {
-                    AppendIndent().AppendFormat("{0}.{1} > ", aliases[1], rnaliase);
-                    BuildExpression(SelectQuery.Select.SkipValue);
-                }
-
-                StringBuilder.AppendLine();
-                Indent--;
-            }
-            else
-                buildSql();
-        }
-
-        protected void AlternativeBuildSql2(Action buildSql)
-        {
-            var aliases = GetTempAliases(3, "t");
-
-            AppendIndent().Append("SELECT *").AppendLine();
-            AppendIndent().Append("FROM").AppendLine();
-            AppendIndent().Append("(").AppendLine();
-            Indent++;
-
-            AppendIndent().Append("SELECT TOP ");
-            BuildExpression(SelectQuery.Select.TakeValue);
-            StringBuilder.Append(" *").AppendLine();
-            AppendIndent().Append("FROM").AppendLine();
-            AppendIndent().Append("(").AppendLine();
-            Indent++;
-
-            if (SelectQuery.OrderBy.IsEmpty)
-            {
-                AppendIndent().Append("SELECT TOP ");
-
-                var p = SelectQuery.Select.SkipValue as ISqlParameter;
-
-                var sqlValue = SelectQuery.Select.TakeValue as ISqlValue;
-                if (p != null && !p.IsQueryParameter && sqlValue != null)
-                    BuildValue(null, (int) p.Value + (int) sqlValue.Value);
-                else
-                    BuildExpression(Add<int>(SelectQuery.Select.SkipValue, SelectQuery.Select.TakeValue));
-
-                StringBuilder.Append(" *").AppendLine();
-                AppendIndent().Append("FROM").AppendLine();
-                AppendIndent().Append("(").AppendLine();
-                Indent++;
-            }
-
-            buildSql();
-
-            if (SelectQuery.OrderBy.IsEmpty)
-            {
-                Indent--;
-                AppendIndent().AppendFormat(") {0}", aliases[2]).AppendLine();
-                AppendIndent().Append("ORDER BY").AppendLine();
-                BuildAliases(aliases[2], SelectQuery.Select.Columns, null);
-            }
-
-            Indent--;
-            AppendIndent().AppendFormat(") {0}", aliases[1]).AppendLine();
-
-            if (SelectQuery.OrderBy.IsEmpty)
-            {
-                AppendIndent().Append("ORDER BY").AppendLine();
-                BuildAliases(aliases[1], SelectQuery.Select.Columns, " DESC");
-            }
-            else
-            {
-                BuildAlternativeOrderBy(false);
-            }
-
-            Indent--;
-            AppendIndent().AppendFormat(") {0}", aliases[0]).AppendLine();
-
-            if (SelectQuery.OrderBy.IsEmpty)
-            {
-                AppendIndent().Append("ORDER BY").AppendLine();
-                BuildAliases(aliases[0], SelectQuery.Select.Columns, null);
-            }
-            else
-            {
-                BuildAlternativeOrderBy(true);
-            }
-        }
-
-        private void BuildAlternativeOrderBy(bool ascending)
-        {
-            AppendIndent().Append("ORDER BY").AppendLine();
-
-            var obys = GetTempAliases(SelectQuery.OrderBy.Items.Count, "oby");
-
-            Indent++;
-
-            for (var i = 0; i < obys.Length; i++)
-            {
-                AppendIndent().Append(obys[i]);
-
-                if (ascending && SelectQuery.OrderBy.Items[i].IsDescending ||
-                    !ascending && !SelectQuery.OrderBy.Items[i].IsDescending)
-                    StringBuilder.Append(" DESC");
-
-                if (i + 1 < obys.Length)
-                    StringBuilder.Append(',');
-
-                StringBuilder.AppendLine();
-            }
-
-            Indent--;
-        }
-
         protected delegate IEnumerable<IColumn> ColumnSelector();
-
-        protected IEnumerable<IColumn> AlternativeGetSelectedColumns(ColumnSelector columnSelector)
-        {
-            foreach (var col in columnSelector())
-                yield return col;
-
-            var obys = GetTempAliases(SelectQuery.OrderBy.Items.Count, "oby");
-
-            for (var i = 0; i < obys.Length; i++)
-                yield return new Column(SelectQuery, SelectQuery.OrderBy.Items[i].Expression, obys[i]);
-        }
-
-        protected static bool IsDateDataType(IQueryExpression expr, string dateName)
-        {
-            switch (expr.ElementType)
-            {
-                case EQueryElementType.SqlDataType:
-                    return ((ISqlDataType) expr).DataType == DataType.Date;
-                case EQueryElementType.SqlExpression:
-                    return ((ISqlExpression) expr).Expr == dateName;
-            }
-
-            return false;
-        }
-
-        protected static bool IsTimeDataType(IQueryExpression expr)
-        {
-            switch (expr.ElementType)
-            {
-                case EQueryElementType.SqlDataType:
-                    return ((ISqlDataType) expr).DataType == DataType.Time;
-                case EQueryElementType.SqlExpression:
-                    return ((ISqlExpression) expr).Expr == "Time";
-            }
-
-            return false;
-        }
 
         private static bool IsBooleanParameter(IQueryExpression expr, int count, int i)
         {
@@ -2633,11 +2397,6 @@ namespace Bars2Db.SqlProvider
         protected IQueryExpression Add<T>(IQueryExpression expr1, IQueryExpression expr2)
         {
             return Add(expr1, expr2, typeof(T));
-        }
-
-        private IQueryExpression Add(IQueryExpression expr1, int value)
-        {
-            return Add<int>(expr1, new SqlValue(value));
         }
 
         #endregion

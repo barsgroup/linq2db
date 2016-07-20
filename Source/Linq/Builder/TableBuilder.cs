@@ -38,11 +38,26 @@ namespace Bars2Db.Linq.Builder
                         var table = FindTable(expression, level, false);
 
                         if (table.Field == null)
-                            return table.Table.SqlTable.Fields.Values
-                                .Select(f => new SqlInfo(f.ColumnDescriptor.MemberInfo) {Sql = f})
-                                .ToArray();
+                        {
+                            return table.Table.SqlTable.Fields.Values.Select(
+                                f => new SqlInfo(f.ColumnDescriptor.MemberInfo)
+                                         {
+                                             Sql = f
+                                         }).ToArray();
+                        }
 
-                        break;
+                        if (expression == null)
+                        {
+                            var fields = table.Table.SqlTable.Fields.Values;
+                            var sqlInfo = fields.Select(
+                                f => new SqlInfo
+                                {
+                                    Sql = f
+                                });
+                            return sqlInfo.ToArray();
+                        }
+
+                            break;
                     }
 
                     case ConvertFlags.Key:
@@ -52,10 +67,9 @@ namespace Bars2Db.Linq.Builder
                         if (table.Field == null)
                         {
                             var q =
-                                from f in table.Table.SqlTable.Fields.Values
-                                where f.IsPrimaryKey
-                                orderby f.PrimaryKeyOrder
-                                select new SqlInfo(f.ColumnDescriptor.MemberInfo) {Sql = f};
+                                table.Table.SqlTable.Fields.Values.Where(f => f.IsPrimaryKey)
+                                    .OrderBy(f => f.PrimaryKeyOrder)
+                                    .Select(f => new SqlInfo(f.ColumnDescriptor.MemberInfo) { Sql = f });
 
                             var key = q.ToArray();
 
@@ -76,11 +90,15 @@ namespace Bars2Db.Linq.Builder
                             };
 
                         if (expression == null)
-                            return new[]
-                            {
-                                new SqlInfo {Sql = table.Table.SqlTable.All}
-                            };
-
+                        {
+                            var fields = table.Table.SqlTable.Fields.Values;
+                            var sqlInfo = fields.Select(
+                                f => new SqlInfo
+                                         {
+                                             Sql = f
+                                         });
+                            return sqlInfo.ToArray();
+                        }
                         break;
                     }
                 }
@@ -560,13 +578,12 @@ namespace Bars2Db.Linq.Builder
 
             private int[] BuildIndex(int[] index, Type objectType)
             {
-                var names = new Dictionary<string, int>();
                 var n = 0;
                 var ed = Builder.MappingSchema.GetEntityDescriptor(objectType);
 
-                foreach (var cd in ed.Columns)
-                    if (cd.MemberAccessor.TypeAccessor.Type == ed.TypeAccessor.Type)
-                        names.Add(cd.MemberName, n++);
+                var names = ed.Columns
+                    .Where(cd => cd.MemberAccessor.TypeAccessor.Type == ed.TypeAccessor.Type)
+                    .ToDictionary(cd => cd.MemberName, cd => n++);
 
                 var q =
                     from r in SqlTable.Fields.Values.Select((f, i) => new {f, i})
@@ -582,7 +599,7 @@ namespace Bars2Db.Linq.Builder
             {
                 SqlInfo[] info;
 
-                if (ObjectType == tableType)
+                if (ObjectType == tableType || tableType == typeof(object))
                 {
                     info = ConvertToIndex(null, 0, ConvertFlags.All);
                 }
@@ -600,7 +617,9 @@ namespace Bars2Db.Linq.Builder
                     info = q.ToArray();
                 }
 
-                var index = info.Select(idx => ConvertToParentIndex(idx.Index, null)).ToArray();
+                var index = info
+                    .Select(idx => ConvertToParentIndex(idx.Index, null))
+                    .ToArray();
 
                 if (ObjectType != tableType || InheritanceMapping.Count == 0)
                     return BuildTableExpression(!Builder.IsBlockDisable, tableType, index);
@@ -619,11 +638,9 @@ namespace Bars2Db.Linq.Builder
                 {
                     var exceptionMethod = MemberHelper.MethodOf(() => DefaultInheritanceMappingException(null, null));
                     var dindex =
-                        (
-                            from f in SqlTable.Fields.Values
-                            where f.Name == InheritanceMapping[0].DiscriminatorName
-                            select ConvertToParentIndex(_indexes[f].Index, null)
-                            ).First();
+                        SqlTable.Fields.Values
+                        .Where(f => f.Name == InheritanceMapping[0].DiscriminatorName)
+                        .Select(f => ConvertToParentIndex(_indexes[f].Index, null)).First();
 
                     expr = Expression.Convert(
                         Expression.Call(null, exceptionMethod,
