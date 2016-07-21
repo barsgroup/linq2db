@@ -6,10 +6,12 @@ using Bars2Db.SqlQuery.Search.TypeGraph;
 
 namespace Bars2Db.SqlQuery.Search.PathBuilder
 {
+    using System.Collections.Concurrent;
+
     public class PathBuilder<TBaseSearchInterface>
     {
-        private readonly Dictionary<Tuple<Type, Type>, PathBuilderSearchCache> _cache =
-            new Dictionary<Tuple<Type, Type>, PathBuilderSearchCache>();
+        private readonly ConcurrentDictionary<Tuple<Type, Type>, PathBuilderSearchCache> _cache =
+            new ConcurrentDictionary<Tuple<Type, Type>, PathBuilderSearchCache>();
 
         private readonly TypeGraph<TBaseSearchInterface> _typeGraph;
 
@@ -41,23 +43,20 @@ namespace Bars2Db.SqlQuery.Search.PathBuilder
             var sourceType = source.GetType();
             var key = Tuple.Create(sourceType, searchType);
 
-            PathBuilderSearchCache cachedResult;
-            if (_cache.TryGetValue(key, out cachedResult))
-            {
-                return cachedResult.OptimizedPaths;
-            }
+            var cachedResult = _cache.GetOrAdd(
+                key,
+                tuple =>
+                    {
+                        var newCachedResult = new PathBuilderSearchCache(sourceType, searchType);
+                        var sourceTypes = SearchHelper<TBaseSearchInterface>.FindLeafInterfaces(sourceType);
+                        var paths = GetOrBuildPaths(sourceTypes, searchType, newCachedResult);
+                        var optimized = OptimizePaths(paths, newCachedResult);
+                        newCachedResult.OptimizedPaths = optimized;
 
-            cachedResult = new PathBuilderSearchCache(sourceType, searchType);
-            _cache[key] = cachedResult;
+                        return newCachedResult;
+                    });
 
-            var sourceTypes = SearchHelper<TBaseSearchInterface>.FindLeafInterfaces(sourceType);
-
-            var paths = GetOrBuildPaths(sourceTypes, searchType, cachedResult);
-            var optimized = OptimizePaths(paths, cachedResult);
-
-            cachedResult.OptimizedPaths = optimized;
-
-            return optimized;
+            return cachedResult.OptimizedPaths;
         }
 
         public HashSet<PropertyInfoVertex> GetOrBuildPaths(IEnumerable<Type> sourceTypes, Type searchType,

@@ -5,9 +5,11 @@ using Bars2Db.SqlQuery.Search.TypeGraph;
 
 namespace Bars2Db.SqlQuery.Search
 {
+    using System.Collections.Concurrent;
+
     public class SearchEngine<TBaseSearchInterface>
     {
-        private readonly Dictionary<TypeKey, Delegate> _delegateCache = new Dictionary<TypeKey, Delegate>();
+        private readonly ConcurrentDictionary<TypeKey, Delegate> _delegateCache = new ConcurrentDictionary<TypeKey, Delegate>();
         private readonly PathBuilder<TBaseSearchInterface> _pathBuilder;
 
         private SearchEngine()
@@ -40,15 +42,13 @@ namespace Bars2Db.SqlQuery.Search
             SearchStrategy<TElement, TResult> strategy) where TElement : class
         {
             var key = new TypeKey(strategy.GetType(), source.GetType(), typeof(TElement));
-            Delegate cachedDelegate;
-            if (!_delegateCache.TryGetValue(key, out cachedDelegate))
-            {
-                var paths = _pathBuilder.Find<TElement>(source);
-
-                var delegateConstructor = new DelegateConstructor<TElement, TResult>();
-                cachedDelegate = delegateConstructor.CreateResultDelegate(paths, strategy);
-                _delegateCache[key] = cachedDelegate;
-            }
+            Delegate cachedDelegate = _delegateCache.GetOrAdd(key,
+                typeKey =>
+                    {
+                        var paths = _pathBuilder.Find<TElement>(source);
+                        var delegateConstructor = new DelegateConstructor<TElement, TResult>();
+                        return delegateConstructor.CreateResultDelegate(paths, strategy);
+                    });
 
             return (ResultDelegate<TElement, TResult>) cachedDelegate;
         }
