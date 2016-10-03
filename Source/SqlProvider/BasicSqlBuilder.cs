@@ -920,8 +920,7 @@ namespace Bars2Db.SqlProvider
                 field.SystemType,
                 field.Length,
                 field.Precision,
-                field.Scale),
-                true);
+                field.Scale));
         }
 
         protected virtual void BuildCreateTableNullAttribute(ISqlField field, EDefaulNullable eDefaulNullable)
@@ -2080,7 +2079,7 @@ namespace Bars2Db.SqlProvider
 
         #region BuildDataType
 
-        protected virtual void BuildDataType(ISqlDataType type, bool createDbType = false)
+        protected virtual void BuildDataType(ISqlDataType type)
         {
             switch (type.DataType)
             {

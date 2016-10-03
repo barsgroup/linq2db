@@ -56,10 +56,13 @@ namespace Bars2Db.DataProvider.PostgreSQL
             return new PostgreSQLSqlBuilder(SqlOptimizer, SqlProviderFlags, ValueToSqlConverter);
         }
 
-        protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
+        protected override void BuildDataType(ISqlDataType type)
         {
             switch (type.DataType)
             {
+                case DataType.Guid:
+                    StringBuilder.Append("VarChar");
+                    break;
                 case DataType.SByte:
                 case DataType.Byte:
                     StringBuilder.Append("SmallInt");
@@ -190,9 +193,9 @@ namespace Bars2Db.DataProvider.PostgreSQL
         protected override void BuildParameter(ISqlParameter parm)
         {
             base.BuildParameter(parm);
-            if (parm.DataType == DataType.Hierarchical)
+            if (parm.DataType == DataType.Hierarchical || parm.Value == null)
             {
-                StringBuilder.Append(" ::");
+                StringBuilder.Append(" :: ");
                 BuildDataType(new SqlDataType(parm.DataType, parm.SystemType, parm.DbSize, parm.DbSize, parm.DbSize));
             }
         }

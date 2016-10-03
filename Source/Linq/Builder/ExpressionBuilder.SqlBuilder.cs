@@ -1660,32 +1660,14 @@ namespace Bars2Db.Linq.Builder
 
         #region ConvertCompare
 
+
+
         private ISqlPredicate ConvertCompare(IBuildContext context, ExpressionType nodeType, Expression left,
             Expression right)
         {
-            if (left.NodeType == ExpressionType.Convert && left.Type == typeof(int) &&
-                right.NodeType == ExpressionType.Constant)
-            {
-                var conv = (UnaryExpression) left;
+            ConvertConstantConversion(ref left, ref right);
 
-                if (conv.Operand.Type == typeof(char))
-                {
-                    left = conv.Operand;
-                    right = Expression.Constant(ConvertTo<char>.From(((ConstantExpression) right).Value));
-                }
-            }
-
-            if (right.NodeType == ExpressionType.Convert && right.Type == typeof(int) &&
-                left.NodeType == ExpressionType.Constant)
-            {
-                var conv = (UnaryExpression) right;
-
-                if (conv.Operand.Type == typeof(char))
-                {
-                    right = conv.Operand;
-                    left = Expression.Constant(ConvertTo<char>.From(((ConstantExpression) left).Value));
-                }
-            }
+            ConvertConstantConversion(ref right, ref left);
 
             switch (nodeType)
             {
@@ -1787,6 +1769,20 @@ namespace Bars2Db.Linq.Builder
                 r = Convert(context, new SqlFunction(typeof(bool), "CASE", r, new SqlValue(true), new SqlValue(false)));
 
             return Convert(context, new ExprExpr(l, op, r));
+        }
+
+        private static void ConvertConstantConversion(ref Expression first, ref Expression second)
+        {
+            if (first.NodeType == ExpressionType.Convert && second.NodeType == ExpressionType.Constant)
+            {
+                var conv = (UnaryExpression)first;
+
+                if (conv.Operand.Type == typeof(char))
+                {
+                    first = conv.Operand;
+                    second = Expression.Constant(ConvertTo<char>.From(((ConstantExpression)second).Value));
+                }
+            }
         }
 
         #endregion

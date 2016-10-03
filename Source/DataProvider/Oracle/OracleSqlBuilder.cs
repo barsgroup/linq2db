@@ -173,7 +173,7 @@ namespace Bars2Db.DataProvider.Oracle
             base.BuildFunction(func);
         }
 
-        protected override void BuildDataType(ISqlDataType type, bool createDbType = false)
+        protected override void BuildDataType(ISqlDataType type)
         {
             switch (type.DataType)
             {
