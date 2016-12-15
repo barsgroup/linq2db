@@ -824,6 +824,12 @@ namespace Bars2Db.Linq.Builder
                                 }
                             }
 
+                            var rootMemberExpression = memberExpression.GetRootObject();
+                            if (rootMemberExpression is ConstantExpression)
+                            {
+                                return new IsExpressionResult(false);
+                            }
+
                             return ProcessMemberAccess(
                                 expression,
                                 (MemberExpression) levelExpression,
