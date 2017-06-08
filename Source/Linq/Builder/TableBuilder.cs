@@ -309,12 +309,16 @@ namespace Bars2Db.Linq.Builder
 
                 // Original table is a parent.
                 //
-                if (ObjectType != OriginalType)
+                if (ObjectType == OriginalType)
                 {
-                    var predicate = Builder.MakeIsPredicate(this, OriginalType);
+                    return;
+                }
 
-                    if (!(predicate is IExpr))
-                        GetDescriminatorConditionsStorage().AddLast(new Condition(false, predicate));
+                var predicate = Builder.MakeIsPredicate(this, OriginalType);
+
+                if (predicate is IExpr)
+                {
+                    GetDescriminatorConditionsStorage().AddLast(new Condition(false, predicate));
                 }
             }
 
