@@ -15,7 +15,7 @@
 
         public virtual bool IsChildOf(Hierarchical hierarchical)
         {
-            return Content.StartsWith(hierarchical.Content) && !Content.Equals(hierarchical.Content);
+            return Content.StartsWith(hierarchical.Content) && Content != hierarchical.Content;
         }
 
         public virtual bool IsParentOf(Hierarchical hierarchical)
