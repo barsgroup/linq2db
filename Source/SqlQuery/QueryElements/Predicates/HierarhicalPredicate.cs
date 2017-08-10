@@ -37,11 +37,11 @@ namespace Bars2Db.SqlQuery.QueryElements.Predicates
             switch (Flow)
             {
                 case HierarhicalFlow.IsChildOf:
-                    return "<@";
+                    return "<";
                 case HierarhicalFlow.IsParentOf:
-                    return "@>";
+                    return ">";
                 case HierarhicalFlow.Contains:
-                    return "@";
+                    return "=";
             }
 
             throw new NotSupportedException();
