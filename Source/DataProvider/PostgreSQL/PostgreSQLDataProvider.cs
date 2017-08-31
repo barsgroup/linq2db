@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq.Expressions;
 using Bars2Db.Data;
 using Bars2Db.Expressions;
@@ -57,6 +58,12 @@ namespace Bars2Db.DataProvider.PostgreSQL
         protected override string ConnectionTypeName => "Npgsql.NpgsqlConnection, Npgsql";
 
         protected override string DataReaderTypeName => "Npgsql.NpgsqlDataReader, Npgsql";
+
+        public override bool? IsDBNullAllowed(IDataReader reader, int idx)
+        {  
+            var st = ((DbDataReader)reader).GetSchemaTable();
+            return st == null || st.Rows[idx]["AllowDBNull"] == DBNull.Value;
+        }
 
         protected override void OnConnectionTypeCreated(Type connectionType)
         {
