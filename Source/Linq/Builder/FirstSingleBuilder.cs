@@ -37,7 +37,14 @@ namespace Bars2Db.Linq.Builder
                     case "Single":
                     case "SingleOrDefault":
                         if (!buildInfo.IsSubQuery)
-                            take = 2;
+                        {
+                            if (buildInfo.SelectQuery.Select.TakeValue is SqlValue takeValue &&
+                                (int) takeValue.Value >= 2)
+                            {
+                                take = 2;
+                            }
+                        }
+
                         break;
                 }
 
