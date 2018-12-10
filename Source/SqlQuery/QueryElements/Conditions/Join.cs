@@ -11,7 +11,7 @@ namespace Bars2Db.SqlQuery.QueryElements.Conditions
     public class Join : ConditionBase<IJoin, Join.Next>,
         IJoin
     {
-        internal Join(EJoinType joinType, ISqlTableSource table, string alias, bool isWeak, IReadOnlyList<IJoin> joins)
+        internal Join(EJoinType joinType, ISqlTableSource table, string alias, bool isWeak, IList<IJoin> joins)
         {
             JoinedTable = new JoinedTable(joinType, table, alias, isWeak);
 

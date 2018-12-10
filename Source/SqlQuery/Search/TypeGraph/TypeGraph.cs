@@ -50,7 +50,7 @@ namespace Bars2Db.SqlQuery.Search.TypeGraph
                 }
 
                 var propertyInfos =
-                    intType.GetProperties().Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null);
+                    intType.GetProperties().Where(p => p.GetCustomAttributes(typeof(SearchContainerAttribute), true).Any());
                 foreach (var info in propertyInfos)
                 {
                     var propertyType = CollectionUtils.GetElementType(info.PropertyType);

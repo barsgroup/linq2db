@@ -67,6 +67,12 @@ namespace Bars2Db.DataProvider.Oracle
                 }
             }
 
+            if (to == typeof(Guid) && from == typeof(Array))
+            {
+                Expression<Func<byte[], Guid>> convertExpr= (arr) => new Guid(arr);
+                return Expression.Lambda<Func<byte[], Guid>>(convertExpr.Body, convertExpr.Parameters);
+            }
+
             return base.TryGetConvertExpression(from, to);
         }
 

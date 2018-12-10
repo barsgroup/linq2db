@@ -305,8 +305,15 @@ namespace Bars2Db.Data
             InitCommand(CommandType.Text, pq.Commands[0], null, pq.QueryHints);
 
             if (pq.Parameters != null)
+            {
                 foreach (var p in pq.Parameters)
-                    Command.Parameters.Add(p);
+                {
+                    if (p.Value != DBNull.Value)
+                    {
+                        Command.Parameters.Add(p);
+                    }
+                }
+            }
 
             return ExecuteReader();
         }

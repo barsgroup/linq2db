@@ -22,7 +22,7 @@ namespace Bars2Db.SqlQuery.Search
                 allTypes.Any(
                     t =>
                         t.IsGenericType &&
-                        t.GetProperties().Any(p => p.GetCustomAttribute<SearchContainerAttribute>() != null)))
+                        t.GetProperties().Any(p => p.GetCustomAttributes(typeof(SearchContainerAttribute), true).Any())))
             {
                 throw new NotSupportedException("SearchContainerAttribute in generic class");
             }
@@ -60,7 +60,7 @@ namespace Bars2Db.SqlQuery.Search
                     .ToList();
             var interfaces =
                 inter.SelectMany(t => t.GetProperties())
-                    .Where(p => p.GetCustomAttribute<SearchContainerAttribute>() != null)
+                    .Where(p => p.GetCustomAttributes(typeof(SearchContainerAttribute), true).Any())
                     .Select(p => p.DeclaringType)
                     .Concat(inter)
                     .Distinct();

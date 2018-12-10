@@ -2,7 +2,7 @@ namespace Bars2Db.Properties
 {
     public static class LinqToDBConstants
     {
-        public const string FullVersionString = "1.0.7.3";
+        public const string FullVersionString = "1.0.7.6";
 
         public const string ProductName = "Linq to DB";
         public const string ProductDescription = "Linq to DB";
