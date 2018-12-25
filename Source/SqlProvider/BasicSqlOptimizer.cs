@@ -1435,7 +1435,7 @@ namespace Bars2Db.SqlProvider
             if (replace)
                 alias = new string(cs).Replace(" ", "");
 
-            return alias.Length == 0 || alias.Length > maxLen
+            return alias.Length == 0 || alias.Length > maxLen || alias.All(char.IsDigit)
                 ? null
                 : alias;
         }
