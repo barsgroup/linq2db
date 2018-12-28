@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq.Expressions;
+using System.Reflection;
 using Bars2Db.Common;
 using Bars2Db.Data;
 using Bars2Db.Expressions;
@@ -269,9 +270,9 @@ namespace Bars2Db.DataProvider.Oracle
             }
 
             _setSingle = GetSetParameter(connectionType, "OracleParameter", "OracleDbType", "OracleDbType",
-                "BinaryFloat");
+                "BinaryFloat", alterValueName: "Single");
             _setDouble = GetSetParameter(connectionType, "OracleParameter", "OracleDbType", "OracleDbType",
-                "BinaryDouble");
+                "BinaryDouble", alterValueName: "Double");
             _setText = GetSetParameter(connectionType, "OracleParameter", "OracleDbType", "OracleDbType", "Clob");
             _setNText = GetSetParameter(connectionType, "OracleParameter", "OracleDbType", "OracleDbType", "NClob");
             _setImage = GetSetParameter(connectionType, "OracleParameter", "OracleDbType", "OracleDbType", "Blob");
@@ -286,30 +287,62 @@ namespace Bars2Db.DataProvider.Oracle
                 "TimeStampTZ");
             _setGuid = GetSetParameter(connectionType, "OracleParameter", "OracleDbType", "OracleDbType", "Raw");
 
-            MappingSchema.AddScalarType(_oracleBFile, GetNullValue(_oracleBFile), true, DataType.VarChar); // ?
-            MappingSchema.AddScalarType(_oracleBinary, GetNullValue(_oracleBinary), true, DataType.VarBinary);
-            MappingSchema.AddScalarType(_oracleBlob, GetNullValue(_oracleBlob), true, DataType.Blob); // ?
-            MappingSchema.AddScalarType(_oracleClob, GetNullValue(_oracleClob), true, DataType.NText);
-            MappingSchema.AddScalarType(_oracleDate, GetNullValue(_oracleDate), true, DataType.DateTime);
-            MappingSchema.AddScalarType(_oracleDecimal, GetNullValue(_oracleDecimal), true, DataType.Decimal);
-            MappingSchema.AddScalarType(_oracleIntervalDS, GetNullValue(_oracleIntervalDS), true, DataType.Time); // ?
-            MappingSchema.AddScalarType(_oracleIntervalYM, GetNullValue(_oracleIntervalYM), true, DataType.Date); // ?
-            MappingSchema.AddScalarType(_oracleRefCursor, GetNullValue(_oracleRefCursor), true, DataType.Binary); // ?
-            MappingSchema.AddScalarType(_oracleString, GetNullValue(_oracleString), true, DataType.NVarChar);
-            MappingSchema.AddScalarType(_oracleTimeStamp, GetNullValue(_oracleTimeStamp), true, DataType.DateTime2);
-            MappingSchema.AddScalarType(_oracleTimeStampLTZ, GetNullValue(_oracleTimeStampLTZ), true,
-                DataType.DateTimeOffset);
-            MappingSchema.AddScalarType(_oracleTimeStampTZ, GetNullValue(_oracleTimeStampTZ), true,
-                DataType.DateTimeOffset);
+            if (connectionType.Assembly.GetName().Version.Major==10)
+            {
+                MappingSchema.AddScalarType(_oracleBFile, null, true, DataType.VarChar);
+                MappingSchema.AddScalarType(_oracleBinary, GetNullValue(_oracleBinary), true, DataType.VarBinary);
+                MappingSchema.AddScalarType(_oracleBlob, null, true, DataType.Blob);
+                MappingSchema.AddScalarType(_oracleClob, null, true, DataType.NText);
+                MappingSchema.AddScalarType(_oracleDate, GetNullValue(_oracleDate), true, DataType.DateTime);
+                MappingSchema.AddScalarType(_oracleDecimal, GetNullValue(_oracleDecimal), true, DataType.Decimal);
+                MappingSchema.AddScalarType(_oracleIntervalDS, GetNullValue(_oracleIntervalDS), true, DataType.Time);
+                MappingSchema.AddScalarType(_oracleIntervalYM, GetNullValue(_oracleIntervalYM), true, DataType.Date);
+                
+                MappingSchema.AddScalarType(_oracleRefCursor, null, true, DataType.Binary);
+                MappingSchema.AddScalarType(_oracleString, GetNullValue(_oracleString), true, DataType.NVarChar);
+                MappingSchema.AddScalarType(_oracleTimeStamp, GetNullValue(_oracleTimeStamp), true, DataType.DateTime2);
+                MappingSchema.AddScalarType(_oracleTimeStampLTZ, GetNullValue(_oracleTimeStampLTZ), true,
+                    DataType.DateTimeOffset);
+                MappingSchema.AddScalarType(_oracleTimeStampTZ, GetNullValue(_oracleTimeStampTZ), true,
+                    DataType.DateTimeOffset);
 
-            if (_oracleRef != null)
-                MappingSchema.AddScalarType(_oracleRef, GetNullValue(_oracleRef), true, DataType.Binary); // ?
+                if (_oracleXmlType != null)
+                    MappingSchema.AddScalarType(_oracleXmlType, null, true, DataType.Xml);
 
-            if (_oracleXmlType != null)
-                MappingSchema.AddScalarType(_oracleXmlType, GetNullValue(_oracleXmlType), true, DataType.Xml);
+                if (_oracleXmlStream != null)
+                    MappingSchema.AddScalarType(_oracleXmlStream, null, true, DataType.Xml);
+            }
+            else
+            {
+                MappingSchema.AddScalarType(_oracleBFile, GetNullValue(_oracleBFile), true, DataType.VarChar); // ?
+                MappingSchema.AddScalarType(_oracleBinary, GetNullValue(_oracleBinary), true, DataType.VarBinary);
+                MappingSchema.AddScalarType(_oracleBlob, GetNullValue(_oracleBlob), true, DataType.Blob); // ?
+                MappingSchema.AddScalarType(_oracleClob, GetNullValue(_oracleClob), true, DataType.NText);
+                MappingSchema.AddScalarType(_oracleDate, GetNullValue(_oracleDate), true, DataType.DateTime);
+                MappingSchema.AddScalarType(_oracleDecimal, GetNullValue(_oracleDecimal), true, DataType.Decimal);
+                MappingSchema.AddScalarType(_oracleIntervalDS, GetNullValue(_oracleIntervalDS), true,
+                    DataType.Time); // ?
+                MappingSchema.AddScalarType(_oracleIntervalYM, GetNullValue(_oracleIntervalYM), true,
+                    DataType.Date); // ?
+                MappingSchema.AddScalarType(_oracleRefCursor, GetNullValue(_oracleRefCursor), true,
+                    DataType.Binary); // ?
+                MappingSchema.AddScalarType(_oracleString, GetNullValue(_oracleString), true, DataType.NVarChar);
+                MappingSchema.AddScalarType(_oracleTimeStamp, GetNullValue(_oracleTimeStamp), true, DataType.DateTime2);
+                MappingSchema.AddScalarType(_oracleTimeStampLTZ, GetNullValue(_oracleTimeStampLTZ), true,
+                    DataType.DateTimeOffset);
+                MappingSchema.AddScalarType(_oracleTimeStampTZ, GetNullValue(_oracleTimeStampTZ), true,
+                    DataType.DateTimeOffset);
 
-            if (_oracleXmlStream != null)
-                MappingSchema.AddScalarType(_oracleXmlStream, GetNullValue(_oracleXmlStream), true, DataType.Xml); // ?
+                if (_oracleRef != null)
+                    MappingSchema.AddScalarType(_oracleRef, GetNullValue(_oracleRef), true, DataType.Binary); // ?
+
+                if (_oracleXmlType != null)
+                    MappingSchema.AddScalarType(_oracleXmlType, GetNullValue(_oracleXmlType), true, DataType.Xml);
+
+                if (_oracleXmlStream != null)
+                    MappingSchema.AddScalarType(_oracleXmlStream, GetNullValue(_oracleXmlStream), true,
+                        DataType.Xml); // ?
+            }
         }
 
         private static object GetNullValue(Type type)

@@ -81,7 +81,7 @@ namespace Bars2Db.DataProvider
         protected Action<IDbDataParameter> GetSetParameter(
             Type connectionType,
             //   ((FbParameter)parameter).   FbDbType =           FbDbType.          TimeStamp;
-            string parameterTypeName, string propertyName, string dbTypeName, string valueName)
+            string parameterTypeName, string propertyName, string dbTypeName, string valueName, string alterValueName = null)
         {
             var pType =
                 connectionType.Assembly.GetType(
@@ -91,8 +91,18 @@ namespace Bars2Db.DataProvider
             var dbType =
                 connectionType.Assembly.GetType(
                     dbTypeName.Contains(".") ? dbTypeName : connectionType.Namespace + "." + dbTypeName, true);
-            var value = Enum.Parse(dbType, valueName);
 
+            object value = null;
+
+            if (Enum.IsDefined(dbType, valueName))
+            {
+                value = Enum.Parse(dbType, valueName);
+            }
+            else if (alterValueName != null)
+            {
+                value = Enum.Parse(dbType, alterValueName);
+            }
+            
             var p = Expression.Parameter(typeof(IDbDataParameter));
             var l = Expression.Lambda<Action<IDbDataParameter>>(
                 Expression.Assign(

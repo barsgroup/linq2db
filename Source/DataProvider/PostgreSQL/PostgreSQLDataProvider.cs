@@ -61,7 +61,7 @@ namespace Bars2Db.DataProvider.PostgreSQL
 
         public override bool? IsDBNullAllowed(IDataReader reader, int idx)
         {  
-            var st = ((DbDataReader)reader).GetSchemaTable();
+            var st = reader.GetSchemaTable();
             return st == null || st.Rows[idx]["AllowDBNull"] == DBNull.Value;
         }
 

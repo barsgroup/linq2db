@@ -163,16 +163,16 @@ namespace Bars2Db.DataProvider
         public virtual Expression GetReaderExpression(MappingSchema mappingSchema, IDataReader reader, int idx,
             Expression readerExpression, Type toType)
         {
-            var fieldType = ((DbDataReader) reader).GetFieldType(idx);
-            var providerType = ((DbDataReader) reader).GetProviderSpecificFieldType(idx);
-            var typeName = ((DbDataReader) reader).GetDataTypeName(idx);
+            var fieldType = reader.GetFieldType(idx);
+            var providerType = reader.GetFieldType(idx);
+            var typeName = reader.GetDataTypeName(idx);
 
             if (fieldType == null)
             {
                 throw new LinqToDBException("Can't create '{0}' type or '{1}' specific type for {2}.".Args(
                     typeName,
                     providerType,
-                    ((DbDataReader) reader).GetName(idx)));
+                    reader.GetName(idx)));
             }
 
             Expression expr;
@@ -211,7 +211,7 @@ namespace Bars2Db.DataProvider
 
         public virtual bool? IsDBNullAllowed(IDataReader reader, int idx)
         {
-            var st = ((DbDataReader) reader).GetSchemaTable();
+            var st = reader.GetSchemaTable();
             return st == null || (bool) st.Rows[idx]["AllowDBNull"];
         }
 
